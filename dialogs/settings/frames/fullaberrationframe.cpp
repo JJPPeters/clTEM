@@ -1,0 +1,240 @@
+#include "fullaberrationframe.h"
+#include "ui_fullaberrationframe.h"
+
+#include <QtGui/QRegExpValidator>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMessageBox>
+#include <utilities/stringutils.h>
+#include <dialogs/settings/settingsdialog.h>
+
+#include "utilities/commonstructs.h"
+
+FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<MicroscopeParameters> params) :
+    QWidget(parent),
+    ui(new Ui::FullAberrationFrame)
+{
+    ui->setupUi(this);
+
+    MicroParams = params;
+
+    connect(ui->edtAperture, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtDefocusSpread, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtConverge, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtVoltage, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+
+    setValidators();
+    setValues();
+
+    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
+    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
+    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+}
+
+void FullAberrationFrame::setValidators()
+{
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+
+    ui->edtVoltage->setValidator(pValidator);
+    ui->edtAperture->setValidator(pValidator);
+    ui->edtDefocusSpread->setValidator(pValidator);
+    ui->edtConverge->setValidator(pValidator);
+
+    ui->edtC10->setValidator(pValidator);
+    ui->edtC12Mag->setValidator(pValidator);
+    ui->edtC12Ang->setValidator(pValidator);
+
+    ui->edtC21Mag->setValidator(pValidator);
+    ui->edtC21Ang->setValidator(pValidator);
+    ui->edtC23Mag->setValidator(pValidator);
+    ui->edtC23Ang->setValidator(pValidator);
+
+    ui->edtC30->setValidator(pValidator);
+    ui->edtC32Mag->setValidator(pValidator);
+    ui->edtC32Ang->setValidator(pValidator);
+    ui->edtC34Mag->setValidator(pValidator);
+    ui->edtC34Ang->setValidator(pValidator);
+
+    ui->edtC41Mag->setValidator(pValidator);
+    ui->edtC41Ang->setValidator(pValidator);
+    ui->edtC43Mag->setValidator(pValidator);
+    ui->edtC43Ang->setValidator(pValidator);
+    ui->edtC45Mag->setValidator(pValidator);
+    ui->edtC45Ang->setValidator(pValidator);
+
+    ui->edtC50->setValidator(pValidator);
+    ui->edtC52Mag->setValidator(pValidator);
+    ui->edtC52Ang->setValidator(pValidator);
+    ui->edtC54Mag->setValidator(pValidator);
+    ui->edtC54Ang->setValidator(pValidator);
+    ui->edtC56Mag->setValidator(pValidator);
+    ui->edtC56Ang->setValidator(pValidator);
+}
+
+void FullAberrationFrame::setValues()
+{
+    // this is fun, right?
+    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(MicroParams->Voltage)));
+    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(MicroParams->Aperture)));
+    ui->edtDefocusSpread->setText(QString::fromStdString(Utils::numToString(MicroParams->Delta)));
+    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(MicroParams->Alpha)));
+
+    ui->edtC10->setText(QString::fromStdString(Utils::numToString(MicroParams->C10)));
+    ui->edtC12Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C12.Mag)));
+    ui->edtC12Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C12.Ang)));
+
+    ui->edtC21Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C21.Mag)));
+    ui->edtC21Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C21.Ang)));
+    ui->edtC23Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C23.Mag)));
+    ui->edtC23Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C23.Ang)));
+
+    ui->edtC30->setText(QString::fromStdString(Utils::numToString(MicroParams->C30)));
+    ui->edtC32Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C32.Mag)));
+    ui->edtC32Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C32.Ang)));
+    ui->edtC34Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C34.Mag)));
+    ui->edtC34Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C34.Ang)));
+
+    ui->edtC41Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C41.Mag)));
+    ui->edtC41Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C41.Ang)));
+    ui->edtC43Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C43.Mag)));
+    ui->edtC43Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C43.Ang)));
+    ui->edtC45Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C45.Mag)));
+    ui->edtC45Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C45.Ang)));
+
+    ui->edtC50->setText(QString::fromStdString(Utils::numToString(MicroParams->C50)));
+    ui->edtC52Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C52.Mag)));
+    ui->edtC52Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang)));
+    ui->edtC54Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C54.Mag)));
+    ui->edtC54Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang)));
+    ui->edtC56Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C56.Mag)));
+    ui->edtC56Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang)));
+}
+
+FullAberrationFrame::~FullAberrationFrame()
+{
+    delete ui;
+}
+
+void FullAberrationFrame::checkEditZero(QString dud)
+{
+    QLineEdit* edt = qobject_cast<QLineEdit*>(sender());
+
+    if(edt == NULL)
+        return;
+
+    float val = edt->text().toFloat();
+
+    if (val <= 0)
+        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
+    else
+        edt->setStyleSheet("");
+}
+
+void FullAberrationFrame::dlgCancel_clicked()
+{
+    // don't need to do anything, just return
+    AberrationsDialog* dlg = static_cast<AberrationsDialog*>(parentWidget());
+    dlg->reject();
+}
+
+void FullAberrationFrame::dlgOk_clicked()
+{
+    // same as clicking apply then closing the dialog
+    if(dlgApply_clicked())
+    {
+        AberrationsDialog* dlg = static_cast<AberrationsDialog*>(parentWidget());
+        dlg->accept();
+    }
+}
+
+bool FullAberrationFrame::dlgApply_clicked()
+{
+    // this is a pain, just need to test to see if our aberrations are valid (only the 4 that need to be non-zero)
+    // then just copy all the aberrations to a new class and send it off...
+    // woo!
+
+    float voltage = ui->edtVoltage->text().toFloat();
+    float dfSpread = ui->edtDefocusSpread->text().toFloat();
+    float apert = ui->edtAperture->text().toFloat();
+    float converge = ui->edtConverge->text().toFloat();
+
+    // TODO: show error here or just when simulation is started
+//    if (voltage <= 0 || dfSpread <= 0 || apert <= 0 || converge <= 0)
+//    {
+//        QMessageBox::warning(this, tr("Aberrations"), tr("Warning:\nVoltage, aperture, convergence and Δ must all be non-zero."), QMessageBox::Ok);
+//        return false;
+//    }
+
+    float C10 = ui->edtC10->text().toFloat();
+    float C12m = ui->edtC12Mag->text().toFloat();
+    float C12a = ui->edtC12Ang->text().toFloat() * Constants::Pi / 180;
+
+    float C21m = ui->edtC21Mag->text().toFloat();
+    float C21a = ui->edtC21Ang->text().toFloat() * Constants::Pi / 180;
+    float C23m = ui->edtC23Mag->text().toFloat();
+    float C23a = ui->edtC23Ang->text().toFloat() * Constants::Pi / 180;
+
+    float C30 = ui->edtC30->text().toFloat();
+    float C32m = ui->edtC32Mag->text().toFloat();
+    float C32a = ui->edtC32Ang->text().toFloat() * Constants::Pi / 180;
+    float C34m = ui->edtC34Mag->text().toFloat();
+    float C34a = ui->edtC34Ang->text().toFloat() * Constants::Pi / 180;
+
+    float C41m = ui->edtC41Mag->text().toFloat();
+    float C41a = ui->edtC41Ang->text().toFloat() * Constants::Pi / 180;
+    float C43m = ui->edtC43Mag->text().toFloat();
+    float C43a = ui->edtC43Ang->text().toFloat() * Constants::Pi / 180;
+    float C45m = ui->edtC45Mag->text().toFloat();
+    float C45a = ui->edtC45Ang->text().toFloat() * Constants::Pi / 180;
+
+    float C50 = ui->edtC50->text().toFloat();
+    float C52m = ui->edtC52Mag->text().toFloat();
+    float C52a = ui->edtC52Ang->text().toFloat() * Constants::Pi / 180;
+    float C54m = ui->edtC54Mag->text().toFloat();
+    float C54a = ui->edtC54Ang->text().toFloat() * Constants::Pi / 180;
+    float C56m = ui->edtC56Mag->text().toFloat();
+    float C56a = ui->edtC56Ang->text().toFloat() * Constants::Pi / 180;
+
+    // now we have all the data, assign it to our class storing everything
+
+    MicroParams->Voltage = voltage;
+    MicroParams->Aperture = apert;
+    MicroParams->Delta = dfSpread;
+    MicroParams->Alpha = converge;
+
+    MicroParams->C10 = C10;
+    MicroParams->C12 = ComplexAberration(C12m, C12a);
+
+    MicroParams->C21 = ComplexAberration(C21m, C21a);
+    MicroParams->C23 = ComplexAberration(C23m, C23a);
+
+    MicroParams->C30 = C30;
+    MicroParams->C32 = ComplexAberration(C32m, C32a);
+    MicroParams->C34 = ComplexAberration(C34m, C34a);
+
+    MicroParams->C41 = ComplexAberration(C41m, C41a);
+    MicroParams->C43 = ComplexAberration(C43m, C43a);
+    MicroParams->C45 = ComplexAberration(C45m, C45a);
+
+    MicroParams->C50 = C50;
+    MicroParams->C52 = ComplexAberration(C52m, C52a);
+    MicroParams->C54 = ComplexAberration(C54m, C54a);
+    MicroParams->C56 = ComplexAberration(C56m, C56a);
+
+    emit aberrationsApplied();
+
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

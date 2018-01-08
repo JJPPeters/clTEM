@@ -1,0 +1,148 @@
+#ifndef SETTINGSDIALOG_H
+#define SETTINGSDIALOG_H
+
+#include <QDialog>
+#include <dialogs/settings/frames/simareaframe.h>
+#include <dialogs/settings/frames/stemdetectorframe.h>
+#include <dialogs/settings/frames/stemareaframe.h>
+#include <structure/crystalstructure.h>
+
+#include "frames/openclframe.h"
+#include "frames/fullaberrationframe.h"
+
+namespace Ui {
+class SettingsDialog;
+}
+
+class SettingsDialog : public QDialog
+{
+    Q_OBJECT
+
+signals:
+    void okSignal();
+    void cancelSignal();
+    void applySignal();
+
+public:
+    explicit SettingsDialog(QWidget *parent = 0);
+    ~SettingsDialog();
+
+private slots:
+    void on_btnCancel_clicked();
+
+    void on_BtnApply_clicked();
+
+    void on_btnOk_clicked();
+
+protected:
+    Ui::SettingsDialog *ui;
+};
+
+
+
+
+class OpenClDialog : public SettingsDialog
+{
+    Q_OBJECT
+
+private:
+    OpenClFrame* OClFrame;
+
+public:
+    explicit OpenClDialog(QWidget *parent, std::vector<clDevice> current_devices);
+
+    std::tuple<std::vector<clDevice>, std::vector<float>> getChosenDevices();
+};
+
+
+
+
+class AberrationsDialog : public SettingsDialog
+{
+    Q_OBJECT
+
+signals:
+    // this signal is picked up by the mainwindow aberrations frame
+    void aberrationsChanged();
+
+private:
+    FullAberrationFrame* AberrFrame;
+
+private slots:
+    // this slot gets the signal from the fullaberrationsframe
+    void coreAberrationsChanged();
+
+public:
+    explicit AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
+
+};
+
+
+
+
+class SimAreaDialog : public SettingsDialog
+{
+Q_OBJECT
+
+signals:
+    // this signal is picked up by the mainwindow aberrations frame
+    void simAreaChanged();
+
+private:
+    SimAreaFrame* AreaFrame;
+
+private slots:
+    // this slot gets the signal from the fullaberrationsframe
+    void coreSimAreaChanged();
+
+public:
+    explicit SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationArea> simArea, std::shared_ptr<CrystalStructure> structure);
+
+};
+
+
+
+
+class StemDetectorDialog : public SettingsDialog
+{
+Q_OBJECT
+
+signals:
+    // this signal is picked up by the mainwindow aberrations frame
+    void detectorsChanged();
+
+private:
+    StemDetectorFrame* DetFrame;
+
+private slots:
+    // this slot gets the signal from the fullaberrationsframe
+    void coreDetectorsChanged();
+
+public:
+    explicit StemDetectorDialog(QWidget *parent, std::vector<StemDetector>& dets);
+
+};
+
+
+
+
+class StemAreaDialog : public SettingsDialog
+{
+Q_OBJECT
+
+signals:
+    void stemAreaChanged();
+
+private:
+    StemAreaFrame* AreaFrame;
+
+private slots:
+    void coreStemAreaChanged();
+
+public:
+    explicit StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> stem, std::shared_ptr<SimulationArea> sim);
+
+};
+
+
+#endif // SETTINGSDIALOG_H

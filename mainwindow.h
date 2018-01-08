@@ -1,0 +1,88 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <controls/statuslayout.h>
+
+#include "simulationmanager.h"
+#include "simulationthread.h"
+
+
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+signals:
+    void sliceProgressUpdated(float);
+    void totalProgressUpdated(float);
+
+    void imagesReturned(std::map<std::string, Image<float>>);
+
+public:
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+
+    std::shared_ptr<SimulationManager> Manager;
+
+    std::shared_ptr<MicroscopeParameters> getMicroscopeParams() {return Manager->getMicroscopeParams();}
+    std::shared_ptr<CrystalStructure> getStructure() {return Manager->getStructure();}
+    std::shared_ptr<SimulationArea> getSimulationArea() {return Manager->getSimulationArea();}
+    std::vector<StemDetector>& getDetectors() {return Manager->getDetectors();}
+    std::shared_ptr<StemArea> getStemArea() {return Manager->getStemArea();}
+
+    void setDetectors();
+
+    void updateScales();
+    void updateRanges();
+
+    void updateSlicesProgress(float prog);
+    void updateTotalProgress(float prog);
+
+    void updateImages(std::map<std::string, Image<float>> ims);
+
+private slots:
+    void on_actionOpen_triggered();
+
+    void on_actionOpenCL_triggered();
+
+    void on_actionSimulate_EW_triggered();
+
+    void cancel_simulation();
+
+    void resolution_changed(int resolution);
+
+    void on_twMode_currentChanged(int index);
+
+    void sliceProgressChanged(float prog);
+
+    void totalProgressChanged(float prog);
+
+    void imagesChanged(std::map<std::string, Image<float>> ims);
+
+    void setUiActive(bool active);
+
+    void simulationComplete();
+
+private:
+    Ui::MainWindow *ui;
+
+    StatusLayout* StatusBar;
+
+    QMutex Progress_Mutex, Image_Mutex;
+
+    std::shared_ptr<SimulationThread> SimThread;
+
+    std::tuple<std::vector<clDevice>, std::vector<float>> Devices;
+
+    void loadSavedOpenClSettings();
+
+    bool checkSimulationPrerequisites();
+
+    void loadExternalSources();
+};
+
+#endif // MAINWINDOW_H
