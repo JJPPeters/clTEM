@@ -11,7 +11,7 @@ std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
-                                         blocks_x(80), blocks_y(80)
+                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f)
 {
     // Here is where the default values are set!
     MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);
@@ -206,13 +206,7 @@ void SimulationManager::round_padding()
     float dim = std::max(xw, yw);
     int res = getResolution();
 
-    float pd = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
-
-    float n_f = (pd * res) / (dim + pd);
-    auto n = (int) std::ceil(n_f);
-
-    float padding = dim / ( (res / n) - 1 ); // this is total padding
-    padding /= 2;
+    float padding = calculateRoundedPadding(dim, res);
 
     padding_x = {-padding, padding};
     padding_y = {-padding, padding};
@@ -236,4 +230,27 @@ std::valarray<float> SimulationManager::getSimLimitsY()
         return {CbedPos->getYPos(), CbedPos->getYPos()};
     else
         return SimArea->getLimitsY();
+}
+
+float SimulationManager::calculatePaddedRealScale(float range, int resolution, bool round_padding) {
+
+    float padding = 0.0f;
+    if (round_padding)
+        padding = 2 * calculateRoundedPadding(range, resolution);
+    else
+        padding = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
+
+    return (range + 2 * padding) / (float) resolution;
+}
+
+float SimulationManager::calculateRoundedPadding(float range, int resolution)
+{
+    float pd = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
+
+    float n_f = (pd * resolution) / (range + pd);
+    float n = (int) std::ceil(n_f);
+
+    // had some integer rouding errors so made everything a float...
+    float padding = range / ( ((float) resolution / (float) n) - 1 ); // this is total padding
+    return padding / 2;
 }

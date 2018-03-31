@@ -1,3 +1,4 @@
+#include <simulation/simulationmanager.h>
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
@@ -72,17 +73,16 @@ void AberrationsDialog::coreAberrationsChanged()
 
 
 
-SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationArea> simArea, std::shared_ptr<CrystalStructure> structure) :
-        SettingsDialog(parent)
+SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) : SettingsDialog(parent)
 {
-    AreaFrame = new SimAreaFrame(this, simArea, structure);
-    ui->vLayout->insertWidget(0, AreaFrame);
+    LayoutFrame = new AreaLayoutFrame(this, simManager);
+    ui->vLayout->insertWidget(0, LayoutFrame);
 
     this->setWindowTitle("Simulation area");
 
-    connect(AreaFrame, SIGNAL(areaChanged()), this, SLOT(coreSimAreaChanged()));
+    connect(LayoutFrame, SIGNAL(areaChanged()), this, SLOT(coreSimAreaChanged()));
 
-    this->setFixedSize(this->minimumSizeHint());;
+    this->setFixedSize(this->sizeHint());
 }
 
 void SimAreaDialog::coreSimAreaChanged()
@@ -101,7 +101,7 @@ StemDetectorDialog::StemDetectorDialog(QWidget *parent, std::vector<StemDetector
 
     connect(DetFrame, SIGNAL(detectorsChanged()), this, SLOT(coreDetectorsChanged()));
 
-    this->setFixedSize(this->minimumSizeHint());;
+    this->setFixedSize(this->minimumSizeHint());
 }
 
 void StemDetectorDialog::coreDetectorsChanged()
@@ -118,12 +118,12 @@ void StemAreaDialog::coreStemAreaChanged()
 
 StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, std::shared_ptr<SimulationArea> sim)
 {
-    AreaFrame = new StemAreaFrame(this, area, sim);
-    ui->vLayout->insertWidget(0, AreaFrame);
+    //AreaFrame = new StemAreaFrame(this, area, sim);
+    //ui->vLayout->insertWidget(0, AreaFrame);
 
     this->setWindowTitle("STEM area");
 
-    connect(AreaFrame, SIGNAL(areaChanged()), this, SLOT(coreStemAreaChanged()));
+    //connect(AreaFrame, SIGNAL(areaChanged()), this, SLOT(coreStemAreaChanged()));
 
-    this->setFixedSize(this->minimumSizeHint());;
+    this->setFixedSize(this->minimumSizeHint());
 }

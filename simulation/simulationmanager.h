@@ -27,7 +27,8 @@ public:
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressReporter(sm.progressReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
-              blocks_x(sm.blocks_x), blocks_y(sm.blocks_y)
+              blocks_x(sm.blocks_x), blocks_y(sm.blocks_y),
+              maxReciprocalFactor(sm.maxReciprocalFactor)
     {
         Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
@@ -85,6 +86,7 @@ public:
 //    std::valarray<float> getPaddedSimLimitsX() {return SimArea->getLimitsX() + padding_x;}
 //    std::valarray<float> getPaddedSimLimitsY() {return SimArea->getLimitsY() + padding_y;}
 
+    float calculatePaddedRealScale(float range, int resolution, bool round_padding = false);
 
     float getSliceThickness() {return slice_dz;}
 
@@ -107,6 +109,7 @@ public:
     float getRealScale();
     float getInverseScale();
     float getInverseMax();
+    float getInverseLimitFactor() {return maxReciprocalFactor;}
 
     float getKiloVoltage() {return MicroParams->Voltage;}
     float getVoltage() {return MicroParams->Voltage * 1000;}
@@ -135,6 +138,7 @@ public:
     void reportProgress(float prog);
 
     void round_padding();
+    float calculateRoundedPadding(float range, int resolution);
 
 private:
     static std::valarray<float> const default_xy_padding;
@@ -153,6 +157,8 @@ private:
     unsigned int Resolution;
     unsigned int TdsRuns;
     bool TdsEnabled;
+
+    float maxReciprocalFactor;
 
     // STEM only
     unsigned int numParallelPixels;

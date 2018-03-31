@@ -417,8 +417,8 @@ void SimulationWorker::initialiseSimulation()
 
     // k not k^2.
     // previously had limited to 1/2, but Kirkland pg 159 says 2/3
-    // Kirkland's code seems to use 1/2 however so will use that.
-    bandwidthkmax = std::sqrt(bandwidthkmax) * 2.0f / 3.0f;
+    // Kirkland's code seems to use 1/2 however...
+    bandwidthkmax = std::sqrt(bandwidthkmax) * job->simManager->getInverseLimitFactor();
 
     // write our frequencies to OpenCL buffers
     clXFrequencies = ctx.CreateBuffer<float, Manual>(resolution);

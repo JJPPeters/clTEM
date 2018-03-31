@@ -12,7 +12,9 @@
 #include <vector>
 #include <QApplication>
 
-struct Utils
+#include "utilities/stringutils.h"
+
+namespace Utils
 {
     static std::string resourceToChar(std::string folder, std::string resourcePath)
     {
@@ -37,7 +39,7 @@ struct Utils
     static std::vector<float> paramsToVector(std::string paramsName, std::string folder = "params")
     {
         std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
-//        return Utils::resourceToChar("params", paramsName);
+//        return utils::resourceToChar("params", paramsName);
         std::ifstream inStream(exe_path + "/" + folder + "/" + paramsName);
         std::vector<float> out;
         float p;
@@ -48,6 +50,11 @@ struct Utils
         inStream.close();
 
         return out;
+    }
+
+    template <typename T>
+    static QString numToQString(T num, int prec = 10, bool isFixed = false) {
+        return QString::fromStdString(Utils::numToString(num, prec, isFixed));
     }
 };
 

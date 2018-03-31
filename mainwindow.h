@@ -3,10 +3,17 @@
 
 #include <QMainWindow>
 #include <controls/statuslayout.h>
+#include <frames/simulationframe.h>
+#include <frames/stemframe.h>
+#include <frames/cbedframe.h>
 
 #include "simulationmanager.h"
 #include "simulationthread.h"
 
+
+class CbedFrame;
+class SimulationFrame;
+class StemFrame;
 
 namespace Ui {
 class MainWindow;
@@ -44,7 +51,14 @@ public:
 
     void updateImages(std::map<std::string, Image<float>> ims);
 
+    // these are to make conencting some signals/slots in dialogs much easier
+    SimulationFrame* getSimulationFrame();
+    StemFrame* getStemFrame();
+    CbedFrame* getCbedFrame();
+
 private slots:
+    void set_active_mode(int mode);
+
     void on_actionOpen_triggered();
 
     void on_actionOpenCL_triggered();

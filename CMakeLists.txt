@@ -58,10 +58,12 @@ set ( clTEM_SRCS
 		dialogs/settings/settingsdialog.cpp
 		dialogs/settings/frames/openclframe.cpp
 		dialogs/settings/frames/fullaberrationframe.cpp
-		dialogs/settings/frames/simareaframe.cpp
+        dialogs/settings/frames/ctemareaframe.cpp
 		dialogs/settings/frames/stemareaframe.cpp
+        dialogs/settings/frames/cbedareaframe.cpp
 		dialogs/settings/frames/stemdetectorframe.cpp
-        Utils/stringutils.cpp Utils/stringutils.h)
+		dialogs/settings/frames/arealayoutframe.cpp
+        utils/stringutils.cpp utils/stringutils.h)
 
 #set ( Strainpp_RSCS
 #		simulationresource.qrc
@@ -80,9 +82,11 @@ set ( clTEM_UIS
 		dialogs/settings/settingsdialog.ui
 		dialogs/settings/frames/openclframe.ui
 		dialogs/settings/frames/fullaberrationframe.ui
-		dialogs/settings/frames/simareaframe.ui
-		dialogs/settings/frames/stemareaframe.ui
 		dialogs/settings/frames/stemdetectorframe.ui
+        dialogs/settings/frames/ctemareaframe.ui
+        dialogs/settings/frames/stemareaframe.ui
+        dialogs/settings/frames/cbedareaframe.ui
+		dialogs/settings/frames/arealayoutframe.ui
 	)
 
 QT5_WRAP_UI(UIS ${clTEM_UIS})

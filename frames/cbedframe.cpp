@@ -1,3 +1,5 @@
+#include <QtGui/QRegExpValidator>
+#include <utils/stringutils.h>
 #include "cbedframe.h"
 #include "ui_cbedframe.h"
 
@@ -36,17 +38,9 @@ void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    auto r = Main->getSimulationArea()->getLimitsY();
-
     float v = arg1.toFloat();
 
-    if (v < r[0] || v > r[1])
-        ui->edtPosY->setStyleSheet("color: #FF8C00");
-    else
-    {
-        ui->edtPosY->setStyleSheet("");
-        Main->Manager->getCBedPosition()->setYPos(v);
-    }
+    Main->Manager->getCBedPosition()->setYPos(v);
 }
 
 void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
@@ -54,17 +48,9 @@ void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    auto r = Main->getSimulationArea()->getLimitsX();
-
     float v = arg1.toFloat();
 
-    if (v < r[0] || v > r[1])
-        ui->edtPosX->setStyleSheet("color: #FF8C00");
-    else
-    {
-        ui->edtPosX->setStyleSheet("");
-        Main->Manager->getCBedPosition()->setXPos(v);
-    }
+    Main->Manager->getCBedPosition()->setXPos(v);
 }
 
 void CbedFrame::on_btnSim_clicked()
@@ -99,4 +85,15 @@ void CbedFrame::setActive(bool active)
 void CbedFrame::on_btnCancel_clicked()
 {
     emit stopSim();
+}
+
+void CbedFrame::update_text_boxes()
+{
+    if (Main == 0)
+        throw std::runtime_error("Error connecting CBED frame to main window.");
+
+    int edt_precision = 5;
+
+    ui->edtPosX->setText( Utils::numToQString(Main->Manager->getCBedPosition()->getXPos(), edt_precision) );
+    ui->edtPosY->setText( Utils::numToQString(Main->Manager->getCBedPosition()->getYPos(), edt_precision) );
 }

@@ -15,34 +15,42 @@ class StemAreaFrame : public QWidget
 
 signals:
     void areaChanged();
+    void applyChanges();
 
 public:
-    explicit StemAreaFrame(QWidget *parent, std::shared_ptr<StemArea> stem, std::shared_ptr<SimulationArea> sim);
+//    explicit StemAreaFrame(QWidget *parent, std::shared_ptr<StemArea> stem, std::shared_ptr<SimulationArea> sim);
+    explicit StemAreaFrame(QWidget *parent, StemArea sa);
 
     ~StemAreaFrame();
 
+    StemArea getStemArea();
+
+    void updateCurrentArea(StemArea new_area) {Area = new_area;}
+
 private slots:
+    void valuesChanged(QString dud);
+
+    void xStartRangeChanged(QString dud);
+    void xFinishChanged(QString dud);
+
+    void yStartRangeChanged(QString dud);
+    void yFinishChanged(QString dud);
+
     void on_btnReset_clicked();
 
-    void checkEditZero(QString dud);
-
-    void checkValidX(QString dud);
-    void checkValidY(QString dud);
-
-    void checkRangeValid(QLineEdit* start, QLineEdit* finish, float simStart, float simFinish);
-
-    void dlgOk_clicked();
-
-    bool dlgApply_clicked();
-
-    void dlgCancel_clicked();
+    void on_btnApply_clicked() {emit applyChanges();}
 
 private:
     Ui::StemAreaFrame *ui;
 
-    std::shared_ptr<StemArea> stemSimArea;
+    StemArea Area;
 
-    std::shared_ptr<SimulationArea> simArea;
+    int edt_precision = 5;
+
+    bool checkValidXValues();
+    bool checkValidYValues();
+    void setInvalidXWarning(bool valid);
+    void setInvalidYWarning(bool valid);
 };
 
 #endif // STEMAREAFRAME_H

@@ -21,7 +21,7 @@ public:
 
     ~CbedFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m;}
+    void assignMainWindow(MainWindow* m) {Main = m; update_text_boxes();}
 
     bool isTdsEnabled();
 
@@ -41,6 +41,8 @@ private slots:
     void on_btnCancel_clicked();
 
     void on_chkTds_stateChanged(int state);
+
+    void update_text_boxes();
 
 private:
     Ui::CbedFrame *ui;

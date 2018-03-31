@@ -1,67 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>StemAreaFrame</class>
- <widget class="QWidget" name="StemAreaFrame">
+ <class>CtemAreaFrame</class>
+ <widget class="QWidget" name="CtemAreaFrame">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
-    <height>541</height>
+    <width>718</width>
+    <height>521</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,1,0" columnstretch="1,0,0,0,0,0,1">
-   <item row="3" column="4">
-    <widget class="QLineEdit" name="edtFinishY">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>0</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="3">
-    <widget class="QLabel" name="label_6">
-     <property name="text">
-      <string>Range</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="4">
-    <widget class="QLineEdit" name="edtFinishX">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>0</string>
-     </property>
-    </widget>
-   </item>
+  <layout class="QGridLayout" name="gridLayout" rowstretch="1,0,0,0,1,0" columnstretch="1,0,0,0,0,1">
    <item row="2" column="0">
     <spacer name="hSpacer">
      <property name="orientation">
@@ -75,67 +33,8 @@
      </property>
     </spacer>
    </item>
-   <item row="5" column="5">
-    <widget class="QLineEdit" name="edtPadding">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>0</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="5">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Pixels</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1" colspan="5">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>10</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>y: </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="3">
-    <widget class="QLineEdit" name="edtRangeY">
+   <item row="2" column="3" rowspan="2">
+    <widget class="QLineEdit" name="edtRangeXY">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -154,7 +53,7 @@
     </widget>
    </item>
    <item row="1" column="4">
-    <widget class="QLabel" name="label_4">
+    <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Finish</string>
      </property>
@@ -164,7 +63,7 @@
     </widget>
    </item>
    <item row="1" column="2">
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="label">
      <property name="text">
       <string>Start</string>
      </property>
@@ -172,48 +71,6 @@
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
-   </item>
-   <item row="5" column="4">
-    <widget class="QLabel" name="label_7">
-     <property name="text">
-      <string>Padding: </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="3">
-    <widget class="QLineEdit" name="edtRangeX">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>0</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="6">
-    <spacer name="hSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item row="3" column="2">
     <widget class="QLineEdit" name="edtStartY">
@@ -234,8 +91,37 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="5">
-    <widget class="QLineEdit" name="edtPixelsX">
+   <item row="3" column="4">
+    <widget class="QLineEdit" name="edtFinishY">
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>26</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>y: </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QLineEdit" name="edtFinishX">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -263,25 +149,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="5">
-    <widget class="QLineEdit" name="edtPixelsY">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>0</string>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="2">
     <widget class="QLineEdit" name="edtStartX">
      <property name="minimumSize">
@@ -301,7 +168,43 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="5">
+   <item row="1" column="3">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Range</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="5">
+    <spacer name="hSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="2">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -314,7 +217,7 @@
      </property>
     </spacer>
    </item>
-   <item row="7" column="0" colspan="7">
+   <item row="5" column="0" colspan="6">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
