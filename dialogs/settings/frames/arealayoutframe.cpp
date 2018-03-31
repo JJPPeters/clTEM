@@ -163,6 +163,28 @@ void AreaLayoutFrame::apply_pressed() {
         CbedFrame->updateCurrentArea(pos);
         emit updateMainCbed();
     }
+}
 
-    // emit signal to update any main window gui elements (like cbed position, stem scale?)
+bool AreaLayoutFrame::getErrorStringCtem() {
+    // check the range is positive non zero
+
+    // check the scale is positive non zero and not inf
+
+    return false;
+}
+
+bool AreaLayoutFrame::getErrorStringCbed() {
+    // check the padding is positive
+
+    // check the scale is positive non zero and not inf
+}
+
+bool AreaLayoutFrame::getErrorStringStem() {
+    // check the padding is positive
+
+    // check the ranges are positive non zero
+
+    // get pixels are positive non zero
+
+    // check the scale is positive non zero and not inf
 }

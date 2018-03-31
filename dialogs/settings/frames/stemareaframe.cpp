@@ -42,6 +42,17 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
 
     connect(ui->edtPadding, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
 
+    connect(ui->edtStartX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtStartY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtFinishX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtFinishY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtPixelsX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtPixelsY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtRangeX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtRangeY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtPadding, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+
+
     // set teh default values
     on_btnReset_clicked();
 }
@@ -52,6 +63,17 @@ StemAreaFrame::~StemAreaFrame()
 }
 
 void StemAreaFrame::valuesChanged(QString dud) {
+    // group this up, maybe not the best idea
+    if (ui->edtPixelsX->text().toInt() > 0)
+        ui->edtPixelsX->setStyleSheet("");
+    else
+        ui->edtPixelsX->setStyleSheet("color: #FF8C00");
+
+    if (ui->edtPixelsY->text().toInt() > 0)
+        ui->edtPixelsY->setStyleSheet("");
+    else
+        ui->edtPixelsY->setStyleSheet("color: #FF8C00");
+
     // simply emit our signal
     emit areaChanged();
 }
@@ -60,7 +82,8 @@ void StemAreaFrame::xStartRangeChanged(QString dud) {
     auto range = ui->edtRangeX->text().toFloat();
     auto finish_x = ui->edtStartX->text().toFloat() + range;
 
-    ui->edtFinishX->setText(Utils::numToQString( finish_x, edt_precision ));
+    if (!ui->edtFinishX->hasFocus())
+        ui->edtFinishX->setText(Utils::numToQString( finish_x, edt_precision ));
     setInvalidXWarning(checkValidXValues());
     emit areaChanged();
 }
@@ -69,16 +92,19 @@ void StemAreaFrame::yStartRangeChanged(QString dud) {
     auto range = ui->edtRangeY->text().toFloat();
     auto finish_y = ui->edtStartY->text().toFloat() + range;
 
-    ui->edtFinishY->setText(Utils::numToQString( finish_y, edt_precision ));
+    if (!ui->edtFinishY->hasFocus())
+        ui->edtFinishY->setText(Utils::numToQString( finish_y, edt_precision ));
     setInvalidYWarning(checkValidYValues());
     emit areaChanged();
 }
 
 void StemAreaFrame::xFinishChanged(QString dud) {
     auto range =  ui->edtFinishX->text().toFloat() - ui->edtStartX->text().toFloat();
-    ui->edtRangeX->setText(Utils::numToQString( range, edt_precision ));
+    if (!ui->edtRangeX->hasFocus())
+        ui->edtRangeX->setText(Utils::numToQString( range, edt_precision ));
     auto finish = ui->edtStartX->text().toFloat() + range;
-    ui->edtFinishX->setText(Utils::numToQString( finish, edt_precision ));
+    if (!ui->edtFinishX->hasFocus())
+        ui->edtFinishX->setText(Utils::numToQString( finish, edt_precision ));
 
     // check that values are correct
     setInvalidXWarning(checkValidXValues());
@@ -87,9 +113,11 @@ void StemAreaFrame::xFinishChanged(QString dud) {
 
 void StemAreaFrame::yFinishChanged(QString dud) {
     auto range =  ui->edtFinishY->text().toFloat() - ui->edtStartY->text().toFloat();
-    ui->edtRangeY->setText(Utils::numToQString( range, edt_precision ));
+    if (!ui->edtRangeY->hasFocus())
+        ui->edtRangeY->setText(Utils::numToQString( range, edt_precision ));
     auto finish = ui->edtStartY->text().toFloat() + range;
-    ui->edtFinishY->setText(Utils::numToQString( finish, edt_precision ));
+    if (!ui->edtFinishY->hasFocus())
+        ui->edtFinishY->setText(Utils::numToQString( finish, edt_precision ));
 
     // check that values are correct
     setInvalidYWarning(checkValidYValues());
@@ -162,3 +190,9 @@ void StemAreaFrame::on_btnReset_clicked() {
     emit areaChanged();
 }
 
+void StemAreaFrame::editing_finished() {
+    QLineEdit* sndr = (QLineEdit*) sender();
+
+    auto val = sndr->text().toFloat();
+    sndr->setText(Utils::numToQString( val, edt_precision ));
+}

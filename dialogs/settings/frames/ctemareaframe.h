@@ -37,6 +37,8 @@ private slots:
 
     void on_btnApply_clicked() {emit applyChanges();}
 
+    void editing_finished();
+
 private:
     Ui::CtemAreaFrame *ui;
 

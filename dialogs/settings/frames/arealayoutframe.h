@@ -49,6 +49,10 @@ private:
     CtemAreaFrame *CtemFrame;
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
+
+    bool getErrorStringCtem();
+    bool getErrorStringStem();
+    bool getErrorStringCbed();
 };
 
 #endif // AREALAYOUTFRAME_H
