@@ -214,22 +214,30 @@ void SimulationManager::round_padding()
 
 std::valarray<float> SimulationManager::getSimLimitsX()
 {
+    SimulationArea sa;
+
     if (Mode == SimulationMode::STEM)
-        return StemSimArea->getLimitsX();
+        sa = StemSimArea->getSimArea();
     else if (Mode == SimulationMode::CBED)
-        return {CbedPos->getXPos(), CbedPos->getXPos()};
+        sa = CbedPos->getSimArea();
     else
-        return SimArea->getLimitsX();
+        sa = *SimArea;
+
+    return sa.getLimitsX();
 }
 
 std::valarray<float> SimulationManager::getSimLimitsY()
 {
+    SimulationArea sa;
+
     if (Mode == SimulationMode::STEM)
-        return StemSimArea->getLimitsY();
+        sa = StemSimArea->getSimArea();
     else if (Mode == SimulationMode::CBED)
-        return {CbedPos->getYPos(), CbedPos->getYPos()};
+        sa = CbedPos->getSimArea();
     else
-        return SimArea->getLimitsY();
+        sa = *SimArea;
+
+    return sa.getLimitsY();
 }
 
 float SimulationManager::calculatePaddedRealScale(float range, int resolution, bool round_padding) {

@@ -262,6 +262,9 @@ void SimulationWorker::doCtem(bool simImage)
 
 void SimulationWorker::doCbed()
 {
+    // reset the padding in case it has been changed before
+    job->simManager->round_padding();
+
     sortAtoms(job->simManager->getTdsRuns() > 1);
 
     initialiseCbed();
@@ -287,6 +290,9 @@ void SimulationWorker::doCbed()
 
 void SimulationWorker::doStem()
 {
+    // reset the padding in case it has been changed before
+    job->simManager->round_padding();
+
     sortAtoms(job->simManager->getTdsRuns() > 1);
 
     initialiseStem();
