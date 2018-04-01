@@ -2,9 +2,10 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
-#include <dialogs/settings/frames/simareaframe.h>
+#include <dialogs/settings/frames/ctemareaframe.h>
 #include <dialogs/settings/frames/stemdetectorframe.h>
 #include <dialogs/settings/frames/stemareaframe.h>
+#include <dialogs/settings/frames/arealayoutframe.h>
 #include <structure/crystalstructure.h>
 
 #include "frames/openclframe.h"
@@ -89,14 +90,16 @@ signals:
     void simAreaChanged();
 
 private:
-    SimAreaFrame* AreaFrame;
+    AreaLayoutFrame* LayoutFrame;
 
 private slots:
     // this slot gets the signal from the fullaberrationsframe
     void coreSimAreaChanged();
 
 public:
-    explicit SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationArea> simArea, std::shared_ptr<CrystalStructure> structure);
+    explicit SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
+
+    AreaLayoutFrame* getFrame() {return LayoutFrame;}
 
 };
 

@@ -11,7 +11,7 @@ std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
-                                         blocks_x(80), blocks_y(80)
+                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f)
 {
     // Here is where the default values are set!
     MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);
@@ -90,15 +90,15 @@ float SimulationManager::getInverseScale()
         return 1.0f / (getRealScale() * Resolution);
 }
 
-float SimulationManager::getInverseMax()
+float SimulationManager::getInverseMaxAngle()
 {
     // need to do this in mrad, eventually should also pass inverse Angstrom for hover text?
     if(!Structure || !haveResolution() && MicroParams && MicroParams->Voltage > 0)
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     // this is the max reciprocal space scale for the entire image
-    float maxFreq =  1.0f / (2.0f * getRealScale());
-    return 1000.0f * maxFreq * MicroParams->Wavelength() / 2.0f;
+    float maxFreq =  maxReciprocalFactor / getRealScale(); // apply cut off here, because we can
+    return 0.5f * 1000.0f * maxFreq * MicroParams->Wavelength(); // half because we have a centered 0, 1000 to be in mrad
 }
 
 unsigned long SimulationManager::getTotalParts()
@@ -206,13 +206,7 @@ void SimulationManager::round_padding()
     float dim = std::max(xw, yw);
     int res = getResolution();
 
-    float pd = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
-
-    float n_f = (pd * res) / (dim + pd);
-    auto n = (int) std::ceil(n_f);
-
-    float padding = dim / ( (res / n) - 1 ); // this is total padding
-    padding /= 2;
+    float padding = calculateRoundedPadding(dim, res);
 
     padding_x = {-padding, padding};
     padding_y = {-padding, padding};
@@ -220,20 +214,51 @@ void SimulationManager::round_padding()
 
 std::valarray<float> SimulationManager::getSimLimitsX()
 {
+    SimulationArea sa;
+
     if (Mode == SimulationMode::STEM)
-        return StemSimArea->getLimitsX();
+        sa = StemSimArea->getSimArea();
     else if (Mode == SimulationMode::CBED)
-        return {CbedPos->getXPos(), CbedPos->getXPos()};
+        sa = CbedPos->getSimArea();
     else
-        return SimArea->getLimitsX();
+        sa = *SimArea;
+
+    return sa.getLimitsX();
 }
 
 std::valarray<float> SimulationManager::getSimLimitsY()
 {
+    SimulationArea sa;
+
     if (Mode == SimulationMode::STEM)
-        return StemSimArea->getLimitsY();
+        sa = StemSimArea->getSimArea();
     else if (Mode == SimulationMode::CBED)
-        return {CbedPos->getYPos(), CbedPos->getYPos()};
+        sa = CbedPos->getSimArea();
     else
-        return SimArea->getLimitsY();
+        sa = *SimArea;
+
+    return sa.getLimitsY();
+}
+
+float SimulationManager::calculatePaddedRealScale(float range, int resolution, bool round_padding) {
+
+    float padding = 0.0f;
+    if (round_padding)
+        padding = 2 * calculateRoundedPadding(range, resolution);
+    else
+        padding = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
+
+    return (range + padding) / (float) resolution;
+}
+
+float SimulationManager::calculateRoundedPadding(float range, int resolution)
+{
+    float pd = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
+
+    float n_f = (pd * resolution) / (range + pd);
+    float n = (int) std::ceil(n_f);
+
+    // had some integer rouding errors so made everything a float...
+    float padding = range / ( ((float) resolution / (float) n) - 1 ); // this is total padding
+    return padding / 2;
 }

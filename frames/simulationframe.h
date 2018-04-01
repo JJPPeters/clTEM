@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <mainwindow.h>
 
+class MainWindow;
+
 namespace Ui {
 class SimulationFrame;
 }
@@ -26,8 +28,12 @@ public:
 
     void updateResolutionInfo(float pixScale, float invScale, float invMax);
 
+    void setResolutionIndex(int ind = 0);
+
 private slots:
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
+
+    void setResolutionText(QString text);
 
     void on_chkFull3D_toggled(bool checked);
 

@@ -205,41 +205,6 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="btnSimArea">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>26</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Sim area</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>5</width>
-         <height>0</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>Resolution: </string>
@@ -309,6 +274,25 @@
          <string>4096</string>
         </property>
        </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSimArea">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>26</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Sim area</string>
+       </property>
       </widget>
      </item>
     </layout>

@@ -1,5 +1,6 @@
 #include <dialogs/settings/settingsdialog.h>
 #include <utilities/stringutils.h>
+#include <QtGui/QRegExpValidator>
 #include "stemframe.h"
 #include "ui_stemframe.h"
 
@@ -40,11 +41,14 @@ void StemFrame::updateDetectors()
 void StemFrame::on_btnArea_clicked()
 {
     if (Main == 0)
-        throw std::runtime_error("Error connecting STEM frame to main window.");
+        throw std::runtime_error("Error connecting simulation frame to main window.");
 
-    StemAreaDialog* myDialog = new StemAreaDialog(this, Main->getStemArea(), Main->getSimulationArea());
+    SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
 
-    connect(myDialog, SIGNAL(stemAreaChanged()), this, SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), Main->getSimulationFrame(), SLOT(setResolutionText(QString)));
+    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), Main, SLOT(set_active_mode(int)));
+    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), Main->getCbedFrame(), SLOT(update_text_boxes()));
+    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), this, SLOT(updateScaleLabels()));
 
     myDialog->exec();
 }

@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <mainwindow.h>
 
+class MainWindow;
+
 namespace Ui {
 class StemFrame;
 }

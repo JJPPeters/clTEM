@@ -11,7 +11,7 @@
 
 #include <dialogs/settings/settingsdialog.h>
 #include <simulation/kernels.h>
-#include <Utils/stringutils.h>
+#include <utils/stringutils.h>
 #include <simulation/structure/structureparameters.h>
 //#include <QtWidgets/QProgressBar>
 //
@@ -86,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tTem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
     connect(ui->tCbed, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
     connect(ui->tStem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
+
+    ui->tSim->setResolutionIndex(0);
 
     loadExternalSources();
 }
@@ -167,7 +169,7 @@ void MainWindow::updateScales()
     if (!Manager->haveStructure() || !Manager->haveResolution())
         return;
 
-    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMax());
+    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
     ui->tSim->updateStructureInfo(Manager->getSimRanges());
 }
 
@@ -504,3 +506,12 @@ void MainWindow::loadExternalSources()
 
     // TODO: load DQE, NQE for the CTEM simulation
 }
+
+void MainWindow::set_active_mode(int mode)
+{
+    ui->twMode->setCurrentIndex(mode);
+}
+
+SimulationFrame *MainWindow::getSimulationFrame() {return ui->tSim;}
+StemFrame *MainWindow::getStemFrame() {return ui->tStem;}
+CbedFrame *MainWindow::getCbedFrame() {return ui->tCbed;}

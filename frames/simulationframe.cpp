@@ -71,11 +71,16 @@ void SimulationFrame::on_btnSimArea_clicked()
     if (Main == 0)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
-    SimAreaDialog* myDialog = new SimAreaDialog(this, Main->getSimulationArea(), Main->getStructure());
+    SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
 
-    connect(myDialog, SIGNAL(simAreaChanged()), this, SLOT(updateLimits()));
+    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), this, SLOT(setResolutionText(QString)));
+    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), Main, SLOT(set_active_mode(int)));
+    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), Main->getCbedFrame(), SLOT(update_text_boxes()));
+    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), Main->getStemFrame(), SLOT(updateScaleLabels()));
 
     myDialog->exec();
+
+    //disconnect signals?
 }
 
 void SimulationFrame::updateLimits()
@@ -100,4 +105,13 @@ void SimulationFrame::assignMainWindow(MainWindow *m)
     Main = m;
     ui->chkFiniteDiff->setChecked(Main->Manager->isFiniteDifference());
     ui->chkFull3D->setChecked(Main->Manager->isFull3d());
+}
+
+void SimulationFrame::setResolutionIndex(int ind) {
+    ui->cmbResolution->setCurrentIndex(ind);
+}
+
+void SimulationFrame::setResolutionText(QString text) {
+    int ind = ui->cmbResolution->findText( text );
+    ui->cmbResolution->setCurrentIndex(ind);
 }
