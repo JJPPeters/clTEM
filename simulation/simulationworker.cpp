@@ -281,12 +281,17 @@ void SimulationWorker::doCbed()
         job->simManager->reportProgress(((float)i+1) / (float)numberOfSlices);
     }
 
-//    std::map<std::string, std::vector<float>> Images;
 
-    // get the images we need
-//    Images.insert(std::map<std::string, std::vector<float>>::value_type("Diff", getDiffractionImage()));
+    // get images and return them...
+    int resolution = job->simManager->getResolution();
+    typedef std::map<std::string, Image<float>> return_map;
+    return_map Images;
 
-//    job->simManager->updateImages(Images, 1); // TODO: update this if we ever do more than one TDS in a job
+    auto diff = Image<float>(resolution, resolution, getDiffractionImage());
+
+    Images.insert(return_map::value_type("Diff", diff));
+
+    job->simManager->updateImages(Images, 1); // TODO: update this if we ever do more than one TDS in a job
 }
 
 void SimulationWorker::doStem()
