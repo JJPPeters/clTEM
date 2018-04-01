@@ -12,10 +12,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
     connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
 
-    // set resolution combo box
-    int ind = ui->cmbResolution->findText( QString::number(SimManager->getResolution()) );
-    ui->cmbResolution->setCurrentIndex(ind);
-
     SimulationArea ctemArea = *SimManager->getSimulationArea();
     StemArea stemArea = *SimManager->getStemArea();
     CbedPosition cbedPos = *SimManager->getCBedPosition();
@@ -46,6 +42,11 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         ui->tabAreaWidget->setCurrentIndex(2);
     else
         ui->tabAreaWidget->setCurrentIndex(0);
+
+    // set resolution combo box
+    // this has to be called here as changingit will call its slot when other values havent been initialised
+    int ind = ui->cmbResolution->findText( QString::number(SimManager->getResolution()) );
+    ui->cmbResolution->setCurrentIndex(ind);
 
     areasChanged();
 }
