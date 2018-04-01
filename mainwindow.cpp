@@ -169,7 +169,7 @@ void MainWindow::updateScales()
     if (!Manager->haveStructure() || !Manager->haveResolution())
         return;
 
-    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMax());
+    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
     ui->tSim->updateStructureInfo(Manager->getSimRanges());
 }
 

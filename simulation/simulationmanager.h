@@ -104,7 +104,7 @@ public:
 //    float getSimSideLength();
     float getRealScale();
     float getInverseScale();
-    float getInverseMax();
+    float getInverseMaxAngle();
     float getInverseLimitFactor() {return maxReciprocalFactor;}
 
     float getKiloVoltage() {return MicroParams->Voltage;}

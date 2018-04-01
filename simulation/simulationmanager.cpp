@@ -90,15 +90,15 @@ float SimulationManager::getInverseScale()
         return 1.0f / (getRealScale() * Resolution);
 }
 
-float SimulationManager::getInverseMax()
+float SimulationManager::getInverseMaxAngle()
 {
     // need to do this in mrad, eventually should also pass inverse Angstrom for hover text?
     if(!Structure || !haveResolution() && MicroParams && MicroParams->Voltage > 0)
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     // this is the max reciprocal space scale for the entire image
-    float maxFreq =  1.0f / (2.0f * getRealScale());
-    return 1000.0f * maxFreq * MicroParams->Wavelength() / 2.0f;
+    float maxFreq =  maxReciprocalFactor / getRealScale(); // apply cut off here, because we can
+    return 0.5f * 1000.0f * maxFreq * MicroParams->Wavelength(); // half because we have a centered 0, 1000 to be in mrad
 }
 
 unsigned long SimulationManager::getTotalParts()
@@ -248,7 +248,7 @@ float SimulationManager::calculatePaddedRealScale(float range, int resolution, b
     else
         padding = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
 
-    return (range + 2 * padding) / (float) resolution;
+    return (range + padding) / (float) resolution;
 }
 
 float SimulationManager::calculateRoundedPadding(float range, int resolution)

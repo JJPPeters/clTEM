@@ -103,7 +103,7 @@ void AreaLayoutFrame::areasChanged() {
         ui->lblStemScaleY->setVisible(false);
     }
 
-    double freqScale = 1.0 / realScale;
+    double freqScale = 1.0 / (realScale  * SimManager->getResolution());
     double freqMax = 0.5 * freqScale * SimManager->getResolution() * SimManager->getInverseLimitFactor();
     double angleScale = freqScale * SimManager->getWavelength() * 1000.0;
     double angleMax = freqMax * SimManager->getWavelength() * 1000.0;
