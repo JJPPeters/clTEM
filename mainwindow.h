@@ -67,6 +67,8 @@ private slots:
 
     void cancel_simulation();
 
+    void set_ctem_crop(bool state);
+
     void resolution_changed(int resolution);
 
     void on_twMode_currentChanged(int index);

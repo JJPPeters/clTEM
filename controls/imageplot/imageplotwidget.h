@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include <QWidget>
+#include <simulation/utilities/commonstructs.h>
 
 enum ShowComplex {
         Real,
@@ -40,17 +41,17 @@ public:
     void matchPlotToPalette();
 
     template <typename T>
-    void SetImageTemplate(const std::vector<T>& image, const int sx, const int sy, IntensityScale scale = IntensityScale::Linear, bool doReplot = true)
+    void SetImageTemplate(Image<T> img, IntensityScale scale = IntensityScale::Linear, bool doReplot = true)
     {
-        std::vector<double> im_d(image.size());
-        for (int i = 0; i < image.size(); ++i)
-            im_d[i] = (double) image[i];
-        SetImage(im_d, sx, sy, scale, doReplot);
+        std::vector<double> im_d(img.data.size());
+        for (int i = 0; i < img.data.size(); ++i)
+            im_d[i] = (double) img.data[i];
+        crop_t = img.pad_t;
+        crop_l = img.pad_l;
+        crop_b = img.pad_b;
+        crop_r = img.pad_r;
+        SetImage(im_d, img.width, img.height, scale, doReplot);
     }
-
-    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale scale = IntensityScale::Linear, bool doReplot = true);
-
-    void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
 
     void DrawCircle(double x, double y, QColor colour = Qt::red, QBrush fill = QBrush(Qt::red), double radius = 2, Qt::PenStyle line = Qt::SolidLine, double thickness = 2);
 
@@ -62,6 +63,21 @@ public:
 
     bool inAxis(double x, double y);
 
+    void setCropImage(bool do_crop, bool redraw = false, bool rescale = false)
+    {
+        crop_image = do_crop;
+
+        if (!haveImage)
+            return;
+
+        cropImage(false);
+
+        if (rescale)
+            resetAxes(redraw);
+        else if (redraw)
+            replot();
+    }
+
 private:
     QCPColorMap *ImageObject;
 
@@ -69,7 +85,14 @@ private:
 
     double AspectRatio = 1;
 
+    bool crop_image = false;
+
     int size_x, size_y;
+    int crop_t, crop_l, crop_b, crop_r;
+
+    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale scale = IntensityScale::Linear, bool doReplot = true);
+
+    void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
 
     int lastWidth, lastHeight;
 
@@ -79,6 +102,8 @@ private:
 
     // Basically a reimplementation of setScalRatio() but for both axes
     void setImageRatio(int axisWidth, int axisHeight);
+
+    void cropImage(bool doReplot = true);
 
     //There is always an extra pixel it seems so I rewrote this to compensate
 //    bool saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality = -1)
@@ -117,7 +142,7 @@ public slots:
 //        }
 //    }
 
-    void ResetAxes();
+    void resetAxes(bool doReplot = true);
 
 private slots:
     void contextMenuRequest(QPoint pos);

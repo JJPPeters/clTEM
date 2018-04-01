@@ -66,11 +66,12 @@ void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, c
 
     AspectRatio = (double)sx/(double)sy;
 
-    rescaleAxes();
-    setImageRatio();
+//    rescaleAxes();
+//    setImageRatio();
+    resetAxes(false);
 
     ImageObject = new QCPColorMap(xAxis, yAxis);
-    addPlottable(ImageObject);
+    //addPlottable(ImageObject);
     ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
     ImageObject->setInterpolate(false);
 
@@ -90,11 +91,10 @@ void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, c
     size_x = sx;
     size_y = sy;
 
+    cropImage(false);
+
     ImageObject->rescaleDataRange(true); // TODO: maybe pass the true (to update scale better???)
-    rescaleAxes();
-    setImageRatio();
-    if (doReplot)
-        replot();
+    resetAxes(doReplot);
 
     haveImage = true;
 }
@@ -109,11 +109,12 @@ ImagePlotWidget::SetImage(const std::vector<std::complex<double>> &image, const 
 
     AspectRatio = (double)sx/(double)sy;
 
-    rescaleAxes();
-    setImageRatio();
+//    resetAxes(false);
+//    setImageRatio();
+    resetAxes(false);
 
     ImageObject = new QCPColorMap(xAxis, yAxis);
-    addPlottable(ImageObject);
+    //addPlottable(ImageObject);
     ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
     ImageObject->setInterpolate(false);
 
@@ -155,12 +156,10 @@ ImagePlotWidget::SetImage(const std::vector<std::complex<double>> &image, const 
     size_x = sx;
     size_y = sy;
 
-    ImageObject->rescaleDataRange();
-    rescaleAxes();
-    setImageRatio();
+    cropImage(false);
 
-    if (doReplot)
-        replot();
+    ImageObject->rescaleDataRange();
+    resetAxes(doReplot);
 
     haveImage = true;
 }
@@ -172,7 +171,7 @@ void ImagePlotWidget::DrawCircle(double x, double y, QColor colour, QBrush fill,
     circle->setBrush(fill);
     circle->topLeft->setCoords(x-radius, y-radius);
     circle->bottomRight->setCoords(x+radius, y+radius);
-    addItem(circle);
+    //addItem(circle);
     replot();
 }
 
@@ -183,7 +182,7 @@ ImagePlotWidget::DrawRectangle(double t, double l, double b, double r, QColor co
     rect->setBrush(fill);
     rect->topLeft->setCoords(l, t);
     rect->bottomRight->setCoords(r, b);
-    addItem(rect);
+    //addItem(rect);
     replot();
 }
 
@@ -210,10 +209,10 @@ bool ImagePlotWidget::inAxis(double x, double y) {
 }
 
 void ImagePlotWidget::resizeEvent(QResizeEvent *event) {
-    mPaintBuffer = QPixmap(event->size());
+    Q_UNUSED(event)
     setViewport(rect());
     setImageRatio(event->size().width(), event->size().height());
-    replot(rpQueued);
+    replot(rpQueuedRefresh);
 }
 
 void ImagePlotWidget::setImageRatio() {
@@ -260,21 +259,32 @@ void ImagePlotWidget::SetColorMap(QCPColorGradient Map) {
     replot();
 }
 
-void ImagePlotWidget::ResetAxes() {
+void ImagePlotWidget::resetAxes(bool doReplot) {
     if(!haveImage)
     {
         xAxis->setRange(-500, 500);
         yAxis->setRange(-500, 500);
     }
-    rescaleAxes();
+    //rescaleAxes(); //old way
+    // use this instead to account for cropping
+    if (crop_image) {
+        xAxis->setRange(crop_l - size_x / 2, -crop_r + size_x / 2);
+        yAxis->setRange(crop_t - size_y / 2, -crop_b + size_y / 2);
+    }
+    else{
+        xAxis->setRange(-size_x / 2, size_x / 2);
+        yAxis->setRange(-size_y / 2, size_y / 2);
+    }
+
     setImageRatio();
-    replot();
+    if (doReplot)
+        replot();
 }
 
 void ImagePlotWidget::contextMenuRequest(QPoint pos) {
     QMenu* menu = new QMenu(this);
 
-    menu->addAction("Reset zoom", this, SLOT(ResetAxes()));
+    menu->addAction("Reset zoom", this, SLOT(resetAxes()));
 
 //    QMenu* saveMenu = new QMenu("Export...", this);
 
@@ -288,4 +298,25 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
 //    menu->addMenu(saveMenu);
 
     menu->popup(mapToGlobal(pos));
+}
+
+void ImagePlotWidget::cropImage(bool doReplot) {
+    if (!crop_image) {
+        ImageObject->data()->clearAlpha();
+        return;
+    }
+
+    // do the cropping if we get haven't returned yet
+    for (int ind = 0; ind < size_x*size_y; ++ind)
+    {
+        int i = ind % size_x;
+        int j = ind / size_x;
+
+        if (j < crop_b || j >= (size_y - crop_t) || i < crop_l || i >= (size_x - crop_r)) {
+            ImageObject->data()->setAlpha(i, j, 0);
+        }
+    }
+
+    if (doReplot)
+        replot();
 }

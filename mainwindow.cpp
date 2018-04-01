@@ -87,7 +87,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tCbed, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
     connect(ui->tStem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
 
+    connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
+
     ui->tSim->setResolutionIndex(0);
+    ui->tTem->setCrop(true);
 
     loadExternalSources();
 }
@@ -347,7 +350,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW A")
-                    tab->getPlot()->SetImageTemplate(im.data, im.width, im.height);
+                    tab->getPlot()->SetImageTemplate(im);
             }
         }
         else if (name == "EW_T")
@@ -357,7 +360,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW θ")
-                    tab->getPlot()->SetImageTemplate(im.data, im.width, im.height);
+                    tab->getPlot()->SetImageTemplate(im);
             }
         }
         else if (name == "Diff")
@@ -367,7 +370,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             {
                 ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
                 if (tab->getTabName() == "Diffraction")
-                    tab->getPlot()->SetImageTemplate(im.data, im.width, im.height, IntensityScale::Log);
+                    tab->getPlot()->SetImageTemplate(im, IntensityScale::Log);
             }
         }
     }
@@ -515,3 +518,16 @@ void MainWindow::set_active_mode(int mode)
 SimulationFrame *MainWindow::getSimulationFrame() {return ui->tSim;}
 StemFrame *MainWindow::getStemFrame() {return ui->tStem;}
 CbedFrame *MainWindow::getCbedFrame() {return ui->tCbed;}
+
+void MainWindow::set_ctem_crop(bool state) {
+    // do the real images
+    int n = ui->twReal->count();
+    for (int j = 0; j < n; ++j) {
+        ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+        if (tab->getTabName() == "EW A")
+            tab->getPlot()->setCropImage(state, true, false);
+        else if (tab->getTabName() == "EW θ")
+            tab->getPlot()->setCropImage(state, true, false);
+        // do the simulated image when it is set up!
+    }
+}
