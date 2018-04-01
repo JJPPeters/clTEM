@@ -231,6 +231,7 @@ void SimulationWorker::doCtem(bool simImage)
     int crop_t = 0;
     int crop_r = 0;
 
+    // this is slightly useless as we have limited the simulation to be square, but this will be useful if that changes
     auto ranges = job->simManager->getSimRanges();
     if (std::get<0>(ranges) == std::get<1>(ranges))
     {
@@ -248,8 +249,8 @@ void SimulationWorker::doCtem(bool simImage)
         crop_r = (int) std::floor((std::get<1>(ranges) - std::get<0>(ranges)) / real_scale) + crop_l;
     }
 
-    auto ew_a = Image<float>(resolution-crop_l-crop_r, resolution-crop_t-crop_b, getExitWaveAmplitudeImage(crop_t, crop_l, crop_b, crop_r));
-    auto ew_p = Image<float>(resolution-crop_l-crop_r, resolution-crop_t-crop_b, getExitWavePhaseImage(crop_t, crop_l, crop_b, crop_r));
+    auto ew_a = Image<float>(resolution, resolution, getExitWaveAmplitudeImage(), crop_t, crop_l, crop_b, crop_r);
+    auto ew_p = Image<float>(resolution, resolution, getExitWavePhaseImage(), crop_t, crop_l, crop_b, crop_r);
     auto diff = Image<float>(resolution, resolution, getDiffractionImage());
 
     // get the images we need

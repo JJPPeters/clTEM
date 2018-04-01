@@ -42,3 +42,9 @@ void TemFrame::on_btnCancel_clicked()
 {
     emit stopSim();
 }
+
+void TemFrame::on_chkCrop_toggled(bool state) {
+    emit setCtemCrop(state);
+}
+
+void TemFrame::setCrop(bool state) { ui->chkCrop->setChecked(state); }

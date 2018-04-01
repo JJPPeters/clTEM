@@ -28,13 +28,35 @@ struct Constants
 template<class T>
 struct Image
 {
-    Image() : width(0), height(0) {}
-    Image(int w, int h, std::vector<T> d) : width(w), height(h), data(d) {}
+    Image() : width(0), height(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
+    Image(int w, int h, std::vector<T> d, int pt = 0, int pl = 0, int pb = 0, int pr = 0) : width(w), height(h),
+                                                                                            data(d),
+                                                                                            pad_t(pt), pad_l(pl),
+                                                                                            pad_b(pb), pad_r(pr) {}
 //    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), data(rhs.data) {}
 //    operator=(const Image<T>& rhs) {width = rhs.width; height = rhs.height; data = rhs.data;}
     int width;
     int height;
+    int pad_t, pad_l, pad_b, pad_r;
     std::vector<T> data;
+
+    int getCroppedWidth() {return width - pad_l - pad_r;}
+    int getCroppedHeight() {return height - pad_t - pad_b;}
+    std::vector<T> getCropped()
+    {
+        std::vector<T> data_out(getCroppedWidth()*getCroppedHeight());
+        int cnt = 0;
+        for (int j = 0; j < height; ++j)
+            if (j >= pad_b && j < (height - pad_t))
+                for (int i = 0; i < width; ++i)
+                    if (i >= pad_l && i < (width - pad_r))
+                    {
+                        int k = i + j * width;
+                        data_out[cnt] = data[k];
+                        ++cnt;
+                    }
+        return data_out;
+    }
 };
 
 struct ComplexAberration
