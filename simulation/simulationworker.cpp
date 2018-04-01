@@ -273,7 +273,7 @@ void SimulationWorker::doCbed()
     auto pos = job->simManager->getCBedPosition();
 
     initialiseProbeWave(pos->getXPos(), pos->getYPos());
-
+    
     // loop through slices
     for (int i = 0; i < numberOfSlices; ++i)
     {
