@@ -659,8 +659,8 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     posy = (posy - start_y) / pixelscale;
 
     // Fix inverted images
-    posx = resolution - 1 - posx;
-    posy = resolution - 1 - posy;
+    posx = resolution - posx;
+    posy = resolution - posy;
 
     InitProbeWavefunction.SetArg(0, clWaveFunction2[n_parallel - 1]);
     InitProbeWavefunction.SetArg(1, resolution);
