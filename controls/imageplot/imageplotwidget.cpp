@@ -286,16 +286,12 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
 
     menu->addAction("Reset zoom", this, SLOT(resetAxes()));
 
-//    QMenu* saveMenu = new QMenu("Export...", this);
+    QMenu* save_menu = new QMenu("Export...", menu);
 
-//    QAction* expIm = saveMenu->addAction("RGB image", this,  SLOT(ExportImage()));
-//    expIm->setEnabled(haveImage);
-//    QAction* expDat = saveMenu->addAction("Data image", this,  SLOT(ExportData()));
-//    expDat->setEnabled(haveImage);
-//    QAction* expBin = saveMenu->addAction("Binary", this,  SLOT(ExportBinary()));
-//    expBin->setEnabled(haveImage);
+    save_menu->addAction("Data", this, SLOT(exportTiff()));
+    save_menu->addAction("RGB", this, SLOT(exportBmp()));
 
-//    menu->addMenu(saveMenu);
+    menu->addMenu(save_menu);
 
     menu->popup(mapToGlobal(pos));
 }
@@ -319,4 +315,12 @@ void ImagePlotWidget::cropImage(bool doReplot) {
 
     if (doReplot)
         replot();
+}
+
+void ImagePlotWidget::exportTiff() {
+    emit saveDataClicked();
+}
+
+void ImagePlotWidget::exportBmp() {
+    emit saveImageClicked();
 }

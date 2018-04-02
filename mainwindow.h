@@ -83,6 +83,10 @@ private slots:
 
     void simulationComplete();
 
+    void saveTiff();
+
+    void saveBmp();
+
 private:
     Ui::MainWindow *ui;
 
