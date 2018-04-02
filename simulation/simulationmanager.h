@@ -77,10 +77,12 @@ public:
 
     // the odd padding here is because I want the SimArea to be in the structure coordinates (i.e. without padding)
     // so this shifts to the 'padded frame' then adds the padding
-    std::valarray<float> getPaddedSimLimitsX() { return getSimLimitsX() - padding_x[0] + padding_x; }
-    std::valarray<float> getPaddedSimLimitsY() { return getSimLimitsY() - padding_y[0] + padding_y; }
-//    std::valarray<float> getPaddedSimLimitsX() {return SimArea->getLimitsX() + padding_x;}
-//    std::valarray<float> getPaddedSimLimitsY() {return SimArea->getLimitsY() + padding_y;}
+//    std::valarray<float> getPaddedSimLimitsX() { return getSimLimitsX() - padding_x[0] + padding_x; }
+//    std::valarray<float> getPaddedSimLimitsY() { return getSimLimitsY() - padding_y[0] + padding_y; }
+
+    // should have corrected the shift issue so this more intuitive versino works!!
+    std::valarray<float> getPaddedSimLimitsX() {return getSimLimitsX() + padding_x;}
+    std::valarray<float> getPaddedSimLimitsY() {return getSimLimitsY() + padding_y;}
 
     float calculatePaddedRealScale(float range, int resolution, bool round_padding = false);
 

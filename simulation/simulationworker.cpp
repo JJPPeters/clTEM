@@ -141,9 +141,9 @@ void SimulationWorker::sortAtoms(bool doTds)
 
     for(int i = 0; i < atom_count; i++)
     {
-        Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i] - x_lims[0]);
-        Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i] - y_lims[0]);
-        Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i] - z_lims[0]);
+        Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
+        Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
+        Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i]);
         BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
     }
 
@@ -273,14 +273,13 @@ void SimulationWorker::doCbed()
     auto pos = job->simManager->getCBedPosition();
 
     initialiseProbeWave(pos->getXPos(), pos->getYPos());
-    
+
     // loop through slices
     for (int i = 0; i < numberOfSlices; ++i)
     {
         doMultiSliceStep(i);
         job->simManager->reportProgress(((float)i+1) / (float)numberOfSlices);
     }
-
 
     // get images and return them...
     int resolution = job->simManager->getResolution();
@@ -652,8 +651,12 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // TODO: is this needed? must test on a sample we know (i.e. a single atom) or just save the probe image
     // convert from angstroms to pixel position (this bit seemed to make results 'more' sensible)
-    posx = posx / pixelscale; // TODO: need to make sure that the sim start positions have been accounted fors
-    posy = posy / pixelscale;
+
+    float start_x = job->simManager->getPaddedSimLimitsX()[0];
+    float start_y = job->simManager->getPaddedSimLimitsY()[0];
+    // account for the simulation area start point and convert to pixels
+    posx = (posx - start_x) / pixelscale;
+    posy = (posy - start_y) / pixelscale;
 
     // Fix inverted images
     posx = resolution - 1 - posx;
