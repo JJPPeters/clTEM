@@ -13,23 +13,6 @@
 struct Kernels
 {
 
-//    static char *atom_sort;
-//    static char *floatSumReductionsource2;
-//    static char *BandLimitSource;
-//    static char *fftShiftSource;
-//    static char *opt2source;
-//    static char *fd2source;
-//    static char *conv2source;
-//    static char *propsource;
-//    static char *multisource;
-//    static char *gradsource;
-//    static char *fdsource;
-//    static char *InitialiseWavefunctionSource;
-//    static char *imagingKernelSource;
-//    static char *InitialiseSTEMWavefunctionSourceTest;
-//    static char *floatabsbandPassSource;
-//    static char *SqAbsSource;
-
     static std::string atom_sort;
     static std::string floatSumReductionsource2;
     static std::string BandLimitSource;
@@ -46,6 +29,9 @@ struct Kernels
     static std::string InitialiseSTEMWavefunctionSourceTest;
     static std::string floatabsbandPassSource;
     static std::string SqAbsSource;
+    static std::string AbsSource;
+    static std::string NtfSource;
+    static std::string DqeSource;
 
 };
 

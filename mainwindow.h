@@ -68,7 +68,6 @@ private slots:
     void cancel_simulation();
 
     void set_ctem_crop(bool state);
-    void set_sim_image(bool state);
 
     void resolution_changed(int resolution);
 

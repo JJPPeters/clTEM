@@ -15,7 +15,6 @@ signals:
     void startSim();
     void stopSim();
     void setCtemCrop(bool);
-    void setSimImage(bool);
 
 public:
     explicit TemFrame(QWidget *parent = 0);
@@ -25,6 +24,16 @@ public:
 
     void setCropCheck(bool state);
     void setSimImageCheck(bool state);
+    void setCcdIndex(int index);
+    void setBinningIndex(int index);
+    void setDose(float dose);
+
+    int getBinning();
+    std::string getCcd();
+    bool getSimImage();
+    float getDose();
+
+    void populateCcdCombo(std::vector<std::string> names);
 
 private slots:
     void on_edtDose_textChanged(const QString &arg1);
@@ -34,10 +43,11 @@ private slots:
     void on_btnCancel_clicked();
 
     void on_chkCrop_toggled(bool state);
-    void on_chkSimImage_toggled(bool state);
 
 private:
     Ui::TemFrame *ui;
+
+    int edt_precision = 5;
 };
 
 #endif // TEMFRAME_H

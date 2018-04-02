@@ -36,7 +36,7 @@ set(SIM_SCRS
 #        simulations/stemsimulation.cpp
 #        simulations/microscopesimulation.cpp
         threadworker.cpp
-        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h)
+        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS} )
 

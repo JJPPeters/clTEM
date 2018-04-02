@@ -2,6 +2,7 @@
 #include "ui_aberrationframe.h"
 
 #include <utilities/stringutils.h>
+#include <QtGui/QRegExpValidator>
 
 #include "dialogs/settings/settingsdialog.h"
 

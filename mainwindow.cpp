@@ -13,6 +13,7 @@
 #include <simulation/kernels.h>
 #include <utils/stringutils.h>
 #include <simulation/structure/structureparameters.h>
+#include <simulation/ccdparams.h>
 //#include <QtWidgets/QProgressBar>
 //
 //#include "dialogs/settings/settingsdialog.h"
@@ -87,14 +88,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tCbed, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
     connect(ui->tStem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
 
-    // for the image simulation
-    connect(ui->tTem, SIGNAL(setSimImage(bool)), this, SLOT(set_sim_image(bool)));
-
     connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
 
     ui->tSim->setResolutionIndex(0);
     ui->tTem->setCropCheck(true);
     ui->tTem->setSimImageCheck(true);
+    ui->tTem->setCcdIndex(0);
+    ui->tTem->setBinningIndex(0);
+    ui->tTem->setDose(Manager->getCcdDose());
 
     loadExternalSources();
 }
@@ -310,7 +311,11 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
-    auto mp = Manager->getMicroscopeParams();
+    // load variables for potential TEM stuff
+    Manager->setCcdBinning(ui->tTem->getBinning());
+    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
+    Manager->setCcdName(ui->tTem->getCcd());
+    Manager->setCcdDose(ui->tTem->getDose());
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
@@ -524,12 +529,26 @@ void MainWindow::loadExternalSources()
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::kernelToChar("initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils::kernelToChar("band_pass.cl");
     Kernels::SqAbsSource = Utils::kernelToChar("square_absolute.cl");
+    Kernels::AbsSource = Utils::kernelToChar("absolute.cl");
+    Kernels::DqeSource = Utils::kernelToChar("dqe.cl");
+    Kernels::NtfSource = Utils::kernelToChar("ntf.cl");
 
     // load parameters (kirkland for now)
     std::vector<float> params = Utils::paramsToVector("kirkland.dat");
     StructureParameters::setParams(params);
 
-    // TODO: load DQE, NQE for the CTEM simulation
+    // load DQE, NQE for the CTEM simulation
+    // For now, just stick to the two I have. Won't be a monumental amount of work to be able to laod all files from a folder
+    std::vector<float> dqe, ntf;
+    std::string name;
+
+    Utils::ccdToDqeNtf("orius.dat", name, dqe, ntf);
+    CCDParams::addCCD(name, dqe, ntf);
+
+    Utils::ccdToDqeNtf("k2.dat", name, dqe, ntf);
+    CCDParams::addCCD(name, dqe, ntf);
+
+    ui->tTem->populateCcdCombo(CCDParams::getNames());
 }
 
 void MainWindow::set_active_mode(int mode)
@@ -553,8 +572,4 @@ void MainWindow::set_ctem_crop(bool state) {
         else if (tab->getTabName() == "Image")
             tab->getPlot()->setCropImage(state, true, false);
     }
-}
-
-void MainWindow::set_sim_image(bool state) {
-    Manager->setSimulateCtemImage(state);
 }

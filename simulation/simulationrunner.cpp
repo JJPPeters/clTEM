@@ -54,8 +54,8 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
         std::iota(std::begin(pixelIndices), std::end(pixelIndices), 0); // this is the bit that fills the vector with incrementing integers
 
         // random generator stuff from https://stackoverflow.com/a/6926473
-        static std::random_device rd;
-        static std::mt19937 rng(rd());
+        std::random_device rd;
+        std::mt19937 rng(rd());
 
         unsigned int jobCount = 0;
         for (int i = 0; i < simManager->getTdsRuns(); ++i)
