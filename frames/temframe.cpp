@@ -27,14 +27,13 @@ void TemFrame::on_edtDose_textChanged(const QString &arg1)
         ui->edtDose->setStyleSheet("");
 }
 
-void TemFrame::on_btnExitWave_clicked()
+void TemFrame::on_btnSim_clicked()
 {
     emit startSim();
 }
 
 void TemFrame::setActive(bool active)
 {
-    ui->btnExitWave->setEnabled(active);
     ui->btnSim->setEnabled(active);
 }
 
@@ -47,4 +46,10 @@ void TemFrame::on_chkCrop_toggled(bool state) {
     emit setCtemCrop(state);
 }
 
-void TemFrame::setCrop(bool state) { ui->chkCrop->setChecked(state); }
+void TemFrame::setCropCheck(bool state) { ui->chkCrop->setChecked(state); }
+
+void TemFrame::on_chkSimImage_toggled(bool state) {
+    emit setSimImage(state);
+}
+
+void TemFrame::setSimImageCheck(bool state) { ui->chkSimImage->setChecked(state); }

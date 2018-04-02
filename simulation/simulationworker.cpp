@@ -258,6 +258,12 @@ void SimulationWorker::doCtem(bool simImage)
     Images.insert(return_map::value_type("EW_T", ew_p));
     Images.insert(return_map::value_type("Diff", diff));
 
+    if (job->simManager->getSimulateCtemImage()) {
+        simulateCtemImage();
+        auto ctem_im = Image<float>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
+        Images.insert(return_map::value_type("Image", ctem_im));
+    }
+
     job->simManager->updateImages(Images, 1);
 }
 
@@ -925,7 +931,7 @@ void SimulationWorker::simulateCtemImage()
     ImagingKernel(Work);
 
     // Now get and display absolute value
-    FourierTrans(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+    FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
 
     ABS.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
     ABS.SetArg(1, clImageWaveFunction, ArgumentType::Output);
@@ -1089,8 +1095,6 @@ std::vector<float> SimulationWorker::getExitWaveAmplitudeImage(int t, int l, int
 
     std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
 
-//    for (int i = 0; i < resolution * resolution; i++)
-//        data_out[i] = std::sqrt(compdata[i].s[0] * compdata[i].s[0] + compdata[i].s[1] * compdata[i].s[1]);
     int cnt = 0;
     for (int j = 0; j < resolution; ++j)
         if (j >= b && j < (resolution - t))

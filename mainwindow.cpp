@@ -87,10 +87,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tCbed, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
     connect(ui->tStem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
 
+    // for the image simulation
+    connect(ui->tTem, SIGNAL(setSimImage(bool)), this, SLOT(set_sim_image(bool)));
+
     connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
 
     ui->tSim->setResolutionIndex(0);
-    ui->tTem->setCrop(true);
+    ui->tTem->setCropCheck(true);
+    ui->tTem->setSimImageCheck(true);
 
     loadExternalSources();
 }
@@ -257,7 +261,7 @@ void MainWindow::updateImages(std::map<std::string, Image<float>> ims)
     emit imagesReturned(ims);
 }
 
-void MainWindow::on_actionSimulate_EW_triggered()
+void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
 {
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
@@ -298,7 +302,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
         return;
     }
 
-    std::vector<std::shared_ptr<SimulationManager>> man_list;
+    std::vector<std::shared_ptr<SimulationManager>> man_list; //why is this a vector?
 
     auto sliceRep = std::bind(&MainWindow::updateSlicesProgress, this, std::placeholders::_1);
     Manager->setProgressReporterFunc(sliceRep);
@@ -307,8 +311,6 @@ void MainWindow::on_actionSimulate_EW_triggered()
     Manager->setImageReturnFunc(imageRet);
 
     auto mp = Manager->getMicroscopeParams();
-
-    auto test = mp.get();
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
@@ -342,8 +344,6 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
     {
         std::string name = i.first;
         auto im = i.second;
-
-        // TDOO: make this generic fro all images (only really requires changing the EW names to match the programmatical names)
         // Currently assumes the positions of all the tabs
 
         if (name == "EW_A")
@@ -353,6 +353,16 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW A")
+                    tab->getPlot()->SetImageTemplate(im);
+            }
+        }
+        else if (name == "Image")
+        {
+            int n = ui->twReal->count();
+            for (int j = 0; j < n; ++j)
+            {
+                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+                if (tab->getTabName() == "Image")
                     tab->getPlot()->SetImageTemplate(im);
             }
         }
@@ -513,7 +523,7 @@ void MainWindow::loadExternalSources()
     Kernels::imagingKernelSource = Utils::kernelToChar("generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::kernelToChar("initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils::kernelToChar("band_pass.cl");
-    Kernels::SqAbsSource = Utils::kernelToChar("atom_sort.cl");
+    Kernels::SqAbsSource = Utils::kernelToChar("square_absolute.cl");
 
     // load parameters (kirkland for now)
     std::vector<float> params = Utils::paramsToVector("kirkland.dat");
@@ -540,6 +550,11 @@ void MainWindow::set_ctem_crop(bool state) {
             tab->getPlot()->setCropImage(state, true, false);
         else if (tab->getTabName() == "EW θ")
             tab->getPlot()->setCropImage(state, true, false);
-        // do the simulated image when it is set up!
+        else if (tab->getTabName() == "Image")
+            tab->getPlot()->setCropImage(state, true, false);
     }
+}
+
+void MainWindow::set_sim_image(bool state) {
+    Manager->setSimulateCtemImage(state);
 }

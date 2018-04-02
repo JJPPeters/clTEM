@@ -63,11 +63,12 @@ private slots:
 
     void on_actionOpenCL_triggered();
 
-    void on_actionSimulate_EW_triggered();
+    void on_actionSimulate_EW_triggered(bool do_image = false);
 
     void cancel_simulation();
 
     void set_ctem_crop(bool state);
+    void set_sim_image(bool state);
 
     void resolution_changed(int resolution);
 

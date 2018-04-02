@@ -15,6 +15,7 @@ signals:
     void startSim();
     void stopSim();
     void setCtemCrop(bool);
+    void setSimImage(bool);
 
 public:
     explicit TemFrame(QWidget *parent = 0);
@@ -22,16 +23,18 @@ public:
 
     void setActive(bool active);
 
-    void setCrop(bool state);
+    void setCropCheck(bool state);
+    void setSimImageCheck(bool state);
 
 private slots:
     void on_edtDose_textChanged(const QString &arg1);
 
-    void on_btnExitWave_clicked();
+    void on_btnSim_clicked();
 
     void on_btnCancel_clicked();
 
     void on_chkCrop_toggled(bool state);
+    void on_chkSimImage_toggled(bool state);
 
 private:
     Ui::TemFrame *ui;

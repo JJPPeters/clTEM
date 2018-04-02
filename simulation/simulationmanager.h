@@ -27,7 +27,7 @@ public:
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressReporter(sm.progressReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
-              blocks_x(sm.blocks_x), blocks_y(sm.blocks_y),
+              blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor)
     {
         Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -139,6 +139,9 @@ public:
     void round_padding();
     float calculateRoundedPadding(float range, int resolution);
 
+    bool getSimulateCtemImage() {return simulateCtemImage;}
+    void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
@@ -156,6 +159,7 @@ private:
     unsigned int Resolution;
     unsigned int TdsRuns;
     bool TdsEnabled;
+    bool simulateCtemImage;
 
     float maxReciprocalFactor;
 

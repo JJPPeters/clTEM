@@ -75,7 +75,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Sim CBED</string>
+        <string>Sim</string>
        </property>
       </widget>
      </item>
