@@ -27,6 +27,9 @@ private:
     float MaxZ;
     float MinZ;
 
+    std::mt19937 rng;
+    std::normal_distribution<> dist;
+
 //    int BlocksX;
 //    int BlocksY;
 

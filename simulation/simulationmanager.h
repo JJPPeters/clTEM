@@ -27,8 +27,8 @@ public:
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressReporter(sm.progressReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
-              blocks_x(sm.blocks_x), blocks_y(sm.blocks_y),
-              maxReciprocalFactor(sm.maxReciprocalFactor)
+              blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
+              maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose)
     {
         Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
@@ -139,6 +139,18 @@ public:
     void round_padding();
     float calculateRoundedPadding(float range, int resolution);
 
+    bool getSimulateCtemImage() {return simulateCtemImage;}
+    void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
+
+    std::string getCcdName() {return ccd_name;}
+    void setCcdName(std::string nm) {ccd_name = nm;}
+
+    int getCcdBinning() {return ccd_binning;}
+    void setCcdBinning(int bin) {ccd_binning = bin;}
+
+    float getCcdDose() {return ccd_dose;}
+    void setCcdDose(float dose) {ccd_dose = dose;}
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
@@ -156,6 +168,7 @@ private:
     unsigned int Resolution;
     unsigned int TdsRuns;
     bool TdsEnabled;
+    bool simulateCtemImage;
 
     float maxReciprocalFactor;
 
@@ -172,6 +185,10 @@ private:
     bool isF3D;
 
     unsigned int full3dInts;
+
+    std::string ccd_name;
+    int ccd_binning;
+    float ccd_dose;
 
     // Data return
 

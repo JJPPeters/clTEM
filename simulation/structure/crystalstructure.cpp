@@ -13,6 +13,10 @@ CrystalStructure::CrystalStructure(std::string fPath) : ScaleFactor(1.0), AtomCo
 
     srand(time(NULL));
     openXyz(fPath);
+
+    std::random_device rd;
+    rng = std::mt19937(rd());
+    dist = std::normal_distribution<>(0, 1);
 }
 
 void CrystalStructure::openXyz(std::string fPath)
@@ -175,11 +179,8 @@ void CrystalStructure::resetLimits()
 
 float CrystalStructure::generateTdsFactor()
 {
-    double float_min = (double) std::numeric_limits<float>::min();
-    double random = (double)rand() / ((double)RAND_MAX+1.0);
-    double random2 = (double)rand() / ((double)RAND_MAX+1.0);
-    double rstdnormal = std::sqrt(-2.0f * +std::log(float_min+random))*(std::sin(2.0f * CL_M_PI * random2));
-    float randNormal = 0.075f * (float)rstdnormal; //random normal(mean,stdDev^2)
+    // TODO: check this behaves as expected, may want to reset the random stuff
+    float randNormal = 0.075f * (float) dist(rng);
 
     return randNormal;
 }

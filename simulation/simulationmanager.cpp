@@ -11,7 +11,8 @@ std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
-                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1)
+                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(false),
+                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0f)
 {
     // Here is where the default values are set!
     MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);

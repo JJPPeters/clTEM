@@ -50,7 +50,7 @@ private:
 
     void initialiseStem();
 
-    void initialiseProbeWave(float posx, float posy, int n_parallel = 1);
+    void initialiseProbeWave(float posx, float posy, int n_parallel = 0);
 
     void doMultiSliceStep(int slice);
 
@@ -58,7 +58,8 @@ private:
 
     void simulateCtemImage();
 
-    void simulateCtemImage(int detector, int binning, float doseperpix, float conversionfactor);
+    void simulateCtemImage(std::vector<float> dqe_data, std::vector<float> ntf_data, int binning, float doseperpix,
+                           float conversionfactor = 1);
 
     std::vector<float> getDiffractionImage(int parallel_ind = 0);
 

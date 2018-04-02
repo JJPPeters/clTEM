@@ -33,3 +33,6 @@ std::string Kernels::imagingKernelSource = "";
 std::string Kernels::InitialiseSTEMWavefunctionSourceTest = "";
 std::string Kernels::floatabsbandPassSource = "";
 std::string Kernels::SqAbsSource = "";
+std::string Kernels::AbsSource = "";
+std::string Kernels::DqeSource = "";
+std::string Kernels::NtfSource = "";

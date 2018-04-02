@@ -7,6 +7,7 @@
 #include <utilities/stringutils.h>
 #include <utilities/fileio.h>
 #include "kernels.h"
+#include "ccdparams.h"
 
 void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
 {
@@ -257,6 +258,27 @@ void SimulationWorker::doCtem(bool simImage)
     Images.insert(return_map::value_type("EW_A", ew_a));
     Images.insert(return_map::value_type("EW_T", ew_p));
     Images.insert(return_map::value_type("Diff", diff));
+
+    if (job->simManager->getSimulateCtemImage()) {
+
+        std::string ccd = job->simManager->getCcdName();
+        if (CCDParams::nameExists(ccd)) {
+            auto dqe = CCDParams::getDQE(ccd);
+            auto ntf = CCDParams::getNTF(ccd);
+            int binning = job->simManager->getCcdBinning();
+            // get dose
+            int dose = job->simManager->getCcdDose();
+            simulateCtemImage(dqe, ntf, binning, dose);
+        }
+        else {
+            simulateCtemImage();
+        }
+
+        auto ctem_im = Image<float>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
+        Images.insert(return_map::value_type("Image", ctem_im));
+
+
+    }
 
     job->simManager->updateImages(Images, 1);
 }
@@ -889,7 +911,6 @@ void SimulationWorker::simulateCtemImage()
 {
     int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
-    float pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
 
     clKernel ABS = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
@@ -925,7 +946,7 @@ void SimulationWorker::simulateCtemImage()
     ImagingKernel(Work);
 
     // Now get and display absolute value
-    FourierTrans(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+    FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
 
     ABS.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
     ABS.SetArg(1, clImageWaveFunction, ArgumentType::Output);
@@ -934,130 +955,134 @@ void SimulationWorker::simulateCtemImage()
     ABS(Work);
 };
 
-void SimulationWorker::simulateCtemImage(int detector, int binning, float doseperpix, float conversionfactor)
+void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vector<float> ntf_data, int binning,
+                                         float doseperpix,
+                                         float conversionfactor)
 {
-//    // could be done in constructor?
-//    // populate lsit for DQEs
-//    std::vector<const float*> dqes;
-//    dqes.push_back(NULL);
-//    dqes.push_back(oriusDQE);
-//    dqes.push_back(k2DQE);
-//
-//    // populate NTFs
-//    std::vector<const float*> ntfs;
-//    ntfs.push_back(NULL);
-//    ntfs.push_back(oriusNTF);
-//    ntfs.push_back(k2NTF);
-//
-//    // Set up some temporary memory objects for the image simulation
-//    auto Temp1 = OCL::ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
-//    auto dqentfbuffer = OCL::ctx.CreateBuffer<cl_float, Manual>(725);
-//
-//    // build additional kernels required
-//    clKernel NTF = clKernel(OCL::ctx, NTFSource, 5, "clNTF");
-//    clKernel DQE = clKernel(OCL::ctx, DQESource, 5, "clDQE");
-//    clKernel ABS = clKernel(OCL::ctx, abssource2, 3, "clAbs");
-//    clKernel ABS2 = clKernel(OCL::ctx, SqAbsSource, 4, "clSqAbs");
-//
-//    // simulate image
-//    ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
-//    ImagingKernel.SetArg(1, clImageWaveFunction, ArgumentType::Output);
-//    ImagingKernel.SetArg(2, resolution);
-//    ImagingKernel.SetArg(3, resolution);
-//    ImagingKernel.SetArg(4, clXFrequencies, ArgumentType::Input);
-//    ImagingKernel.SetArg(5, clYFrequencies, ArgumentType::Input);
-//    ImagingKernel.SetArg(6, wavelength);
-//    ImagingKernel.SetArg(7, mParams->C10);
-//    ImagingKernel.SetArg(8, mParams->C12);
-//    ImagingKernel.SetArg(9, mParams->C21);
-//    ImagingKernel.SetArg(10, mParams->C23);
-//    ImagingKernel.SetArg(11, mParams->C30);
-//    ImagingKernel.SetArg(12, mParams->C32);
-//    ImagingKernel.SetArg(13, mParams->C34);
-//    ImagingKernel.SetArg(14, mParams->C41);
-//    ImagingKernel.SetArg(15, mParams->C43);
-//    ImagingKernel.SetArg(16, mParams->C45);
-//    ImagingKernel.SetArg(17, mParams->C50);
-//    ImagingKernel.SetArg(18, mParams->C52);
-//    ImagingKernel.SetArg(19, mParams->C54);
-//    ImagingKernel.SetArg(20, mParams->C56);
-//    ImagingKernel.SetArg(21, mParams->Aperture);
-//    ImagingKernel.SetArg(22, mParams->Beta);
-//    ImagingKernel.SetArg(23, mParams->Delta);
-//    clWorkGroup Work(resolution, resolution, 1);
-//    ImagingKernel(Work);
-//
-//    // ifft to real space
-//    FourierTrans(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
-//
-//    //abs for detected image
-//    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::InputOutput);
-//    ABS2.SetArg(1, Temp1, ArgumentType::Output);
-//    ABS2.SetArg(2, resolution);
-//    ABS2.SetArg(3, resolution);
-//    ABS2(Work);
-//
-//    //
-//    // Dose stuff starts here!
-//    //
-//
-//    // IFFT
-//    FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
-//    // write DQE to opencl
-//    clEnqueueWriteBuffer(OCL::ctx.GetIOQueue(), dqentfbuffer->GetBuffer(), CL_TRUE, 0, 725 * sizeof(float), dqes[detector], 0, NULL, NULL);
-//    // apply DQE
-//    DQE.SetArg(0, clImageWaveFunction, ArgumentType::InputOutput);
-//    DQE.SetArg(1, dqentfbuffer, ArgumentType::Input);
-//    DQE.SetArg(2, resolution);
-//    DQE.SetArg(3, resolution);
-//    DQE.SetArg(4, binning);
-//    DQE(Work);
-//    // IFFT back
-//    FourierTrans(clImageWaveFunction, Temp1, Direction::Inverse);
-//
-//    // what is this abs squared for?
-//    ABS.SetArg(0, Temp1, ArgumentType::Input);
-//    //ABS.SetArg(1,clImageWaveFunction,ArgumentType::Output);
-//    ABS.SetArg(1, resolution);
-//    ABS.SetArg(2, resolution);
-//    ABS(Work);
-//
-//    float Ntot = doseperpix*binning*binning; // Get this passed in, its dose per pixel i think.
-//
-//    std::vector<cl_float2> compdata = Temp1->CreateLocalCopy();
-//
-//    for (int i = 0; i < resolution * resolution; i++)
-//    {
-//        double random = ((double)rand() / (RAND_MAX + 1));
-//        double random2 = ((double)rand() / (RAND_MAX + 1));
-//        double rstdnormal = sqrt(-2.0f * +log(FLT_MIN + random))*(sin(2.0f * CL_M_PI * random2));
-//
-//        float val = compdata[i].s[0];
-//        // CAN CONVERSIOIN FACTOR BE APPLIED HERE?
-//        compdata[i].s[0] = conversionfactor * floor(Ntot * val + sqrt(fabs(Ntot*val))*rstdnormal); // Was round not floor
-//        compdata[i].s[1] = 0;
-//    }
-//
-//    clImageWaveFunction->Write(compdata);
-//    FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
-//
-//    clEnqueueWriteBuffer(OCL::ctx.GetIOQueue(), dqentfbuffer->GetBuffer(), CL_TRUE, 0, 725 * sizeof(float), ntfs[detector], 0, NULL, NULL);
-//
-//    NTF.SetArg(0, Temp1, ArgumentType::InputOutput);
-//    NTF.SetArg(1, dqentfbuffer, ArgumentType::Input);
-//    NTF.SetArg(2, resolution);
-//    NTF.SetArg(3, resolution);
-//    NTF.SetArg(4, binning);
-//    NTF(Work);
-//
-//    FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
-//
-//    // might want to be sqrt (aka normal abs)
-//    ABS.SetArg(0, clImageWaveFunction, ArgumentType::Input);
-//    //ABS.SetArg(1, clImageWaveFunction, ArgumentType::Output);
-//    ABS.SetArg(1, resolution);
-//    ABS.SetArg(2, resolution);
-//    ABS(Work);
+    // all the NTF, DQE stuff can be found here: 10.1016/j.jsb.2013.05.008
+
+    int resolution = job->simManager->getResolution();
+    float wavelength = job->simManager->getWavelength();
+    auto mParams = job->simManager->getMicroscopeParams();
+
+    // Set up some temporary memory objects for the image simulation
+    auto Temp1 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
+    auto dqe_ntf_buffer = ctx.CreateBuffer<cl_float, Manual>(725);
+
+    // build additional kernels required
+    clKernel NTF = clKernel(ctx, Kernels::NtfSource.c_str(), 5, "clNTF");
+    clKernel DQE = clKernel(ctx, Kernels::DqeSource.c_str(), 5, "clDQE");
+    clKernel ABS = clKernel(ctx, Kernels::AbsSource.c_str(), 3, "clAbs");
+    clKernel ABS2 = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
+
+    // simulate image
+    ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
+    ImagingKernel.SetArg(1, clImageWaveFunction, ArgumentType::Output);
+    ImagingKernel.SetArg(2, resolution);
+    ImagingKernel.SetArg(3, resolution);
+    ImagingKernel.SetArg(4, clXFrequencies, ArgumentType::Input);
+    ImagingKernel.SetArg(5, clYFrequencies, ArgumentType::Input);
+    ImagingKernel.SetArg(6, wavelength);
+    ImagingKernel.SetArg(7, mParams->C10);
+    ImagingKernel.SetArg(8, mParams->C12);
+    ImagingKernel.SetArg(9, mParams->C21);
+    ImagingKernel.SetArg(10, mParams->C23);
+    ImagingKernel.SetArg(11, mParams->C30);
+    ImagingKernel.SetArg(12, mParams->C32);
+    ImagingKernel.SetArg(13, mParams->C34);
+    ImagingKernel.SetArg(14, mParams->C41);
+    ImagingKernel.SetArg(15, mParams->C43);
+    ImagingKernel.SetArg(16, mParams->C45);
+    ImagingKernel.SetArg(17, mParams->C50);
+    ImagingKernel.SetArg(18, mParams->C52);
+    ImagingKernel.SetArg(19, mParams->C54);
+    ImagingKernel.SetArg(20, mParams->C56);
+    ImagingKernel.SetArg(21, mParams->Aperture);
+    ImagingKernel.SetArg(22, mParams->Alpha);
+    ImagingKernel.SetArg(23, mParams->Delta);
+
+    clWorkGroup Work(resolution, resolution, 1);
+
+    ImagingKernel(Work);
+
+    // ifft to real space
+    FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+
+    //abs for detected image
+    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::InputOutput);
+    ABS2.SetArg(1, Temp1, ArgumentType::Output);
+    ABS2.SetArg(2, resolution);
+    ABS2.SetArg(3, resolution);
+    ABS2(Work);
+
+    //
+    // Dose stuff starts here!
+    //
+
+    // IFFT
+    FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
+    // write DQE to opencl
+    dqe_ntf_buffer->Write(dqe_data);
+
+    // apply DQE
+    DQE.SetArg(0, clImageWaveFunction, ArgumentType::InputOutput);
+    DQE.SetArg(1, dqe_ntf_buffer, ArgumentType::Input);
+    DQE.SetArg(2, resolution);
+    DQE.SetArg(3, resolution);
+    DQE.SetArg(4, binning);
+    DQE(Work);
+
+    // IFFT back
+    FourierTrans(clImageWaveFunction, Temp1, Direction::Inverse);
+
+    // TODO: what is this abs squared for?
+    ABS.SetArg(0, Temp1, ArgumentType::InputOutput);
+    ABS.SetArg(1, resolution);
+    ABS.SetArg(2, resolution);
+    ABS(Work);
+
+    float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
+
+    std::vector<cl_float2> compdata = Temp1->CreateLocalCopy();
+
+    float fmin = std::numeric_limits<float>::min();
+
+    std::random_device rd;
+    std::mt19937 rng(rd());
+    std::normal_distribution<> dist(0, 1);
+
+    for (int i = 0; i < resolution * resolution; i++)
+    {
+        // replaced the Box-Muller transform with this for convenience
+        // see: https://stackoverflow.com/questions/19944111/creating-a-gaussian-random-generator-with-a-mean-and-standard-deviation
+        float std_normal = (float) dist(rng);
+
+        float val = compdata[i].s[0];
+
+        // TODO: CAN CONVERSIOIN FACTOR BE APPLIED HERE? and why is it always 1
+        compdata[i].s[0] = conversionfactor * std::floor(N_tot * val + std::sqrt(std::abs(N_tot*val)) * std_normal); // Was round not floor
+        compdata[i].s[1] = 0;
+    }
+
+    clImageWaveFunction->Write(compdata);
+    FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
+
+    dqe_ntf_buffer->Write(ntf_data);
+
+    NTF.SetArg(0, Temp1, ArgumentType::InputOutput);
+    NTF.SetArg(1, dqe_ntf_buffer, ArgumentType::Input);
+    NTF.SetArg(2, resolution);
+    NTF.SetArg(3, resolution);
+    NTF.SetArg(4, binning);
+    NTF(Work);
+
+    FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
+
+    // might want to be sqrt (aka normal abs)
+    ABS.SetArg(0, clImageWaveFunction, ArgumentType::Input);
+    ABS.SetArg(1, resolution);
+    ABS.SetArg(2, resolution);
+    ABS(Work);
 }
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
@@ -1089,8 +1114,6 @@ std::vector<float> SimulationWorker::getExitWaveAmplitudeImage(int t, int l, int
 
     std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
 
-//    for (int i = 0; i < resolution * resolution; i++)
-//        data_out[i] = std::sqrt(compdata[i].s[0] * compdata[i].s[0] + compdata[i].s[1] * compdata[i].s[1]);
     int cnt = 0;
     for (int j = 0; j < resolution; ++j)
         if (j >= b && j < (resolution - t))

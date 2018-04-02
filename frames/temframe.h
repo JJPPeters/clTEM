@@ -22,12 +22,23 @@ public:
 
     void setActive(bool active);
 
-    void setCrop(bool state);
+    void setCropCheck(bool state);
+    void setSimImageCheck(bool state);
+    void setCcdIndex(int index);
+    void setBinningIndex(int index);
+    void setDose(float dose);
+
+    int getBinning();
+    std::string getCcd();
+    bool getSimImage();
+    float getDose();
+
+    void populateCcdCombo(std::vector<std::string> names);
 
 private slots:
     void on_edtDose_textChanged(const QString &arg1);
 
-    void on_btnExitWave_clicked();
+    void on_btnSim_clicked();
 
     void on_btnCancel_clicked();
 
@@ -35,6 +46,8 @@ private slots:
 
 private:
     Ui::TemFrame *ui;
+
+    int edt_precision = 5;
 };
 
 #endif // TEMFRAME_H

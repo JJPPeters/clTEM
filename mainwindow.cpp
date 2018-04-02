@@ -13,6 +13,7 @@
 #include <simulation/kernels.h>
 #include <utils/stringutils.h>
 #include <simulation/structure/structureparameters.h>
+#include <simulation/ccdparams.h>
 //#include <QtWidgets/QProgressBar>
 //
 //#include "dialogs/settings/settingsdialog.h"
@@ -90,7 +91,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
 
     ui->tSim->setResolutionIndex(0);
-    ui->tTem->setCrop(true);
+    ui->tTem->setCropCheck(true);
+    ui->tTem->setSimImageCheck(true);
+    ui->tTem->setCcdIndex(0);
+    ui->tTem->setBinningIndex(0);
+    ui->tTem->setDose(Manager->getCcdDose());
 
     loadExternalSources();
 }
@@ -257,7 +262,7 @@ void MainWindow::updateImages(std::map<std::string, Image<float>> ims)
     emit imagesReturned(ims);
 }
 
-void MainWindow::on_actionSimulate_EW_triggered()
+void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
 {
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
@@ -298,7 +303,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
         return;
     }
 
-    std::vector<std::shared_ptr<SimulationManager>> man_list;
+    std::vector<std::shared_ptr<SimulationManager>> man_list; //why is this a vector?
 
     auto sliceRep = std::bind(&MainWindow::updateSlicesProgress, this, std::placeholders::_1);
     Manager->setProgressReporterFunc(sliceRep);
@@ -306,9 +311,11 @@ void MainWindow::on_actionSimulate_EW_triggered()
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
-    auto mp = Manager->getMicroscopeParams();
-
-    auto test = mp.get();
+    // load variables for potential TEM stuff
+    Manager->setCcdBinning(ui->tTem->getBinning());
+    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
+    Manager->setCcdName(ui->tTem->getCcd());
+    Manager->setCcdDose(ui->tTem->getDose());
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
@@ -342,8 +349,6 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
     {
         std::string name = i.first;
         auto im = i.second;
-
-        // TDOO: make this generic fro all images (only really requires changing the EW names to match the programmatical names)
         // Currently assumes the positions of all the tabs
 
         if (name == "EW_A")
@@ -353,6 +358,16 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW A")
+                    tab->getPlot()->SetImageTemplate(im);
+            }
+        }
+        else if (name == "Image")
+        {
+            int n = ui->twReal->count();
+            for (int j = 0; j < n; ++j)
+            {
+                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+                if (tab->getTabName() == "Image")
                     tab->getPlot()->SetImageTemplate(im);
             }
         }
@@ -513,13 +528,27 @@ void MainWindow::loadExternalSources()
     Kernels::imagingKernelSource = Utils::kernelToChar("generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::kernelToChar("initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils::kernelToChar("band_pass.cl");
-    Kernels::SqAbsSource = Utils::kernelToChar("atom_sort.cl");
+    Kernels::SqAbsSource = Utils::kernelToChar("square_absolute.cl");
+    Kernels::AbsSource = Utils::kernelToChar("absolute.cl");
+    Kernels::DqeSource = Utils::kernelToChar("dqe.cl");
+    Kernels::NtfSource = Utils::kernelToChar("ntf.cl");
 
     // load parameters (kirkland for now)
     std::vector<float> params = Utils::paramsToVector("kirkland.dat");
     StructureParameters::setParams(params);
 
-    // TODO: load DQE, NQE for the CTEM simulation
+    // load DQE, NQE for the CTEM simulation
+    // For now, just stick to the two I have. Won't be a monumental amount of work to be able to laod all files from a folder
+    std::vector<float> dqe, ntf;
+    std::string name;
+
+    Utils::ccdToDqeNtf("orius.dat", name, dqe, ntf);
+    CCDParams::addCCD(name, dqe, ntf);
+
+    Utils::ccdToDqeNtf("k2.dat", name, dqe, ntf);
+    CCDParams::addCCD(name, dqe, ntf);
+
+    ui->tTem->populateCcdCombo(CCDParams::getNames());
 }
 
 void MainWindow::set_active_mode(int mode)
@@ -540,6 +569,7 @@ void MainWindow::set_ctem_crop(bool state) {
             tab->getPlot()->setCropImage(state, true, false);
         else if (tab->getTabName() == "EW θ")
             tab->getPlot()->setCropImage(state, true, false);
-        // do the simulated image when it is set up!
+        else if (tab->getTabName() == "Image")
+            tab->getPlot()->setCropImage(state, true, false);
     }
 }
