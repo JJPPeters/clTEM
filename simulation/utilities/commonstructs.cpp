@@ -161,12 +161,12 @@ void StemArea::forcePxRangeY(float start, float finish, int yp)
 
 float StemArea::getScaleX()
 {
-    return (xFinish - xStart) / xPixels;
+    return (xFinish - xStart) / (xPixels-1);
 }
 
 float StemArea::getScaleY()
 {
-    return (yFinish - yStart) / yPixels;
+    return (yFinish - yStart) / (yPixels-1);
 }
 
 //bool StemArea::setRangeXInsideSim(std::shared_ptr<SimulationArea> sa)

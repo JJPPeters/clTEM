@@ -60,7 +60,7 @@ private:
 
     void simulateCtemImage(int detector, int binning, float doseperpix, float conversionfactor);
 
-    std::vector<float> getDiffractionImage(int wave = 1);
+    std::vector<float> getDiffractionImage(int parallel_ind = 0);
 
     std::vector<float> getExitWaveAmplitudeImage(int t = 0, int l = 0, int b = 0, int r = 0);
 
@@ -70,7 +70,7 @@ private:
 
     float doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum, clWorkGroup localSizeSum, int nGroups, int totalSize);
 
-    float getStemPixel(float inner, float outer, float xc, float yc, int wave);
+    float getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind);
 
     // OpenCL stuff
     std::shared_ptr<clMemory<float, Manual>> ClParameterisation;
@@ -120,7 +120,6 @@ private:
     // STEM
     clKernel TDSMaskingAbsKernel;
     clKernel SumReduction;
-
 
     // Finite difference variables
     // --Seem to get set no matter what?

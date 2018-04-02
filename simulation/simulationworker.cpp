@@ -331,9 +331,13 @@ void SimulationWorker::doStem()
     for (int i = 0; i < numberOfSlices; ++i)
     {
         doMultiSliceStep(i);
+        job->simManager->reportProgress(((float)i+1) / (float)numberOfSlices);
     }
 
-    std::map<std::string, std::vector<float>> Images;
+    typedef std::map<std::string, Image<float>> return_map;
+    return_map Images;
+    int px_x = job->simManager->getStemArea()->getPixelsX();
+    int px_y = job->simManager->getStemArea()->getPixelsY();
 
     for (auto det : job->simManager->getDetectors())
     {
@@ -344,10 +348,10 @@ void SimulationWorker::doStem()
             im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
         }
 
-        Images[det.name] = im;
+        Images[det.name] = Image<float>(px_x, px_y, im);
     }
 
-//    job->simManager->updateImages(Images, job->pixels.size()); // TODO: check we only do one TDS config per job
+    job->simManager->updateImages(Images, job->pixels.size()); // TODO: check we only do one TDS config per job
 }
 
 void SimulationWorker::initialiseSimulation()
@@ -602,7 +606,7 @@ void SimulationWorker::initialiseCtem()
 void SimulationWorker::initialiseCbed()
 {
     int resolution = job->simManager->getResolution();
-    int n_parallel = job->simManager->getParallelPixels();
+    int n_parallel = job->simManager->getParallelPixels(); // this is the number of parallel pixels
 
     // Initialise Wavefunctions and Create other buffers...
     // Even though CBED only eer has 1 parallel simulation (per device), this set up is also used for STEM
@@ -630,10 +634,12 @@ void SimulationWorker::initialiseCbed()
 void SimulationWorker::initialiseStem()
 {
     SumReduction = clKernel(ctx, Kernels::floatSumReductionsource2.c_str(), 4, "clSumReduction");
-    TDSMaskingAbsKernel = clKernel(ctx, Kernels::floatabsbandPassSource.c_str(), 8, "clFloatAbsBandPass");
+    TDSMaskingAbsKernel = clKernel(ctx, Kernels::floatabsbandPassSource.c_str(), 8, "clFloatBandPass");
+
     initialiseCbed();
 }
 
+// n_parallel is the index (from 0) of the current parallel pixel
 void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_parallel)
 {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -662,7 +668,7 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     posx = resolution - posx;
     posy = resolution - posy;
 
-    InitProbeWavefunction.SetArg(0, clWaveFunction2[n_parallel - 1]);
+    InitProbeWavefunction.SetArg(0, clWaveFunction2[n_parallel]);
     InitProbeWavefunction.SetArg(1, resolution);
     InitProbeWavefunction.SetArg(2, resolution);
     InitProbeWavefunction.SetArg(3, clXFrequencies);
@@ -694,11 +700,11 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // IFFT
-    FourierTrans.Do(clWaveFunction2[n_parallel - 1], clWaveFunction1[n_parallel - 1], Direction::Inverse);
+    FourierTrans.Do(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
 
     // copy to second wave function used for finite difference
     if (job->simManager->isFiniteDifference())
-        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[n_parallel - 1]->GetBuffer(), clWaveFunction1Minus[n_parallel - 1]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, 0, 0);
+        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[n_parallel]->GetBuffer(), clWaveFunction1Minus[n_parallel]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, 0, 0);
 }
 
 void SimulationWorker::doMultiSliceStep(int slice)
@@ -719,7 +725,7 @@ void SimulationWorker::doMultiSliceStep(int slice)
     float dz = job->simManager->getSliceThickness();
     int resolution = job->simManager->getResolution();
     // in the current format, Tds is handled by job splitting so this is always 1??
-    int n_parallel = job->simManager->getParallelPixels();
+    int n_parallel = job->simManager->getParallelPixels(); // total number of parallel pixels
     auto z_lim = job->simManager->getPaddedStructLimitsZ();
 
     // Didn't have MinimumZ so it wasnt correctly rescaled z-axis from 0 to SizeZ...
@@ -1054,7 +1060,7 @@ void SimulationWorker::simulateCtemImage(int detector, int binning, float dosepe
 //    ABS(Work);
 }
 
-std::vector<float> SimulationWorker::getDiffractionImage(int wave)
+std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
 {
     int resolution = job->simManager->getResolution();
     std::vector<float> data_out(resolution*resolution);
@@ -1062,7 +1068,7 @@ std::vector<float> SimulationWorker::getDiffractionImage(int wave)
     // Original data is complex so copy complex version down first
     clWorkGroup Work(resolution, resolution, 1);
 
-    fftShift.SetArg(0, clWaveFunction2[wave - 1], ArgumentType::Input);
+    fftShift.SetArg(0, clWaveFunction2[parallel_ind], ArgumentType::Input);
     fftShift(Work);
 
 //    ctx.WaitForQueueFinish();
@@ -1139,17 +1145,19 @@ std::vector<float> SimulationWorker::getCtemImage()
 
 float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum, clWorkGroup localSizeSum, int nGroups, int totalSize)
 {
-    std::shared_ptr<clMemory<float, Manual>> outArray = ctx.CreateBuffer<float, Manual>(nGroups);
+    auto outArray = ctx.CreateBuffer<float, Manual>(nGroups);
+
     SumReduction.SetArg(0, data, ArgumentType::Input);
 
-    // Only really need to do these 3 once...
-    SumReduction.SetArg(1, outArray, ArgumentType::Output);
+    // Only really need to do these 3 once... (but we make a local 'outArray' so can't do that)
+    SumReduction.SetArg(1, outArray);
     SumReduction.SetArg(2, totalSize);
     SumReduction.SetLocalMemoryArg<float>(3, 256);
+
     SumReduction(globalSizeSum, localSizeSum);
 
     // Now copy back
-    std::vector< float> sums = outArray->CreateLocalCopy();
+    std::vector<float> sums = outArray->CreateLocalCopy();
 
     // Find out which numbers to read back
     float sum = 0;
@@ -1160,33 +1168,24 @@ float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> 
     return sum;
 }
 
-float SimulationWorker::getStemPixel(float inner, float outer, float xc, float yc, int wave)
+float SimulationWorker::getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind)
 {
     int resolution = job->simManager->getResolution();
-    float reciprocal_scale = job->simManager->getInverseScale();
-    float wavelength = job->simManager->getWavelength();
+    float angle_scale = job->simManager->getInverseScaleAngle();
 
     clWorkGroup WorkSize(resolution, resolution, 1);
 
-    fftShift.SetArg(0, clWaveFunction2[wave - 1], ArgumentType::Input);
+    fftShift.SetArg(0, clWaveFunction2[parallel_ind], ArgumentType::Input);
     fftShift(WorkSize);
 
-    float pxFreq = (resolution * reciprocal_scale);
+    float innerPx = inner / angle_scale;
+    float outerPx = outer / angle_scale;
 
-    float innerFreq = inner / (1000 * wavelength);
-    float innerPx = innerFreq*pxFreq;
+    float xcPx = xc / angle_scale;
+    float ycPx = yc / angle_scale;
 
-    float outerFreq = outer / (1000 * wavelength);
-    float outerPx = outerFreq*pxFreq;
-
-    float xcFreq = xc / (1000 * wavelength);
-    float xcPx = xcFreq*pxFreq;
-
-    float ycFreq = yc / (1000 * wavelength);
-    float ycPx = ycFreq*pxFreq;
-
-    TDSMaskingAbsKernel.SetArg(0, clTDSMaskDiff, ArgumentType::Output);
-    TDSMaskingAbsKernel.SetArg(1, clWaveFunction3[0], ArgumentType::Input);
+    TDSMaskingAbsKernel.SetArg(0, clWaveFunction3[0], ArgumentType::Input);
+    TDSMaskingAbsKernel.SetArg(1, clTDSMaskDiff, ArgumentType::Output);
     TDSMaskingAbsKernel.SetArg(2, resolution);
     TDSMaskingAbsKernel.SetArg(3, resolution);
     TDSMaskingAbsKernel.SetArg(4, innerPx);

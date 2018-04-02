@@ -29,7 +29,7 @@ void SimulationRunner::runSingle(std::shared_ptr<SimulationManager> sim_pointer)
     }
 }
 
-std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::shared_ptr<SimulationManager> simManager, int StemParallel)
+std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::shared_ptr<SimulationManager> simManager)
 {
     auto mode = simManager->getMode();
     unsigned long nJobs = simManager->getTotalParts();
@@ -47,6 +47,7 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
             jobs[i] = std::shared_ptr<SimulationJob>(new SimulationJob(simManager));
     else if (mode == SimulationMode::STEM)
     {
+        int StemParallel = simManager->getParallelPixels();
         //TODO: avoid most of this if StemParallel is set to 1
         // generate an array of all our pixels (just increment them)
         std::vector<int> pixelIndices((unsigned long) simManager->getStemArea()->getNumPixels());
@@ -69,7 +70,7 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
             // and calculate the straggling remainders
             unsigned int nSims = (unsigned int) std::ceil(simManager->getStemArea()->getNumPixels() / StemParallel);
             unsigned int pxPerSim = (unsigned int) std::floor(simManager->getStemArea()->getNumPixels() / nSims );
-            unsigned int remainder = simManager->getStemArea()->getNumPixels() % nSims;
+            int remainder = simManager->getStemArea()->getNumPixels() % nSims;
 
             unsigned int current = 0;
             for (int j = 0; j < nSims; ++j)

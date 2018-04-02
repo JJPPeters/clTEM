@@ -42,7 +42,7 @@
 /// sigma - the interaction parameter (given by eq. 5.6 in Kirkland)
 /// startx - x start position of simulation (when simulation is cropped)
 /// starty - y start position of simulation
-/// 3d_integrals - the number of sub-slices used to build the full 3d potential
+/// integrals - the number of sub-slices used to build the full 3d potential
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 										  __global const float* restrict pos_x,
@@ -70,7 +70,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 										  float sigma,
 										  float startx,
 										  float starty,
-										  int 3d_integrals)
+										  int integrals)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -90,8 +90,6 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 	__local float aty[256];
 	__local float atz[256];
 	__local int atZ[256];
-
-	float integrals = 3d_integrals;
 
 	int startj = fmax(floor(((starty + gy * get_local_size(1) * pixel_scale) * blocks_y ) / (max_y-min_y)) - block_load_y,0) ;
 	int endj = fmin(ceil(((starty + (gy+1) * get_local_size(1) * pixel_scale) * blocks_y) / (max_y-min_y)) + block_load_y,blocks_y-1);
@@ -124,9 +122,9 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 				float xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
 
 				int ZNum = atZ[l];
-				for (int h = 0; h <= 3d_integrals; h++)
+				for (int h = 0; h <= integrals; h++)
 				{
-					// not sure how the integrals work here (integrals = 3d_integrals)
+					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
 					float rad = native_sqrt(xyrad2 + (z - h*dz/integrals -atz[l])*(z - h*dz/integrals-atz[l]));
