@@ -10,22 +10,22 @@
 /// size - total size of the input image
 /// buffer - tempprary buffer to store part of the input to then be summed independently
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clSumReduction( __global const float2* input,
-							  __global float2* output,
+__kernel void clSumReduction( __global const float* input,
+							  __global float* output,
 							  const unsigned int size,
-							  __local float2* buffer)
+							  __local float* buffer)
 {
 	// Get the work items ID
 	size_t idx = get_local_id(0);
 	size_t stride = get_global_size(0);
-	buffer[idx] = 0;
+	buffer[idx] = 0.0f;
 
 	for(size_t pos = get_global_id(0); pos < size; pos += stride )
 		buffer[idx] += input[pos];
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	float sum = 0;
+	float sum = 0.0f;
 	if(!idx) {
 		for(size_t i = 1; i < get_local_size(0); ++i)
 			sum += sqrt(buffer[i].x*buffer[i].x + buffer[i].y*buffer[i].y);

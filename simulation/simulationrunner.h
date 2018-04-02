@@ -34,7 +34,7 @@ private:
 
     std::unique_ptr<ThreadPool> t_pool;
 
-    std::vector<std::shared_ptr<SimulationJob>> SplitJobs(std::shared_ptr<SimulationManager> simManager, int StemParallel=0);
+    std::vector<std::shared_ptr<SimulationJob>> SplitJobs(std::shared_ptr<SimulationManager> simManager);
 };
 
 

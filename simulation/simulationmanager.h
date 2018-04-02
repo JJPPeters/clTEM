@@ -106,6 +106,7 @@ public:
 //    float getSimSideLength();
     float getRealScale();
     float getInverseScale();
+    float getInverseScaleAngle();
     float getInverseMaxAngle();
     float getInverseLimitFactor() {return maxReciprocalFactor;}
 

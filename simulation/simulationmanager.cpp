@@ -11,7 +11,7 @@ std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
-                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f)
+                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1)
 {
     // Here is where the default values are set!
     MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);
@@ -90,6 +90,14 @@ float SimulationManager::getInverseScale()
         return 1.0f / (getRealScale() * Resolution);
 }
 
+float SimulationManager::getInverseScaleAngle() {
+    if(!Structure || !haveResolution() && MicroParams && MicroParams->Voltage > 0)
+        throw std::runtime_error("Can't calculate scales without resolution and structure");
+
+    float inv_scale = getInverseScale();
+    return 1000.0f * inv_scale * MicroParams->Wavelength();
+}
+
 float SimulationManager::getInverseMaxAngle()
 {
     // need to do this in mrad, eventually should also pass inverse Angstrom for hover text?
@@ -97,8 +105,8 @@ float SimulationManager::getInverseMaxAngle()
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     // this is the max reciprocal space scale for the entire image
-    float maxFreq =  maxReciprocalFactor / getRealScale(); // apply cut off here, because we can
-    return 0.5f * 1000.0f * maxFreq * MicroParams->Wavelength(); // half because we have a centered 0, 1000 to be in mrad
+    float angle_scale = getInverseScaleAngle(); // apply cut off here, because we can
+    return 0.5f * angle_scale * Resolution * getInverseLimitFactor(); // half because we have a centered 0, 1000 to be in mrad
 }
 
 unsigned long SimulationManager::getTotalParts()

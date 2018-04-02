@@ -343,6 +343,9 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
         std::string name = i.first;
         auto im = i.second;
 
+        // TDOO: make this generic fro all images (only really requires changing the EW names to match the programmatical names)
+        // Currently assumes the positions of all the tabs
+
         if (name == "EW_A")
         {
             int n = ui->twReal->count();
@@ -371,6 +374,17 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
                 ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
                 if (tab->getTabName() == "Diffraction")
                     tab->getPlot()->SetImageTemplate(im, IntensityScale::Log);
+            }
+        }
+        else
+        {
+            // Handle general cases (for STEM really)
+            int n = ui->twReal->count();
+            for (int j = 0; j < n; ++j)
+            {
+                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+                if (tab->getTabName() == name)
+                    tab->getPlot()->SetImageTemplate(im);
             }
         }
     }
@@ -484,7 +498,6 @@ void MainWindow::cancel_simulation()
 void MainWindow::loadExternalSources()
 {
     // Populate the kernels from files...
-    std::string atom_sort_test = Utils::kernelToChar("atom_sort.cl");
     Kernels::atom_sort = Utils::kernelToChar("atom_sort.cl");
     Kernels::floatSumReductionsource2 = Utils::kernelToChar("sum_reduction.cl");
     Kernels::BandLimitSource = Utils::kernelToChar("low_pass.cl");
@@ -496,7 +509,6 @@ void MainWindow::loadExternalSources()
     Kernels::multisource = Utils::kernelToChar("complex_multiply.cl");
     Kernels::gradsource = Utils::kernelToChar("grad.cl");
     Kernels::fdsource = Utils::kernelToChar("finite_difference.cl");
-    std::string temp = Utils::kernelToChar("initialise_plane.cl");
     Kernels::InitialiseWavefunctionSource = Utils::kernelToChar("initialise_plane.cl");
     Kernels::imagingKernelSource = Utils::kernelToChar("generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::kernelToChar("initialise_probe.cl");

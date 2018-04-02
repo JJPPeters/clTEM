@@ -12,8 +12,8 @@
 /// x_centre - centre x shift of the band pass ring
 /// y_centre - centre y shift of the band pass ring
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clFloatBandPass( __global float* restrict output,
-							   __global const float* restrict input,
+__kernel void clFloatBandPass( __global const float2* restrict input,
+                               __global float* restrict output,
 							   int width,
 							   int height,
 							   float inner,
@@ -27,9 +27,20 @@ __kernel void clFloatBandPass( __global float* restrict output,
 	if(xid<width && yid<height)
 	{
 		int Index = xid + yid*width;
-    	float centX = width/2 + x_centre;
-    	float centY = height/2 + y_centre;
+    	float centX = width/2.0f + x_centre;
+    	float centY = height/2.0f + y_centre;
     	float radius = hypot(xid-centX,yid-centY);
-		output[Index] = (radius < outer && radius > inner) * input[Index];
+    	//float x = xid - (width/2.0f + x_centre);
+    	//float y = yid - (height/2.0f + y_centre);
+    	//float radius = sqrt( x*x + y*y );
+    	if (radius < outer && radius > inner)
+    	{
+		    output[Index] = input[Index].x*input[Index].x + input[Index].y*input[Index].y;
+		}
+		else
+		{
+		    output[Index] = 0.0f;
+		}
+
 	}
 }
