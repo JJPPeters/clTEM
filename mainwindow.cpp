@@ -99,12 +99,14 @@ MainWindow::MainWindow(QWidget *parent) :
         ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
         auto test =  tab->getTabName();
         connect(tab->getPlot(), SIGNAL(saveDataClicked()), this, SLOT(saveTiff()));
+        connect(tab->getPlot(), SIGNAL(saveImageClicked()), this, SLOT(saveBmp()));
     }
     n = ui->twRecip->count();
     for (int j = 0; j < n; ++j)
     {
         ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
         connect(tab->getPlot(), SIGNAL(saveDataClicked()), this, SLOT(saveTiff()));
+        connect(tab->getPlot(), SIGNAL(saveImageClicked()), this, SLOT(saveBmp()));
     }
 
 
@@ -594,7 +596,7 @@ void MainWindow::set_ctem_crop(bool state) {
 }
 
 void MainWindow::saveTiff() {
-    auto origin = (ImagePlotWidget*) sender();
+    auto origin = (ImagePlotWidget*) sender(); // TODO: do a better cast
     int sx, sy;
     std::vector<float> data;
     origin->getData(data, sx, sy);
@@ -604,5 +606,11 @@ void MainWindow::saveTiff() {
 }
 
 void MainWindow::saveBmp() {
+    auto origin = (ImagePlotWidget*) sender();
+    int sx, sy;
+    std::vector<float> data;
+    origin->getData(data, sx, sy);
 
+    std::string f = "/home/jon/Documents/clTEM_testing/out.bmp";
+    fileio::SaveBmp(f, data, sx, sy);
 }

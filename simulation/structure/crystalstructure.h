@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <valarray>
+#include <random>
 
 #include "clwrapper.h"
 #include "clstatic.h"

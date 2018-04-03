@@ -85,14 +85,27 @@ public:
     template <typename T>
     void getData(std::vector<T>& out, int& sx, int& sy)
     {
-        sx = ImageObject->data()->keySize() - crop_l - crop_r;
-        sy = ImageObject->data()->valueSize() - crop_t - crop_b;
+        int c_l = 0;
+        int c_r = 0;
+        int c_t = 0;
+        int c_b = 0;
+
+        if (crop_image)
+        {
+            c_t = crop_t;
+            c_l = crop_l;
+            c_b = crop_b;
+            c_r = crop_r;
+        }
+
+        sx = ImageObject->data()->keySize() - c_l - c_r;
+        sy = ImageObject->data()->valueSize() - c_t - c_b;
 
         out = std::vector<T>(sx*sy);
 
         int cnt = 0;
-        for (int j = crop_b; j < size_y-crop_t; ++j)
-            for (int i = crop_l; i < size_x-crop_r; ++i)
+        for (int j = c_b; j < size_y-c_t; ++j)
+            for (int i = c_l; i < size_x-c_r; ++i)
             {
                 out[cnt] = static_cast<T>(ImageObject->data()->cell(i, j));
                 ++cnt;
