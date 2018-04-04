@@ -596,21 +596,57 @@ void MainWindow::set_ctem_crop(bool state) {
 }
 
 void MainWindow::saveTiff() {
-    auto origin = (ImagePlotWidget*) sender(); // TODO: do a better cast
+    auto origin = static_cast<ImagePlotWidget*>(sender());
+
+    // do the dialog stuff
+    QSettings settings;
+    std::string test = settings.value("dialog/currentSavePath").toString().toStdString();
+    QString filepath = QFileDialog::getSaveFileName(this, "Save data", QString::fromStdString(test), "TIFF (*.tif)");
+
+    if (filepath.isEmpty())
+        return;
+
+    QFileInfo temp(filepath);
+    settings.setValue("dialog/currentSavePath", temp.path());
+
+    std::string f = filepath.toStdString();
+    // I feel that there should be a better way for this...
+    if (f.substr((f.length() - 4)) != ".tif")
+        f.append(".tif");
+
+    // now get the data by reference
     int sx, sy;
     std::vector<float> data;
     origin->getData(data, sx, sy);
 
-    std::string f = "/home/jon/Documents/clTEM_testing/out.tiff";
+    // and save
     fileio::SaveTiff<float>(f, data, sx, sy);
 }
 
 void MainWindow::saveBmp() {
-    auto origin = (ImagePlotWidget*) sender();
+    // csat our sender to check this is all valid and good
+    auto origin = static_cast<ImagePlotWidget*>(sender());
+
+    // do the dialog stuff
+    QSettings settings;
+    QString filepath = QFileDialog::getSaveFileName(this, "Save image", settings.value("dialog/currentSavePath").toString(), "Bitmap (*.bmp)");
+
+    if (filepath.isEmpty())
+        return;
+
+    QFileInfo temp(filepath);
+    settings.setValue("dialog/currentSavePath", temp.path());
+
+    std::string f = filepath.toStdString();
+    // I feel that there should be a better way for this...
+    if (f.substr((f.length() - 4)) != ".bmp")
+        f.append(".bmp");
+
+    // now get the data by reference
     int sx, sy;
     std::vector<float> data;
     origin->getData(data, sx, sy);
 
-    std::string f = "/home/jon/Documents/clTEM_testing/out.bmp";
+    // and save
     fileio::SaveBmp(f, data, sx, sy);
 }
