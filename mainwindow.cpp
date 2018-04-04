@@ -14,6 +14,7 @@
 #include <utils/stringutils.h>
 #include <simulation/structure/structureparameters.h>
 #include <simulation/ccdparams.h>
+#include <simulation/utilities/fileio.h>
 //#include <QtWidgets/QProgressBar>
 //
 //#include "dialogs/settings/settingsdialog.h"
@@ -89,6 +90,26 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tStem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
 
     connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
+
+
+
+    int n = ui->twReal->count();
+    for (int j = 0; j < n; ++j)
+    {
+        ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+        auto test =  tab->getTabName();
+        connect(tab->getPlot(), SIGNAL(saveDataClicked()), this, SLOT(saveTiff()));
+        connect(tab->getPlot(), SIGNAL(saveImageClicked()), this, SLOT(saveBmp()));
+    }
+    n = ui->twRecip->count();
+    for (int j = 0; j < n; ++j)
+    {
+        ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
+        connect(tab->getPlot(), SIGNAL(saveDataClicked()), this, SLOT(saveTiff()));
+        connect(tab->getPlot(), SIGNAL(saveImageClicked()), this, SLOT(saveBmp()));
+    }
+
+
 
     ui->tSim->setResolutionIndex(0);
     ui->tTem->setCropCheck(true);
@@ -572,4 +593,60 @@ void MainWindow::set_ctem_crop(bool state) {
         else if (tab->getTabName() == "Image")
             tab->getPlot()->setCropImage(state, true, false);
     }
+}
+
+void MainWindow::saveTiff() {
+    auto origin = static_cast<ImagePlotWidget*>(sender());
+
+    // do the dialog stuff
+    QSettings settings;
+    std::string test = settings.value("dialog/currentSavePath").toString().toStdString();
+    QString filepath = QFileDialog::getSaveFileName(this, "Save data", QString::fromStdString(test), "TIFF (*.tif)");
+
+    if (filepath.isEmpty())
+        return;
+
+    QFileInfo temp(filepath);
+    settings.setValue("dialog/currentSavePath", temp.path());
+
+    std::string f = filepath.toStdString();
+    // I feel that there should be a better way for this...
+    if (f.substr((f.length() - 4)) != ".tif")
+        f.append(".tif");
+
+    // now get the data by reference
+    int sx, sy;
+    std::vector<float> data;
+    origin->getData(data, sx, sy);
+
+    // and save
+    fileio::SaveTiff<float>(f, data, sx, sy);
+}
+
+void MainWindow::saveBmp() {
+    // csat our sender to check this is all valid and good
+    auto origin = static_cast<ImagePlotWidget*>(sender());
+
+    // do the dialog stuff
+    QSettings settings;
+    QString filepath = QFileDialog::getSaveFileName(this, "Save image", settings.value("dialog/currentSavePath").toString(), "Bitmap (*.bmp)");
+
+    if (filepath.isEmpty())
+        return;
+
+    QFileInfo temp(filepath);
+    settings.setValue("dialog/currentSavePath", temp.path());
+
+    std::string f = filepath.toStdString();
+    // I feel that there should be a better way for this...
+    if (f.substr((f.length() - 4)) != ".bmp")
+        f.append(".bmp");
+
+    // now get the data by reference
+    int sx, sy;
+    std::vector<float> data;
+    origin->getData(data, sx, sy);
+
+    // and save
+    fileio::SaveBmp(f, data, sx, sy);
 }
