@@ -7,6 +7,9 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t) :
 {
     ui->setupUi(this);
     ui->widget;
+
+    connect(ui->widget, &ImagePlotWidget::saveDataClicked, this, &ImageTab::forwardSaveData);
+    connect(ui->widget, &ImagePlotWidget::saveImageClicked, this, &ImageTab::forwardSaveImage);
 }
 
 ImageTab::~ImageTab()
@@ -17,4 +20,10 @@ ImageTab::~ImageTab()
 ImagePlotWidget *ImageTab::getPlot()
 {
     return ui->widget;
+}
+
+nlohmann::json ImageTab::getSettings() {
+    auto j = settings;
+    j["ctem"]["cropped padding"] = ui->widget->getCropImage();
+    return j;
 }

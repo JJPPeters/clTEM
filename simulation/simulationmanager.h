@@ -8,13 +8,8 @@
 
 #include "structure/crystalstructure.h"
 #include "utilities/commonstructs.h"
-
-enum SimulationMode
-{
-    CTEM,
-    STEM,
-    CBED
-};
+#include "utilities/enums.h"
+#include "utilities/stringutils.h"
 
 class SimulationManager
 {
@@ -100,6 +95,7 @@ public:
     unsigned int getResolution() {return Resolution;}
     void setMode(SimulationMode md){Mode = md;}
     SimulationMode getMode(){return Mode;}
+    std::string getModeString() {return Utils::simModeToString(Mode);}
 
     bool haveResolution() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096;}
 
@@ -130,7 +126,7 @@ public:
     void setTdsRuns(unsigned int runs){TdsRuns = runs;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
 
-    void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>)> f) {imageReturn = f;}
+    void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>, SimulationManager)> f) {imageReturn = f;}
     void setProgressReporterFunc(std::function<void(float)> f) {progressReporter = f;}
 
     void updateImages(std::map<std::string, Image<float>> ims, int jobCount);
@@ -196,7 +192,7 @@ private:
 
     std::mutex image_update_mtx;
 
-    std::function<void(std::map<std::string, Image<float>>)> imageReturn;
+    std::function<void(std::map<std::string, Image<float>>, SimulationManager)> imageReturn;
     std::function<void(float)> progressReporter;
 
     std::map<std::string, Image<float>> Images;

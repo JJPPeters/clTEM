@@ -28,9 +28,8 @@ __kernel void clSumReduction( __global const float* input,
 	float sum = 0.0f;
 	if(!idx) {
 		for(size_t i = 1; i < get_local_size(0); ++i)
-			sum += sqrt(buffer[i].x*buffer[i].x + buffer[i].y*buffer[i].y);
+			sum += sqrt(buffer[i]*buffer[i] + buffer[i]*buffer[i]);
 
-		output[get_group_id(0)].x = sum;
-		output[get_group_id(0)].y = 0.0f;
+		output[get_group_id(0)] = sum;
 	}
 }

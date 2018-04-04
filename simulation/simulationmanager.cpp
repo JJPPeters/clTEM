@@ -3,9 +3,6 @@
 #include <ios>
 #include <fstream>
 
-//#include <QtCore/QFile>
-//#include <QtCore/QTextStream>
-
 std::valarray<float> const SimulationManager::default_xy_padding = {-8.0f, 8.0f};
 std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 
@@ -148,7 +145,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
 
     // this means this simulation is finished
     if (completeJobs == getTotalParts() && imageReturn)
-        imageReturn(Images);
+        imageReturn(Images, *this);
 }
 
 void SimulationManager::reportProgress(float prog)

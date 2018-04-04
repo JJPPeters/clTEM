@@ -48,9 +48,9 @@ private:
 public:
     CrystalStructure(std::string fPath);
 
-//    CrystalStructure();
-
     void openXyz(std::string fPath);
+
+    std::string getFileName() {return filePath;}
 
     std::vector<Atom> getAtoms() {return Atoms;}
 
