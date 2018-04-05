@@ -143,15 +143,23 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
     if (completeJobs > getTotalParts())
         throw std::runtime_error("Simulation received more parts than it expected");
 
+    reportTotalProgress((float) completeJobs / (float) getTotalParts());
+
     // this means this simulation is finished
     if (completeJobs == getTotalParts() && imageReturn)
         imageReturn(Images, *this);
 }
 
-void SimulationManager::reportProgress(float prog)
+void SimulationManager::reportTotalProgress(float prog)
 {
-    if (progressReporter)
-        progressReporter(prog);
+    if (progressTotalReporter)
+        progressTotalReporter(prog);
+}
+
+void SimulationManager::reportSliceProgress(float prog)
+{
+    if (progressSliceReporter)
+        progressSliceReporter(prog);
 }
 
 float SimulationManager::getBlockScaleX()

@@ -211,7 +211,7 @@ void SimulationWorker::doCtem(bool simImage)
         doMultiSliceStep(i);
         if (pool.stop)
             return;
-        job->simManager->reportProgress(((float)i+1) / (float)numberOfSlices);
+        job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
     if (simImage)
@@ -300,7 +300,7 @@ void SimulationWorker::doCbed()
     for (int i = 0; i < numberOfSlices; ++i)
     {
         doMultiSliceStep(i);
-        job->simManager->reportProgress(((float)i+1) / (float)numberOfSlices);
+        job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
     // get images and return them...
@@ -353,7 +353,7 @@ void SimulationWorker::doStem()
     for (int i = 0; i < numberOfSlices; ++i)
     {
         doMultiSliceStep(i);
-        job->simManager->reportProgress(((float)i+1) / (float)numberOfSlices);
+        job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
     typedef std::map<std::string, Image<float>> return_map;

@@ -19,7 +19,7 @@ public:
     SimulationManager(const SimulationManager& sm)
             : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRuns(sm.TdsRuns),
               numParallelPixels(sm.numParallelPixels), isFD(sm.isFD), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
-              completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressReporter(sm.progressReporter),
+              completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
@@ -127,10 +127,12 @@ public:
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
 
     void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>, SimulationManager)> f) {imageReturn = f;}
-    void setProgressReporterFunc(std::function<void(float)> f) {progressReporter = f;}
+    void setProgressTotalReporterFunc(std::function<void(float)> f) {progressTotalReporter = f;}
+    void setProgressSliceReporterFunc(std::function<void(float)> f) {progressSliceReporter = f;}
 
     void updateImages(std::map<std::string, Image<float>> ims, int jobCount);
-    void reportProgress(float prog);
+    void reportTotalProgress(float prog);
+    void reportSliceProgress(float prog);
 
     void round_padding();
     float calculateRoundedPadding(float range, int resolution);
@@ -193,7 +195,8 @@ private:
     std::mutex image_update_mtx;
 
     std::function<void(std::map<std::string, Image<float>>, SimulationManager)> imageReturn;
-    std::function<void(float)> progressReporter;
+    std::function<void(float)> progressTotalReporter;
+    std::function<void(float)> progressSliceReporter;
 
     std::map<std::string, Image<float>> Images;
 

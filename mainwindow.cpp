@@ -334,7 +334,10 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     std::vector<std::shared_ptr<SimulationManager>> man_list; //why is this a vector?
 
     auto sliceRep = std::bind(&MainWindow::updateSlicesProgress, this, std::placeholders::_1);
-    Manager->setProgressReporterFunc(sliceRep);
+    Manager->setProgressSliceReporterFunc(sliceRep);
+
+    auto totalRep = std::bind(&MainWindow::updateTotalProgress, this, std::placeholders::_1);
+    Manager->setProgressTotalReporterFunc(totalRep);
 
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1, std::placeholders::_2);
     Manager->setImageReturnFunc(imageRet);
