@@ -92,14 +92,12 @@ void SimulationWorker::sortAtoms(bool doTds)
     // TODO: get these from the structure class to keep them centralised
     int BlocksX = job->simManager->getBlocksX();
     int BlocksY = job->simManager->getBlocksY();
-    std::valarray<float> x_lims = job->simManager->getPaddedStructLimitsX();
+    std::valarray<float> x_lims = job->simManager->getPaddedStructLimitsX(); // is this the right padding?
     std::valarray<float> y_lims = job->simManager->getPaddedStructLimitsY();
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
     float dz = job->simManager->getSliceThickness();
     numberOfSlices	= (unsigned int) std::ceil( (z_lims[1] - z_lims[0]) / dz);
     numberOfSlices += (numberOfSlices==0);
-
-    ctx.WaitForIOQueueFinish(); // test
 
     clAtomSort.SetArg(0, ClAtomX, ArgumentType::Input);
     clAtomSort.SetArg(1, ClAtomY, ArgumentType::Input);
@@ -139,7 +137,6 @@ void SimulationWorker::sortAtoms(bool doTds)
         BinnedA[i].resize(numberOfSlices);
     }
 
-
     for(int i = 0; i < atom_count; i++)
     {
         Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
@@ -166,7 +163,6 @@ void SimulationWorker::sortAtoms(bool doTds)
                 {
                     for(int l = 0; l < Binnedx[j*BlocksX+k][slicei].size(); l++)
                     {
-                        // cout <<"Block " << j <<" , " << k << endl;
                         AtomXPos[atomIterator] = Binnedx[j*BlocksX+k][slicei][l];
                         AtomYPos[atomIterator] = Binnedy[j*BlocksX+k][slicei][l];
                         AtomZPos[atomIterator] = Binnedz[j*BlocksX+k][slicei][l];
@@ -300,6 +296,8 @@ void SimulationWorker::doCbed()
     for (int i = 0; i < numberOfSlices; ++i)
     {
         doMultiSliceStep(i);
+        if (pool.stop)
+            return;
         job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
@@ -353,6 +351,8 @@ void SimulationWorker::doStem()
     for (int i = 0; i < numberOfSlices; ++i)
     {
         doMultiSliceStep(i);
+        if (pool.stop)
+            return;
         job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
@@ -513,8 +513,9 @@ void SimulationWorker::initialiseSimulation()
 
     // Work out which blocks to load by ensuring we have the entire area around workgroup up to 5 angstroms away...
     // TODO: check this is doing what the above comment says it is doing...
-    int load_blocks_x = (int) std::ceil(3.0f / job->simManager->getBlockScaleX());
-    int load_blocks_y = (int) std::ceil(3.0f / job->simManager->getBlockScaleY());
+    // TODO: I think the 8.0 and 3.0 should be the padding as set in the manager...
+    int load_blocks_x = (int) std::ceil(8.0f / job->simManager->getBlockScaleX());
+    int load_blocks_y = (int) std::ceil(8.0f / job->simManager->getBlockScaleY());
     float dz = job->simManager->getSliceThickness();
     int load_blocks_z = (int) std::ceil(3.0f / dz);
 
@@ -751,15 +752,7 @@ void SimulationWorker::doMultiSliceStep(int slice)
     auto z_lim = job->simManager->getPaddedStructLimitsZ();
 
     // Didn't have MinimumZ so it wasnt correctly rescaled z-axis from 0 to SizeZ...
-    float currentz = z_lim[1] - z_lim[1] - slice * dz;
-
-    int topz = slice - (int) std::ceil(3.0f / dz);
-    int bottomz = slice + (int) std::ceil(3.0f / dz);
-
-    if (topz < 0)
-        topz = 0;
-    if (bottomz >= numberOfSlices)
-        bottomz = numberOfSlices - 1;
+    float currentz = z_lim[1] - slice * dz;
 
     clWorkGroup Work((unsigned int) resolution, (unsigned int) resolution, 1);
     clWorkGroup LocalWork(16, 16, 1);
@@ -767,6 +760,8 @@ void SimulationWorker::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Get our potentials for the current sim
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ctx.WaitForQueueFinish();
 
     BinnedAtomicPotential.SetArg(1, ClAtomX, ArgumentType::Input);
     BinnedAtomicPotential.SetArg(2, ClAtomY, ArgumentType::Input);
@@ -778,6 +773,8 @@ void SimulationWorker::doMultiSliceStep(int slice)
     BinnedAtomicPotential.SetArg(11, currentz);
 
     BinnedAtomicPotential(Work, LocalWork);
+
+    ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
@@ -1005,15 +1002,22 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     ImagingKernel(Work);
 
+    ctx.WaitForQueueFinish();
+
     // ifft to real space
     FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+
+    ctx.WaitForQueueFinish();
 
     //abs for detected image
     ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::InputOutput);
     ABS2.SetArg(1, Temp1, ArgumentType::Output);
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
+
     ABS2(Work);
+
+    ctx.WaitForQueueFinish();
 
     //
     // Dose stuff starts here!
@@ -1021,8 +1025,12 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     // IFFT
     FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
+
+    ctx.WaitForQueueFinish();
+
     // write DQE to opencl
     dqe_ntf_buffer->Write(dqe_data);
+    ctx.WaitForQueueFinish();
 
     // apply DQE
     DQE.SetArg(0, clImageWaveFunction, ArgumentType::InputOutput);
@@ -1030,20 +1038,30 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     DQE.SetArg(2, resolution);
     DQE.SetArg(3, resolution);
     DQE.SetArg(4, binning);
+
     DQE(Work);
+
+    ctx.WaitForQueueFinish();
 
     // IFFT back
     FourierTrans(clImageWaveFunction, Temp1, Direction::Inverse);
+
+    ctx.WaitForQueueFinish();
 
     // TODO: what is this abs squared for?
     ABS.SetArg(0, Temp1, ArgumentType::InputOutput);
     ABS.SetArg(1, resolution);
     ABS.SetArg(2, resolution);
+
     ABS(Work);
+
+    ctx.WaitForQueueFinish();
 
     float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
 
+    ctx.WaitForQueueFinish();
     std::vector<cl_float2> compdata = Temp1->CreateLocalCopy();
+    ctx.WaitForQueueFinish();
 
     float fmin = std::numeric_limits<float>::min();
 
@@ -1065,24 +1083,38 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     }
 
     clImageWaveFunction->Write(compdata);
+    ctx.WaitForQueueFinish();
+
     FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
 
+    ctx.WaitForQueueFinish();
+
     dqe_ntf_buffer->Write(ntf_data);
+
+    ctx.WaitForQueueFinish();
 
     NTF.SetArg(0, Temp1, ArgumentType::InputOutput);
     NTF.SetArg(1, dqe_ntf_buffer, ArgumentType::Input);
     NTF.SetArg(2, resolution);
     NTF.SetArg(3, resolution);
     NTF.SetArg(4, binning);
+
     NTF(Work);
 
+    ctx.WaitForQueueFinish();
+
     FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
+
+    ctx.WaitForQueueFinish();
 
     // might want to be sqrt (aka normal abs)
     ABS.SetArg(0, clImageWaveFunction, ArgumentType::Input);
     ABS.SetArg(1, resolution);
     ABS.SetArg(2, resolution);
+
     ABS(Work);
+
+    ctx.WaitForQueueFinish();
 }
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)

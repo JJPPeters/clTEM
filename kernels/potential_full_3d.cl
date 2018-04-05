@@ -75,12 +75,13 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
 	int lid = get_local_id(0) + get_local_size(0)*get_local_id(1);
-	int Index = xid + width*yid;
+	int Index = xid + width * yid;
 	int topz = current_slice - slice_load_z;
 	int bottomz = current_slice + slice_load_z;
 	float sumz = 0.0f;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
+
 	if(topz < 0 )
 		topz = 0;
 	if(bottomz >= total_slices )
@@ -116,7 +117,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 
 			barrier(CLK_LOCAL_MEM_FENCE);
 
-			float p2=0;
+			float p2=0.0f;
 			for (int l = 0; l < end-start; l++)
 			{
 				float xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
@@ -148,6 +149,8 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 						p1 += (266.5157269f * params[(ZNum-1)*12+10] * native_exp (-3.141592f*rad*3.141592f*rad/params[(ZNum-1)*12+10+1]) * native_powr(params[(ZNum-1)*12+10+1],-1.5f));
 
 						// why make sure h!=0 when we can just remove it from the loop?
+						// surely h == 0 will be in the previous slice??
+						// because p1 is used in the next iteration (why it is set to p2)
 						sumz += (h!=0) * (p1+p2)*0.5f;
 						p2 = p1;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

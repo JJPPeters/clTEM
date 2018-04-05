@@ -2,6 +2,8 @@ project( clTEM )
 cmake_minimum_required( VERSION 3.5 )
 #set ( CMAKE_BUILD_TYPE Release )
 
+cmake_policy(SET CMP0071 NEW)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 14)
@@ -31,12 +33,14 @@ add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
-if(WIN32)
-	if(CMAKE_COMPILER_IS_GNUCXX)
-		# I think this is needed to make it a full GUI app, otherwise it will show the console
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
-	endif(CMAKE_COMPILER_IS_GNUCXX)
-endif(WIN32)
+if(CMAKE_BUILD_TYPE EQUAL "RELEASE")
+	if(WIN32)
+		if(CMAKE_COMPILER_IS_GNUCXX)
+			# I think this is needed to make it a full GUI app, otherwise it will show the console
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
+		endif(CMAKE_COMPILER_IS_GNUCXX)
+	endif(WIN32)
+endif(CMAKE_BUILD_TYPE EQUAL "RELEASE")
 
 set ( clTEM_HDRS
 #		structure/crystalstructure.h

@@ -94,7 +94,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
 
-
+    connect(this, &MainWindow::sliceProgressUpdated, this, &MainWindow::sliceProgressChanged);
+    connect(this, &MainWindow::totalProgressUpdated, this, &MainWindow::totalProgressChanged);
+    connect(this, &MainWindow::imagesReturned, this, &MainWindow::imagesChanged);
 
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j)
@@ -110,8 +112,6 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
-
-
 
     ui->tSim->setResolutionIndex(0);
     ui->tTem->setCropCheck(true);
@@ -355,10 +355,6 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     std::vector<clDevice> &d = std::get<0>(Devices);
 
     SimThread = std::shared_ptr<SimulationThread>(new SimulationThread(man_list, d));
-
-    connect(this, &MainWindow::sliceProgressUpdated, this, &MainWindow::sliceProgressChanged);
-    connect(this, &MainWindow::totalProgressUpdated, this, &MainWindow::totalProgressChanged);
-    connect(this, &MainWindow::imagesReturned, this, &MainWindow::imagesChanged);
 
     SimThread->start();
 }
