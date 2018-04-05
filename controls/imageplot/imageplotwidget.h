@@ -67,6 +67,7 @@ public:
 
     bool inAxis(double x, double y);
 
+    bool getCropImage() {return crop_image;}
     void setCropImage(bool do_crop, bool redraw = false, bool rescale = false)
     {
         crop_image = do_crop;

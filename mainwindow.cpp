@@ -15,6 +15,7 @@
 #include <simulation/structure/structureparameters.h>
 #include <simulation/ccdparams.h>
 #include <simulation/utilities/fileio.h>
+#include <simulation/utilities/jsonutils.h>
 //#include <QtWidgets/QProgressBar>
 //
 //#include "dialogs/settings/settingsdialog.h"
@@ -33,7 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
         throw std::runtime_error("Failed to get any OpenCl devices. Exiting...");
     }
 
+    // register types for our image returns!!
     qRegisterMetaType< std::map<std::string, Image<float>> >( "std::map<std::string, Image<float>>" );
+    qRegisterMetaType< SimulationManager >( "SimulationManager" );
 
     QCoreApplication::setOrganizationName("PetersSoft");
     QCoreApplication::setApplicationName("TEM++");
@@ -97,16 +100,15 @@ MainWindow::MainWindow(QWidget *parent) :
     for (int j = 0; j < n; ++j)
     {
         ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-        auto test =  tab->getTabName();
-        connect(tab->getPlot(), SIGNAL(saveDataClicked()), this, SLOT(saveTiff()));
-        connect(tab->getPlot(), SIGNAL(saveImageClicked()), this, SLOT(saveBmp()));
+        connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
+        connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
     n = ui->twRecip->count();
     for (int j = 0; j < n; ++j)
     {
         ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
-        connect(tab->getPlot(), SIGNAL(saveDataClicked()), this, SLOT(saveTiff()));
-        connect(tab->getPlot(), SIGNAL(saveImageClicked()), this, SLOT(saveBmp()));
+        connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
+        connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
 
 
@@ -226,10 +228,14 @@ void MainWindow::setDetectors()
         {
             ImageTab* tb = new ImageTab(ui->twReal, d.name, TabType::STEM);
             ui->twReal->addTab(tb, QString::fromStdString(tb->getTabName()));
+
+            // connect the slots up
+            connect(tb, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
+            connect(tb, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
         }
     }
 
-    // this removes tabs that no londer exists
+    // this removes tabs that no longer exists
     // remember we have 4 'static' tabs to keep
     for (int i = ui->twReal->count()-1; i >= 0; --i) // loop backwards so we don't have to deal with the trab indices changing
     {
@@ -277,10 +283,11 @@ void MainWindow::updateTotalProgress(float prog)
     emit totalProgressUpdated(prog);
 }
 
-void MainWindow::updateImages(std::map<std::string, Image<float>> ims)
+void MainWindow::updateImages(std::map<std::string, Image<float>> ims, SimulationManager sm)
 {
     QMutexLocker locker(&Image_Mutex);
-    emit imagesReturned(ims);
+    // this will be running in a different thread
+    emit imagesReturned(ims, sm);
 }
 
 void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
@@ -329,7 +336,7 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     auto sliceRep = std::bind(&MainWindow::updateSlicesProgress, this, std::placeholders::_1);
     Manager->setProgressReporterFunc(sliceRep);
 
-    auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
+    auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1, std::placeholders::_2);
     Manager->setImageReturnFunc(imageRet);
 
     // load variables for potential TEM stuff
@@ -363,8 +370,10 @@ void MainWindow::totalProgressChanged(float prog)
     StatusBar->setTotalProgress(prog);
 }
 
-void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
+void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm)
 {
+    nlohmann::json settings = JSONUtils::simManagerToJson(sm);
+
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
     {
@@ -378,8 +387,12 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "EW A")
-                    tab->getPlot()->SetImageTemplate(im);
+                if (tab->getTabName() == "EW A") {
+                    settings["microscope"].erase("aberrations");
+                    settings["microscope"].erase("alpha");
+                    settings["microscope"].erase("delta");
+                    tab->setPlotWithData(im, settings);
+                }
             }
         }
         else if (name == "Image")
@@ -388,8 +401,9 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "Image")
-                    tab->getPlot()->SetImageTemplate(im);
+                if (tab->getTabName() == "Image") {
+                    tab->setPlotWithData(im, settings);
+                }
             }
         }
         else if (name == "EW_T")
@@ -398,8 +412,12 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "EW θ")
-                    tab->getPlot()->SetImageTemplate(im);
+                if (tab->getTabName() == "EW θ") {
+                    settings["microscope"].erase("aberrations");
+                    settings["microscope"].erase("alpha");
+                    settings["microscope"].erase("delta");
+                    tab->setPlotWithData(im, settings);
+                }
             }
         }
         else if (name == "Diff")
@@ -409,7 +427,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             {
                 ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
                 if (tab->getTabName() == "Diffraction")
-                    tab->getPlot()->SetImageTemplate(im, IntensityScale::Log);
+                    tab->setPlotWithData(im, settings, IntensityScale::Log);
             }
         }
         else
@@ -419,8 +437,13 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims)
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == name)
-                    tab->getPlot()->SetImageTemplate(im);
+                if (tab->getTabName() == name) {
+                    // add the specific detector info here!
+                    for (auto d : Manager->getDetectors())
+                        if (d.name == name)
+                            settings["stem"]["detector"] = JSONUtils::stemDetectorToJson(d);
+                    tab->setPlotWithData(im, settings);
+                }
             }
         }
     }
@@ -596,12 +619,11 @@ void MainWindow::set_ctem_crop(bool state) {
 }
 
 void MainWindow::saveTiff() {
-    auto origin = static_cast<ImagePlotWidget*>(sender());
+    auto origin = static_cast<ImageTab*>(sender());
 
     // do the dialog stuff
     QSettings settings;
-    std::string test = settings.value("dialog/currentSavePath").toString().toStdString();
-    QString filepath = QFileDialog::getSaveFileName(this, "Save data", QString::fromStdString(test), "TIFF (*.tif)");
+    QString filepath = QFileDialog::getSaveFileName(this, "Save data", settings.value("dialog/currentSavePath").toString(), "TIFF (*.tif)");
 
     if (filepath.isEmpty())
         return;
@@ -617,15 +639,24 @@ void MainWindow::saveTiff() {
     // now get the data by reference
     int sx, sy;
     std::vector<float> data;
-    origin->getData(data, sx, sy);
+    origin->getPlot()->getData(data, sx, sy);
 
     // and save
     fileio::SaveTiff<float>(f, data, sx, sy);
+
+    // change the extension an save settings! I feel like this can be done better...
+    f.append("n");
+    f.replace(f.end()-5, f.end(), ".json");
+
+    nlohmann::json test = origin->getSettings();
+
+
+    fileio::SaveSettingsJson(f, test);
 }
 
 void MainWindow::saveBmp() {
     // csat our sender to check this is all valid and good
-    auto origin = static_cast<ImagePlotWidget*>(sender());
+    auto origin = static_cast<ImageTab*>(sender());
 
     // do the dialog stuff
     QSettings settings;
@@ -645,8 +676,14 @@ void MainWindow::saveBmp() {
     // now get the data by reference
     int sx, sy;
     std::vector<float> data;
-    origin->getData(data, sx, sy);
+    origin->getPlot()->getData(data, sx, sy);
 
     // and save
     fileio::SaveBmp(f, data, sx, sy);
+
+    // change the extension an save settings!
+    f.append("n");
+    f.replace(f.end()-5, f.end(), ".json");
+    nlohmann::json test = origin->getSettings();
+    fileio::SaveSettingsJson(f, test);
 }

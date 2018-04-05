@@ -40,30 +40,16 @@ namespace Utils
         }
     }
 
-//    const char* resourceToChar(std::string resourcePath)
-//    {
-//        std::ifstream inStream("./kernels/" + resourcePath);
-//
-//        if (inStream.fail())
-//            throw std::runtime_error("Error opening resource file: " + resourcePath);
-//
-//        std::string fileContents((std::istreambuf_iterator<char>(inStream)), (std::istreambuf_iterator<char>()));
-//
-//        inStream.close();
-//
-//        return fileContents.c_str();
-//
-////        // open qresource file
-////        QFile resourceFile(QString::fromStdString(resourcePath));
-////
-////        if (!resourceFile.open(QIODevice::ReadOnly | QIODevice::Text))
-////            throw std::runtime_error("Error opening parameters file.");
-////
-////        QTextStream inStream(&resourceFile);
-////
-////        std::string fileContents = inStream.readAll().toStdString();
-////
-////        return fileContents.c_str();
-//    }
-
+    std::string simModeToString(SimulationMode mode)
+    {
+        switch (mode)
+        {
+            case SimulationMode::CTEM:
+                return "CTEM";
+            case SimulationMode::STEM:
+                return "STEM";
+            case SimulationMode::CBED:
+                return "CBED";
+        }
+    }
 }
