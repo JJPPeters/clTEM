@@ -389,6 +389,8 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW A") {
                     settings["microscope"].erase("aberrations");
+                    settings["microscope"].erase("alpha");
+                    settings["microscope"].erase("delta");
                     tab->setPlotWithData(im, settings);
                 }
             }
@@ -412,6 +414,8 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW θ") {
                     settings["microscope"].erase("aberrations");
+                    settings["microscope"].erase("alpha");
+                    settings["microscope"].erase("delta");
                     tab->setPlotWithData(im, settings);
                 }
             }
