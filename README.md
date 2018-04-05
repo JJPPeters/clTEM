@@ -8,5 +8,6 @@ clTEM is an OpenCL accelerated multislice program for simulating images from a t
  - [clFFT](https://github.com/clMathLibraries/clFFT) - OpenCL accelerated FFTs
  - [Qt](http://www.qt.io/) - GUI
  - [QCustomPlot](http://qcustomplot.com/) - plotting
- - [Boost]() - additional C++ libraries (used for backwards compatibility of the OpenCL wrapper)
- - [LibTIFF]() - TIFF input/output
+ - [Boost](https://www.boost.org/) - additional C++ libraries (used for backwards compatibility of the OpenCL wrapper)
+ - [LibTIFF](http://simplesystems.org/libtiff/) - TIFF input/output
+ - [JSON for Modern C++](https://github.com/nlohmann/json) - JSON file creation/parsing
