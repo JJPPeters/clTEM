@@ -52,7 +52,7 @@ namespace Utils
         return out;
     }
 
-    static void ccdToDqeNtf(std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io, std::string folder = "CCDs")
+    static void ccdToDqeNtf(std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io, std::string folder = "ccds")
     {
         std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
         std::ifstream inStream(exe_path + "/" + folder + "/" + fileName);

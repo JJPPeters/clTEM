@@ -581,15 +581,20 @@ void MainWindow::loadExternalSources()
     StructureParameters::setParams(params);
 
     // load DQE, NQE for the CTEM simulation
-    // For now, just stick to the two I have. Won't be a monumental amount of work to be able to laod all files from a folder
+
+    auto exe_path = QApplication::instance()->applicationDirPath() + "/ccds/";
+    QDir dir(exe_path);
+    QStringList filt;
+    filt << "*.dat";
+    QStringList files = dir.entryList(filt);
+
     std::vector<float> dqe, ntf;
     std::string name;
-
-    Utils::ccdToDqeNtf("orius.dat", name, dqe, ntf);
-    CCDParams::addCCD(name, dqe, ntf);
-
-    Utils::ccdToDqeNtf("k2.dat", name, dqe, ntf);
-    CCDParams::addCCD(name, dqe, ntf);
+    for (int k = 0; k < files.size(); ++k)
+    {
+        Utils::ccdToDqeNtf(files[k].toStdString(), name, dqe, ntf);
+        CCDParams::addCCD(name, dqe, ntf);
+    }
 
     ui->tTem->populateCcdCombo(CCDParams::getNames());
 }
