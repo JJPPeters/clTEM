@@ -158,10 +158,10 @@ __kernel void clBinnedAtomicPotentialConventional( __global float2* potential,
 	__local int atZ[256];
 
 	// calculate the indices of the bins we will need?
-	int startj = fmax(floor((starty + gy * get_local_size(1) * pixelscale) * blocks_y  / (max_y-min_y)) - block_load_y, 0) ;
-	int endj =   fmin( ceil((starty + (gy+1) * get_local_size(1) * pixelscale) * blocks_y / (max_y-min_y)) + block_load_y, blocks_y-1);
-	int starti = fmax(floor((startx + gx * get_local_size(0) * pixelscale) * blocks_x  / (max_x-min_x)) - block_load_x, 0) ;
-	int endi =   fmin( ceil((startx + (gx+1) * get_local_size(0) * pixelscale) * blocks_x / (max_x-min_x)) + block_load_x, blocks_x-1);
+	int startj = fmax(floor( (starty - min_y+  gy *    get_local_size(1) * pixelscale) * blocks_y  / (max_y-min_y)) - block_load_y, 0) ;
+	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixelscale) * blocks_y  / (max_y-min_y)) + block_load_y, blocks_y-1);
+	int starti = fmax(floor( (startx - min_x +  gx *    get_local_size(0) * pixelscale) * blocks_x  / (max_x-min_x)) - block_load_x, 0) ;
+	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixelscale) * blocks_x  / (max_x-min_x)) + block_load_x, blocks_x-1);
 
 	for(int k = topz; k <= bottomz; k++)
 	{
