@@ -39,7 +39,7 @@
 /// startx - x start position of simulation (when simulation is cropped)
 /// starty - y start position of simulation
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clBinnedAtomicpotentialOptFD( __global float2* potential,
+__kernel void clBinnedAtomicPotentialOptFD( __global float2* potential,
 											__global const float* restrict pos_x,
 											__global const float* restrict pos_y,
 											__global const float* restrict pos_z,
