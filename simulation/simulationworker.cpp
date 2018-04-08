@@ -96,8 +96,7 @@ void SimulationWorker::sortAtoms(bool doTds)
     std::valarray<float> y_lims = job->simManager->getPaddedStructLimitsY();
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
     float dz = job->simManager->getSliceThickness();
-    numberOfSlices	= (unsigned int) std::ceil( (z_lims[1] - z_lims[0]) / dz);
-    numberOfSlices += (numberOfSlices==0);
+    numberOfSlices = job->simManager->getNumberofSlices();
 
     clAtomSort.SetArg(0, ClAtomX, ArgumentType::Input);
     clAtomSort.SetArg(1, ClAtomY, ArgumentType::Input);
@@ -551,10 +550,10 @@ void SimulationWorker::initialiseSimulation()
     GeneratePropagator.SetArg(2, clYFrequencies, ArgumentType::Input);
     GeneratePropagator.SetArg(3, resolution);
     GeneratePropagator.SetArg(4, resolution);
-    if (isFD)
-        GeneratePropagator.SetArg(5, FDdz); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
-    else
-        GeneratePropagator.SetArg(5, dz); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
+//    if (isFD)
+//        GeneratePropagator.SetArg(5, FDdz); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
+//    else
+    GeneratePropagator.SetArg(5, dz); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
     GeneratePropagator.SetArg(6, wavelength);
     GeneratePropagator.SetArg(7, bandwidthkmax);
 
@@ -823,9 +822,7 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     float wavelength = job->simManager->getWavelength();
     float sigma = job->simManager->getMicroscopeParams()->Sigma();
 
-    float currentz = z_lim[1] - slice * FDdz;
-
-    int atomslice = (int) std::floor(slice * FDdz / dz); // FD only, what is it?
+    float currentz = z_lim[1] - slice * dz;
 
     clWorkGroup Work(resolution, resolution, 1);
     clWorkGroup LocalWork(16, 16, 1);
@@ -839,7 +836,7 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     BinnedAtomicPotential.SetArg(3, ClAtomZ, ArgumentType::Input);
     BinnedAtomicPotential.SetArg(4, ClAtomA, ArgumentType::Input);
     BinnedAtomicPotential.SetArg(6, ClBlockStartPositions, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(9, atomslice);
+    BinnedAtomicPotential.SetArg(9, slice);
     BinnedAtomicPotential.SetArg(10, numberOfSlices);
     BinnedAtomicPotential.SetArg(11, currentz);
 
@@ -851,17 +848,45 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     FourierTrans(clPotential, clWaveFunction3[0], Direction::Forwards);
+    ctx.WaitForQueueFinish();
     BandLimit(Work);
+    ctx.WaitForQueueFinish();
     FourierTrans(clWaveFunction3[0], clPotential, Direction::Inverse);
+
+    ctx.WaitForQueueFinish();
+
+
+
+    std::vector<float> data_out(resolution * resolution);
+
+    std::vector<cl_float2> compdata = clPotential->CreateLocalCopy();
+
+    int cnt = 0;
+    for (int j = 0; j < resolution; ++j)
+            for (int i = 0; i < resolution; ++i)
+            {
+                int k = i + j * resolution;
+                data_out[cnt] = std::sqrt(compdata[k].x * compdata[k].x + compdata[k].y * compdata[k].y);
+//                data_out[cnt] = std::atan2(compdata[k].y, compdata[k].x);
+                ++cnt;
+            }
+
+    fileio::SaveTiff<float>("/home/jon/Git/cllTEM-dev/testing/pot/pot_" + std::to_string(slice) + ".tif", data_out, resolution, resolution);
+
+
+
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for (int i = 1; i <= n_parallel; i++)
+    for (int i = 0; i < n_parallel; i++)
     {
 
         //FFT Psi into Grad2.
-        FourierTrans(clWaveFunction1[i - 1], clWaveFunction3[0], Direction::Forwards);
+        FourierTrans(clWaveFunction1[i], clWaveFunction3[0], Direction::Forwards);
+
+        ctx.WaitForQueueFinish();
 
         //Grad Kernel on Grad2.
         GradKernel.SetArg(0, clWaveFunction3[0], ArgumentType::Input);
@@ -871,39 +896,73 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
         GradKernel.SetArg(4, resolution);
         GradKernel(Work);
 
+        ctx.WaitForQueueFinish();
+
         //IFT Grad2 into Grad.
-        FourierTrans(clWaveFunction3[0], clWaveFunction4[i - 1], Direction::Inverse);
+        FourierTrans(clWaveFunction3[0], clWaveFunction4[i], Direction::Inverse);
+
+        ctx.WaitForQueueFinish();
 
         //FD Kernel
         FiniteDifference.SetArg(0, clPotential, ArgumentType::Input);
-        FiniteDifference.SetArg(1, clWaveFunction4[i - 1], ArgumentType::Input);
-        FiniteDifference.SetArg(2, clWaveFunction1Minus[i - 1], ArgumentType::Input);
-        FiniteDifference.SetArg(3, clWaveFunction1[i - 1], ArgumentType::Input);
-        FiniteDifference.SetArg(4, clWaveFunction1Plus[i - 1], ArgumentType::Output);
-        FiniteDifference.SetArg(5, FDdz);
+        FiniteDifference.SetArg(1, clWaveFunction4[i], ArgumentType::Input);
+        FiniteDifference.SetArg(2, clWaveFunction1Minus[i], ArgumentType::Input);
+        FiniteDifference.SetArg(3, clWaveFunction1[i], ArgumentType::Input);
+        FiniteDifference.SetArg(4, clWaveFunction1Plus[i], ArgumentType::Output);
+        FiniteDifference.SetArg(5, dz);
         FiniteDifference.SetArg(6, wavelength);
         FiniteDifference.SetArg(7, sigma);
         FiniteDifference.SetArg(8, resolution);
         FiniteDifference.SetArg(9, resolution);
         FiniteDifference(Work);
 
+        ctx.WaitForQueueFinish();
+
+
+
+        std::vector<float> data_out_2(resolution * resolution);
+
+        std::vector<cl_float2> compdata_2 = clWaveFunction1Plus[i]->CreateLocalCopy();
+
+        int cnt = 0;
+        for (int j = 0; j < resolution; ++j)
+            for (int i = 0; i < resolution; ++i)
+            {
+                int k = i + j * resolution;
+                data_out_2[cnt] = std::sqrt(compdata_2[k].x * compdata_2[k].x + compdata_2[k].y * compdata_2[k].y);
+//                data_out[cnt] = std::atan2(compdata[k].y, compdata[k].x);
+                ++cnt;
+            }
+
+        fileio::SaveTiff<float>("/home/jon/Git/cllTEM-dev/testing/fd/fd_" + std::to_string(slice) + ".tif", data_out_2, resolution, resolution);
+
+
         //Bandlimit PsiPlus
-        FourierTrans(clWaveFunction1Plus[i - 1], clWaveFunction3[0], Direction::Forwards);
+        FourierTrans(clWaveFunction1Plus[i], clWaveFunction3[0], Direction::Forwards);
+        ctx.WaitForQueueFinish();
         BandLimit(Work);
-        FourierTrans(clWaveFunction3[0], clWaveFunction1Plus[i - 1], Direction::Inverse);
+        ctx.WaitForQueueFinish();
+        FourierTrans(clWaveFunction3[0], clWaveFunction1Plus[i], Direction::Inverse);
+
+        ctx.WaitForQueueFinish();
 
         // Psi becomes PsiMinus
-        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[i - 1]->GetBuffer(), clWaveFunction1Minus[i - 1]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, nullptr, nullptr);
+        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[i]->GetBuffer(), clWaveFunction1Minus[i]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, nullptr, nullptr);
+
+        ctx.WaitForQueueFinish();
 
         // PsiPlus becomes Psi.
-        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1Plus[i - 1]->GetBuffer(), clWaveFunction1[i - 1]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, nullptr, nullptr);
+        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1Plus[i]->GetBuffer(), clWaveFunction1[i]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, nullptr, nullptr);
 
         // To maintain status with other versions resulting end arrays should still be as follows.
         // Finished wavefunction in real space in clWaveFunction1.
         // Finished wavefunction in reciprocal space in clWaveFunction2.
         // 3 and 4 were previously temporary.
+        ctx.WaitForQueueFinish();
 
-        FourierTrans(clWaveFunction1[i - 1], clWaveFunction2[i - 1], Direction::Forwards);
+        FourierTrans(clWaveFunction1[i], clWaveFunction2[i], Direction::Forwards);
+
+        ctx.WaitForQueueFinish();
     }
 
     ctx.WaitForQueueFinish();
@@ -1266,72 +1325,6 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
 
 void SimulationWorker::initialiseFiniteDifferenceSimulation()
 {
-    int resolution = job->simManager->getResolution();
-    double wavelength = job->simManager->getWavelength();
-    float pixelscale = job->simManager->getRealScale();
-    auto mParams = job->simManager->getMicroscopeParams();
-    auto AtomicStructure = job->simManager->getStructure();
-
-    // Work out area that is to be simulated (in real space)
-    float SimSizeX = pixelscale * resolution;
-    float SimSizeY = SimSizeX;
-
-    double V = mParams->Voltage * 1000; // Microscope voltage (V)
-    double sigma = mParams->Sigma();
-
     GradKernel = clKernel(ctx, Kernels::gradsource.c_str(), 5, "clGrad");
     FiniteDifference = clKernel(ctx, Kernels::fdsource.c_str(), 10, "clFiniteDifference");
-
-    /// 1 / Angstroms
-    double ke = job->simManager->getInverseMax();
-    /// 1 / (Angstroms^2)
-    double ke2 = ke * ke;
-
-    // local copy of pi for convenience
-    // using a double version as this calulation needs to be accurate
-    double Pi = 3.141592653589793238462643383279502884;
-
-    // This is just rearranging Eq 6.122 in Kirkland's book to a get a quadratic in (dz)^2 which we then solve. Could also adjust the band limiting.
-
-    // start from kirklands equation, but group constants together
-    double aa = 4 * Pi * Pi;
-    double bb = 4 * Pi * Pi / (wavelength * wavelength);
-    double cc = sigma * V / (wavelength * Pi);
-
-    // now rearrange and group again
-    double A = (ke2 - cc) * aa;
-    A = A * A;
-    double B = 2 * (ke2 - cc) * aa - bb;
-    double C = 3.0;
-
-    double B24AC = B * B - 4 * A * C;
-
-    // Now use these to determine acceptable resolution or enforce extra band limiting beyond 2/3
-    if (B24AC < 0) {
-//        throw std::runtime_error("No stable finite difference solution exists");
-        return;
-    }
-
-    double b24ac = std::sqrt(B24AC);
-    double maxStableDz = (-B + b24ac) / (2 * A);
-
-    if (maxStableDz < 0)
-    {
-        return;
-    }
-
-    maxStableDz = 0.99f * std::sqrt(maxStableDz); // because we need it to be less than and we have (dz)^2, not dz
-
-    // this was set in Adam's code, no idea why this is an upper limit?
-    if (maxStableDz > 0.06f)
-        maxStableDz = 0.06f;
-
-    FDdz = maxStableDz;
-
-    auto z_lims = job->simManager->getPaddedStructLimitsZ();
-    int nFDSlices = (int) std::ceil((z_lims[1] - z_lims[0]) / maxStableDz);
-    // Prevent 0 slices for perfectly flat sample
-    nFDSlices += (nFDSlices == 0);
-    // Set class variables
-    NumberOfFDSlices = nFDSlices;
 }

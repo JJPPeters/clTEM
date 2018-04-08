@@ -124,8 +124,8 @@ private:
 
     // Finite difference variables
     // --Seem to get set no matter what?
-    float FDdz; // slice thickness?
-    unsigned int NumberOfFDSlices; // number of slices?
+//    float FDdz; // slice thickness?
+//    unsigned int NumberOfFDSlices; // number of slices?
     unsigned int numberOfSlices;
 };
 

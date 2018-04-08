@@ -284,3 +284,80 @@ float SimulationManager::calculateRoundedPadding(float range, int resolution)
     float padding = range / ( ((float) resolution / (float) n) - 1 ); // this is total padding
     return padding / 2;
 }
+
+bool SimulationManager::calculateFiniteDiffSliceThickness(float &dz_out) {
+    auto x_lims = getPaddedSimLimitsX();
+    auto sim_size = x_lims[1] - x_lims[0];
+    // can check these are the same as Y
+
+    double lambda = getWavelength();
+    double sigma = MicroParams->Sigma();
+    double V = MicroParams->Voltage * 1000.0;
+
+    double ke = getInverseMax();
+    double ke2 = ke * ke;
+
+    // local copy of pi for convenience
+    // using a double version as this calulation needs to be accurate
+    double Pi = 3.141592653589793238462643383279502884;
+
+    // This is just rearranging Eq 6.122 in Kirkland's book to a get a quadratic in (dz)^2 which we then solve. Could also adjust the band limiting.
+
+    // start from kirklands equation, but group constants together
+    double aa = 4 * Pi * Pi;
+    double bb = 4 * Pi * Pi / (lambda * lambda);
+    double cc = sigma * V / (lambda * Pi);
+
+    // now rearrange and group again
+    double A = (ke2 - cc) * aa;
+    A = A * A;
+    double B = 2 * (ke2 - cc) * aa - bb;
+    double C = 3.0;
+
+    double B24AC = B * B - 4 * A * C;
+
+    // Now use these to determine acceptable resolution or enforce extra band limiting beyond 2/3
+    if (B24AC < 0) {
+//        throw std::runtime_error("No stable finite difference solution exists");
+        return false;
+    }
+
+    double b24ac = std::sqrt(B24AC);
+    double maxStableDz = (-B + b24ac) / (2 * A);
+
+    if (maxStableDz < 0)
+    {
+        return false;
+    }
+
+    maxStableDz = 0.99f * std::sqrt(maxStableDz); // because we need it to be less than and we have (dz)^2, not dz
+
+    // this was set in Adam's code, no idea why this is an upper limit?
+    if (maxStableDz > 0.06f)
+        maxStableDz = 0.06f;
+
+    dz_out = (float) maxStableDz;
+
+    return true;
+}
+
+float SimulationManager::getSliceThickness() {
+    if (isFD) {
+        float dz;
+        bool valid = calculateFiniteDiffSliceThickness(dz);
+        if (!valid)
+            throw std::runtime_error("No stable finite difference solution exists");
+        return dz;
+    }
+    else
+        return slice_dz;
+}
+
+unsigned int SimulationManager::getNumberofSlices() {
+    auto z_lims = getPaddedStructLimitsZ();
+    float z_range = z_lims[1] - z_lims[0];
+
+    unsigned int n_slices = (unsigned int) std::ceil(z_range / getSliceThickness());
+    n_slices += (n_slices == 0);
+    return n_slices;
+}
