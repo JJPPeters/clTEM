@@ -34,8 +34,8 @@ __kernel void clFiniteDifference( __global float2* restrict potential,
 	float2 cMinus = {1 , -2*3.14159f*FDdz/wavelength};
 	float2 cPlus = {1 , 2*3.14159f*FDdz/wavelength};
 
-	float2 reciprocalCPlus = {cMinus.x / (cMinus.x*cMinus.x + cMinus.y*cMinus.y),cMinus.y / (cMinus.x*cMinus.x + cMinus.y*cMinus.y)};
-	float2 cMinusOvercPlus = {(cPlus.x*cPlus.x - cPlus.y*cPlus.y) / (cMinus.x*cMinus.x + cMinus.y*cMinus.y),-2*(cPlus.x*cPlus.y) / (cMinus.x*cMinus.x + cMinus.y*cMinus.y)};
+	float2 reciprocalCPlus = {cMinus.x / (cMinus.x*cMinus.x + cMinus.y*cMinus.y),  cMinus.y / (cMinus.x*cMinus.x + cMinus.y*cMinus.y)};
+	float2 cMinusOvercPlus = {(cPlus.x*cPlus.x - cPlus.y*cPlus.y) / (cMinus.x*cMinus.x + cMinus.y*cMinus.y),  -2*(cPlus.x*cPlus.y) / (cMinus.x*cMinus.x + cMinus.y*cMinus.y)};
 
 	if(xid < width && yid < height)
 	{

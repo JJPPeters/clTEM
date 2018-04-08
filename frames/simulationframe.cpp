@@ -8,6 +8,7 @@ SimulationFrame::SimulationFrame(QWidget *parent) :
     ui(new Ui::SimulationFrame)
 {
     ui->setupUi(this);
+    ui->chkFiniteDiff->setVisible(false);
 }
 
 SimulationFrame::~SimulationFrame()

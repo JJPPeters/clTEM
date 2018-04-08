@@ -48,7 +48,7 @@ __kernel void clBinnedAtomicPotentialOptFD( __global float2* potential,
 											__global const int* restrict block_start_pos,
 											int width,
 											int height,
-											int current_slices, 
+											int current_slice, 
 											int total_slices, 
 											float z, 
 											float dz, 
@@ -69,9 +69,9 @@ __kernel void clBinnedAtomicPotentialOptFD( __global float2* potential,
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
 	int lid = get_local_id(0) + get_local_size(0)*get_local_id(1);
-	int Index = xid + width*yid;
-	int topz = current_slices - slice_load_z;
-	int bottomz = current_slices + slice_load_z;
+	int Index = xid + width * yid;
+	int topz = current_slice - slice_load_z;
+	int bottomz = current_slice + slice_load_z;
 	float sumz = 0.0f;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
@@ -96,7 +96,6 @@ __kernel void clBinnedAtomicPotentialOptFD( __global float2* potential,
 		for (int j = startj ; j <= endj; j++)
 		{
 			//Need list of atoms to load, so we can load in sequence
-
 			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti];
 			int end = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
 
@@ -134,7 +133,7 @@ __kernel void clBinnedAtomicPotentialOptFD( __global float2* potential,
 					p1 += (266.5157269f * params[(ZNum-1)*12+8] * native_exp (-3.141592f*rad*3.141592f*rad/params[(ZNum-1)*12+8+1]) * native_powr(params[(ZNum-1)*12+8+1],-1.5f));
 					p1 += (266.5157269f * params[(ZNum-1)*12+10] * native_exp (-3.141592f*rad*3.141592f*rad/params[(ZNum-1)*12+10+1]) * native_powr(params[(ZNum-1)*12+10+1],-1.5f));
 
-					sumz +=p1;
+					sumz += p1;
 				}
 			}
 

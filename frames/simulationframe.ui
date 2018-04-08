@@ -22,6 +22,9 @@
    </property>
    <item row="3" column="5">
     <widget class="QCheckBox" name="chkFiniteDiff">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
