@@ -15,6 +15,7 @@
 class CrystalStructure
 {
 private:
+    /// Vector of atoms with coordinates in Angstroms
     std::vector<Atom> Atoms;
 
     std::string filePath;
@@ -48,6 +49,8 @@ private:
 public:
     CrystalStructure(std::string fPath);
 
+    /// Loads the given xyz file getting the atom coordinates in Angstroms
+    /// \param fPath - path to .xyz file to open
     void openXyz(std::string fPath);
 
     std::string getFileName() {return filePath;}

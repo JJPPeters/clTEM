@@ -102,7 +102,7 @@ struct MicroscopeParameters
 
     ComplexAberration C56;
 
-    // Voltaage (kV)
+    // Voltaage (kV) == (kg m^2 C^-1 s^-2)
     float Voltage;
     //Condenser aperture size (mrad)
     float Aperture;
@@ -112,13 +112,13 @@ struct MicroscopeParameters
     //Defocus spread (?)
     float Delta;
 
-    //Calculate wavelength (Angstrom)
+    //Calculate wavelength (Angstroms)
     float Wavelength()
     {
-        return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000.0f) * (2.0f * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000.0f ) ) ) * 1e+010f;
+        return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000.0f) * (2.0f * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000.0f ) ) ) * 1e+10f;
     }
 
-    // ?
+    // Interaction parameter (see Kirkland Eq. 5.6) (s^2 C m^-2 kg^-1 Angstrom^-1])
     float Sigma()
     {
         return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000.0f))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000.0f)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000.0f));

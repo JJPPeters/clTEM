@@ -88,6 +88,14 @@ float SimulationManager::getInverseScale()
         return 1.0f / (getRealScale() * Resolution);
 }
 
+float SimulationManager::getInverseMax()
+{
+    if(!Structure || !haveResolution())
+        throw std::runtime_error("Can't calculate scales without resolution and structure");
+
+    return 0.5f * getInverseScale() * Resolution * getInverseLimitFactor();
+}
+
 float SimulationManager::getInverseScaleAngle() {
     if(!Structure || !haveResolution() && MicroParams && MicroParams->Voltage > 0)
         throw std::runtime_error("Can't calculate scales without resolution and structure");

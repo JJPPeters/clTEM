@@ -99,10 +99,15 @@ public:
 
     bool haveResolution() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096;}
 
-//    float getSimSideLength();
+    /// Get the simulation scale in Angstroms per pixel
     float getRealScale();
+    /// Get the simulation inverse scale in inverse Angstroms per pixel
     float getInverseScale();
+    /// Get the simulation inverse scale in mrad per pixel
     float getInverseScaleAngle();
+    /// Get the max band limited simulation inverse in inverse Angstroms
+    float getInverseMax();
+    /// Get the max band limited simulation inverse in mrad
     float getInverseMaxAngle();
     float getInverseLimitFactor() {return maxReciprocalFactor;}
 

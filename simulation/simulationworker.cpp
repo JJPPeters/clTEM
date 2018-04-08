@@ -1267,7 +1267,7 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
 void SimulationWorker::initialiseFiniteDifferenceSimulation()
 {
     int resolution = job->simManager->getResolution();
-    float wavelength = job->simManager->getWavelength();
+    double wavelength = job->simManager->getWavelength();
     float pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
     auto AtomicStructure = job->simManager->getStructure();
@@ -1276,50 +1276,55 @@ void SimulationWorker::initialiseFiniteDifferenceSimulation()
     float SimSizeX = pixelscale * resolution;
     float SimSizeY = SimSizeX;
 
-    float V = mParams->Voltage * 1000; // Microscope voltage (V)
-    float sigma = mParams->Sigma();
+    double V = mParams->Voltage * 1000; // Microscope voltage (V)
+    double sigma = mParams->Sigma();
 
     GradKernel = clKernel(ctx, Kernels::gradsource.c_str(), 5, "clGrad");
     FiniteDifference = clKernel(ctx, Kernels::fdsource.c_str(), 10, "clFiniteDifference");
 
-    // Bandlimit by FDdz size
-    float fnkx = resolution;
-    float fnky = resolution;
-
-    float p1 = fnkx / (2 * SimSizeX);
-    float p2 = fnky / (2 * SimSizeY);
-    float p12 = p1 * p1;
-    float p22 = p2 * p2;
-
-    float ke2 = (0.666666f) * (p12 + p22);
-    float ke = 0.5f * job->simManager->getInverseScale() * resolution * job->simManager->getInverseLimitFactor();
-    ke2 = ke * ke;
+    /// 1 / Angstroms
+    double ke = job->simManager->getInverseMax();
+    /// 1 / (Angstroms^2)
+    double ke2 = ke * ke;
 
     // local copy of pi for convenience
-    float Pi = Constants::Pi;
+    // using a double version as this calulation needs to be accurate
+    double Pi = 3.141592653589793238462643383279502884;
 
     // This is just rearranging Eq 6.122 in Kirkland's book to a get a quadratic in (dz)^2 which we then solve. Could also adjust the band limiting.
 
-    float quadraticA = (ke2 * ke2 * 16 * Pi * Pi * Pi * Pi) - (32 * Pi * Pi * Pi * ke2 * sigma * V / wavelength) +
-                       (16 * Pi * Pi * sigma * sigma * V * V / (wavelength * wavelength));
-    // I feel that the second below term should have a factor of 1/2 in it -> done
-    float quadraticB = 16 * Pi * Pi * (ke2 - (sigma * V / (2 * Pi * wavelength)) - (1 / (4 * wavelength * wavelength)));
-    float quadraticC = 3;
-    float quadraticB24AC = quadraticB * quadraticB - 4 * quadraticA * quadraticC;
+    // start from kirklands equation, but group constants together
+    double aa = 4 * Pi * Pi;
+    double bb = 4 * Pi * Pi / (wavelength * wavelength);
+    double cc = sigma * V / (wavelength * Pi);
+
+    // now rearrange and group again
+    double A = (ke2 - cc) * aa;
+    A = A * A;
+    double B = 2 * (ke2 - cc) * aa - bb;
+    double C = 3.0;
+
+    double B24AC = B * B - 4 * A * C;
 
     // Now use these to determine acceptable resolution or enforce extra band limiting beyond 2/3
-    if (quadraticB24AC < 0) {
+    if (B24AC < 0) {
 //        throw std::runtime_error("No stable finite difference solution exists");
         return;
     }
 
-    float b24ac = std::sqrt(quadraticB24AC);
-    float maxStableDz = (-quadraticB + b24ac) / (2 * quadraticA);
+    double b24ac = std::sqrt(B24AC);
+    double maxStableDz = (-B + b24ac) / (2 * A);
+
+    if (maxStableDz < 0)
+    {
+        return;
+    }
+
     maxStableDz = 0.99f * std::sqrt(maxStableDz); // because we need it to be less than and we have (dz)^2, not dz
 
     // this was set in Adam's code, no idea why this is an upper limit?
-//    if (maxStableDz > 0.06f)
-//        maxStableDz = 0.06f;
+    if (maxStableDz > 0.06f)
+        maxStableDz = 0.06f;
 
     FDdz = maxStableDz;
 
