@@ -54,7 +54,7 @@ private:
 
     void doMultiSliceStep(int slice);
 
-    void doMultiSliceStepFiniteDiff(int stepno);
+    void doMultiSliceStepFiniteDiff(int slice);
 
     void simulateCtemImage();
 
@@ -124,9 +124,8 @@ private:
 
     // Finite difference variables
     // --Seem to get set no matter what?
-    float FDsigma;
-    float FDdz; // slice thickness?
-    unsigned int NumberOfFDSlices; // number of slices?
+//    float FDdz; // slice thickness?
+//    unsigned int NumberOfFDSlices; // number of slices?
     unsigned int numberOfSlices;
 };
 

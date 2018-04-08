@@ -81,8 +81,6 @@ public:
 
     float calculatePaddedRealScale(float range, int resolution, bool round_padding = false);
 
-    float getSliceThickness() {return slice_dz;}
-
     int getBlocksX();// {return blocks_x;}
     int getBlocksY();// {return blocks_y;}
 
@@ -99,10 +97,15 @@ public:
 
     bool haveResolution() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096;}
 
-//    float getSimSideLength();
+    /// Get the simulation scale in Angstroms per pixel
     float getRealScale();
+    /// Get the simulation inverse scale in inverse Angstroms per pixel
     float getInverseScale();
+    /// Get the simulation inverse scale in mrad per pixel
     float getInverseScaleAngle();
+    /// Get the max band limited simulation inverse in inverse Angstroms
+    float getInverseMax();
+    /// Get the max band limited simulation inverse in mrad
     float getInverseMaxAngle();
     float getInverseLimitFactor() {return maxReciprocalFactor;}
 
@@ -149,6 +152,9 @@ public:
     float getCcdDose() {return ccd_dose;}
     void setCcdDose(float dose) {ccd_dose = dose;}
 
+    float getSliceThickness();
+    unsigned int getNumberofSlices();
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
@@ -177,6 +183,8 @@ private:
 
     void calculate_blocks();
     int blocks_x, blocks_y;
+
+    bool calculateFiniteDiffSliceThickness(float &dz_out);
 
     //TODO: variables for full3D etc??
     bool isFD;
