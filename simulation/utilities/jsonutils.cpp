@@ -6,7 +6,17 @@
 
 namespace JSONUtils {
 
-    json simManagerToJson(SimulationManager man) {
+    json FullManagerToJson(SimulationManager& man) {
+        // this gets pretty much everything that is set
+        json j = BasicManagerToJson(man, true);
+
+        for (auto det : man.getDetectors())
+        {
+            j["stem"]["detectors"][det.name] = JSONUtils::stemDetectorToJson(det);
+        }
+    }
+
+    json BasicManagerToJson(SimulationManager& man, bool force_all) {
 
         json j;
 
@@ -33,17 +43,13 @@ namespace JSONUtils {
         bool f3d = man.isFull3d();
         bool fd = man.isFiniteDifference();
 
-        if(f3d) {
+        if(f3d || force_all) {
             j["full 3d"]["state"] = f3d;
             j["full 3d"]["num integrals"] = man.getFull3dInts();
         } else
-            j["full 3d"] = f3d;
+            j["full 3d"]["state"] = f3d;
 
-        if(fd) {
-            j["finite difference"]["state"] = fd;
-//            j["finite difference"]["num integrals"] = man.getFull3dInts();
-        } else
-            j["finite difference"] = fd;
+//        j["finite difference"]["state"] = fd;
 
         j["microscope"]["voltage"]["val"] = man.getVoltage();
         j["microscope"]["voltage"]["units"] = "?";
@@ -57,7 +63,7 @@ namespace JSONUtils {
         j["microscope"]["aperture"]["val"] = mp->Aperture;
         j["microscope"]["aperture"]["units"] = "?";
 
-        if (mode == SimulationMode::CTEM) {
+        if (mode == SimulationMode::CTEM || force_all) {
             // alpha
             j["microscope"]["alpha"]["val"] = mp->Alpha;
             j["microscope"]["alpha"]["units"] = "?";
@@ -113,11 +119,11 @@ namespace JSONUtils {
         j["microscope"]["aberrations"]["C56"]["units"] = "?";
 
         // If CTEM, get dose/CCD stuff
-        if (mode == SimulationMode::CTEM)
+        if (mode == SimulationMode::CTEM || force_all)
         {
             // cropped padding entry will be added at the time of saving
 
-            if (CCDParams::nameExists(man.getCcdName())) {
+            if (CCDParams::nameExists(man.getCcdName()) || force_all) {
                 j["ctem"]["ccd"]["name"] = man.getCcdName();
                 j["ctem"]["ccd"]["dose"] = man.getCcdDose();
                 j["ctem"]["ccd"]["binning"] = man.getCcdBinning();
@@ -126,8 +132,8 @@ namespace JSONUtils {
             }
         }
 
-        // If STEM, get scan info, TDS info and detector info
-        if (mode == SimulationMode::STEM)
+        // If STEM, get scan info, TDS info detector info will be added later if needed
+        if (mode == SimulationMode::STEM || force_all)
         {
             auto sa = man.getStemArea();
             j["stem"]["scan"]["x"]["start"] = sa->getLimitsX()[0];
@@ -144,7 +150,7 @@ namespace JSONUtils {
         }
 
         // If CBED, get position info and TDS info
-        if (mode == SimulationMode::CBED)
+        if (mode == SimulationMode::CBED || force_all)
         {
             j["cbed"]["position"]["x"] = man.getCBedPosition()->getXPos();
             j["cbed"]["position"]["y"] = man.getCBedPosition()->getYPos();
@@ -156,7 +162,7 @@ namespace JSONUtils {
 
     json stemDetectorToJson(StemDetector d) {
         json j;
-        j["stem"]["detector"]["name"] = d.name;
+//        j["stem"]["detector"]["name"] = d.name;
         j["stem"]["detector"]["radius"]["innder"] = d.inner;
         j["stem"]["detector"]["radius"]["outer"] = d.outer;
         j["stem"]["detector"]["radius"]["units"] = "mrad";

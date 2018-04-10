@@ -371,7 +371,7 @@ void MainWindow::totalProgressChanged(float prog)
 
 void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm)
 {
-    nlohmann::json settings = JSONUtils::simManagerToJson(sm);
+    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -440,7 +440,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     // add the specific detector info here!
                     for (auto d : Manager->getDetectors())
                         if (d.name == name)
-                            settings["stem"]["detector"] = JSONUtils::stemDetectorToJson(d);
+                            settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
                     tab->setPlotWithData(im, settings);
                 }
             }
