@@ -691,3 +691,9 @@ void MainWindow::saveBmp() {
     nlohmann::json test = origin->getSettings();
     fileio::SaveSettingsJson(f, test);
 }
+
+void MainWindow::on_actionGeneral_triggered() {
+    GlobalSettingsDialog *myDialog = new GlobalSettingsDialog(this, Manager);
+
+    myDialog->exec();
+}

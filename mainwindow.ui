@@ -148,7 +148,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuInput">
@@ -172,6 +172,7 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <addaction name="actionGeneral"/>
     <addaction name="actionOpenCL"/>
    </widget>
    <addaction name="menuInput"/>
@@ -228,6 +229,11 @@
   <action name="actionOpenCL">
    <property name="text">
     <string>OpenCL</string>
+   </property>
+  </action>
+  <action name="actionGeneral">
+   <property name="text">
+    <string>General</string>
    </property>
   </action>
  </widget>

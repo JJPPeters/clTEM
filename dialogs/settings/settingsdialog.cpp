@@ -51,6 +51,18 @@ std::tuple<std::vector<clDevice>, std::vector<float>> OpenClDialog::getChosenDev
 
 
 
+GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+        SettingsDialog(parent)
+{
+    GeneralFrame = new GlobalSettingsFrame(this, simManager);
+    ui->vLayout->insertWidget(0, GeneralFrame);
+
+    this->setWindowTitle("General settings");
+
+    this->setFixedSize(this->minimumSizeHint());
+}
+
+
 AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params) :
     SettingsDialog(parent)
 {
