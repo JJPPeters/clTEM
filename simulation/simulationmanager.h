@@ -128,6 +128,7 @@ public:
     void setTdsEnabled(bool use){TdsEnabled = use;}
     void setTdsRuns(unsigned int runs){TdsRuns = runs;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
+    void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
 
     void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>, SimulationManager)> f) {imageReturn = f;}
     void setProgressTotalReporterFunc(std::function<void(float)> f) {progressTotalReporter = f;}

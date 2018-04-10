@@ -6,6 +6,7 @@
 #include <dialogs/settings/frames/stemdetectorframe.h>
 #include <dialogs/settings/frames/stemareaframe.h>
 #include <dialogs/settings/frames/arealayoutframe.h>
+#include <dialogs/settings/frames/globalsettingsframe.h>
 #include <structure/crystalstructure.h>
 
 #include "frames/openclframe.h"
@@ -55,6 +56,20 @@ public:
     std::tuple<std::vector<clDevice>, std::vector<float>> getChosenDevices();
 };
 
+
+class GlobalSettingsDialog : public SettingsDialog
+{
+Q_OBJECT
+
+signals:
+    void globalSettingsChanged();
+
+private:
+    GlobalSettingsFrame* GeneralFrame;
+
+public:
+    explicit GlobalSettingsDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
+};
 
 
 

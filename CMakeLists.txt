@@ -68,6 +68,7 @@ set ( clTEM_SRCS
 		frames/aberrationframe.cpp
 		dialogs/settings/settingsdialog.cpp
 		dialogs/settings/frames/openclframe.cpp
+		dialogs/settings/frames/globalsettingsframe.cpp
 		dialogs/settings/frames/fullaberrationframe.cpp
         dialogs/settings/frames/ctemareaframe.cpp
 		dialogs/settings/frames/stemareaframe.cpp
@@ -92,6 +93,7 @@ set ( clTEM_UIS
         controls/statuslayout.ui
 		dialogs/settings/settingsdialog.ui
 		dialogs/settings/frames/openclframe.ui
+        dialogs/settings/frames/globalsettingsframe.ui
 		dialogs/settings/frames/fullaberrationframe.ui
 		dialogs/settings/frames/stemdetectorframe.ui
         dialogs/settings/frames/ctemareaframe.ui
