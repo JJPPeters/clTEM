@@ -162,7 +162,7 @@ namespace JSONUtils {
         // detectors...
 
         try {
-            auto det_section = readJsonEntry<json>(j, "stem", "detectors");
+            json det_section = readJsonEntry<json>(j, "stem", "detectors");
             for (json::iterator it = det_section.begin(); it != det_section.end(); ++it) {
                 std::string entry = it.key();
                 try{
@@ -375,12 +375,12 @@ namespace JSONUtils {
     json stemDetectorToJson(StemDetector d) {
         json j;
 //        j["stem"]["detector"]["name"] = d.name;
-        j["stem"]["detector"]["radius"]["innder"] = d.inner;
-        j["stem"]["detector"]["radius"]["outer"] = d.outer;
-        j["stem"]["detector"]["radius"]["units"] = "mrad";
-        j["stem"]["detector"]["centre"]["x"] = d.xcentre;
-        j["stem"]["detector"]["centre"]["y"] = d.ycentre;
-        j["stem"]["detector"]["centre"]["units"] = "mrad";
+        j["radius"]["inner"] = d.inner;
+        j["radius"]["outer"] = d.outer;
+        j["radius"]["units"] = "mrad";
+        j["centre"]["x"] = d.xcentre;
+        j["centre"]["y"] = d.ycentre;
+        j["centre"]["units"] = "mrad";
 
         return j;
     }

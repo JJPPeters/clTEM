@@ -715,7 +715,8 @@ void MainWindow::on_actionImport_parameters_triggered() {
 
     nlohmann::json j = fileio::OpenSettingsJson(fileName.toStdString());
 
-    SimulationManager temp = JSONUtils::JsonToManager(j);
+    SimulationManager m = JSONUtils::JsonToManager(j);
+    *Manager = m;
 }
 
 void MainWindow::on_actionExport_parameters_triggered() {

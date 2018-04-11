@@ -25,11 +25,51 @@ public:
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose)
     {
-        Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+        if (sm.Structure) // structure doesnt always exist
+            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
+    }
+
+    SimulationManager& operator=(const SimulationManager& sm)
+    {
+        Resolution = sm.Resolution;
+        TdsRunsStem = sm.TdsRunsStem;
+        TdsRunsCbed = sm.TdsRunsCbed;
+        numParallelPixels = sm.numParallelPixels;
+        isFD = sm.isFD;
+        isF3D = sm.isF3D;
+        full3dInts = sm.full3dInts;
+        completeJobs = sm.completeJobs;
+        imageReturn = sm.imageReturn;
+        progressTotalReporter = sm.progressTotalReporter;
+        progressSliceReporter = sm.progressSliceReporter;
+        Images = sm.Images;
+        Mode = sm.Mode;
+        StemDets = sm.StemDets;
+        TdsEnabled = sm.TdsEnabled;
+        padding_x = sm.padding_x;
+        padding_y = sm.padding_y;
+        padding_z = sm.padding_z;
+        slice_dz = sm.slice_dz;
+        blocks_x = sm.blocks_x;
+        blocks_y = sm.blocks_y;
+        simulateCtemImage = sm.simulateCtemImage;
+        maxReciprocalFactor = sm.maxReciprocalFactor;
+        ccd_name = sm.ccd_name;
+        ccd_binning = sm.ccd_binning;
+        ccd_dose = sm.ccd_dose;
+
+        if (sm.Structure) // structure doesnt always exist
+            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+        MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
+        SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
+        StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
+        CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
+
+        return *this;
     }
 
     void setStructure(std::string filePath);
