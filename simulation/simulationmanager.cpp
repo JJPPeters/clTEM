@@ -9,7 +9,7 @@ std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(false),
-                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0f)
+                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1)
 {
     // Here is where the default values are set!
     MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);
@@ -21,7 +21,6 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
     full3dInts = 20;
     isFD = false;
     isF3D = false;
-    TdsRuns = 1;
 
     // I'm really assuming the rest of the aberrations are default 0
     MicroParams->Aperture = 20;
@@ -360,4 +359,22 @@ unsigned int SimulationManager::getNumberofSlices() {
     unsigned int n_slices = (unsigned int) std::ceil(z_range / getSliceThickness());
     n_slices += (n_slices == 0);
     return n_slices;
+}
+
+unsigned int SimulationManager::getTdsRuns() {
+    if (TdsEnabled)
+        return getStoredTdsRuns();
+    else
+        return 1;
+}
+
+unsigned int SimulationManager::getStoredTdsRuns() {
+    if (Mode == SimulationMode::CTEM)
+        return 1;
+    else if (Mode == SimulationMode::STEM)
+        return TdsRunsStem;
+    else if (Mode == SimulationMode::CBED)
+        return TdsRunsCbed;
+
+    return 1;
 }

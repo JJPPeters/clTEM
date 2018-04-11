@@ -23,6 +23,8 @@ namespace fileio //D:
 
     void SaveSettingsJson(std::string filepath, json man);
 
+    json OpenSettingsJson(std::string filepath);
+
     template <typename T_out, typename T_in>
     void SaveTiff(std::string filepath, std::vector<T_in> data, int size_x, int size_y)
     {

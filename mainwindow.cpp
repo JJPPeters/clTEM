@@ -132,7 +132,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QSettings settings;
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open File", settings.value("dialog/currentPath").toString(), "All supported (*.xyz);; XYZ (*.xyz)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open file", settings.value("dialog/currentPath").toString(), "All supported (*.xyz);; XYZ (*.xyz)");
 
     if (fileName.isNull())
         return;
@@ -141,8 +141,9 @@ void MainWindow::on_actionOpen_triggered()
 
     settings.setValue("dialog/currentPath", temp_file.path());
 
-    if (temp_file.suffix() == "xyz")
-        Manager->setStructure(fileName.toStdString());
+    if (temp_file.suffix() != "xyz")
+        return;
+    Manager->setStructure(fileName.toStdString());
 
     auto ar = Manager->getSimulationArea();
     bool changed = false;
@@ -301,12 +302,12 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     if (Manager->getMode() == SimulationMode::CBED)
     {
         Manager->setTdsEnabled(ui->tCbed->isTdsEnabled());
-        Manager->setTdsRuns(ui->tCbed->getTdsRuns());
+        Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
     }
     else if (Manager->getMode() == SimulationMode::STEM)
     {
         Manager->setTdsEnabled(ui->tStem->isTdsEnabled());
-        Manager->setTdsRuns(ui->tStem->getTdsRuns());
+        Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
     }
 
     // update aberrations from the main tab
@@ -372,6 +373,7 @@ void MainWindow::totalProgressChanged(float prog)
 void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm)
 {
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
+    settings["filename"] = sm.getStructure()->getFileName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -696,4 +698,40 @@ void MainWindow::on_actionGeneral_triggered() {
     GlobalSettingsDialog *myDialog = new GlobalSettingsDialog(this, Manager);
 
     myDialog->exec();
+}
+
+void MainWindow::on_actionImport_parameters_triggered() {
+    // open a dialog to get the json file
+    QSettings settings;
+    QString fileName = QFileDialog::getOpenFileName(this, "Save parameters", settings.value("dialog/currentPath").toString(), "All supported (*.json);; JSON (*.json)");
+
+    if (fileName.isNull())
+        return;
+    QFileInfo temp_file(fileName);
+    settings.setValue("dialog/currentPath", temp_file.path());
+
+    if (temp_file.suffix() != "json")
+        return;
+
+    nlohmann::json j = fileio::OpenSettingsJson(fileName.toStdString());
+
+    SimulationManager temp = JSONUtils::JsonToManager(j);
+}
+
+void MainWindow::on_actionExport_parameters_triggered() {
+    // open a dialog to get the save file
+    QSettings settings;
+    QString fileName = QFileDialog::getSaveFileName(this, "Save parameters", settings.value("dialog/currentSavePath").toString(), "JSON (*.json)");
+
+    if (fileName.isNull())
+        return;
+
+    QFileInfo temp_file(fileName);
+    settings.setValue("dialog/currentSavePath", temp_file.path());
+
+    if (temp_file.suffix() != "json")
+        fileName.append(".json");
+
+    nlohmann::json j = JSONUtils::FullManagerToJson(*Manager);
+    fileio::SaveSettingsJson(fileName.toStdString(), j);
 }

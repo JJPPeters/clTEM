@@ -17,7 +17,7 @@ public:
     SimulationManager();
 
     SimulationManager(const SimulationManager& sm)
-            : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRuns(sm.TdsRuns),
+            : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRunsStem(sm.TdsRunsStem), TdsRunsCbed(sm.TdsRunsCbed),
               numParallelPixels(sm.numParallelPixels), isFD(sm.isFD), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
@@ -54,6 +54,8 @@ public:
             return true;
         return false;
     }
+
+    SimulationArea getCtemArea() {return *SimArea;}
 
     std::valarray<float> getPaddingX() {return padding_x;}
     std::valarray<float> getPaddingY() {return padding_y;}
@@ -120,13 +122,16 @@ public:
     void setFiniteDifference(bool use) {isFD = use;}
 
     unsigned int getFull3dInts(){return full3dInts;}
-    unsigned int getStoredTdsRuns() {return TdsRuns;}
-    unsigned int getTdsRuns() { return (!TdsEnabled || Mode == SimulationMode::CTEM) ? 1 : TdsRuns;}
+    unsigned int getStoredTdsRuns();
+    unsigned int getTdsRuns();
+    unsigned int getTdsRunsCbed() { return (!TdsEnabled) ? 1 : TdsRunsCbed; }
+    unsigned int getTdsRunsStem() { return (!TdsEnabled) ? 1 : TdsRunsStem; }
     unsigned int getStoredParallelPixels() {return numParallelPixels;}
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
 
     void setTdsEnabled(bool use){TdsEnabled = use;}
-    void setTdsRuns(unsigned int runs){TdsRuns = runs;}
+    void setTdsRunsStem(unsigned int runs){TdsRunsStem = runs;}
+    void setTdsRunsCbed(unsigned int runs){TdsRunsCbed = runs;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
     void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
 
@@ -156,6 +161,8 @@ public:
     float getSliceThickness();
     unsigned int getNumberofSlices();
 
+    void setSliceThickness(float thk) { slice_dz = thk; }
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
@@ -171,7 +178,8 @@ private:
     std::valarray<float> padding_x, padding_y, padding_z;
 
     unsigned int Resolution;
-    unsigned int TdsRuns;
+    unsigned int TdsRunsStem;
+    unsigned int TdsRunsCbed;
     bool TdsEnabled;
     bool simulateCtemImage;
 
