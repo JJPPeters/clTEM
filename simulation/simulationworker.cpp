@@ -854,7 +854,7 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     FourierTrans(clWaveFunction3[0], clPotential, Direction::Inverse);
 
     ctx.WaitForQueueFinish();
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -895,25 +895,6 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
         FiniteDifference(Work);
 
         ctx.WaitForQueueFinish();
-
-
-
-        std::vector<float> data_out_2(resolution * resolution);
-
-        std::vector<cl_float2> compdata_2 = clWaveFunction1Plus[i]->CreateLocalCopy();
-
-        int cnt = 0;
-        for (int j = 0; j < resolution; ++j)
-            for (int i = 0; i < resolution; ++i)
-            {
-                int k = i + j * resolution;
-                data_out_2[cnt] = std::sqrt(compdata_2[k].x * compdata_2[k].x + compdata_2[k].y * compdata_2[k].y);
-//                data_out[cnt] = std::atan2(compdata[k].y, compdata[k].x);
-                ++cnt;
-            }
-
-        fileio::SaveTiff<float>("/home/jon/Git/cllTEM-dev/testing/fd/fd_" + std::to_string(slice) + ".tif", data_out_2, resolution, resolution);
-
 
         //Bandlimit PsiPlus
         FourierTrans(clWaveFunction1Plus[i], clWaveFunction3[0], Direction::Forwards);
