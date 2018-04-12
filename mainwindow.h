@@ -65,6 +65,14 @@ private slots:
 
     void on_actionGeneral_triggered();
 
+    void on_actionImport_parameters_triggered();
+
+    void on_actionExport_parameters_triggered();
+
+    void on_actionSet_area_triggered();
+
+    void on_actionAberrations_triggered();
+
     void on_actionSimulate_EW_triggered(bool do_image = false);
 
     void cancel_simulation();
@@ -105,6 +113,10 @@ private:
     bool checkSimulationPrerequisites();
 
     void loadExternalSources();
+
+    void updateManagerFromGui();
+
+    void updateGuiFromManager();
 };
 
 #endif // MAINWINDOW_H

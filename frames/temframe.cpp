@@ -85,3 +85,22 @@ bool TemFrame::getSimImage() {
 float TemFrame::getDose() {
     return ui->edtDose->text().toFloat();
 }
+
+void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
+    float dse = sm->getCcdDose();
+    auto nm = sm->getCcdName();
+    int bn = sm->getCcdBinning();
+
+    ui->edtDose->setText( Utils::numToQString(dse, 5) );
+
+    // TODO: could use findtext?
+    // set the name if it exists...
+
+    int ind = ui->cmbCcd->findText( QString::fromStdString(nm) );
+    ind += (ind == -1);
+    ui->cmbCcd->setCurrentIndex(ind);
+
+    ind = ui->cmbBinning->findText( QString::number(bn) );
+    ind += (ind == -1);
+    ui->cmbBinning->setCurrentIndex(ind);
+}

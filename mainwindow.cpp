@@ -22,8 +22,7 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    Manager(new SimulationManager())
+    ui(new Ui::MainWindow)
 {
     // test opencl
     try {
@@ -46,6 +45,19 @@ MainWindow::MainWindow(QWidget *parent) :
         settings.setValue("dialog/currentPath", QStandardPaths::HomeLocation);
     if (!settings.contains("dialog/currentSavePath"))
         settings.setValue("dialog/currentSavePath", QStandardPaths::HomeLocation);
+    if (!settings.contains("defaultParameters"))
+        settings.setValue("defaultParameters", "default");
+
+    Manager = std::shared_ptr<SimulationManager>(new SimulationManager());
+
+    std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
+    std::string param_name = settings.value("defaultParameters").toString().toStdString();
+    try {
+        nlohmann::json j = fileio::OpenSettingsJson(exe_path + "/microscopes/" + param_name + ".json");
+        *Manager = JSONUtils::JsonToManager(j);
+    } catch (const std::runtime_error& e) {
+        // don't worry, we'll just use the default settings
+    }
 
     loadSavedOpenClSettings();
 
@@ -113,14 +125,10 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
 
-    ui->tSim->setResolutionIndex(0);
-    ui->tTem->setCropCheck(true);
-    ui->tTem->setSimImageCheck(true);
-    ui->tTem->setCcdIndex(0);
-    ui->tTem->setBinningIndex(0);
-    ui->tTem->setDose(Manager->getCcdDose());
-
     loadExternalSources();
+
+    updateGuiFromManager();
+    ui->tTem->setCropCheck( true );
 }
 
 MainWindow::~MainWindow()
@@ -132,7 +140,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QSettings settings;
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open File", settings.value("dialog/currentPath").toString(), "All supported (*.xyz);; XYZ (*.xyz)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open file", settings.value("dialog/currentPath").toString(), "All supported (*.xyz);; XYZ (*.xyz)");
 
     if (fileName.isNull())
         return;
@@ -141,8 +149,9 @@ void MainWindow::on_actionOpen_triggered()
 
     settings.setValue("dialog/currentPath", temp_file.path());
 
-    if (temp_file.suffix() == "xyz")
-        Manager->setStructure(fileName.toStdString());
+    if (temp_file.suffix() != "xyz")
+        return;
+    Manager->setStructure(fileName.toStdString());
 
     auto ar = Manager->getSimulationArea();
     bool changed = false;
@@ -297,21 +306,7 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
 
     // Set some variables that aren't auto updates
 
-    // Sort out TDS bits
-    if (Manager->getMode() == SimulationMode::CBED)
-    {
-        Manager->setTdsEnabled(ui->tCbed->isTdsEnabled());
-        Manager->setTdsRuns(ui->tCbed->getTdsRuns());
-    }
-    else if (Manager->getMode() == SimulationMode::STEM)
-    {
-        Manager->setTdsEnabled(ui->tStem->isTdsEnabled());
-        Manager->setTdsRuns(ui->tStem->getTdsRuns());
-    }
-
-    // update aberrations from the main tab
-    // TODO: get full aberrations from the dialg too
-    ui->tAberr->updateAberrations();
+    updateManagerFromGui();
 
     // test we have everything we need
     try
@@ -342,12 +337,6 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1, std::placeholders::_2);
     Manager->setImageReturnFunc(imageRet);
 
-    // load variables for potential TEM stuff
-    Manager->setCcdBinning(ui->tTem->getBinning());
-    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
-    Manager->setCcdName(ui->tTem->getCcd());
-    Manager->setCcdDose(ui->tTem->getDose());
-
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
     man_list.push_back(temp);
@@ -371,7 +360,10 @@ void MainWindow::totalProgressChanged(float prog)
 
 void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm)
 {
-    nlohmann::json settings = JSONUtils::simManagerToJson(sm);
+    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
+    settings["filename"] = sm.getStructure()->getFileName();
+
+    settings["parameters"] = StructureParameters::getCurrentName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -440,7 +432,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     // add the specific detector info here!
                     for (auto d : Manager->getDetectors())
                         if (d.name == name)
-                            settings["stem"]["detector"] = JSONUtils::stemDetectorToJson(d);
+                            settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
                     tab->setPlotWithData(im, settings);
                 }
             }
@@ -456,6 +448,8 @@ void MainWindow::setUiActive(bool active)
     ui->tTem->setActive(active);
     ui->tCbed->setActive(active);
     ui->tStem->setActive(active);
+
+    ui->actionGeneral->setEnabled(active);
 }
 
 void MainWindow::loadSavedOpenClSettings()
@@ -576,23 +570,36 @@ void MainWindow::loadExternalSources()
     Kernels::DqeSource = Utils::kernelToChar("dqe.cl");
     Kernels::NtfSource = Utils::kernelToChar("ntf.cl");
 
-    // load parameters (kirkland for now)
-    std::vector<float> params = Utils::paramsToVector("kirkland.dat");
-    StructureParameters::setParams(params);
+    // load parameters
+    // get all the files in the parameters folder
+    auto params_path = QApplication::instance()->applicationDirPath() + "/params/";
+    QDir params_dir(params_path);
+    QStringList params_filt;
+    params_filt << "*.dat";
+    QStringList params_files = params_dir.entryList(params_filt);
+
+    if (params_files.size() < 1)
+        throw std::runtime_error("Need at least one valid parameters file");
+
+    for (int k = 0; k < params_files.size(); ++k) {
+        std::vector<float> params = Utils::paramsToVector(params_files[k].toStdString());
+        std::string p_name = params_files[k].toStdString();
+        p_name.erase(p_name.find(".dat"), 4);
+        StructureParameters::setParams(params, p_name);
+    }
 
     // load DQE, NQE for the CTEM simulation
 
-    auto exe_path = QApplication::instance()->applicationDirPath() + "/ccds/";
-    QDir dir(exe_path);
-    QStringList filt;
-    filt << "*.dat";
-    QStringList files = dir.entryList(filt);
+    auto ccd_path = QApplication::instance()->applicationDirPath() + "/ccds/";
+    QDir ccd_dir(ccd_path);
+    QStringList ccd_filt;
+    ccd_filt << "*.dat";
+    QStringList ccd_files = ccd_dir.entryList(ccd_filt);
 
     std::vector<float> dqe, ntf;
     std::string name;
-    for (int k = 0; k < files.size(); ++k)
-    {
-        Utils::ccdToDqeNtf(files[k].toStdString(), name, dqe, ntf);
+    for (int k = 0; k < ccd_files.size(); ++k) {
+        Utils::ccdToDqeNtf(ccd_files[k].toStdString(), name, dqe, ntf);
         CCDParams::addCCD(name, dqe, ntf);
     }
 
@@ -695,5 +702,123 @@ void MainWindow::saveBmp() {
 void MainWindow::on_actionGeneral_triggered() {
     GlobalSettingsDialog *myDialog = new GlobalSettingsDialog(this, Manager);
 
+    myDialog->exec();
+}
+
+void MainWindow::on_actionImport_parameters_triggered() {
+    // open a dialog to get the json file
+    QSettings settings;
+    QString fileName = QFileDialog::getOpenFileName(this, "Save parameters", settings.value("dialog/currentPath").toString(), "All supported (*.json);; JSON (*.json)");
+
+    if (fileName.isNull())
+        return;
+    QFileInfo temp_file(fileName);
+    settings.setValue("dialog/currentPath", temp_file.path());
+
+    if (temp_file.suffix() != "json")
+        return;
+
+    nlohmann::json j = fileio::OpenSettingsJson(fileName.toStdString());
+
+    SimulationManager m = JSONUtils::JsonToManager(j);
+    *Manager = m;
+
+    updateGuiFromManager();
+}
+
+void MainWindow::on_actionExport_parameters_triggered() {
+    // open a dialog to get the save file
+    QSettings settings;
+    QString fileName = QFileDialog::getSaveFileName(this, "Save parameters", settings.value("dialog/currentSavePath").toString(), "JSON (*.json)");
+
+    if (fileName.isNull())
+        return;
+
+    QFileInfo temp_file(fileName);
+    settings.setValue("dialog/currentSavePath", temp_file.path());
+
+    if (temp_file.suffix() != "json")
+        fileName.append(".json");
+
+    updateManagerFromGui();
+
+    nlohmann::json j = JSONUtils::FullManagerToJson(*Manager);
+    fileio::SaveSettingsJson(fileName.toStdString(), j);
+}
+
+void MainWindow::updateManagerFromGui() {
+    // things to do:
+    // CBED position is set when it is changed...
+    // Aberrations
+    // CBED/STEM TDS
+    // CTEM CCD stuff
+
+    // Sort out TDS bits
+    Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
+    Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
+
+    if (Manager->getMode() == SimulationMode::CBED)
+    {
+        Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
+    }
+    else if (Manager->getMode() == SimulationMode::STEM)
+    {
+        Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
+    }
+
+    // update aberrations from the main tab
+    // aberrations in the dialog are updated when you click apply
+    ui->tAberr->updateAberrations();
+
+    // load variables for potential TEM stuff
+    Manager->setCcdBinning(ui->tTem->getBinning());
+    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
+    Manager->setCcdName(ui->tTem->getCcd());
+    Manager->setCcdDose(ui->tTem->getDose());
+}
+
+void MainWindow::updateGuiFromManager() {
+    // set aberrations on the panel
+    ui->tAberr->updateTextBoxes();
+
+    // set CBED stuff (position/TDS)
+    ui->tCbed->update_text_boxes();
+
+    // set STEM TDS
+    ui->tStem->updateTdsText();
+    ui->tStem->updateScaleLabels();
+
+    // set CTEM CCD stuff
+    ui->tTem->update_ccd_boxes(Manager);
+
+    // update the detector tabs
+    setDetectors();
+
+    ui->tTem->setSimImageCheck( Manager->getSimulateCtemImage() );
+
+    ui->twMode->setCurrentIndex( (int) Manager->getMode() );
+
+    // set resolution last, this should update the structure area stuff if it needs to be
+    ui->tSim->setResolution( Manager->getResolution() );
+}
+
+void MainWindow::on_actionSet_area_triggered()
+{
+
+    SimAreaDialog* myDialog = new SimAreaDialog(this, Manager);
+
+    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), ui->tSim, SLOT(setResolutionText(QString)));
+    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), this, SLOT(set_active_mode(int)));
+    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), getCbedFrame(), SLOT(update_text_boxes()));
+    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), getStemFrame(), SLOT(updateScaleLabels()));
+
+    myDialog->exec();
+}
+
+void MainWindow::on_actionAberrations_triggered()
+{
+    ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
+    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->getMicroscopeParams());
+    connect(myDialog, SIGNAL(aberrationsChanged()), ui->tAberr, SLOT(updateTextBoxes()));
     myDialog->exec();
 }

@@ -17,19 +17,60 @@ public:
     SimulationManager();
 
     SimulationManager(const SimulationManager& sm)
-            : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRuns(sm.TdsRuns),
+            : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRunsStem(sm.TdsRunsStem), TdsRunsCbed(sm.TdsRunsCbed),
               numParallelPixels(sm.numParallelPixels), isFD(sm.isFD), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
-              Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
+              Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabledStem(sm.TdsEnabledStem), TdsEnabledCbed(sm.TdsEnabledCbed),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose)
     {
-        Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+        if (sm.Structure) // structure doesnt always exist
+            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
+    }
+
+    SimulationManager& operator=(const SimulationManager& sm)
+    {
+        Resolution = sm.Resolution;
+        TdsRunsStem = sm.TdsRunsStem;
+        TdsRunsCbed = sm.TdsRunsCbed;
+        numParallelPixels = sm.numParallelPixels;
+        isFD = sm.isFD;
+        isF3D = sm.isF3D;
+        full3dInts = sm.full3dInts;
+        completeJobs = sm.completeJobs;
+        imageReturn = sm.imageReturn;
+        progressTotalReporter = sm.progressTotalReporter;
+        progressSliceReporter = sm.progressSliceReporter;
+        Images = sm.Images;
+        Mode = sm.Mode;
+        StemDets = sm.StemDets;
+        TdsEnabledStem = sm.TdsEnabledStem;
+        TdsEnabledCbed = sm.TdsEnabledCbed;
+        padding_x = sm.padding_x;
+        padding_y = sm.padding_y;
+        padding_z = sm.padding_z;
+        slice_dz = sm.slice_dz;
+        blocks_x = sm.blocks_x;
+        blocks_y = sm.blocks_y;
+        simulateCtemImage = sm.simulateCtemImage;
+        maxReciprocalFactor = sm.maxReciprocalFactor;
+        ccd_name = sm.ccd_name;
+        ccd_binning = sm.ccd_binning;
+        ccd_dose = sm.ccd_dose;
+
+        if (sm.Structure) // structure doesnt always exist
+            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+        MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
+        SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
+        StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
+        CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
+
+        return *this;
     }
 
     void setStructure(std::string filePath);
@@ -54,6 +95,8 @@ public:
             return true;
         return false;
     }
+
+    SimulationArea getCtemArea() {return *SimArea;}
 
     std::valarray<float> getPaddingX() {return padding_x;}
     std::valarray<float> getPaddingY() {return padding_y;}
@@ -120,13 +163,30 @@ public:
     void setFiniteDifference(bool use) {isFD = use;}
 
     unsigned int getFull3dInts(){return full3dInts;}
-    unsigned int getStoredTdsRuns() {return TdsRuns;}
-    unsigned int getTdsRuns() { return (!TdsEnabled || Mode == SimulationMode::CTEM) ? 1 : TdsRuns;}
+    unsigned int getStoredTdsRuns();
+    unsigned int getTdsRuns();
+    unsigned int getStoredTdsRunsCbed() { return TdsRunsCbed; }
+    unsigned int getStoredTdsRunsStem() { return TdsRunsStem; }
+    unsigned int getTdsRunsCbed() { return (!TdsEnabledCbed) ? 1 : TdsRunsCbed; }
+    unsigned int getTdsRunsStem() { return (!TdsEnabledStem) ? 1 : TdsRunsStem; }
     unsigned int getStoredParallelPixels() {return numParallelPixels;}
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
+    bool getTdsEnabledStem() { return TdsEnabledStem; }
+    bool getTdsEnabledCbed() { return TdsEnabledCbed; }
+    bool getTdsEnabled()
+    {
+        if (Mode == SimulationMode::CBED)
+            return TdsEnabledCbed;
+        else if (Mode == SimulationMode::STEM)
+            return TdsEnabledStem;
+        else
+            return false;
+    }
 
-    void setTdsEnabled(bool use){TdsEnabled = use;}
-    void setTdsRuns(unsigned int runs){TdsRuns = runs;}
+    void setTdsEnabledStem(bool use){TdsEnabledStem = use;}
+    void setTdsEnabledCbed(bool use){TdsEnabledCbed = use;}
+    void setTdsRunsStem(unsigned int runs){TdsRunsStem = runs;}
+    void setTdsRunsCbed(unsigned int runs){TdsRunsCbed = runs;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
     void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
 
@@ -156,6 +216,8 @@ public:
     float getSliceThickness();
     unsigned int getNumberofSlices();
 
+    void setSliceThickness(float thk) { slice_dz = thk; }
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
@@ -171,8 +233,10 @@ private:
     std::valarray<float> padding_x, padding_y, padding_z;
 
     unsigned int Resolution;
-    unsigned int TdsRuns;
-    bool TdsEnabled;
+    unsigned int TdsRunsStem;
+    unsigned int TdsRunsCbed;
+    bool TdsEnabledStem;
+    bool TdsEnabledCbed;
     bool simulateCtemImage;
 
     float maxReciprocalFactor;

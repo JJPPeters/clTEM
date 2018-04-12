@@ -25,11 +25,14 @@ GlobalSettingsFrame::GlobalSettingsFrame(QWidget *parent, std::shared_ptr<Simula
     // make the label widths the same so they line up
     auto w1 = ui->lbl3d->width();
     auto w2 = ui->lblParallel->width();
-    auto w = std::max(w1, w2);
+    auto w3 = ui->lblParameters->width();
+    auto w = std::max(std::max(w1, w2), w3);
     ui->lbl3d->setMinimumWidth(w);
     ui->lblParallel->setMinimumWidth(w);
 
     ui->tabWidget->tabBar()->hide();
+
+    populateParamsCombo();
 }
 
 GlobalSettingsFrame::~GlobalSettingsFrame()
@@ -57,4 +60,20 @@ void GlobalSettingsFrame::dlgApply_clicked()
 
     Manager->setFull3dInts(n_3d);
     Manager->setParallelPixels(n_parallel);
+}
+
+void GlobalSettingsFrame::populateParamsCombo() {
+    auto names = StructureParameters::getNames();
+
+    for (int i = 0; i < names.size(); ++i)
+        ui->cmbParams->addItem(QString::fromStdString(names[i]));
+
+    auto cur = StructureParameters::getCurrent();
+    ui->cmbParams->setCurrentIndex(cur);
+}
+
+void GlobalSettingsFrame::on_cmbParams_currentIndexChanged(int index) {
+    std::string text = ui->cmbParams->currentText().toStdString();
+
+
 }

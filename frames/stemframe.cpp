@@ -1,6 +1,7 @@
 #include <dialogs/settings/settingsdialog.h>
 #include <utilities/stringutils.h>
 #include <QtGui/QRegExpValidator>
+#include <utils/stringutils.h>
 #include "stemframe.h"
 #include "ui_stemframe.h"
 
@@ -96,4 +97,12 @@ void StemFrame::setActive(bool active)
 void StemFrame::on_btnCancel_clicked()
 {
     emit stopSim();
+}
+
+void StemFrame::updateTdsText() {
+    if (Main == 0)
+        throw std::runtime_error("Error connecting STEM frame to main window.");
+
+    ui->edtTds->setText( Utils::numToQString(Main->Manager->getStoredTdsRunsStem()) );
+    ui->chkTds->setChecked( Main->Manager->getTdsEnabledStem() );
 }

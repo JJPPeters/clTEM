@@ -41,6 +41,10 @@ namespace Utils
         std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
 //        return utils::resourceToChar("params", paramsName);
         std::ifstream inStream(exe_path + "/" + folder + "/" + paramsName);
+
+        if (inStream.fail())
+            throw std::runtime_error("Error opening resource file: " + paramsName);
+
         std::vector<float> out;
         float p;
 
@@ -56,6 +60,9 @@ namespace Utils
     {
         std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
         std::ifstream inStream(exe_path + "/" + folder + "/" + fileName);
+
+        if (inStream.fail())
+            throw std::runtime_error("Error opening resource file: " + fileName);
 
         std::string header_temp;
         std::string data_temp;

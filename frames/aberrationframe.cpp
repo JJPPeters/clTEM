@@ -73,7 +73,7 @@ void AberrationFrame::updateTextBoxes()
 {
     if (Main == 0)
         throw std::runtime_error("Error connecting aberration frame to main window.");
-    auto p = Main->getMicroscopeParams();
+    auto p = Main->Manager->getMicroscopeParams();
 
     ui->edtDefocus->setText(QString::fromStdString(Utils::numToString(p->C10)));
     ui->edtSphere->setText(QString::fromStdString(Utils::numToString(p->C30)));
