@@ -22,8 +22,7 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    Manager(new SimulationManager())
+    ui(new Ui::MainWindow)
 {
     // test opencl
     try {
@@ -46,6 +45,19 @@ MainWindow::MainWindow(QWidget *parent) :
         settings.setValue("dialog/currentPath", QStandardPaths::HomeLocation);
     if (!settings.contains("dialog/currentSavePath"))
         settings.setValue("dialog/currentSavePath", QStandardPaths::HomeLocation);
+    if (!settings.contains("defaultParameters"))
+        settings.setValue("defaultParameters", "default");
+
+    Manager = std::shared_ptr<SimulationManager>(new SimulationManager());
+
+    std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
+    std::string param_name = settings.value("defaultParameters").toString().toStdString();
+    try {
+        nlohmann::json j = fileio::OpenSettingsJson(exe_path + "/microscopes/" + param_name + ".json");
+        *Manager = JSONUtils::JsonToManager(j);
+    } catch (const std::runtime_error& e) {
+        // don't worry, we'll just use the default settings
+    }
 
     loadSavedOpenClSettings();
 

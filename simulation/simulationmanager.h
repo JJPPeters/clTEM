@@ -164,10 +164,13 @@ public:
     unsigned int getFull3dInts(){return full3dInts;}
     unsigned int getStoredTdsRuns();
     unsigned int getTdsRuns();
+    unsigned int getStoredTdsRunsCbed() { return TdsRunsCbed; }
+    unsigned int getStoredTdsRunsStem() { return TdsRunsStem; }
     unsigned int getTdsRunsCbed() { return (!TdsEnabled) ? 1 : TdsRunsCbed; }
     unsigned int getTdsRunsStem() { return (!TdsEnabled) ? 1 : TdsRunsStem; }
     unsigned int getStoredParallelPixels() {return numParallelPixels;}
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
+    bool getTdsEnabled() { return TdsEnabled; }
 
     void setTdsEnabled(bool use){TdsEnabled = use;}
     void setTdsRunsStem(unsigned int runs){TdsRunsStem = runs;}

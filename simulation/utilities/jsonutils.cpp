@@ -44,68 +44,68 @@ namespace JSONUtils {
         try { mp->Delta = readJsonEntry<float>(j, "microscope", "delta", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->C10 = readJsonEntry<float>(j, "microscope", "C10", "val");
+        try { mp->C10 = readJsonEntry<float>(j, "microscope", "aberrations", "C10", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C12.Mag = readJsonEntry<float>(j, "microscope", "C12", "mag");
-            mp->C12.Ang = readJsonEntry<float>(j, "microscope", "C12", "ang");
+            mp->C12.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C12", "mag");
+            mp->C12.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C12", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C21.Mag = readJsonEntry<float>(j, "microscope", "C21", "mag");
-            mp->C21.Ang = readJsonEntry<float>(j, "microscope", "C21", "ang");
+            mp->C21.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C21", "mag");
+            mp->C21.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C21", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C23.Mag = readJsonEntry<float>(j, "microscope", "C23", "mag");
-            mp->C23.Ang = readJsonEntry<float>(j, "microscope", "C23", "ang");
+            mp->C23.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C23", "mag");
+            mp->C23.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C23", "ang");
         } catch (json::out_of_range& e) {}
 
-        try { mp->C30 = readJsonEntry<float>(j, "microscope", "C30", "val");
-        } catch (json::out_of_range& e) {}
-
-        try {
-            mp->C32.Mag = readJsonEntry<float>(j, "microscope", "C32", "mag");
-            mp->C32.Ang = readJsonEntry<float>(j, "microscope", "C32", "ang");
+        try { mp->C30 = readJsonEntry<float>(j, "microscope", "aberrations", "C30", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C34.Mag = readJsonEntry<float>(j, "microscope", "C34", "mag");
-            mp->C34.Ang = readJsonEntry<float>(j, "microscope", "C34", "ang");
+            mp->C32.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C32", "mag");
+            mp->C32.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C32", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C41.Mag = readJsonEntry<float>(j, "microscope", "C41", "mag");
-            mp->C41.Ang = readJsonEntry<float>(j, "microscope", "C41", "ang");
+            mp->C34.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C34", "mag");
+            mp->C34.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C34", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C43.Mag = readJsonEntry<float>(j, "microscope", "C43", "mag");
-            mp->C43.Ang = readJsonEntry<float>(j, "microscope", "C43", "ang");
+            mp->C41.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C41", "mag");
+            mp->C41.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C41", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C45.Mag = readJsonEntry<float>(j, "microscope", "C45", "mag");
-            mp->C45.Ang = readJsonEntry<float>(j, "microscope", "C45", "ang");
-        } catch (json::out_of_range& e) {}
-
-        try { mp->C50 = readJsonEntry<float>(j, "microscope", "C50", "val");
+            mp->C43.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C43", "mag");
+            mp->C43.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C43", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C52.Mag = readJsonEntry<float>(j, "microscope", "C52", "mag");
-            mp->C52.Ang = readJsonEntry<float>(j, "microscope", "C52", "ang");
+            mp->C45.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C45", "mag");
+            mp->C45.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C45", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try { mp->C50 = readJsonEntry<float>(j, "microscope", "aberrations", "C50", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C54.Mag = readJsonEntry<float>(j, "microscope", "C54", "mag");
-            mp->C54.Ang = readJsonEntry<float>(j, "microscope", "C54", "ang");
+            mp->C52.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C52", "mag");
+            mp->C52.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C52", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C56.Mag = readJsonEntry<float>(j, "microscope", "C56", "mag");
-            mp->C56.Ang = readJsonEntry<float>(j, "microscope", "C56", "ang");
+            mp->C54.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C54", "mag");
+            mp->C54.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C54", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try {
+            mp->C56.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C56", "mag");
+            mp->C56.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C56", "ang");
         } catch (json::out_of_range& e) {}
 
         //
@@ -250,10 +250,10 @@ namespace JSONUtils {
 
 //        j["finite difference"]["state"] = fd;
 
-        j["microscope"]["voltage"]["val"] = man.getVoltage();
-        j["microscope"]["voltage"]["units"] = "?";
-
         auto mp = man.getMicroscopeParams();
+
+        j["microscope"]["voltage"]["val"] = mp->Voltage;
+        j["microscope"]["voltage"]["units"] = "kV";
 
         // TODO: check which parameters are relevant to which modes
         // TODO: get whether CTEM is image, EW or diff...
