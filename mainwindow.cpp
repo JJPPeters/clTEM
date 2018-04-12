@@ -113,14 +113,10 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
 
-    ui->tSim->setResolutionIndex(0);
-    ui->tTem->setCropCheck(true);
-    ui->tTem->setSimImageCheck(true);
-    ui->tTem->setCcdIndex(0);
-    ui->tTem->setBinningIndex(0);
-    ui->tTem->setDose(Manager->getCcdDose());
-
     loadExternalSources();
+
+    updateGuiFromManager();
+    ui->tTem->setCropCheck( true );
 }
 
 MainWindow::~MainWindow()
@@ -298,21 +294,7 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
 
     // Set some variables that aren't auto updates
 
-    // Sort out TDS bits
-    if (Manager->getMode() == SimulationMode::CBED)
-    {
-        Manager->setTdsEnabled(ui->tCbed->isTdsEnabled());
-        Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
-    }
-    else if (Manager->getMode() == SimulationMode::STEM)
-    {
-        Manager->setTdsEnabled(ui->tStem->isTdsEnabled());
-        Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
-    }
-
-    // update aberrations from the main tab
-    // TODO: get full aberrations from the dialg too
-    ui->tAberr->updateAberrations();
+    updateManagerFromGui();
 
     // test we have everything we need
     try
@@ -342,12 +324,6 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
 
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1, std::placeholders::_2);
     Manager->setImageReturnFunc(imageRet);
-
-    // load variables for potential TEM stuff
-    Manager->setCcdBinning(ui->tTem->getBinning());
-    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
-    Manager->setCcdName(ui->tTem->getCcd());
-    Manager->setCcdDose(ui->tTem->getDose());
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
@@ -717,6 +693,8 @@ void MainWindow::on_actionImport_parameters_triggered() {
 
     SimulationManager m = JSONUtils::JsonToManager(j);
     *Manager = m;
+
+    updateGuiFromManager();
 }
 
 void MainWindow::on_actionExport_parameters_triggered() {
@@ -733,6 +711,59 @@ void MainWindow::on_actionExport_parameters_triggered() {
     if (temp_file.suffix() != "json")
         fileName.append(".json");
 
+    updateManagerFromGui();
+
     nlohmann::json j = JSONUtils::FullManagerToJson(*Manager);
     fileio::SaveSettingsJson(fileName.toStdString(), j);
+}
+
+void MainWindow::updateManagerFromGui() {
+    // things to do:
+    // CBED position is set when it is changed...
+    // Aberrations
+    // CBED/STEM TDS
+    // CTEM CCD stuff
+
+    // Sort out TDS bits
+    Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
+    Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
+
+    if (Manager->getMode() == SimulationMode::CBED)
+    {
+        Manager->setTdsEnabled(ui->tCbed->isTdsEnabled());
+    }
+    else if (Manager->getMode() == SimulationMode::STEM)
+    {
+        Manager->setTdsEnabled(ui->tStem->isTdsEnabled());
+    }
+
+    // update aberrations from the main tab
+    // aberrations in the dialog are updated when you click apply
+    ui->tAberr->updateAberrations();
+
+    // load variables for potential TEM stuff
+    Manager->setCcdBinning(ui->tTem->getBinning());
+    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
+    Manager->setCcdName(ui->tTem->getCcd());
+    Manager->setCcdDose(ui->tTem->getDose());
+}
+
+void MainWindow::updateGuiFromManager() {
+    // set aberrations on the panel
+    ui->tAberr->updateTextBoxes();
+
+    // set CBED stuff (position/TDS)
+    ui->tCbed->update_text_boxes();
+
+    // set STEM TDS
+    ui->tStem->updateTdsText();
+    ui->tStem->updateScaleLabels();
+
+    // set CTEM CCD stuff
+    ui->tTem->update_ccd_boxes(Manager);
+
+    // set resolution last, this should update the structure area stuff if it needs to be
+    ui->tSim->setResolution( Manager->getResolution() );
+
+    ui->tTem->setSimImageCheck( Manager->getSimulateCtemImage() );
 }

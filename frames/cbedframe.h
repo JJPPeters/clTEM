@@ -29,6 +29,9 @@ public:
 
     void setActive(bool active);
 
+public slots:
+    void update_text_boxes();
+
 private slots:
     void on_edtTds_textChanged(const QString &arg1);
 
@@ -41,8 +44,6 @@ private slots:
     void on_btnCancel_clicked();
 
     void on_chkTds_stateChanged(int state);
-
-    void update_text_boxes();
 
 private:
     Ui::CbedFrame *ui;

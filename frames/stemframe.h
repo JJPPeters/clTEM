@@ -34,6 +34,8 @@ public:
 public slots:
     void updateScaleLabels();
 
+    void updateTdsText();
+
 private slots:
     void on_btnDetectors_clicked();
 

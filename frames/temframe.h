@@ -2,6 +2,7 @@
 #define TEMFRAME_H
 
 #include <QWidget>
+#include <simulation/simulationmanager.h>
 
 namespace Ui {
 class TemFrame;
@@ -34,6 +35,8 @@ public:
     float getDose();
 
     void populateCcdCombo(std::vector<std::string> names);
+
+    void update_ccd_boxes(std::shared_ptr<SimulationManager> sm);
 
 private slots:
     void on_edtDose_textChanged(const QString &arg1);

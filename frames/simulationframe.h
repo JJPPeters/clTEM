@@ -30,6 +30,8 @@ public:
 
     void setResolutionIndex(int ind = 0);
 
+    void setResolution(int res) {setResolutionText( QString::number(res) );}
+
 private slots:
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
 

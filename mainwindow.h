@@ -109,6 +109,10 @@ private:
     bool checkSimulationPrerequisites();
 
     void loadExternalSources();
+
+    void updateManagerFromGui();
+
+    void updateGuiFromManager();
 };
 
 #endif // MAINWINDOW_H

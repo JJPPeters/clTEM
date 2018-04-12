@@ -4,8 +4,8 @@
 #include "ui_cbedframe.h"
 
 CbedFrame::CbedFrame(QWidget *parent) :
-    QWidget(parent), Main(0),
-    ui(new Ui::CbedFrame)
+        QWidget(parent), Main(0),
+        ui(new Ui::CbedFrame)
 {
     ui->setupUi(this);
 
@@ -96,4 +96,5 @@ void CbedFrame::update_text_boxes()
 
     ui->edtPosX->setText( Utils::numToQString(Main->Manager->getCBedPosition()->getXPos(), edt_precision) );
     ui->edtPosY->setText( Utils::numToQString(Main->Manager->getCBedPosition()->getYPos(), edt_precision) );
+    ui->edtTds->setText( Utils::numToQString(Main->Manager->getTdsRunsCbed()) );
 }
