@@ -95,24 +95,12 @@ void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
 
     // TODO: could use findtext?
     // set the name if it exists...
-    int len = ui->cmbCcd->count();
-    for (int i = 0; i < len; ++i)
-    {
-        if ( ui->cmbCcd->itemText(i).toStdString() == nm )
-        {
-            ui->cmbCcd->setCurrentIndex(i);
-            break;
-        }
-    }
 
-    // set the binning if it exists...
-    len = ui->cmbBinning->count();
-    for (int i = 0; i < len; ++i)
-    {
-        if ( ui->cmbBinning->itemText(i).toInt() == bn )
-        {
-            ui->cmbBinning->setCurrentIndex(i);
-            break;
-        }
-    }
+    int ind = ui->cmbCcd->findText( QString::fromStdString(nm) );
+    ind += (ind == -1);
+    ui->cmbCcd->setCurrentIndex(ind);
+
+    ind = ui->cmbBinning->findText( QString::number(bn) );
+    ind += (ind == -1);
+    ui->cmbBinning->setCurrentIndex(ind);
 }

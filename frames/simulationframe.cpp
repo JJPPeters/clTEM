@@ -114,5 +114,6 @@ void SimulationFrame::setResolutionIndex(int ind) {
 
 void SimulationFrame::setResolutionText(QString text) {
     int ind = ui->cmbResolution->findText( text );
+    ind += (ind == -1);
     ui->cmbResolution->setCurrentIndex(ind);
 }
