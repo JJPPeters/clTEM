@@ -854,29 +854,7 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     FourierTrans(clWaveFunction3[0], clPotential, Direction::Inverse);
 
     ctx.WaitForQueueFinish();
-
-
-
-    std::vector<float> data_out(resolution * resolution);
-
-    std::vector<cl_float2> compdata = clPotential->CreateLocalCopy();
-
-    int cnt = 0;
-    for (int j = 0; j < resolution; ++j)
-            for (int i = 0; i < resolution; ++i)
-            {
-                int k = i + j * resolution;
-                data_out[cnt] = std::sqrt(compdata[k].x * compdata[k].x + compdata[k].y * compdata[k].y);
-//                data_out[cnt] = std::atan2(compdata[k].y, compdata[k].x);
-                ++cnt;
-            }
-
-    fileio::SaveTiff<float>("/home/jon/Git/cllTEM-dev/testing/pot/pot_" + std::to_string(slice) + ".tif", data_out, resolution, resolution);
-
-
-
-
-
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
