@@ -20,7 +20,7 @@ public:
             : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRunsStem(sm.TdsRunsStem), TdsRunsCbed(sm.TdsRunsCbed),
               numParallelPixels(sm.numParallelPixels), isFD(sm.isFD), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
-              Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabled(sm.TdsEnabled),
+              Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabledStem(sm.TdsEnabledStem), TdsEnabledCbed(sm.TdsEnabledCbed),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose)
@@ -49,7 +49,8 @@ public:
         Images = sm.Images;
         Mode = sm.Mode;
         StemDets = sm.StemDets;
-        TdsEnabled = sm.TdsEnabled;
+        TdsEnabledStem = sm.TdsEnabledStem;
+        TdsEnabledCbed = sm.TdsEnabledCbed;
         padding_x = sm.padding_x;
         padding_y = sm.padding_y;
         padding_z = sm.padding_z;
@@ -166,13 +167,24 @@ public:
     unsigned int getTdsRuns();
     unsigned int getStoredTdsRunsCbed() { return TdsRunsCbed; }
     unsigned int getStoredTdsRunsStem() { return TdsRunsStem; }
-    unsigned int getTdsRunsCbed() { return (!TdsEnabled) ? 1 : TdsRunsCbed; }
-    unsigned int getTdsRunsStem() { return (!TdsEnabled) ? 1 : TdsRunsStem; }
+    unsigned int getTdsRunsCbed() { return (!TdsEnabledCbed) ? 1 : TdsRunsCbed; }
+    unsigned int getTdsRunsStem() { return (!TdsEnabledStem) ? 1 : TdsRunsStem; }
     unsigned int getStoredParallelPixels() {return numParallelPixels;}
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
-    bool getTdsEnabled() { return TdsEnabled; }
+    bool getTdsEnabledStem() { return TdsEnabledStem; }
+    bool getTdsEnabledCbed() { return TdsEnabledCbed; }
+    bool getTdsEnabled()
+    {
+        if (Mode == SimulationMode::CBED)
+            return TdsEnabledCbed;
+        else if (Mode == SimulationMode::STEM)
+            return TdsEnabledStem;
+        else
+            return false;
+    }
 
-    void setTdsEnabled(bool use){TdsEnabled = use;}
+    void setTdsEnabledStem(bool use){TdsEnabledStem = use;}
+    void setTdsEnabledCbed(bool use){TdsEnabledCbed = use;}
     void setTdsRunsStem(unsigned int runs){TdsRunsStem = runs;}
     void setTdsRunsCbed(unsigned int runs){TdsRunsCbed = runs;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
@@ -223,7 +235,8 @@ private:
     unsigned int Resolution;
     unsigned int TdsRunsStem;
     unsigned int TdsRunsCbed;
-    bool TdsEnabled;
+    bool TdsEnabledStem;
+    bool TdsEnabledCbed;
     bool simulateCtemImage;
 
     float maxReciprocalFactor;

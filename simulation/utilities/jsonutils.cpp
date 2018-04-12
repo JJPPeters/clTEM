@@ -11,7 +11,7 @@ namespace JSONUtils {
         SimulationManager man;
         // not sure there is a particularly easy way to go about this. Just go through all the options...
 
-        try { man.setMode( readJsonEntry<SimulationMode>(j, "mode", "test") );
+        try { man.setMode( readJsonEntry<SimulationMode>(j, "mode", "id") );
         } catch (json::out_of_range& e) {}
 
         try { man.setResolution( readJsonEntry<unsigned int>(j, "resolution") );
@@ -153,7 +153,10 @@ namespace JSONUtils {
             *area = ar;
         } catch (json::out_of_range& e) {}
 
-        try { man.setTdsRunsStem(readJsonEntry<unsigned int>(j, "stem", "tds configurations"));
+        try { man.setTdsRunsStem(readJsonEntry<unsigned int>(j, "stem", "tds", "configurations"));
+        } catch (json::out_of_range& e) {}
+
+        try { man.setTdsEnabledStem(readJsonEntry<bool>(j, "stem", "tds", "enabled"));
         } catch (json::out_of_range& e) {}
 
         try { man.setParallelPixels(readJsonEntry<unsigned int>(j, "stem", "concurrent pixels"));
@@ -194,7 +197,10 @@ namespace JSONUtils {
             *area = ar;
         } catch (json::out_of_range& e) {}
 
-        try { man.setTdsRunsCbed(readJsonEntry<unsigned int>(j, "cbed", "tds configurations"));
+        try { man.setTdsRunsCbed(readJsonEntry<unsigned int>(j, "cbed", "tds", "configurations"));
+        } catch (json::out_of_range& e) {}
+
+        try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
         } catch (json::out_of_range& e) {}
 
         return man;
@@ -343,7 +349,7 @@ namespace JSONUtils {
         {
             auto sa = man.getStemArea();
             j["stem"]["area"]["x"]["start"] = sa->getLimitsX()[0];
-            j["stem"]["area"]["x"]["finish"] = sa->getLimitsX()[0];
+            j["stem"]["area"]["x"]["finish"] = sa->getLimitsX()[1];
             j["stem"]["scan"]["x"]["pixels"] = sa->getPixelsX();;
             j["stem"]["area"]["x"]["units"] = "Angstrom";
             j["stem"]["area"]["y"]["start"] = sa->getLimitsY()[0];
@@ -355,8 +361,14 @@ namespace JSONUtils {
 
             // stem detector bit...
 
-            j["stem"]["tds configurations"] = man.getTdsRunsStem();
             j["stem"]["concurrent pixels"] = man.getParallelPixels();
+
+            if (force_all) {
+                j["stem"]["tds"]["configurations"] = man.getStoredTdsRunsStem();
+                j["stem"]["tds"]["enabled"] = man.getTdsEnabledStem();
+            }
+            else
+                j["stem"]["tds"]["configurations"] = man.getTdsRunsStem();
         }
 
         // If CBED, get position info and TDS info
@@ -366,7 +378,12 @@ namespace JSONUtils {
             j["cbed"]["position"]["y"] = man.getCBedPosition()->getYPos();
             j["cbed"]["position"]["padding"] = man.getCBedPosition()->getPadding();
             j["cbed"]["position"]["units"] = "Angstrom";
-            j["cbed"]["tds configurations"] = man.getTdsRunsCbed();
+            if (force_all) {
+                j["cbed"]["tds"]["configurations"] = man.getStoredTdsRunsCbed();
+                j["cbed"]["tds"]["enabled"] = man.getTdsEnabledCbed();
+            }
+            else
+                j["cbed"]["tds"]["configurations"] = man.getTdsRunsCbed();
         }
 
         return j;

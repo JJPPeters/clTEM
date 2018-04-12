@@ -742,11 +742,11 @@ void MainWindow::updateManagerFromGui() {
 
     if (Manager->getMode() == SimulationMode::CBED)
     {
-        Manager->setTdsEnabled(ui->tCbed->isTdsEnabled());
+        Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
     }
     else if (Manager->getMode() == SimulationMode::STEM)
     {
-        Manager->setTdsEnabled(ui->tStem->isTdsEnabled());
+        Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
     }
 
     // update aberrations from the main tab
@@ -774,8 +774,13 @@ void MainWindow::updateGuiFromManager() {
     // set CTEM CCD stuff
     ui->tTem->update_ccd_boxes(Manager);
 
-    // set resolution last, this should update the structure area stuff if it needs to be
-    ui->tSim->setResolution( Manager->getResolution() );
+    // update the detector tabs
+    setDetectors();
 
     ui->tTem->setSimImageCheck( Manager->getSimulateCtemImage() );
+
+    ui->twMode->setCurrentIndex( (int) Manager->getMode() );
+
+    // set resolution last, this should update the structure area stuff if it needs to be
+    ui->tSim->setResolution( Manager->getResolution() );
 }
