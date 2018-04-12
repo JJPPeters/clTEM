@@ -363,6 +363,8 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
+    settings["parameters"] = StructureParameters::getCurrentName();
+
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
     {
@@ -446,6 +448,8 @@ void MainWindow::setUiActive(bool active)
     ui->tTem->setActive(active);
     ui->tCbed->setActive(active);
     ui->tStem->setActive(active);
+
+    ui->actionGeneral->setEnabled(active);
 }
 
 void MainWindow::loadSavedOpenClSettings()
@@ -566,23 +570,36 @@ void MainWindow::loadExternalSources()
     Kernels::DqeSource = Utils::kernelToChar("dqe.cl");
     Kernels::NtfSource = Utils::kernelToChar("ntf.cl");
 
-    // load parameters (kirkland for now)
-    std::vector<float> params = Utils::paramsToVector("kirkland.dat");
-    StructureParameters::setParams(params);
+    // load parameters
+    // get all the files in the parameters folder
+    auto params_path = QApplication::instance()->applicationDirPath() + "/params/";
+    QDir params_dir(params_path);
+    QStringList params_filt;
+    params_filt << "*.dat";
+    QStringList params_files = params_dir.entryList(params_filt);
+
+    if (params_files.size() < 1)
+        throw std::runtime_error("Need at least one valid parameters file");
+
+    for (int k = 0; k < params_files.size(); ++k) {
+        std::vector<float> params = Utils::paramsToVector(params_files[k].toStdString());
+        std::string p_name = params_files[k].toStdString();
+        p_name.erase(p_name.find(".dat"), 4);
+        StructureParameters::setParams(params, p_name);
+    }
 
     // load DQE, NQE for the CTEM simulation
 
-    auto exe_path = QApplication::instance()->applicationDirPath() + "/ccds/";
-    QDir dir(exe_path);
-    QStringList filt;
-    filt << "*.dat";
-    QStringList files = dir.entryList(filt);
+    auto ccd_path = QApplication::instance()->applicationDirPath() + "/ccds/";
+    QDir ccd_dir(ccd_path);
+    QStringList ccd_filt;
+    ccd_filt << "*.dat";
+    QStringList ccd_files = ccd_dir.entryList(ccd_filt);
 
     std::vector<float> dqe, ntf;
     std::string name;
-    for (int k = 0; k < files.size(); ++k)
-    {
-        Utils::ccdToDqeNtf(files[k].toStdString(), name, dqe, ntf);
+    for (int k = 0; k < ccd_files.size(); ++k) {
+        Utils::ccdToDqeNtf(ccd_files[k].toStdString(), name, dqe, ntf);
         CCDParams::addCCD(name, dqe, ntf);
     }
 
@@ -783,4 +800,25 @@ void MainWindow::updateGuiFromManager() {
 
     // set resolution last, this should update the structure area stuff if it needs to be
     ui->tSim->setResolution( Manager->getResolution() );
+}
+
+void MainWindow::on_actionSet_area_triggered()
+{
+
+    SimAreaDialog* myDialog = new SimAreaDialog(this, Manager);
+
+    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), ui->tSim, SLOT(setResolutionText(QString)));
+    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), this, SLOT(set_active_mode(int)));
+    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), getCbedFrame(), SLOT(update_text_boxes()));
+    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), getStemFrame(), SLOT(updateScaleLabels()));
+
+    myDialog->exec();
+}
+
+void MainWindow::on_actionAberrations_triggered()
+{
+    ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
+    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->getMicroscopeParams());
+    connect(myDialog, SIGNAL(aberrationsChanged()), ui->tAberr, SLOT(updateTextBoxes()));
+    myDialog->exec();
 }

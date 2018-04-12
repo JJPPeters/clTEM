@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <simulation/simulationmanager.h>
+#include <simulation/structure/structureparameters.h>
+
 
 namespace Ui {
 class GlobalSettingsFrame;
@@ -19,6 +21,8 @@ private slots:
 
     void dlgCancel_clicked();
 
+    void on_cmbParams_currentIndexChanged(int index);
+
 public:
     explicit GlobalSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
     ~GlobalSettingsFrame();
@@ -27,6 +31,8 @@ private:
     Ui::GlobalSettingsFrame *ui;
 
     std::shared_ptr<SimulationManager> Manager;
+
+    void populateParamsCombo();
 };
 
 #endif // GLOBALSETTINGSFRAME_H

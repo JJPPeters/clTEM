@@ -32,10 +32,11 @@ public:
 
     void setResolution(int res) {setResolutionText( QString::number(res) );}
 
+public slots:
+    void setResolutionText(QString text);
+
 private slots:
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
-
-    void setResolutionText(QString text);
 
     void on_chkFull3D_toggled(bool checked);
 
