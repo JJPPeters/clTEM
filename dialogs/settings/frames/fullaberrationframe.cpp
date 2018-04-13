@@ -74,40 +74,40 @@ void FullAberrationFrame::setValidators()
 void FullAberrationFrame::setValues()
 {
     // this is fun, right?
-    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(MicroParams->Voltage)));
-    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(MicroParams->Aperture)));
-    ui->edtDefocusSpread->setText(QString::fromStdString(Utils::numToString(MicroParams->Delta)));
-    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(MicroParams->Alpha)));
+    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(MicroParams->Voltage))); // kV
+    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(MicroParams->Aperture))); // mrad
+    ui->edtDefocusSpread->setText(QString::fromStdString(Utils::numToString(MicroParams->Delta / 10))); // nm
+    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(MicroParams->Alpha))); // mrad
 
-    ui->edtC10->setText(QString::fromStdString(Utils::numToString(MicroParams->C10)));
-    ui->edtC12Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C12.Mag)));
-    ui->edtC12Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C12.Ang)));
+    ui->edtC10->setText(QString::fromStdString(Utils::numToString(MicroParams->C10 / 10))); // nm
+    ui->edtC12Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C12.Mag / 10))); // nm
+    ui->edtC12Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C12.Ang))); // degrees
 
-    ui->edtC21Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C21.Mag)));
-    ui->edtC21Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C21.Ang)));
-    ui->edtC23Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C23.Mag)));
-    ui->edtC23Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C23.Ang)));
+    ui->edtC21Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C21.Mag / 10))); // nm
+    ui->edtC21Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C21.Ang))); // degrees
+    ui->edtC23Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C23.Mag / 10))); // nm
+    ui->edtC23Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C23.Ang))); // degrees
 
-    ui->edtC30->setText(QString::fromStdString(Utils::numToString(MicroParams->C30)));
-    ui->edtC32Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C32.Mag)));
-    ui->edtC32Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C32.Ang)));
-    ui->edtC34Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C34.Mag)));
-    ui->edtC34Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C34.Ang)));
+    ui->edtC30->setText(QString::fromStdString(Utils::numToString(MicroParams->C30 / 10000))); // um
+    ui->edtC32Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C32.Mag / 10000))); // um
+    ui->edtC32Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C32.Ang))); // degrees
+    ui->edtC34Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C34.Mag / 10000))); // um
+    ui->edtC34Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C34.Ang))); // degrees
 
-    ui->edtC41Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C41.Mag)));
-    ui->edtC41Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C41.Ang)));
-    ui->edtC43Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C43.Mag)));
-    ui->edtC43Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C43.Ang)));
-    ui->edtC45Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C45.Mag)));
-    ui->edtC45Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C45.Ang)));
+    ui->edtC41Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C41.Mag / 10000))); // um
+    ui->edtC41Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C41.Ang))); // degrees
+    ui->edtC43Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C43.Mag / 10000))); // um
+    ui->edtC43Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C43.Ang))); // degrees
+    ui->edtC45Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C45.Mag / 10000))); // um
+    ui->edtC45Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C45.Ang))); // degrees
 
-    ui->edtC50->setText(QString::fromStdString(Utils::numToString(MicroParams->C50)));
-    ui->edtC52Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C52.Mag)));
-    ui->edtC52Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang)));
-    ui->edtC54Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C54.Mag)));
-    ui->edtC54Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang)));
-    ui->edtC56Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C56.Mag)));
-    ui->edtC56Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang)));
+    ui->edtC50->setText(QString::fromStdString(Utils::numToString(MicroParams->C50 / 10000))); // um
+    ui->edtC52Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C52.Mag / 10000))); // um
+    ui->edtC52Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang))); // degrees
+    ui->edtC54Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C54.Mag / 10000))); // um
+    ui->edtC54Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang))); // degrees
+    ui->edtC56Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C56.Mag / 10000))); // um
+    ui->edtC56Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang))); // degrees
 }
 
 FullAberrationFrame::~FullAberrationFrame()
@@ -154,7 +154,7 @@ bool FullAberrationFrame::dlgApply_clicked()
     // woo!
 
     float voltage = ui->edtVoltage->text().toFloat();
-    float dfSpread = ui->edtDefocusSpread->text().toFloat();
+    float dfSpread = ui->edtDefocusSpread->text().toFloat() * 10;
     float apert = ui->edtAperture->text().toFloat();
     float converge = ui->edtConverge->text().toFloat();
 
@@ -165,34 +165,34 @@ bool FullAberrationFrame::dlgApply_clicked()
 //        return false;
 //    }
 
-    float C10 = ui->edtC10->text().toFloat();
-    float C12m = ui->edtC12Mag->text().toFloat();
+    float C10 = ui->edtC10->text().toFloat() * 10;
+    float C12m = ui->edtC12Mag->text().toFloat() * 10;
     float C12a = ui->edtC12Ang->text().toFloat() * Constants::Pi / 180;
 
-    float C21m = ui->edtC21Mag->text().toFloat();
+    float C21m = ui->edtC21Mag->text().toFloat() * 10;
     float C21a = ui->edtC21Ang->text().toFloat() * Constants::Pi / 180;
-    float C23m = ui->edtC23Mag->text().toFloat();
+    float C23m = ui->edtC23Mag->text().toFloat() * 10;
     float C23a = ui->edtC23Ang->text().toFloat() * Constants::Pi / 180;
 
-    float C30 = ui->edtC30->text().toFloat();
-    float C32m = ui->edtC32Mag->text().toFloat();
+    float C30 = ui->edtC30->text().toFloat() * 10000;
+    float C32m = ui->edtC32Mag->text().toFloat() * 10000;
     float C32a = ui->edtC32Ang->text().toFloat() * Constants::Pi / 180;
-    float C34m = ui->edtC34Mag->text().toFloat();
+    float C34m = ui->edtC34Mag->text().toFloat() * 10000;
     float C34a = ui->edtC34Ang->text().toFloat() * Constants::Pi / 180;
 
-    float C41m = ui->edtC41Mag->text().toFloat();
+    float C41m = ui->edtC41Mag->text().toFloat() * 10000;
     float C41a = ui->edtC41Ang->text().toFloat() * Constants::Pi / 180;
-    float C43m = ui->edtC43Mag->text().toFloat();
+    float C43m = ui->edtC43Mag->text().toFloat() * 10000;
     float C43a = ui->edtC43Ang->text().toFloat() * Constants::Pi / 180;
-    float C45m = ui->edtC45Mag->text().toFloat();
+    float C45m = ui->edtC45Mag->text().toFloat() * 10000;
     float C45a = ui->edtC45Ang->text().toFloat() * Constants::Pi / 180;
 
-    float C50 = ui->edtC50->text().toFloat();
-    float C52m = ui->edtC52Mag->text().toFloat();
+    float C50 = ui->edtC50->text().toFloat() * 10000;
+    float C52m = ui->edtC52Mag->text().toFloat() * 10000;
     float C52a = ui->edtC52Ang->text().toFloat() * Constants::Pi / 180;
-    float C54m = ui->edtC54Mag->text().toFloat();
+    float C54m = ui->edtC54Mag->text().toFloat() * 10000;
     float C54a = ui->edtC54Ang->text().toFloat() * Constants::Pi / 180;
-    float C56m = ui->edtC56Mag->text().toFloat();
+    float C56m = ui->edtC56Mag->text().toFloat() * 10000;
     float C56a = ui->edtC56Ang->text().toFloat() * Constants::Pi / 180;
 
     // now we have all the data, assign it to our class storing everything

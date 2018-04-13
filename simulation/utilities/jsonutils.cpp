@@ -41,71 +41,71 @@ namespace JSONUtils {
         try { mp->Alpha = readJsonEntry<float>(j, "microscope", "alpha", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->Delta = readJsonEntry<float>(j, "microscope", "delta", "val");
+        try { mp->Delta = 10 * readJsonEntry<float>(j, "microscope", "delta", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->C10 = readJsonEntry<float>(j, "microscope", "aberrations", "C10", "val");
-        } catch (json::out_of_range& e) {}
-
-        try {
-            mp->C12.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C12", "mag");
-            mp->C12.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C12", "ang");
+        try { mp->C10 = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C10", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C21.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C21", "mag");
-            mp->C21.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C21", "ang");
+            mp->C12.Mag = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C12", "mag");
+            mp->C12.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C12", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C23.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C23", "mag");
-            mp->C23.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C23", "ang");
-        } catch (json::out_of_range& e) {}
-
-        try { mp->C30 = readJsonEntry<float>(j, "microscope", "aberrations", "C30", "val");
+            mp->C21.Mag = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C21", "mag");
+            mp->C21.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C21", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C32.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C32", "mag");
-            mp->C32.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C32", "ang");
+            mp->C23.Mag = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C23", "mag");
+            mp->C23.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C23", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try { mp->C30 = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C30", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C34.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C34", "mag");
-            mp->C34.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C34", "ang");
+            mp->C32.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C32", "mag");
+            mp->C32.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C32", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C41.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C41", "mag");
-            mp->C41.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C41", "ang");
+            mp->C34.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C34", "mag");
+            mp->C34.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C34", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C43.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C43", "mag");
-            mp->C43.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C43", "ang");
+            mp->C41.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C41", "mag");
+            mp->C41.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C41", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C45.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C45", "mag");
-            mp->C45.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C45", "ang");
-        } catch (json::out_of_range& e) {}
-
-        try { mp->C50 = readJsonEntry<float>(j, "microscope", "aberrations", "C50", "val");
+            mp->C43.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C43", "mag");
+            mp->C43.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C43", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C52.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C52", "mag");
-            mp->C52.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C52", "ang");
+            mp->C45.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C45", "mag");
+            mp->C45.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C45", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try { mp->C50 = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C50", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C54.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C54", "mag");
-            mp->C54.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C54", "ang");
+            mp->C52.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C52", "mag");
+            mp->C52.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C52", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C56.Mag = readJsonEntry<float>(j, "microscope", "aberrations", "C56", "mag");
-            mp->C56.Ang = readJsonEntry<float>(j, "microscope", "aberrations", "C56", "ang");
+            mp->C54.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C54", "mag");
+            mp->C54.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C54", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try {
+            mp->C56.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C56", "mag");
+            mp->C56.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C56", "ang");
         } catch (json::out_of_range& e) {}
 
         //
@@ -231,17 +231,17 @@ namespace JSONUtils {
         j["resolution"] = man.getResolution();
 
         j["slice thickness"]["val"] = man.getSliceThickness();
-        j["slice thickness"]["units"] = "Angstrom";
+        j["slice thickness"]["units"] = "Å";
 
         auto xl = man.getPaddedSimLimitsX();
         auto yl = man.getPaddedSimLimitsY();
 
         j["simulation area"]["x"]["start"] = xl[0];
         j["simulation area"]["x"]["finish"] = xl[1];
-        j["simulation area"]["x"]["units"] = "Angstrom";
+        j["simulation area"]["x"]["units"] = "Å";
         j["simulation area"]["y"]["start"] = yl[0];
         j["simulation area"]["y"]["finish"] = yl[1];
-        j["simulation area"]["y"]["units"] = "Angstrom";
+        j["simulation area"]["y"]["units"] = "Å";
 
         // TODO: could put some pixel scale things here for convenience? (would have to distinguish between diff maybe?)
 
@@ -266,62 +266,62 @@ namespace JSONUtils {
 
         // apert
         j["microscope"]["aperture"]["val"] = mp->Aperture;
-        j["microscope"]["aperture"]["units"] = "?";
+        j["microscope"]["aperture"]["units"] = "mrad";
 
         if (mode == SimulationMode::CTEM || force_all) {
             // alpha
             j["microscope"]["alpha"]["val"] = mp->Alpha;
-            j["microscope"]["alpha"]["units"] = "?";
+            j["microscope"]["alpha"]["units"] = "mrad";
 
             // delta
-            j["microscope"]["delta"]["val"] = mp->Delta;
-            j["microscope"]["delta"]["units"] = "?";
+            j["microscope"]["delta"]["val"] = mp->Delta / 10;
+            j["microscope"]["delta"]["units"] = "nm";
         }
 
         // aberration values
-        j["microscope"]["aberrations"]["C10"]["val"] = mp->C10;
-        j["microscope"]["aberrations"]["C10"]["units"] = "?";
-        j["microscope"]["aberrations"]["C12"]["mag"] = mp->C12.Mag;
-        j["microscope"]["aberrations"]["C12"]["ang"] = mp->C12.Ang;
-        j["microscope"]["aberrations"]["C12"]["units"] = "?";
+        j["microscope"]["aberrations"]["C10"]["val"] = mp->C10 / 10;
+        j["microscope"]["aberrations"]["C10"]["units"] = "nm";
+        j["microscope"]["aberrations"]["C12"]["mag"] = mp->C12.Mag / 10;
+        j["microscope"]["aberrations"]["C12"]["ang"] = mp->C12.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C12"]["units"] = "nm, °";
 
-        j["microscope"]["aberrations"]["C21"]["mag"] = mp->C21.Mag;
-        j["microscope"]["aberrations"]["C21"]["ang"] = mp->C21.Ang;
-        j["microscope"]["aberrations"]["C21"]["units"] = "?";
-        j["microscope"]["aberrations"]["C23"]["mag"] = mp->C23.Mag;
-        j["microscope"]["aberrations"]["C23"]["ang"] = mp->C23.Ang;
-        j["microscope"]["aberrations"]["C23"]["units"] = "?";
+        j["microscope"]["aberrations"]["C21"]["mag"] = mp->C21.Mag / 10;
+        j["microscope"]["aberrations"]["C21"]["ang"] = mp->C21.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C21"]["units"] = "nm, °";
+        j["microscope"]["aberrations"]["C23"]["mag"] = mp->C23.Mag / 10;
+        j["microscope"]["aberrations"]["C23"]["ang"] = mp->C23.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C23"]["units"] = "nm, °";
 
-        j["microscope"]["aberrations"]["C30"]["val"] = mp->C30;
-        j["microscope"]["aberrations"]["C30"]["units"] = "?";
-        j["microscope"]["aberrations"]["C32"]["mag"] = mp->C32.Mag;
-        j["microscope"]["aberrations"]["C32"]["ang"] = mp->C32.Ang;
-        j["microscope"]["aberrations"]["C32"]["units"] = "?";
-        j["microscope"]["aberrations"]["C34"]["mag"] = mp->C34.Mag;
-        j["microscope"]["aberrations"]["C34"]["ang"] = mp->C34.Ang;
-        j["microscope"]["aberrations"]["C34"]["units"] = "?";
+        j["microscope"]["aberrations"]["C30"]["val"] = mp->C30 / 10000;
+        j["microscope"]["aberrations"]["C30"]["units"] = "μm";
+        j["microscope"]["aberrations"]["C32"]["mag"] = mp->C32.Mag / 10000;
+        j["microscope"]["aberrations"]["C32"]["ang"] = mp->C32.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C32"]["units"] = "μm, °";
+        j["microscope"]["aberrations"]["C34"]["mag"] = mp->C34.Mag / 10000;
+        j["microscope"]["aberrations"]["C34"]["ang"] = mp->C34.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C34"]["units"] = "μm, °";
 
-        j["microscope"]["aberrations"]["C41"]["mag"] = mp->C41.Mag;
-        j["microscope"]["aberrations"]["C41"]["ang"] = mp->C41.Ang;
-        j["microscope"]["aberrations"]["C41"]["units"] = "?";
-        j["microscope"]["aberrations"]["C43"]["mag"] = mp->C43.Mag;
-        j["microscope"]["aberrations"]["C43"]["ang"] = mp->C43.Ang;
-        j["microscope"]["aberrations"]["C43"]["units"] = "?";
-        j["microscope"]["aberrations"]["C45"]["mag"] = mp->C45.Mag;
-        j["microscope"]["aberrations"]["C45"]["ang"] = mp->C45.Ang;
-        j["microscope"]["aberrations"]["C45"]["units"] = "?";
+        j["microscope"]["aberrations"]["C41"]["mag"] = mp->C41.Mag / 10000;
+        j["microscope"]["aberrations"]["C41"]["ang"] = mp->C41.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C41"]["units"] = "μm, °";
+        j["microscope"]["aberrations"]["C43"]["mag"] = mp->C43.Mag / 10000;
+        j["microscope"]["aberrations"]["C43"]["ang"] = mp->C43.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C43"]["units"] = "μm, °";
+        j["microscope"]["aberrations"]["C45"]["mag"] = mp->C45.Mag / 10000;
+        j["microscope"]["aberrations"]["C45"]["ang"] = mp->C45.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C45"]["units"] = "μm, °";
 
-        j["microscope"]["aberrations"]["C50"]["val"] = mp->C50;
-        j["microscope"]["aberrations"]["C50"]["units"] = "?";
-        j["microscope"]["aberrations"]["C52"]["mag"] = mp->C52.Mag;
-        j["microscope"]["aberrations"]["C52"]["ang"] = mp->C52.Ang;
-        j["microscope"]["aberrations"]["C52"]["units"] = "?";
-        j["microscope"]["aberrations"]["C54"]["mag"] = mp->C54.Mag;
-        j["microscope"]["aberrations"]["C54"]["ang"] = mp->C54.Ang;
-        j["microscope"]["aberrations"]["C54"]["units"] = "?";
-        j["microscope"]["aberrations"]["C56"]["mag"] = mp->C56.Mag;
-        j["microscope"]["aberrations"]["C56"]["ang"] = mp->C56.Ang;
-        j["microscope"]["aberrations"]["C56"]["units"] = "?";
+        j["microscope"]["aberrations"]["C50"]["val"] = mp->C50 / 10000;
+        j["microscope"]["aberrations"]["C50"]["units"] = "μm";
+        j["microscope"]["aberrations"]["C52"]["mag"] = mp->C52.Mag / 10000;
+        j["microscope"]["aberrations"]["C52"]["ang"] = mp->C52.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C52"]["units"] = "μm, °";
+        j["microscope"]["aberrations"]["C54"]["mag"] = mp->C54.Mag / 10000;
+        j["microscope"]["aberrations"]["C54"]["ang"] = mp->C54.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C54"]["units"] = "μm, °";
+        j["microscope"]["aberrations"]["C56"]["mag"] = mp->C56.Mag / 10000;
+        j["microscope"]["aberrations"]["C56"]["ang"] = mp->C56.Ang * (180 / Constants::Pi);
+        j["microscope"]["aberrations"]["C56"]["units"] = "μm, °";
 
         // If CTEM, get dose/CCD stuff
         if (mode == SimulationMode::CTEM || force_all)
@@ -351,13 +351,13 @@ namespace JSONUtils {
             j["stem"]["area"]["x"]["start"] = sa->getLimitsX()[0];
             j["stem"]["area"]["x"]["finish"] = sa->getLimitsX()[1];
             j["stem"]["scan"]["x"]["pixels"] = sa->getPixelsX();;
-            j["stem"]["area"]["x"]["units"] = "Angstrom";
+            j["stem"]["area"]["x"]["units"] = "Å";
             j["stem"]["area"]["y"]["start"] = sa->getLimitsY()[0];
             j["stem"]["area"]["y"]["finish"] = sa->getLimitsY()[1];
             j["stem"]["scan"]["y"]["pixels"] = sa->getPixelsY();
-            j["stem"]["area"]["y"]["units"] = "Angstrom";
+            j["stem"]["area"]["y"]["units"] = "Å";
             j["stem"]["area"]["padding"]["val"] = sa->getPadding();
-            j["stem"]["area"]["padding"]["units"] = "Angstrom";
+            j["stem"]["area"]["padding"]["units"] = "Å";
 
             // stem detector bit...
 
@@ -377,7 +377,7 @@ namespace JSONUtils {
             j["cbed"]["position"]["x"] = man.getCBedPosition()->getXPos();
             j["cbed"]["position"]["y"] = man.getCBedPosition()->getYPos();
             j["cbed"]["position"]["padding"] = man.getCBedPosition()->getPadding();
-            j["cbed"]["position"]["units"] = "Angstrom";
+            j["cbed"]["position"]["units"] = "Å";
             if (force_all) {
                 j["cbed"]["tds"]["configurations"] = man.getStoredTdsRunsCbed();
                 j["cbed"]["tds"]["enabled"] = man.getTdsEnabledCbed();
