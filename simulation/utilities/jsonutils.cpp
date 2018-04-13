@@ -331,7 +331,7 @@ namespace JSONUtils {
             if (CCDParams::nameExists(man.getCcdName()) || force_all) {
                 j["ctem"]["ccd"]["name"] = man.getCcdName();
                 j["ctem"]["ccd"]["dose"]["val"] = man.getCcdDose();
-                j["ctem"]["ccd"]["dose"]["units"] = "?";
+                j["ctem"]["ccd"]["dose"]["units"] = "e- per square Å";
                 j["ctem"]["ccd"]["binning"] = man.getCcdBinning();
             } else {
                 j["ctem"]["ccd"] = "Perfect";

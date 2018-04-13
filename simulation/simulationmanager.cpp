@@ -27,7 +27,7 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
     MicroParams->Voltage = 200;
     MicroParams->Delta = 3;
     MicroParams->Alpha = 0.5;
-    MicroParams->C30 = 10000;
+    MicroParams->C30 = 1;
 }
 
 void SimulationManager::setStructure(std::string filePath)
