@@ -10,9 +10,9 @@ TemFrame::TemFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
 
-    ui->edtDose->setValidator(pIntValidator);
+    ui->edtDose->setValidator(pValidator);
 }
 
 TemFrame::~TemFrame()

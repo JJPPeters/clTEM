@@ -75,17 +75,17 @@ void AberrationFrame::updateTextBoxes()
         throw std::runtime_error("Error connecting aberration frame to main window.");
     auto p = Main->Manager->getMicroscopeParams();
 
-    ui->edtDefocus->setText(QString::fromStdString(Utils::numToString(p->C10)));
-    ui->edtSphere->setText(QString::fromStdString(Utils::numToString(p->C30)));
+    ui->edtDefocus->setText(QString::fromStdString(Utils::numToString(p->C10 / 10))); // nm
+    ui->edtSphere->setText(QString::fromStdString(Utils::numToString(p->C30 / 10000))); // um
 
-    ui->edtStigMag->setText(QString::fromStdString(Utils::numToString(p->C12.Mag)));
-    ui->edtStigAng->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * p->C12.Ang)));
+    ui->edtStigMag->setText(QString::fromStdString(Utils::numToString(p->C12.Mag / 10))); // nm
+    ui->edtStigAng->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * p->C12.Ang))); // degrees
 
-    ui->edtDelta->setText(QString::fromStdString(Utils::numToString(p->Delta)));
-    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(p->Alpha)));
+    ui->edtDelta->setText(QString::fromStdString(Utils::numToString(p->Delta / 10))); // nm
+    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(p->Alpha))); // mrad
 
-    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(p->Voltage)));
-    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(p->Aperture)));
+    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(p->Voltage))); // kV
+    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(p->Aperture))); // mrad
 }
 
 void AberrationFrame::updateAberrations()
@@ -98,16 +98,16 @@ void AberrationFrame::updateAberrations()
         throw std::runtime_error("Error connecting aberration frame to main window.");
     auto params = Main->getMicroscopeParams();
 
-    float C10 = ui->edtDefocus->text().toFloat();
-    float C30 = ui->edtSphere->text().toFloat();
+    float C10 = ui->edtDefocus->text().toFloat() * 10; // Angstrom
+    float C30 = ui->edtSphere->text().toFloat() * 10000; // Angstrom
 
-    float delt = ui->edtDelta->text().toFloat();
-    float apert = ui->edtAperture->text().toFloat();
-    float conv = ui->edtConverge->text().toFloat();
-    float volt = ui->edtVoltage->text().toFloat();
+    float delt = ui->edtDelta->text().toFloat() * 10; // Angstrom
+    float apert = ui->edtAperture->text().toFloat(); // mrad
+    float conv = ui->edtConverge->text().toFloat(); // mrad
+    float volt = ui->edtVoltage->text().toFloat(); // kV
 
-    float C12m = ui->edtStigMag->text().toFloat();
-    float C12a = ui->edtStigAng->text().toFloat() * Constants::Pi / 180;
+    float C12m = ui->edtStigMag->text().toFloat() * 10; // Angstrom
+    float C12a = ui->edtStigAng->text().toFloat() * Constants::Pi / 180; // radians
 
     params->Voltage = volt;
     params->Aperture = apert;

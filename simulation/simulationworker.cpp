@@ -144,6 +144,24 @@ void SimulationWorker::sortAtoms(bool doTds)
         BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
     }
 
+    unsigned long long max_bin_xy = 0;
+    unsigned long long max_bin_z = 0;
+
+    for (int i = 0; i < Binnedx.size(); ++i)
+    {
+        if (Binnedx[i].size() > max_bin_xy)
+            max_bin_xy = Binnedx[i].size();
+
+        for (int j = 0; j < Binnedx[i].size(); ++j)
+            if (Binnedx[i][j].size() > max_bin_z)
+                max_bin_z = Binnedx[i][j].size();
+    }
+
+    std::ofstream t_out("D:\\Users\\Jon\\Git\\clTEM-dev\\test output\\run\\text.txt");
+    t_out << max_bin_xy << std::endl;
+    t_out << max_bin_z << std::endl;
+    t_out.close();
+
     int atomIterator = 0;
 
     std::vector<int> blockStartPositions(numberOfSlices*BlocksX*BlocksY+1);
@@ -262,8 +280,13 @@ void SimulationWorker::doCtem(bool simImage)
             auto ntf = CCDParams::getNTF(ccd);
             int binning = job->simManager->getCcdBinning();
             // get dose
-            int dose = job->simManager->getCcdDose();
-            simulateCtemImage(dqe, ntf, binning, dose);
+            float dose = job->simManager->getCcdDose(); // electrons per area
+            // get electrons per pixel
+            float scale = job->simManager->getRealScale();
+            scale *= scale; // square it to get area of pixel
+            float dose_per_pix = dose * scale;
+
+            simulateCtemImage(dqe, ntf, binning, dose_per_pix);
         }
         else {
             simulateCtemImage();
@@ -975,6 +998,8 @@ void SimulationWorker::simulateCtemImage()
     ABS(Work);
 };
 
+// TODO: what should be done with the conversion factor?
+// I think it might be like an amplification thing - as in if the detector gets n electrons, it will 'detect' n*conversion factor?
 void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vector<float> ntf_data, int binning,
                                          float doseperpix,
                                          float conversionfactor)
@@ -1046,7 +1071,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     // Dose stuff starts here!
     //
 
-    // IFFT
+    // FFT
     FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
 
     ctx.WaitForQueueFinish();
@@ -1071,7 +1096,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     ctx.WaitForQueueFinish();
 
-    // TODO: what is this abs squared for?
+    // TODO: what is this abs for? (or should it be abs squared?)
     ABS.SetArg(0, Temp1, ArgumentType::InputOutput);
     ABS.SetArg(1, resolution);
     ABS.SetArg(2, resolution);
@@ -1090,19 +1115,19 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     std::random_device rd;
     std::mt19937 rng(rd());
-    std::normal_distribution<> dist(0, 1);
+//    std::normal_distribution<> dist(0, 1); // random dist with (mean, stddev)
 
     for (int i = 0; i < resolution * resolution; i++)
     {
-        // replaced the Box-Muller transform with this for convenience
+        // previously was using a Box-Muller transform to get a normal dist and assuming it would approximate a poisson distribution
         // see: https://stackoverflow.com/questions/19944111/creating-a-gaussian-random-generator-with-a-mean-and-standard-deviation
-        float std_normal = (float) dist(rng);
 
-        float val = compdata[i].s[0];
+        // use the built in stuff for ease
+        std::poisson_distribution<int> dist(N_tot * compdata[i].x);
+        float poiss = (float) dist(rng);
 
-        // TODO: CAN CONVERSIOIN FACTOR BE APPLIED HERE? and why is it always 1
-        compdata[i].s[0] = conversionfactor * std::floor(N_tot * val + std::sqrt(std::abs(N_tot*val)) * std_normal); // Was round not floor
-        compdata[i].s[1] = 0;
+        compdata[i].x = conversionfactor * poiss; // Was round not floor
+        compdata[i].y = 0;
     }
 
     clImageWaveFunction->Write(compdata);

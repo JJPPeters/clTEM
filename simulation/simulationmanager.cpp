@@ -27,7 +27,7 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
     MicroParams->Voltage = 200;
     MicroParams->Delta = 3;
     MicroParams->Alpha = 0.5;
-    MicroParams->C30 = 10000;
+    MicroParams->C30 = 1;
 }
 
 void SimulationManager::setStructure(std::string filePath)
@@ -204,7 +204,8 @@ void SimulationManager::calculate_blocks()
 
     // always using x and y as same size (for now) so find the larger dimension
     // floor so blocks will be slightly larger than 4 Angstroms
-    auto n_blocks = (int) std::floor(std::max(xr, yr) / 8.0);
+    auto n_blocks = (int) std::ceil(std::max(xr, yr) / 8.0);
+
     blocks_x = n_blocks;
     blocks_y = n_blocks;
 }
