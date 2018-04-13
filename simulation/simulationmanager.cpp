@@ -9,7 +9,8 @@ std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(true),
-                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false)
+                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
+                                         slice_offset(0.7f)
 {
     // Here is where the default values are set!
     MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);
@@ -212,6 +213,7 @@ void SimulationManager::calculate_blocks()
 
 void SimulationManager::round_padding()
 {
+    // Do the XY padding
     if (!haveResolution())
         return;
 
@@ -232,6 +234,23 @@ void SimulationManager::round_padding()
 
     padding_x = {-padding, padding};
     padding_y = {-padding, padding};
+
+    // Do the Z padding
+    auto p_z = SimulationManager::default_z_padding;
+
+    auto pad_slices_pre = (int) std::ceil((std::abs(p_z[0]) - slice_offset) / slice_dz);
+    float pre_pad = slice_offset + pad_slices_pre * slice_dz;
+
+    float zw = getStructLimitsZ()[1] - getStructLimitsZ()[0];
+    auto struct_slices = (int) std::ceil((zw + slice_offset) / slice_dz); // slice offset needed here?
+    float struct_slice_thick = struct_slices * slice_dz;
+
+    float left_over = struct_slice_thick - slice_offset - zw;
+
+    auto pad_slices_post = (int) std::ceil((std::abs(p_z[1]) - left_over) / slice_dz);
+    float post_pad = pad_slices_post * slice_dz + left_over;
+
+    padding_z = {-pre_pad, post_pad};
 }
 
 std::valarray<float> SimulationManager::getSimLimitsX()

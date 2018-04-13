@@ -23,7 +23,8 @@ public:
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabledStem(sm.TdsEnabledStem), TdsEnabledCbed(sm.TdsEnabledCbed),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
-              maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose)
+              maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
+              slice_offset(sm.slice_offset)
     {
         if (sm.Structure) // structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -62,6 +63,7 @@ public:
         ccd_name = sm.ccd_name;
         ccd_binning = sm.ccd_binning;
         ccd_dose = sm.ccd_dose;
+        slice_offset = sm.slice_offset;
 
         if (sm.Structure) // structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -245,6 +247,7 @@ private:
     unsigned int numParallelPixels;
 
     float slice_dz;
+    float slice_offset;
 
     void calculate_blocks();
     int blocks_x, blocks_y;
