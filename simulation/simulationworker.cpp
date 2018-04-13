@@ -144,6 +144,24 @@ void SimulationWorker::sortAtoms(bool doTds)
         BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
     }
 
+    unsigned long long max_bin_xy = 0;
+    unsigned long long max_bin_z = 0;
+
+    for (int i = 0; i < Binnedx.size(); ++i)
+    {
+        if (Binnedx[i].size() > max_bin_xy)
+            max_bin_xy = Binnedx[i].size();
+
+        for (int j = 0; j < Binnedx[i].size(); ++j)
+            if (Binnedx[i][j].size() > max_bin_z)
+                max_bin_z = Binnedx[i][j].size();
+    }
+
+    std::ofstream t_out("D:\\Users\\Jon\\Git\\clTEM-dev\\test output\\run\\text.txt");
+    t_out << max_bin_xy << std::endl;
+    t_out << max_bin_z << std::endl;
+    t_out.close();
+
     int atomIterator = 0;
 
     std::vector<int> blockStartPositions(numberOfSlices*BlocksX*BlocksY+1);

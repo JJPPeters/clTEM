@@ -70,6 +70,7 @@ __kernel void clImagingKernel( __global const float2* input,
 	{
 		int Index = xid + yid*width;
 		float obj_ap2 = (obj_ap * 0.001f) / wavelength;
+		float beta2 = (beta * 0.001f) / wavelength;
 		float k = sqrt((k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]));
 		if (k < obj_ap2)
 		{
@@ -78,7 +79,7 @@ __kernel void clImagingKernel( __global const float2* input,
 
 			// TODO: check the 0.25 factor here is correct (it was 0.5, but Kirkland 2nd ed. eq. 3.44 disagrees)
 			float temporalCoh = exp( -0.25f * M_PI_F*M_PI_F  * delta*delta * cModSq(w)*cModSq(w) / (wavelength*wavelength) );
-			float spatialCoh = exp( -1.0f * M_PI_F*M_PI_F * beta*beta * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2)  / (wavelength*wavelength) );
+			float spatialCoh = exp( -1.0f * M_PI_F*M_PI_F * beta2*beta2 * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2)  / (wavelength*wavelength) );
 			float tC10 = 0.5f * C10 * cModSq(w);
 			float2 tC12 = 0.5f * cMult(C12, cPow(wc, 2));
 			float2 tC21 = cMult(C12, cMult(cPow(wc, 2), w)) / 3.0f;
