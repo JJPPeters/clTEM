@@ -284,7 +284,7 @@ void SimulationWorker::doCtem(bool simImage)
             // get electrons per pixel
             float scale = job->simManager->getRealScale();
             scale *= scale; // square it to get area of pixel
-            float dose_per_pix = dose / scale;
+            float dose_per_pix = dose * scale;
 
             simulateCtemImage(dqe, ntf, binning, dose_per_pix);
         }
