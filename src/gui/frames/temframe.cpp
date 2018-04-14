@@ -67,7 +67,7 @@ void TemFrame::setBinningIndex(int index) {
 
 void TemFrame::setDose(float dose)
 {
-    ui->edtDose->setText(Utils::numToQString((int) dose, edt_precision));
+    ui->edtDose->setText(Utils_Qt::numToQString((int) dose, edt_precision));
 }
 
 int TemFrame::getBinning() {
@@ -91,7 +91,7 @@ void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
     auto nm = sm->getCcdName();
     int bn = sm->getCcdBinning();
 
-    ui->edtDose->setText( Utils::numToQString(dse, 5) );
+    ui->edtDose->setText( Utils_Qt::numToQString(dse, 5) );
 
     // TODO: could use findtext?
     // set the name if it exists...

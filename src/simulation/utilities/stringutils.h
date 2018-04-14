@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "enums.h"
 
 namespace Utils
@@ -25,6 +26,12 @@ namespace Utils
             oss << num;
         return oss.str();
     }
+
+    std::string resourceToChar(std::string full_directory, std::string fileName);
+
+    std::vector<float> paramsToVector(std::string full_directory, std::string fileName);
+
+    void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io);
 }
 
 #endif // STRINGUTILS_H

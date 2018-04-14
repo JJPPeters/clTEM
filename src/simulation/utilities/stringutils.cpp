@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <algorithm>
 //#include <QtCore/QFile>
 //#include <QtCore/QTextStream>
 #include "stringutils.h"
@@ -51,5 +52,92 @@ namespace Utils
             case SimulationMode::CBED:
                 return "CBED";
         }
+    }
+
+
+
+    std::string resourceToChar(std::string full_directory, std::string fileName)
+    {
+        std::ifstream inStream(full_directory + "/" + fileName);
+
+        if (inStream.fail())
+            throw std::runtime_error("Error opening resource file: " + full_directory + "/" + fileName);
+
+        std::string fileContents((std::istreambuf_iterator<char>(inStream)), (std::istreambuf_iterator<char>()));
+
+        inStream.close();
+
+        return fileContents;
+    }
+
+    std::vector<float> paramsToVector(std::string full_directory, std::string fileName)
+    {
+        std::ifstream inStream(full_directory + "/" + fileName);
+
+        if (inStream.fail())
+            throw std::runtime_error("Error opening resource file: " + full_directory + "/" + fileName);
+
+        std::vector<float> out;
+        float p;
+
+        while (inStream >> p)
+            out.push_back(p);
+
+        inStream.close();
+
+        return out;
+    }
+
+    void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io)
+    {
+        std::ifstream inStream(full_directory + "/" + fileName);
+
+        if (inStream.fail())
+            throw std::runtime_error("Error opening resource file: " + full_directory + "/" + fileName);
+
+        std::string header_temp;
+        std::string data_temp;
+        float tmp;
+
+        dqe_io = std::vector<float>();
+        ntf_io = std::vector<float>();
+
+        bool found_dqe = false;
+        bool found_ntf = false;
+
+        // first line is always the name;
+        std::getline(inStream, name);
+
+        while(std::getline(inStream, header_temp))
+        {
+            // clear whitespace, don't know how robust this is. See https://stackoverflow.com/questions/83439/remove-spaces-from-stdstring-in-c
+            header_temp.erase(std::remove_if(header_temp.begin(), header_temp.end(), isspace), header_temp.end());
+
+            if (header_temp == "DQE")
+            {
+                if (std::getline(inStream, data_temp))
+                {
+                    std::stringstream data_stream(data_temp);
+                    while (data_stream >> tmp)
+                        dqe_io.push_back(tmp);
+                    if (dqe_io.size() == 725)
+                        found_dqe = true;
+                }
+            }
+            else if (header_temp == "NTF")
+            {
+                if (std::getline(inStream, data_temp))
+                {
+                    std::stringstream data_stream(data_temp);
+                    while (data_stream >> tmp)
+                        ntf_io.push_back(tmp);
+                    if (ntf_io.size() == 725)
+                        found_ntf = true;
+                }
+            }
+        }
+
+        if (!found_dqe || !found_ntf)
+            throw std::runtime_error("Could not find DQE and NTF in file: " + fileName);
     }
 }

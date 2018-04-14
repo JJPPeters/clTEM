@@ -38,6 +38,7 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
     // TODO: look into how/why I used my inheritance tree thing before...
 
     // finally, end this thread ?
+    job->promise.set_value();
 }
 
 void SimulationWorker::uploadParameters(std::vector<float> param)

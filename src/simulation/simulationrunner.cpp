@@ -22,11 +22,17 @@ void SimulationRunner::runSingle(std::shared_ptr<SimulationManager> sim_pointer)
 
     t_pool = std::make_unique<ThreadPool>(dev_list, jobs.size());
 
+    std::vector<std::future<void>> results;
+
     for (int i = 0; i < jobs.size(); ++i)
     {
         // enqueue the jobs here using the thread pool
-        t_pool->enqueue(jobs[i]);
+        results.emplace_back(t_pool->enqueue(jobs[i]));
+//        t_pool->enqueue(jobs[i]);
     }
+
+    for (auto && result: results)
+        result.get();
 }
 
 std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::shared_ptr<SimulationManager> simManager)

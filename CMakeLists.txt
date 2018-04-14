@@ -1,4 +1,8 @@
 project(clTEM)
 cmake_minimum_required( VERSION 3.5 )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/params DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/kernels DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/ccds DESTINATION ${CMAKE_BINARY_DIR})
+
 add_subdirectory(src)

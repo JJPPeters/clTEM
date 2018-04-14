@@ -22,7 +22,7 @@ set ( clTEM_SRCS
         main.cpp
         parseopencl.h)
 
-find_package(Boost COMPONENTS filesystem)
+find_package(Boost COMPONENTS filesystem system)
 
 if(Boost_FOUND)
     message(STATUS "Boost include directories: " ${Boost_INCLUDE_DIRS})

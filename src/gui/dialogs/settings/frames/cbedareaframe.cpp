@@ -45,9 +45,9 @@ CbedPosition CbedAreaFrame::getCbedPos() {
 
 void CbedAreaFrame::on_btnReset_clicked()
 {
-    ui->edtPosX->setText(Utils::numToQString( Position.getXPos(), edt_precision ));
-    ui->edtPosY->setText(Utils::numToQString( Position.getYPos(), edt_precision ));
-    ui->edtPadding->setText(Utils::numToQString( Position.getPadding(), edt_precision ));
+    ui->edtPosX->setText(Utils_Qt::numToQString( Position.getXPos(), edt_precision ));
+    ui->edtPosY->setText(Utils_Qt::numToQString( Position.getYPos(), edt_precision ));
+    ui->edtPadding->setText(Utils_Qt::numToQString( Position.getPadding(), edt_precision ));
     emit areaChanged();
 }
 
@@ -55,5 +55,5 @@ void CbedAreaFrame::editing_finished() {
     QLineEdit* sndr = (QLineEdit*) sender();
 
     auto val = sndr->text().toFloat();
-    sndr->setText(Utils::numToQString( val, edt_precision ));
+    sndr->setText(Utils_Qt::numToQString( val, edt_precision ));
 }

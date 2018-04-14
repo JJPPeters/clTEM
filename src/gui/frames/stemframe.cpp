@@ -103,6 +103,6 @@ void StemFrame::updateTdsText() {
     if (Main == 0)
         throw std::runtime_error("Error connecting STEM frame to main window.");
 
-    ui->edtTds->setText( Utils::numToQString(Main->Manager->getStoredTdsRunsStem()) );
+    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getStoredTdsRunsStem()) );
     ui->chkTds->setChecked( Main->Manager->getTdsEnabledStem() );
 }

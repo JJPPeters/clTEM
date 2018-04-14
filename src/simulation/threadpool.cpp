@@ -21,21 +21,21 @@ ThreadPool::~ThreadPool()
     stopThreads();
 }
 
-void ThreadPool::enqueue(std::shared_ptr<SimulationJob> job)
-{
-    { // acquire lock
-        std::unique_lock<std::mutex> lock(queue_mutex);
-
-        if(stop)
-            throw std::runtime_error("enqueue on stopped ThreadPool");
-
-        // add the task
-        tasks.push_back(job);
-    } // release lock
-
-    // wake up one thread
-    condition.notify_one();
-}
+//auto ThreadPool::enqueue(std::shared_ptr<SimulationJob> job)
+//{
+//    { // acquire lock
+//        std::unique_lock<std::mutex> lock(queue_mutex);
+//
+//        if(stop)
+//            throw std::runtime_error("enqueue on stopped ThreadPool");
+//
+//        // add the task
+//        tasks.push_back(job);
+//    } // release lock
+//
+//    // wake up one thread
+//    condition.notify_one();
+//}
 
 void ThreadPool::stopThreads()
 {

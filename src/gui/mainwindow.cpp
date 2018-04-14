@@ -363,8 +363,6 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
-    settings["parameters"] = StructureParameters::getCurrentName();
-
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
     {
@@ -417,8 +415,12 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
-                if (tab->getTabName() == "Diffraction")
+                if (tab->getTabName() == "Diffraction") {
+                    settings["microscope"].erase("aberrations");
+                    settings["microscope"].erase("alpha");
+                    settings["microscope"].erase("delta");
                     tab->setPlotWithData(im, settings, IntensityScale::Log);
+                }
             }
         }
         else
@@ -430,9 +432,11 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == name) {
                     // add the specific detector info here!
-                    for (auto d : Manager->getDetectors())
+                    for (auto d : sm.getDetectors())
                         if (d.name == name)
                             settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
+                    settings["microscope"].erase("alpha");
+                    settings["microscope"].erase("delta");
                     tab->setPlotWithData(im, settings);
                 }
             }
@@ -550,25 +554,25 @@ void MainWindow::cancel_simulation()
 void MainWindow::loadExternalSources()
 {
     // Populate the kernels from files...
-    Kernels::atom_sort = Utils::kernelToChar("atom_sort.cl");
-    Kernels::floatSumReductionsource2 = Utils::kernelToChar("sum_reduction.cl");
-    Kernels::BandLimitSource = Utils::kernelToChar("low_pass.cl");
-    Kernels::fftShiftSource = Utils::kernelToChar("post_fft_shift.cl");
-    Kernels::opt2source = Utils::kernelToChar("potential_full_3d.cl");
-    Kernels::fd2source = Utils::kernelToChar("potential_finite_difference.cl");
-    Kernels::conv2source = Utils::kernelToChar("potential_conventional.cl");
-    Kernels::propsource = Utils::kernelToChar("generate_propagator.cl");
-    Kernels::multisource = Utils::kernelToChar("complex_multiply.cl");
-    Kernels::gradsource = Utils::kernelToChar("grad.cl");
-    Kernels::fdsource = Utils::kernelToChar("finite_difference.cl");
-    Kernels::InitialiseWavefunctionSource = Utils::kernelToChar("initialise_plane.cl");
-    Kernels::imagingKernelSource = Utils::kernelToChar("generate_tem_image.cl");
-    Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::kernelToChar("initialise_probe.cl");
-    Kernels::floatabsbandPassSource = Utils::kernelToChar("band_pass.cl");
-    Kernels::SqAbsSource = Utils::kernelToChar("square_absolute.cl");
-    Kernels::AbsSource = Utils::kernelToChar("absolute.cl");
-    Kernels::DqeSource = Utils::kernelToChar("dqe.cl");
-    Kernels::NtfSource = Utils::kernelToChar("ntf.cl");
+    Kernels::atom_sort = Utils_Qt::kernelToChar("atom_sort.cl");
+    Kernels::floatSumReductionsource2 = Utils_Qt::kernelToChar("sum_reduction.cl");
+    Kernels::BandLimitSource = Utils_Qt::kernelToChar("low_pass.cl");
+    Kernels::fftShiftSource = Utils_Qt::kernelToChar("post_fft_shift.cl");
+    Kernels::opt2source = Utils_Qt::kernelToChar("potential_full_3d.cl");
+    Kernels::fd2source = Utils_Qt::kernelToChar("potential_finite_difference.cl");
+    Kernels::conv2source = Utils_Qt::kernelToChar("potential_conventional.cl");
+    Kernels::propsource = Utils_Qt::kernelToChar("generate_propagator.cl");
+    Kernels::multisource = Utils_Qt::kernelToChar("complex_multiply.cl");
+    Kernels::gradsource = Utils_Qt::kernelToChar("grad.cl");
+    Kernels::fdsource = Utils_Qt::kernelToChar("finite_difference.cl");
+    Kernels::InitialiseWavefunctionSource = Utils_Qt::kernelToChar("initialise_plane.cl");
+    Kernels::imagingKernelSource = Utils_Qt::kernelToChar("generate_tem_image.cl");
+    Kernels::InitialiseSTEMWavefunctionSourceTest = Utils_Qt::kernelToChar("initialise_probe.cl");
+    Kernels::floatabsbandPassSource = Utils_Qt::kernelToChar("band_pass.cl");
+    Kernels::SqAbsSource = Utils_Qt::kernelToChar("square_absolute.cl");
+    Kernels::AbsSource = Utils_Qt::kernelToChar("absolute.cl");
+    Kernels::DqeSource = Utils_Qt::kernelToChar("dqe.cl");
+    Kernels::NtfSource = Utils_Qt::kernelToChar("ntf.cl");
 
     // load parameters
     // get all the files in the parameters folder
@@ -582,7 +586,7 @@ void MainWindow::loadExternalSources()
         throw std::runtime_error("Need at least one valid parameters file");
 
     for (int k = 0; k < params_files.size(); ++k) {
-        std::vector<float> params = Utils::paramsToVector(params_files[k].toStdString());
+        std::vector<float> params = Utils_Qt::paramsToVector(params_files[k].toStdString());
         std::string p_name = params_files[k].toStdString();
         p_name.erase(p_name.find(".dat"), 4);
         StructureParameters::setParams(params, p_name);
@@ -599,7 +603,7 @@ void MainWindow::loadExternalSources()
     std::vector<float> dqe, ntf;
     std::string name;
     for (int k = 0; k < ccd_files.size(); ++k) {
-        Utils::ccdToDqeNtf(ccd_files[k].toStdString(), name, dqe, ntf);
+        Utils_Qt::ccdToDqeNtf(ccd_files[k].toStdString(), name, dqe, ntf);
         CCDParams::addCCD(name, dqe, ntf);
     }
 

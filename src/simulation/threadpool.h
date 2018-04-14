@@ -11,6 +11,7 @@
 #include <vector>
 #include <deque>
 #include <clwrapper/clwrapper.h>
+#include <future>
 //#include "threadworker.h"
 #include "simulationjob.h"
 
@@ -26,7 +27,23 @@ public:
     ~ThreadPool();
 
     // add new work item to the pool
-    void enqueue(std::shared_ptr<SimulationJob> job);
+    auto enqueue(std::shared_ptr<SimulationJob> job) -> std::future<void>
+    {
+        std::future<void> res = job->get_future();
+        { // acquire lock
+            std::unique_lock<std::mutex> lock(queue_mutex);
+
+            if(stop)
+                throw std::runtime_error("enqueue on stopped ThreadPool");
+
+            // add the task
+            tasks.push_back(job);
+        } // release lock
+
+        // wake up one thread
+        condition.notify_one();
+        return res;
+    }
 
     void stopThreads();
 

@@ -2,6 +2,7 @@
 // Created by jon on 04/04/18.
 //
 
+#include <structure/structureparameters.h>
 #include "jsonutils.h"
 
 namespace JSONUtils {
@@ -230,6 +231,8 @@ namespace JSONUtils {
         auto mode = man.getMode();
         j["mode"]["id"] = mode;
         j["mode"]["name"] = man.getModeString();
+
+        j["potentials"] = StructureParameters::getCurrentName();
 
         j["resolution"] = man.getResolution();
 
