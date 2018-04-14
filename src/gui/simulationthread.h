@@ -4,7 +4,7 @@
 
 #include <QThread>
 #include <QMutex>
-#include <simulation/simulationrunner.h>
+#include <simulationrunner.h>
 #include "simulationmanager.h"
 
 class SimulationThread : public QThread

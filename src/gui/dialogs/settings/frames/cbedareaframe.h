@@ -2,7 +2,7 @@
 #define CBEDAREAFRAME_H
 
 #include <QWidget>
-#include <simulation/utilities/commonstructs.h>
+#include <utilities/commonstructs.h>
 
 namespace Ui {
 class CbedAreaFrame;

@@ -10,9 +10,9 @@
 #include "clerror.h"
 
 
-std::list<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
+std::vector<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
 {
-    std::list<clDevice> DeviceList;
+    std::vector<clDevice> DeviceList;
 
     size_t valueSize;
     std::vector<char> value;
@@ -41,6 +41,8 @@ std::list<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
 
         // get all devices
         status = clGetDeviceIDs(platforms[i], dev_type, 0, NULL, &DevPerPlatform[i]);
+        if (DevPerPlatform[i] == 0)
+            break; // no devices on this platform, but no need to throw (could be bacuse we are only looking for certain device types
         clError::Throw(status);
         devices.push_back(std::vector<cl_device_id>(DevPerPlatform[i]));
         status = clGetDeviceIDs(platforms[i], dev_type, DevPerPlatform[i], &devices[i][0], NULL);
@@ -86,9 +88,9 @@ clContext OpenCL::MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Que
     return Context;
 }
 
-clContext OpenCL::MakeTwoQueueContext(std::list<clDevice> &devices, Queue::QueueType Qtype, Queue::QueueType IOQtype, Device::DeviceType devType)
+clContext OpenCL::MakeTwoQueueContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Queue::QueueType IOQtype, Device::DeviceType devType)
 {
-    std::list<clDevice>::iterator it =  devices.begin();
+    std::vector<clDevice>::iterator it =  devices.begin();
     clDevice dev;
 
     bool found = false;
@@ -133,9 +135,9 @@ clContext OpenCL::MakeContext(clDevice& dev, Queue::QueueType Qtype)
     return Context;
 }
 
-clContext OpenCL::MakeContext(std::list<clDevice> &devices, Queue::QueueType Qtype, Device::DeviceType devType)
+clContext OpenCL::MakeContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Device::DeviceType devType)
 {
-    std::list<clDevice>::iterator it =  devices.begin();
+    std::vector<clDevice>::iterator it =  devices.begin();
     clDevice dev;
 
     bool found = false;
@@ -165,9 +167,9 @@ clContext OpenCL::MakeContext(std::list<clDevice> &devices, Queue::QueueType Qty
     return Context;
 }
 
-clDevice OpenCL::GetDeviceByIndex(std::list<clDevice> DeviceList, int index)
+clDevice OpenCL::GetDeviceByIndex(std::vector<clDevice> DeviceList, int index)
 {
-    std::list<clDevice>::iterator it = DeviceList.begin();
+    std::vector<clDevice>::iterator it = DeviceList.begin();
     std::advance(it, index);
     return (*it);
 }

@@ -10,12 +10,12 @@
 #include <controls/statuslayout.h>
 
 #include <dialogs/settings/settingsdialog.h>
-#include <simulation/kernels.h>
+#include <kernels.h>
 #include <utils/stringutils.h>
-#include <simulation/structure/structureparameters.h>
-#include <simulation/ccdparams.h>
-#include <simulation/utilities/fileio.h>
-#include <simulation/utilities/jsonutils.h>
+#include <structure/structureparameters.h>
+#include <ccdparams.h>
+#include <utilities/fileio.h>
+#include <utilities/jsonutils.h>
 //#include <QtWidgets/QProgressBar>
 //
 //#include "dialogs/settings/settingsdialog.h"

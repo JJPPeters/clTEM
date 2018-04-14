@@ -13,7 +13,7 @@ struct ClManager
     static std::vector<clDevice> currentDevices;
 
     /// Purely for convenience
-    static std::list<clDevice> getDeviceList()
+    static std::vector<clDevice> getDeviceList()
     {
         return OpenCL::GetDeviceList(Device::DeviceType::All);
     }

@@ -11,7 +11,7 @@
 #include <fstream>
 
 #include <QWidget>
-#include <simulation/utilities/commonstructs.h>
+#include <utilities/commonstructs.h>
 
 enum ShowComplex {
         Real,

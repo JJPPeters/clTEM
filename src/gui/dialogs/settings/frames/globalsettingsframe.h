@@ -2,8 +2,8 @@
 #define GLOBALSETTINGSFRAME_H
 
 #include <QWidget>
-#include <simulation/simulationmanager.h>
-#include <simulation/structure/structureparameters.h>
+#include <simulationmanager.h>
+#include <structure/structureparameters.h>
 
 
 namespace Ui {

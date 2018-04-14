@@ -2,7 +2,7 @@
 #define AREALAYOUTFRAME_H
 
 #include <QWidget>
-#include <simulation/simulationmanager.h>
+#include <simulationmanager.h>
 #include "ctemareaframe.h"
 #include "stemareaframe.h"
 #include "cbedareaframe.h"

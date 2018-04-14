@@ -2,7 +2,7 @@
 #define TEMFRAME_H
 
 #include <QWidget>
-#include <simulation/simulationmanager.h>
+#include <simulationmanager.h>
 
 namespace Ui {
 class TemFrame;

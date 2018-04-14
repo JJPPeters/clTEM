@@ -39,7 +39,7 @@ private slots:
 private:
     Ui::OpenClFrame *ui;
 
-    std::list<clDevice> Devices;
+    std::vector<clDevice> Devices;
 
     std::vector<clDevice> chosenDevs;
     std::vector<float> chosenRatios;

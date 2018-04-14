@@ -1,4 +1,4 @@
-#include <simulation/simulationmanager.h>
+#include <simulationmanager.h>
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 

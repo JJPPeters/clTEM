@@ -8,7 +8,7 @@
 #include "utilities/stringutils.h"
 
 #include "clwrapper.h"
-#include "simulation/clmanager.h"
+#include "clmanager.h"
 
 // TODO: construct from list of devices/platforms and occupy the list
 
