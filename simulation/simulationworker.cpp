@@ -96,9 +96,6 @@ void SimulationWorker::sortAtoms(bool doTds)
     std::valarray<float> y_lims = job->simManager->getPaddedStructLimitsY();
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
 
-    auto t1 = z_lims[0];
-    auto t2 = z_lims[1];
-
     float dz = job->simManager->getSliceThickness();
     numberOfSlices = job->simManager->getNumberofSlices();
 
