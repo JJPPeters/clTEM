@@ -95,6 +95,7 @@ void SimulationWorker::sortAtoms(bool doTds)
     std::valarray<float> x_lims = job->simManager->getPaddedStructLimitsX(); // is this the right padding?
     std::valarray<float> y_lims = job->simManager->getPaddedStructLimitsY();
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
+
     float dz = job->simManager->getSliceThickness();
     numberOfSlices = job->simManager->getNumberofSlices();
 
@@ -156,11 +157,6 @@ void SimulationWorker::sortAtoms(bool doTds)
             if (Binnedx[i][j].size() > max_bin_z)
                 max_bin_z = Binnedx[i][j].size();
     }
-
-    std::ofstream t_out("D:\\Users\\Jon\\Git\\clTEM-dev\\test output\\run\\text.txt");
-    t_out << max_bin_xy << std::endl;
-    t_out << max_bin_z << std::endl;
-    t_out.close();
 
     int atomIterator = 0;
 
@@ -294,8 +290,6 @@ void SimulationWorker::doCtem(bool simImage)
 
         auto ctem_im = Image<float>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
         Images.insert(return_map::value_type("Image", ctem_im));
-
-
     }
 
     job->simManager->updateImages(Images, 1);

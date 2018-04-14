@@ -30,8 +30,6 @@ GlobalSettingsFrame::GlobalSettingsFrame(QWidget *parent, std::shared_ptr<Simula
     ui->lbl3d->setMinimumWidth(w);
     ui->lblParallel->setMinimumWidth(w);
 
-    ui->tabWidget->tabBar()->hide();
-
     populateParamsCombo();
 }
 

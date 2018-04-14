@@ -21,6 +21,7 @@ signals:
     void modeChanged(int);
     void updateMainCbed();
     void updateMainStem();
+    void slicesChanged();
 
 public:
     explicit AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan);
@@ -29,7 +30,9 @@ public:
 private slots:
     void areasChanged();
 
-    void apply_pressed();
+    void checkEditZero(QString txt);
+
+    bool apply_pressed();
 
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
 
