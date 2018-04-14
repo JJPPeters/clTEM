@@ -216,9 +216,12 @@ public:
     void setCcdDose(float dose) {ccd_dose = dose;}
 
     float getSliceThickness();
+    float getSliceOffset() {return slice_offset;}
+
     unsigned int getNumberofSlices();
 
     void setSliceThickness(float thk) { slice_dz = thk; }
+    void setSliceOffset(float off) { slice_offset = off; }
 
 private:
     static std::valarray<float> const default_xy_padding;

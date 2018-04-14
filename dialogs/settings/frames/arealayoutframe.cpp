@@ -8,6 +8,14 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 {
     ui->setupUi(this);
 
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+
+    ui->edtSliceThickness->setValidator(pValidator);
+    ui->edtSliceOffset->setValidator(pValidator);
+
+    connect(ui->edtSliceThickness, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtSliceOffset, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+
     connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
     connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
     connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
@@ -113,6 +121,12 @@ void AreaLayoutFrame::areasChanged() {
     ui->lblFreqMax->setText(Utils::numToQString(freqMax, lbl_precision) + " Å<sup>-1</sup>");
     ui->lblAngleScale->setText(Utils::numToQString(angleScale, lbl_precision) + " mrad");
     ui->lblAngleMax->setText(Utils::numToQString(angleMax, lbl_precision) + " mrad");
+
+    float dz = SimManager->getSliceThickness();
+    float oz = SimManager->getSliceOffset();
+
+    ui->edtSliceThickness->setText(Utils::numToQString(dz, lbl_precision));
+    ui->edtSliceOffset->setText(Utils::numToQString(oz, lbl_precision));
 }
 
 void AreaLayoutFrame::on_cmbResolution_currentIndexChanged(const QString &arg1) {
@@ -132,8 +146,9 @@ void AreaLayoutFrame::dlgCancel_clicked()
 void AreaLayoutFrame::dlgOk_clicked()
 {
     // same as clicking apply then closing the dialog
-    dlgApply_clicked();
-    parentWidget()->close();
+    bool valid = apply_pressed();
+    if (valid)
+        parentWidget()->close();
 }
 
 void AreaLayoutFrame::dlgApply_clicked()
@@ -141,7 +156,46 @@ void AreaLayoutFrame::dlgApply_clicked()
     apply_pressed();
 }
 
-void AreaLayoutFrame::apply_pressed() {
+bool AreaLayoutFrame::apply_pressed() {
+
+    float dz = ui->edtSliceThickness->text().toFloat();
+    float oz = ui->edtSliceOffset->text().toFloat();
+
+    bool valid = true;
+    std::vector<std::string> errors;
+
+    if (dz <= 0)
+    {
+        errors.push_back("Slice thickness must be greater than 0");
+        valid = false;
+    }
+    if (oz < 0)
+    {
+        errors.push_back("Slice offset must be positive");
+        valid = false;
+    }
+
+    if (!valid)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Error:");
+        std::string msg = "";
+        for (int i = 0; i < errors.size(); ++i)
+        {
+            msg += errors[i];
+            if (i < errors.size() - 1)
+                msg += "\n";
+        }
+
+        msgBox.setInformativeText(QString::fromStdString(msg));
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+        return valid;
+    }
+
+    SimManager->setSliceThickness(dz);
+    SimManager->setSliceOffset(oz);
 
     // get which mode we are in
     auto mode = ui->tabAreaWidget->currentIndex();
@@ -164,6 +218,8 @@ void AreaLayoutFrame::apply_pressed() {
         CbedFrame->updateCurrentArea(pos);
         emit updateMainCbed();
     }
+
+    return valid;
 }
 
 bool AreaLayoutFrame::getErrorStringCtem() {
@@ -188,4 +244,16 @@ bool AreaLayoutFrame::getErrorStringStem() {
     // get pixels are positive non zero
 
     // check the scale is positive non zero and not inf
+}
+
+void AreaLayoutFrame::checkEditZero(QString txt) {
+    if (ui->edtSliceThickness->text().toInt() > 0)
+        ui->edtSliceThickness->setStyleSheet("");
+    else
+        ui->edtSliceThickness->setStyleSheet("color: #FF8C00");
+
+    if (ui->edtSliceOffset->text().toInt() >= 0)
+        ui->edtSliceOffset->setStyleSheet("");
+    else
+        ui->edtSliceOffset->setStyleSheet("color: #FF8C00");
 }

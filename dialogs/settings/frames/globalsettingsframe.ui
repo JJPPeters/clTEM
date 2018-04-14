@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="tabPanel" name="tabWidget">
      <property name="tabPosition">
       <enum>QTabWidget::South</enum>
      </property>
@@ -236,6 +236,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>tabPanel</class>
+   <extends>QTabWidget</extends>
+   <header>controls/tabpanel.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
