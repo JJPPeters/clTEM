@@ -7,7 +7,7 @@ std::valarray<float> const SimulationManager::default_xy_padding = {-8.0f, 8.0f}
 std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
 
 SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding_x(SimulationManager::default_xy_padding),
-                                         padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(0.1f),
+                                         padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(true),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
                                          slice_offset(0.0f)
@@ -238,7 +238,7 @@ void SimulationManager::round_padding()
     // Do the Z padding
     auto p_z = SimulationManager::default_z_padding;
 
-    auto pad_slices_pre = (int) std::ceil((std::abs(p_z[0]) - slice_offset) / slice_dz);
+    auto pad_slices_pre = (int) std::ceil((std::abs(p_z[1]) - slice_offset) / slice_dz);
     float pre_pad = slice_offset + pad_slices_pre * slice_dz;
 
     float zw = getStructLimitsZ()[1] - getStructLimitsZ()[0];
@@ -247,10 +247,11 @@ void SimulationManager::round_padding()
 
     float left_over = struct_slice_thick - slice_offset - zw;
 
-    auto pad_slices_post = (int) std::ceil((std::abs(p_z[1]) - left_over) / slice_dz);
+    auto pad_slices_post = (int) std::ceil((std::abs(p_z[0]) - left_over) / slice_dz);
     float post_pad = pad_slices_post * slice_dz + left_over;
 
-    padding_z = {-pre_pad, post_pad};
+    // The simulation works from LARGEST z to SMALLEST. So the pre padding is actually on top of the z structure.
+    padding_z = {-post_pad, pre_pad};
 }
 
 std::valarray<float> SimulationManager::getSimLimitsX()
