@@ -26,9 +26,9 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
     // I'm really assuming the rest of the aberrations are default 0
     MicroParams->Aperture = 20;
     MicroParams->Voltage = 200;
-    MicroParams->Delta = 3;
-    MicroParams->Alpha = 0.5;
-    MicroParams->C30 = 1;
+    MicroParams->Delta = 30;
+    MicroParams->Alpha = 0.3;
+    MicroParams->C30 = 10000;
 }
 
 void SimulationManager::setStructure(std::string filePath)
