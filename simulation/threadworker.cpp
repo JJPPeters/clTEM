@@ -21,7 +21,7 @@ void ThreadWorker::operator()()
 
             // get the task from the queue
 //            task = std::move(pool.tasks.front());
-            task = pool.tasks.front();
+            task = std::move(pool.tasks.front());
             pool.tasks.pop_front();
 
         }   // release lock

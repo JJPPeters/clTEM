@@ -537,9 +537,9 @@ void MainWindow::cancel_simulation()
         SimThread->cancelSimulation();
 
     // reset the ui
-    disconnect(this, SIGNAL(sliceProgressUpdated()), 0, 0);
-    disconnect(this, SIGNAL(totalProgressUpdated()), 0, 0);
-    disconnect(this, SIGNAL(imagesReturned()), 0, 0);
+    disconnect(this, &MainWindow::sliceProgressUpdated, 0, 0);
+    disconnect(this, &MainWindow::totalProgressUpdated, 0, 0);
+    disconnect(this, &MainWindow::imagesReturned, 0, 0);
 
     setUiActive(true);
 

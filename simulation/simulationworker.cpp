@@ -11,6 +11,9 @@
 
 void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
 {
+    if (pool.stop)
+        return;
+
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
 
