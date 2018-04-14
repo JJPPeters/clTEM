@@ -20,6 +20,9 @@ namespace JSONUtils {
         try { man.setSliceThickness( readJsonEntry<float>(j, "slice thickness", "val") );
         } catch (json::out_of_range& e) {}
 
+        try { man.setSliceOffset( readJsonEntry<float>(j, "slice offset", "val") );
+        } catch (json::out_of_range& e) {}
+
         try { man.setFull3d( readJsonEntry<bool>(j, "full 3d", "state") );
         } catch (json::out_of_range& e) {}
 
@@ -232,6 +235,9 @@ namespace JSONUtils {
 
         j["slice thickness"]["val"] = man.getSliceThickness();
         j["slice thickness"]["units"] = "Å";
+
+        j["slice offset"]["val"] = man.getSliceOffset();
+        j["slice offset"]["units"] = "Å";
 
         auto xl = man.getPaddedSimLimitsX();
         auto yl = man.getPaddedSimLimitsY();
