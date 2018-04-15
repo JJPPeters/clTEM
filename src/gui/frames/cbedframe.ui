@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>291</width>
+    <width>292</width>
     <height>148</height>
    </rect>
   </property>
@@ -243,6 +243,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>edtPosX</tabstop>
+  <tabstop>edtPosY</tabstop>
+  <tabstop>chkTds</tabstop>
+  <tabstop>edtTds</tabstop>
+  <tabstop>btnCancel</tabstop>
+  <tabstop>btnSim</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -287,6 +287,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>edtDose</tabstop>
+  <tabstop>cmbCcd</tabstop>
+  <tabstop>chkCrop</tabstop>
+  <tabstop>cmbBinning</tabstop>
+  <tabstop>chkSimImage</tabstop>
+  <tabstop>btnCancel</tabstop>
+  <tabstop>btnSim</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

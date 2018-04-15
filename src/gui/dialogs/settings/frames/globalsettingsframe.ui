@@ -244,6 +244,12 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>cmbParams</tabstop>
+  <tabstop>edt3dIntegrals</tabstop>
+  <tabstop>edtParallelPx</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -262,6 +262,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>edtStartX</tabstop>
+  <tabstop>edtRangeXY</tabstop>
+  <tabstop>edtFinishX</tabstop>
+  <tabstop>edtStartY</tabstop>
+  <tabstop>edtFinishY</tabstop>
+  <tabstop>btnReset</tabstop>
+  <tabstop>btnApply</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

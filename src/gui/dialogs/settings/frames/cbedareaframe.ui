@@ -221,6 +221,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>edtPosX</tabstop>
+  <tabstop>edtPosY</tabstop>
+  <tabstop>edtPadding</tabstop>
+  <tabstop>btnReset</tabstop>
+  <tabstop>btnApply</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -359,6 +359,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>edtStartX</tabstop>
+  <tabstop>edtRangeX</tabstop>
+  <tabstop>edtFinishX</tabstop>
+  <tabstop>edtPixelsX</tabstop>
+  <tabstop>edtStartY</tabstop>
+  <tabstop>edtRangeY</tabstop>
+  <tabstop>edtFinishY</tabstop>
+  <tabstop>edtPixelsY</tabstop>
+  <tabstop>edtPadding</tabstop>
+  <tabstop>btnReset</tabstop>
+  <tabstop>btnApply</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

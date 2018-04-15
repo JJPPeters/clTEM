@@ -436,6 +436,15 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>cmbResolution</tabstop>
+  <tabstop>chkKeep</tabstop>
+  <tabstop>tabAreaWidget</tabstop>
+  <tabstop>tabZWidget</tabstop>
+  <tabstop>edtSliceThickness</tabstop>
+  <tabstop>edtSliceOffset</tabstop>
+  <tabstop>tabScaleWidget</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
