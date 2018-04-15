@@ -22,6 +22,9 @@ CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa) :
 
     ui->edtRangeXY->setValidator(pValidator);
 
+    // set teh default values
+    on_btnReset_clicked();
+
     connect(ui->edtStartX, SIGNAL(textChanged(QString)), this, SLOT(rangeChanged(QString)));
     connect(ui->edtStartY, SIGNAL(textChanged(QString)), this, SLOT(rangeChanged(QString)));
 
@@ -35,9 +38,6 @@ CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa) :
     connect(ui->edtFinishX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
     connect(ui->edtFinishY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
     connect(ui->edtRangeXY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-
-    // set teh default values
-    on_btnReset_clicked();
 }
 
 CtemAreaFrame::~CtemAreaFrame()
