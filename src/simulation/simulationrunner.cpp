@@ -74,16 +74,20 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
 
             // get the number of sims we need to do, redivide it to work out how to split this evenly
             // and calculate the straggling remainders
-            unsigned int nSims = (unsigned int) std::ceil(simManager->getStemArea()->getNumPixels() / StemParallel);
-            unsigned int pxPerSim = (unsigned int) std::floor(simManager->getStemArea()->getNumPixels() / nSims );
-            int remainder = simManager->getStemArea()->getNumPixels() % nSims;
+            auto total_pixels = simManager->getStemArea()->getNumPixels();
+            unsigned int nSims = (unsigned int) std::ceil( (float) total_pixels / StemParallel );
+//            unsigned int pxPerSim = (unsigned int) std::floor(simManager->getStemArea()->getNumPixels() / nSims );
+//            int remainder = simManager->getStemArea()->getNumPixels() % nSims;
 
             unsigned int current = 0;
             for (int j = 0; j < nSims; ++j)
             {
                 // account for the remainding pixels
-                int n = pxPerSim + 1 * (remainder > 1);
-                --remainder; // just decrement always, ignore it when it is negative
+                int n = StemParallel;
+
+                if (current + n > total_pixels) {
+                    n = total_pixels - current;
+                }
 
                 // copy the indices for one job
                 std::vector<int> temp(pixelIndices.begin() + current, pixelIndices.begin() + current + n);

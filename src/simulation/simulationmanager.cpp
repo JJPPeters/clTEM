@@ -123,7 +123,7 @@ unsigned long SimulationManager::getTotalParts()
         return (unsigned long) getTdsRuns();
     else if (Mode == SimulationMode::STEM)
         // round up as still need to complete that 'fraction of a job'
-        return (unsigned long) (getTdsRuns() * std::ceil(getStemArea()->getNumPixels() / numParallelPixels));
+        return (unsigned long) (getTdsRuns() * std::ceil((float) getStemArea()->getNumPixels() / numParallelPixels));
 }
 
 void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, int jobCount)
@@ -148,7 +148,9 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
     // count how many jobs have been done...
     completeJobs += jobCount;
 
-    if (completeJobs > getTotalParts())
+    auto v = getTotalParts();
+
+    if (completeJobs > v)
         throw std::runtime_error("Simulation received more parts than it expected");
 
     reportTotalProgress((float) completeJobs / (float) getTotalParts());

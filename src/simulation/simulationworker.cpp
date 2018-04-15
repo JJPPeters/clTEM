@@ -393,7 +393,7 @@ void SimulationWorker::doStem()
         Images[det.name] = Image<float>(px_x, px_y, im);
     }
 
-    job->simManager->updateImages(Images, job->pixels.size()); // TODO: check we only do one TDS config per job
+    job->simManager->updateImages(Images, 1); // TODO: check we only do one TDS config per job
 }
 
 void SimulationWorker::initialiseSimulation()
