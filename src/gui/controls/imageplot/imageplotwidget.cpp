@@ -23,8 +23,9 @@ ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
     matchPlotToPalette();
 
     axisRect()->setAutoMargins(QCP::msNone);
-    axisRect()->setMinimumMargins(QMargins(0,0,0,0));
-    axisRect()->setMargins(QMargins(0,0,0,0));
+    // minus 10 means we can't accidentally scroll on it...
+    axisRect()->setMinimumMargins(QMargins(-10,-10,-10,-10));
+    axisRect()->setMargins(QMargins(-10,-10,-10,-10));
 
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 }
@@ -78,7 +79,12 @@ void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, c
     //check image is same size as dimensions given
     //check imageobject is not null?
     ImageObject->data()->setSize(sx, sy);
-    ImageObject->data()->setRange(QCPRange(-(double)sx/2, (double)sx/2), QCPRange(-(double)sy/2, (double)sy/2));
+
+    double r_x = ((double) sx - 1.0) / 2.0;
+    double r_y = ((double) sy - 1.0) / 2.0;
+
+    ImageObject->data()->setRange(QCPRange(-r_x, r_x), QCPRange(-r_y, r_y));
+
     for (int xIndex=0; xIndex<sx; ++xIndex)
         for (int yIndex=0; yIndex<sy; ++yIndex)
         {
@@ -93,10 +99,10 @@ void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, c
 
     cropImage(false);
 
+    haveImage = true;
+
     ImageObject->rescaleDataRange(true); // TODO: maybe pass the true (to update scale better???)
     resetAxes(doReplot);
-
-    haveImage = true;
 }
 
 void
@@ -121,7 +127,12 @@ ImagePlotWidget::SetImage(const std::vector<std::complex<double>> &image, const 
     //check image is same size as dimensions given
     //check imageobject is not null?
     ImageObject->data()->setSize(sx, sy);
-    ImageObject->data()->setRange(QCPRange(-(double)sx/2, (double)sx/2), QCPRange(-(double)sy/2, (double)sy/2));
+
+    double r_x = ((double) sx - 1.0) / 2.0;
+    double r_y = ((double) sy - 1.0) / 2.0;
+
+    ImageObject->data()->setRange(QCPRange(-r_x, r_x), QCPRange(-r_y, r_y));
+
     if (show == ShowComplex::Real)
     {
         for (int xIndex=0; xIndex<sx; ++xIndex)
@@ -158,10 +169,10 @@ ImagePlotWidget::SetImage(const std::vector<std::complex<double>> &image, const 
 
     cropImage(false);
 
+    haveImage = true;
+
     ImageObject->rescaleDataRange();
     resetAxes(doReplot);
-
-    haveImage = true;
 }
 
 void ImagePlotWidget::DrawCircle(double x, double y, QColor colour, QBrush fill, double radius, Qt::PenStyle line,
@@ -260,20 +271,21 @@ void ImagePlotWidget::SetColorMap(QCPColorGradient Map) {
 }
 
 void ImagePlotWidget::resetAxes(bool doReplot) {
-    if(!haveImage)
-    {
+    if(!haveImage) {
         xAxis->setRange(-500, 500);
         yAxis->setRange(-500, 500);
     }
-    //rescaleAxes(); //old way
-    // use this instead to account for cropping
-    if (crop_image) {
-        xAxis->setRange(crop_l - size_x / 2, -crop_r + size_x / 2);
-        yAxis->setRange(crop_t - size_y / 2, -crop_b + size_y / 2);
-    }
-    else{
-        xAxis->setRange(-size_x / 2, size_x / 2);
-        yAxis->setRange(-size_y / 2, size_y / 2);
+    else {
+        double r_x = (double) size_x / 2;
+        double r_y = (double) size_y / 2;
+
+        if (crop_image) {
+            xAxis->setRange(crop_l - r_x, -crop_r + r_x);
+            yAxis->setRange(crop_t - r_y, -crop_b + r_y);
+        } else {
+            xAxis->setRange(-r_x, r_x);
+            yAxis->setRange(-r_y, r_y);
+        }
     }
 
     setImageRatio();
