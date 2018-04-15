@@ -30,17 +30,32 @@ namespace fs = boost::filesystem;
 
 static std::string out_path;
 
+static std::mutex out_mtx;
+
+static int total_pcnt;
+static int slice_pcnt;
+
 void reportSliceProgress(float frac)
 {
+    std::lock_guard<std::mutex> lock(out_mtx);
+    // currently only updates once hte simulation has finished...
+    int slice_pcnt = (int) (frac*100);
 
+
+    std::cout << "Slice progress: " << slice_pcnt << "%, total progress: " << total_pcnt << "%          \r" << std::flush;
+    if (total_pcnt >= 1.0f)
+        std::cout << std::endl;
 }
 
 void reportTotalProgress(float frac)
 {
-    // currently only updates once hte simulation has finished...
-//    std::cout << "Progress: " << (int) frac*100 << '%' << std::flush;
-//    if (frac >= 1.0f)
-//        std::cout << std::endl;
+    std::lock_guard<std::mutex> lock(out_mtx);
+    total_pcnt = (int) (frac*100);
+
+
+    std::cout << "Slice progress: " << slice_pcnt << "%, total progress: " << total_pcnt << "%          \r" << std::flush;
+    if (total_pcnt >= 1.0f)
+        std::cout << std::endl;
 }
 
 void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm)
@@ -74,13 +89,16 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
             settings["microscope"].erase("delta");
         }
 
-        fileio::SaveTiff<float>(out_path + "/" + name, im.data, im.width, im.height);
+        fileio::SaveTiff<float>(out_path + "/" + name + ".tif", im.data, im.width, im.height);
+        fileio::SaveSettingsJson(out_path + "/" + name + ".json", settings);
     }
 }
 
 int main(int argc, char *argv[])
 {
     int verbose_flag = 0;
+    total_pcnt = 0;
+    slice_pcnt = 0;
     int c;
 
     std::string output_dir = "";
@@ -332,7 +350,7 @@ int main(int argc, char *argv[])
         CCDParams::addCCD(name, dqe, ntf);
     }
 
-    // global because I am lazy
+    // global because I am lazy (or smart?)
     out_path = output_dir;
 
     auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list);
