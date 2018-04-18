@@ -13,15 +13,16 @@
 #include <boost/filesystem.hpp>
 #include <simulationrunner.h>
 #include <structure/structureparameters.h>
+#include <kernels.h>
 #ifdef _WIN32
 
 #include "windows.h"
+#include <libgen.h>
 
 #else
 
 #include <libgen.h>
 #include <zconf.h>
-#include <kernels.h>
 
 #endif
 
@@ -175,7 +176,7 @@ int main(int argc, char *argv[])
 
     if (non_option_args.empty())
     {
-        std::cout << "Require non-option argument as structure (.xyz) file" << std::endl;
+        std::cerr << "Require non-option argument as structure (.xyz) file" << std::endl;
         valid_flags = false;
     }
 
@@ -199,11 +200,11 @@ int main(int argc, char *argv[])
         valid_flags = false;
     }
 
+    if (!valid_flags)
+        return 1;
+
     // this is where the input is actually set
     input_struct = non_option_args[0];
-
-    if (!valid_flags)
-        return 0;
 
     std::cout << "Getting OpenCL devices:" << std::endl;
 
@@ -292,7 +293,7 @@ int main(int argc, char *argv[])
         // Use GetModuleFileName() with module handle to get the path
         GetModuleFileName(hModule, exe_path, MAX_PATH);
 
-        PathRemoveFileSpec(exe_path);
+        auto exe_dir = dirname(exe_path);
 
         exe_path_string = std::string(exe_path);
     }
