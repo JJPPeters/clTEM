@@ -96,8 +96,8 @@ void SimulationWorker::sortAtoms(bool doTds)
     // TODO: get these from the structure class to keep them centralised
     int BlocksX = job->simManager->getBlocksX();
     int BlocksY = job->simManager->getBlocksY();
-    std::valarray<float> x_lims = job->simManager->getPaddedStructLimitsX(); // is this the right padding?
-    std::valarray<float> y_lims = job->simManager->getPaddedStructLimitsY();
+    std::valarray<float> x_lims = job->simManager->getPaddedSimLimitsX(); // is this the right padding?
+    std::valarray<float> y_lims = job->simManager->getPaddedSimLimitsY();
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
 
     float dz = job->simManager->getSliceThickness();
@@ -547,10 +547,10 @@ void SimulationWorker::initialiseSimulation()
     BinnedAtomicPotential.SetArg(13, pixelscale);
     BinnedAtomicPotential.SetArg(14, job->simManager->getBlocksX());
     BinnedAtomicPotential.SetArg(15, job->simManager->getBlocksY());
-    BinnedAtomicPotential.SetArg(16, job->simManager->getPaddedStructLimitsX()[1]);
-    BinnedAtomicPotential.SetArg(17, job->simManager->getPaddedStructLimitsX()[0]);
-    BinnedAtomicPotential.SetArg(18, job->simManager->getPaddedStructLimitsY()[1]);
-    BinnedAtomicPotential.SetArg(19, job->simManager->getPaddedStructLimitsY()[0]);
+    BinnedAtomicPotential.SetArg(16, job->simManager->getPaddedSimLimitsX()[1]);
+    BinnedAtomicPotential.SetArg(17, job->simManager->getPaddedSimLimitsX()[0]);
+    BinnedAtomicPotential.SetArg(18, job->simManager->getPaddedSimLimitsY()[1]);
+    BinnedAtomicPotential.SetArg(19, job->simManager->getPaddedSimLimitsY()[0]);
     BinnedAtomicPotential.SetArg(20, load_blocks_x);
     BinnedAtomicPotential.SetArg(21, load_blocks_y);
     BinnedAtomicPotential.SetArg(22, load_blocks_z);

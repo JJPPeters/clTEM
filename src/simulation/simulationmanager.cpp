@@ -185,13 +185,13 @@ float SimulationManager::getBlockScaleY() {
 
 int SimulationManager::getBlocksX()
 {
-//    calculate_blocks();
+    calculate_blocks();
     return blocks_x;
 }
 
 int SimulationManager::getBlocksY()
 {
-//    calculate_blocks();
+    calculate_blocks();
     return blocks_y;
 }
 
@@ -200,8 +200,8 @@ void SimulationManager::calculate_blocks()
     // set number of blocks. Set the blocks to be 4 Angstroms apart (as this is half our buffer region)
     // so we are never loading more than two extra blocks (I suppose smaller is better, but also might make the
     // arrays a bit convoluted) TODO: test if this matters
-    auto x_lims_2 = getPaddedStructLimitsX();
-    auto y_lims_2 = getPaddedStructLimitsY();
+    auto x_lims_2 = getPaddedSimLimitsX();
+    auto y_lims_2 = getPaddedSimLimitsY();
     float xr = x_lims_2[1] - x_lims_2[0];
     float yr = y_lims_2[1] - y_lims_2[0];
 
