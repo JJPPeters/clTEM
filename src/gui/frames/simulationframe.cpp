@@ -72,6 +72,9 @@ void SimulationFrame::on_btnSimArea_clicked()
     if (Main == 0)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
+    // update the manager from the ui
+    Main->updateManagerFromGui();
+
     SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
 
     connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), this, SLOT(setResolutionText(QString)));

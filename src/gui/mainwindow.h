@@ -51,6 +51,8 @@ public:
 
     void updateImages(std::map<std::string, Image<float>> ims, SimulationManager sm);
 
+    void updateManagerFromGui();
+
     // these are to make conencting some signals/slots in dialogs much easier
     SimulationFrame* getSimulationFrame();
     StemFrame* getStemFrame();
@@ -113,8 +115,6 @@ private:
     bool checkSimulationPrerequisites();
 
     void loadExternalSources();
-
-    void updateManagerFromGui();
 
     void updateGuiFromManager();
 };

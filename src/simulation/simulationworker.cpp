@@ -49,8 +49,7 @@ void SimulationWorker::uploadParameters(std::vector<float> param)
 
 void SimulationWorker::sortAtoms(bool doTds)
 {
-    auto structure = job->simManager->getStructure();
-    auto atoms = structure->getAtoms();
+    auto atoms = job->simManager->getStructure()->getAtoms();
     unsigned int atom_count = (unsigned int) atoms.size(); // Needs to be cast to int as opencl kernel expects that size
 
     std::vector<int> AtomANum(atom_count);
@@ -63,6 +62,7 @@ void SimulationWorker::sortAtoms(bool doTds)
         float dx = 0, dy = 0, dz = 0;
         if (doTds)
         {
+            // TODO: need a log guard here or in the structure file...
             dx = job->simManager->getStructure()->generateTdsFactor();
             dy = job->simManager->getStructure()->generateTdsFactor();
             dz = job->simManager->getStructure()->generateTdsFactor();
@@ -407,7 +407,6 @@ void SimulationWorker::initialiseSimulation()
     float wavelength = job->simManager->getWavelength();
     float pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
-    auto AtomicStructure = job->simManager->getStructure();
     float startx = job->simManager->getPaddedSimLimitsX()[0];
     float starty = job->simManager->getPaddedSimLimitsY()[0];
     int full3dints = job->simManager->getFull3dInts();
@@ -764,7 +763,6 @@ void SimulationWorker::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    auto AtomicStructure = job->simManager->getStructure();
     float dz = job->simManager->getSliceThickness();
     int resolution = job->simManager->getResolution();
     // in the current format, Tds is handled by job splitting so this is always 1??

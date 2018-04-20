@@ -761,14 +761,9 @@ void MainWindow::updateManagerFromGui() {
     Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
     Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
 
-    if (Manager->getMode() == SimulationMode::CBED)
-    {
-        Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
-    }
-    else if (Manager->getMode() == SimulationMode::STEM)
-    {
-        Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
-    }
+
+    Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
+    Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -808,6 +803,7 @@ void MainWindow::updateGuiFromManager() {
 
 void MainWindow::on_actionSet_area_triggered()
 {
+    updateManagerFromGui();
 
     SimAreaDialog* myDialog = new SimAreaDialog(this, Manager);
 
