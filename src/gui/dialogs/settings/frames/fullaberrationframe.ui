@@ -38,7 +38,7 @@
         <widget class="EditUnitsBox" name="edtVoltage">
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>100</width>
            <height>26</height>
           </size>
          </property>
@@ -67,7 +67,7 @@
         <widget class="EditUnitsBox" name="edtAperture">
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>100</width>
            <height>26</height>
           </size>
          </property>
@@ -96,7 +96,7 @@
         <widget class="EditUnitsBox" name="edtDefocusSpread">
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>100</width>
            <height>26</height>
           </size>
          </property>
@@ -125,7 +125,7 @@
         <widget class="EditUnitsBox" name="edtConverge">
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>100</width>
            <height>26</height>
           </size>
          </property>
