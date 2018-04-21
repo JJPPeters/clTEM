@@ -92,14 +92,7 @@ SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Simulation area");
 
-    connect(LayoutFrame, SIGNAL(areaChanged()), this, SLOT(coreSimAreaChanged()));
-
     this->setFixedSize(this->sizeHint());
-}
-
-void SimAreaDialog::coreSimAreaChanged()
-{
-    emit simAreaChanged();
 }
 
 

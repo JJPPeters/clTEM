@@ -837,6 +837,7 @@ void MainWindow::on_actionSet_area_triggered()
     connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), this, SLOT(set_active_mode(int)));
     connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), getCbedFrame(), SLOT(update_text_boxes()));
     connect(myDialog->getFrame(), SIGNAL(updateMainStem()), getStemFrame(), SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, this, &MainWindow::updateScales);
 
     myDialog->exec();
 }

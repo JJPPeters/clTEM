@@ -100,16 +100,8 @@ class SimAreaDialog : public SettingsDialog
 {
 Q_OBJECT
 
-signals:
-    // this signal is picked up by the mainwindow aberrations frame
-    void simAreaChanged();
-
 private:
     AreaLayoutFrame* LayoutFrame;
-
-private slots:
-    // this slot gets the signal from the fullaberrationsframe
-    void coreSimAreaChanged();
 
 public:
     explicit SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);

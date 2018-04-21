@@ -43,7 +43,6 @@ public:
 
     void setDetectors();
 
-    void updateScales();
     void updateRanges();
 
     void updateSlicesProgress(float prog);
@@ -57,6 +56,9 @@ public:
     SimulationFrame* getSimulationFrame();
     StemFrame* getStemFrame();
     CbedFrame* getCbedFrame();
+
+public slots:
+    void updateScales();
 
 private slots:
     void set_active_mode(int mode);

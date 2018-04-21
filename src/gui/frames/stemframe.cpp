@@ -52,8 +52,11 @@ void StemFrame::on_btnArea_clicked()
     connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), Main, SLOT(set_active_mode(int)));
     connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), Main->getCbedFrame(), SLOT(update_text_boxes()));
     connect(myDialog->getFrame(), SIGNAL(updateMainStem()), this, SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, Main, &MainWindow::updateScales);
 
     myDialog->exec();
+
+    Main->updateScales();
 }
 
 void StemFrame::updateScaleLabels()

@@ -222,6 +222,8 @@ bool AreaLayoutFrame::apply_pressed() {
         emit updateMainCbed();
     }
 
+    emit areaChanged();
+
     return valid;
 }
 

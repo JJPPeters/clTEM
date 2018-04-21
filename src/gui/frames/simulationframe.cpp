@@ -82,10 +82,9 @@ void SimulationFrame::on_btnSimArea_clicked()
     connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), Main, SLOT(set_active_mode(int)));
     connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), Main->getCbedFrame(), SLOT(update_text_boxes()));
     connect(myDialog->getFrame(), SIGNAL(updateMainStem()), Main->getStemFrame(), SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, Main, &MainWindow::updateScales);
 
     myDialog->exec();
-
-    //disconnect signals?
 }
 
 void SimulationFrame::updateLimits()
