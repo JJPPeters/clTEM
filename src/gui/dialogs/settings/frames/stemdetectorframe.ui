@@ -156,7 +156,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="edtInner">
+        <widget class="EditUnitsBox" name="edtInner">
          <property name="text">
           <string>0</string>
          </property>
@@ -170,7 +170,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="edtOuter">
+        <widget class="EditUnitsBox" name="edtOuter">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -199,7 +199,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="edtCentreX">
+        <widget class="EditUnitsBox" name="edtCentreX">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -228,7 +228,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="edtCentreY">
+        <widget class="EditUnitsBox" name="edtCentreY">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -307,6 +307,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
   <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>

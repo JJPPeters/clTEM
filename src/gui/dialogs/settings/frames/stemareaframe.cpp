@@ -29,6 +29,19 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
 
     ui->edtPadding->setValidator(pValidator);
 
+    ui->edtStartX->setUnits("Å");
+    ui->edtStartY->setUnits("Å");
+    ui->edtFinishX->setUnits("Å");
+    ui->edtFinishY->setUnits("Å");
+
+    ui->edtRangeX->setUnits("Å");
+    ui->edtRangeY->setUnits("Å");
+
+    ui->edtPixelsX->setUnits("Å");
+    ui->edtPixelsY->setUnits("Å");
+
+    ui->edtPadding->setUnits("Å");
+
     connect(ui->edtPixelsX, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
     connect(ui->edtPixelsY, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
 
@@ -51,7 +64,6 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
     connect(ui->edtRangeX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
     connect(ui->edtRangeY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
     connect(ui->edtPadding, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-
 
     // set teh default values
     on_btnReset_clicked();

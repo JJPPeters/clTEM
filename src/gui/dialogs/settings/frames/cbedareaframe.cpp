@@ -17,6 +17,10 @@ CbedAreaFrame::CbedAreaFrame(QWidget *parent, CbedPosition pos) :
 
     ui->edtPadding->setValidator(pValidator);
 
+    ui->edtPosX->setUnits("Å");
+    ui->edtPosY->setUnits("Å");
+    ui->edtPadding->setUnits("Å");
+
     connect(ui->edtPadding, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
 
     connect(ui->edtPosX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));

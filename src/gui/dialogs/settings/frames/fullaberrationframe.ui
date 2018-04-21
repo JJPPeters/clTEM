@@ -35,7 +35,7 @@
         </widget>
        </item>
        <item row="0" column="1" colspan="2">
-        <widget class="QLineEdit" name="edtVoltage">
+        <widget class="EditUnitsBox" name="edtVoltage">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -64,7 +64,7 @@
         </widget>
        </item>
        <item row="0" column="4" colspan="2">
-        <widget class="QLineEdit" name="edtAperture">
+        <widget class="EditUnitsBox" name="edtAperture">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -93,7 +93,7 @@
         </widget>
        </item>
        <item row="0" column="7" colspan="2">
-        <widget class="QLineEdit" name="edtDefocusSpread">
+        <widget class="EditUnitsBox" name="edtDefocusSpread">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -122,7 +122,7 @@
         </widget>
        </item>
        <item row="0" column="10" colspan="2">
-        <widget class="QLineEdit" name="edtConverge">
+        <widget class="EditUnitsBox" name="edtConverge">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -151,7 +151,7 @@
         </widget>
        </item>
        <item row="1" column="1" colspan="2">
-        <widget class="QLineEdit" name="edtC10">
+        <widget class="EditUnitsBox" name="edtC10">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -180,7 +180,7 @@
         </widget>
        </item>
        <item row="1" column="4">
-        <widget class="QLineEdit" name="edtC12Mag">
+        <widget class="EditUnitsBox" name="edtC12Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -199,7 +199,7 @@
         </widget>
        </item>
        <item row="1" column="5">
-        <widget class="QLineEdit" name="edtC12Ang">
+        <widget class="EditUnitsBox" name="edtC12Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -228,7 +228,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="edtC21Mag">
+        <widget class="EditUnitsBox" name="edtC21Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -247,7 +247,7 @@
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QLineEdit" name="edtC21Ang">
+        <widget class="EditUnitsBox" name="edtC21Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -276,7 +276,7 @@
         </widget>
        </item>
        <item row="2" column="4">
-        <widget class="QLineEdit" name="edtC23Mag">
+        <widget class="EditUnitsBox" name="edtC23Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -295,7 +295,7 @@
         </widget>
        </item>
        <item row="2" column="5">
-        <widget class="QLineEdit" name="edtC23Ang">
+        <widget class="EditUnitsBox" name="edtC23Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -324,7 +324,7 @@
         </widget>
        </item>
        <item row="3" column="1" colspan="2">
-        <widget class="QLineEdit" name="edtC30">
+        <widget class="EditUnitsBox" name="edtC30">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -353,7 +353,7 @@
         </widget>
        </item>
        <item row="3" column="4">
-        <widget class="QLineEdit" name="edtC32Mag">
+        <widget class="EditUnitsBox" name="edtC32Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -372,7 +372,7 @@
         </widget>
        </item>
        <item row="3" column="5">
-        <widget class="QLineEdit" name="edtC32Ang">
+        <widget class="EditUnitsBox" name="edtC32Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -401,7 +401,7 @@
         </widget>
        </item>
        <item row="3" column="7">
-        <widget class="QLineEdit" name="edtC34Mag">
+        <widget class="EditUnitsBox" name="edtC34Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -420,7 +420,7 @@
         </widget>
        </item>
        <item row="3" column="8">
-        <widget class="QLineEdit" name="edtC34Ang">
+        <widget class="EditUnitsBox" name="edtC34Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -449,7 +449,7 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="edtC41Mag">
+        <widget class="EditUnitsBox" name="edtC41Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -468,7 +468,7 @@
         </widget>
        </item>
        <item row="4" column="2">
-        <widget class="QLineEdit" name="edtC41Ang">
+        <widget class="EditUnitsBox" name="edtC41Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -497,7 +497,7 @@
         </widget>
        </item>
        <item row="4" column="4">
-        <widget class="QLineEdit" name="edtC43Mag">
+        <widget class="EditUnitsBox" name="edtC43Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -516,7 +516,7 @@
         </widget>
        </item>
        <item row="4" column="5">
-        <widget class="QLineEdit" name="edtC43Ang">
+        <widget class="EditUnitsBox" name="edtC43Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -545,7 +545,7 @@
         </widget>
        </item>
        <item row="4" column="7">
-        <widget class="QLineEdit" name="edtC45Mag">
+        <widget class="EditUnitsBox" name="edtC45Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -564,7 +564,7 @@
         </widget>
        </item>
        <item row="4" column="8">
-        <widget class="QLineEdit" name="edtC45Ang">
+        <widget class="EditUnitsBox" name="edtC45Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -593,7 +593,7 @@
         </widget>
        </item>
        <item row="5" column="1" colspan="2">
-        <widget class="QLineEdit" name="edtC50">
+        <widget class="EditUnitsBox" name="edtC50">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -622,7 +622,7 @@
         </widget>
        </item>
        <item row="5" column="4">
-        <widget class="QLineEdit" name="edtC52Mag">
+        <widget class="EditUnitsBox" name="edtC52Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -641,7 +641,7 @@
         </widget>
        </item>
        <item row="5" column="5">
-        <widget class="QLineEdit" name="edtC52Ang">
+        <widget class="EditUnitsBox" name="edtC52Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -670,7 +670,7 @@
         </widget>
        </item>
        <item row="5" column="7">
-        <widget class="QLineEdit" name="edtC54Mag">
+        <widget class="EditUnitsBox" name="edtC54Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -689,7 +689,7 @@
         </widget>
        </item>
        <item row="5" column="8">
-        <widget class="QLineEdit" name="edtC54Ang">
+        <widget class="EditUnitsBox" name="edtC54Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -718,7 +718,7 @@
         </widget>
        </item>
        <item row="5" column="10">
-        <widget class="QLineEdit" name="edtC56Mag">
+        <widget class="EditUnitsBox" name="edtC56Mag">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -737,7 +737,7 @@
         </widget>
        </item>
        <item row="5" column="11">
-        <widget class="QLineEdit" name="edtC56Ang">
+        <widget class="EditUnitsBox" name="edtC56Ang">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -762,6 +762,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
   <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>

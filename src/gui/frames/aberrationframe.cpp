@@ -4,6 +4,7 @@
 #include <utilities/stringutils.h>
 #include <QtGui/QRegExpValidator>
 #include <utils/stringutils.h>
+#include <controls/editunitsbox.h>
 
 #include "dialogs/settings/settingsdialog.h"
 
@@ -26,6 +27,16 @@ AberrationFrame::AberrationFrame(QWidget *parent) :
     ui->edtConverge->setValidator(pValidator);
     ui->edtVoltage->setValidator(pValidator);
 
+    ui->edtDefocus->setUnits("nm");
+    ui->edtSphere->setUnits("μm");
+    ui->edtStigMag->setUnits("nm");
+    ui->edtStigAng->setUnits("°");
+
+    ui->edtAperture->setUnits("mrad");
+    ui->edtDelta->setUnits("nm");
+    ui->edtConverge->setUnits("mrad");
+    ui->edtVoltage->setUnits("kV");
+
     // these connect to a slot that makes the text colour change if the value is zero
     // I don't want to disable 0 in the regex as people might want it as a leading character (e.g. 0.1)
     connect(ui->edtAperture, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
@@ -43,11 +54,12 @@ void AberrationFrame::checkEditZero(QString dud)
 {
     (void)dud; // we don't use this
 
-    auto * edt = dynamic_cast<QLineEdit*>(sender());
+    auto * edt = dynamic_cast<EditUnitsBox*>(sender());
 
     if(edt == nullptr)
         return;
 
+    auto t = edt->text().toStdString();
     float val = edt->text().toFloat();
 
     if (val <= 0)
@@ -101,6 +113,7 @@ void AberrationFrame::updateAberrations()
         throw std::runtime_error("Error connecting aberration frame to main window.");
     auto params = Main->getMicroscopeParams();
 
+    auto test = ui->edtDefocus->text().toStdString();
     float C10 = ui->edtDefocus->text().toFloat() * 10; // Angstrom
     float C30 = ui->edtSphere->text().toFloat() * 10000; // Angstrom
 

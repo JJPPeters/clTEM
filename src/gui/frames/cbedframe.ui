@@ -82,7 +82,7 @@
     </layout>
    </item>
    <item row="0" column="1">
-    <widget class="QLineEdit" name="edtPosX">
+    <widget class="EditUnitsBox" name="edtPosX">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -132,7 +132,7 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QLineEdit" name="edtPosY">
+    <widget class="EditUnitsBox" name="edtPosY">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -243,6 +243,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>edtPosX</tabstop>
   <tabstop>edtPosY</tabstop>

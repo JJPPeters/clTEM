@@ -15,6 +15,9 @@ CbedFrame::CbedFrame(QWidget *parent) :
     ui->edtPosX->setValidator(pmValidator);
     ui->edtPosY->setValidator(pmValidator);
     ui->edtTds->setValidator(pIntValidator);
+
+    ui->edtPosX->setUnits("Å");
+    ui->edtPosY->setUnits("Å");
 }
 
 CbedFrame::~CbedFrame()

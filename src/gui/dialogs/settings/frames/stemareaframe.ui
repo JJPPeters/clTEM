@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,1,0" columnstretch="1,0,0,0,0,0,1">
    <item row="3" column="4">
-    <widget class="QLineEdit" name="edtFinishY">
+    <widget class="EditUnitsBox" name="edtFinishY">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -44,7 +44,7 @@
     </widget>
    </item>
    <item row="2" column="4">
-    <widget class="QLineEdit" name="edtFinishX">
+    <widget class="EditUnitsBox" name="edtFinishX">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -76,7 +76,7 @@
     </spacer>
    </item>
    <item row="5" column="5">
-    <widget class="QLineEdit" name="edtPadding">
+    <widget class="EditUnitsBox" name="edtPadding">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -135,7 +135,7 @@
     </widget>
    </item>
    <item row="3" column="3">
-    <widget class="QLineEdit" name="edtRangeY">
+    <widget class="EditUnitsBox" name="edtRangeY">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -184,7 +184,7 @@
     </widget>
    </item>
    <item row="2" column="3">
-    <widget class="QLineEdit" name="edtRangeX">
+    <widget class="EditUnitsBox" name="edtRangeX">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -216,7 +216,7 @@
     </spacer>
    </item>
    <item row="3" column="2">
-    <widget class="QLineEdit" name="edtStartY">
+    <widget class="EditUnitsBox" name="edtStartY">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -235,7 +235,7 @@
     </widget>
    </item>
    <item row="2" column="5">
-    <widget class="QLineEdit" name="edtPixelsX">
+    <widget class="EditUnitsBox" name="edtPixelsX">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -264,7 +264,7 @@
     </widget>
    </item>
    <item row="3" column="5">
-    <widget class="QLineEdit" name="edtPixelsY">
+    <widget class="EditUnitsBox" name="edtPixelsY">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -283,7 +283,7 @@
     </widget>
    </item>
    <item row="2" column="2">
-    <widget class="QLineEdit" name="edtStartX">
+    <widget class="EditUnitsBox" name="edtStartX">
      <property name="minimumSize">
       <size>
        <width>100</width>
@@ -359,6 +359,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>edtStartX</tabstop>
   <tabstop>edtRangeX</tabstop>

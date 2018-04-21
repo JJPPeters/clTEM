@@ -8,6 +8,7 @@
 #include <utilities/stringutils.h>
 #include <dialogs/settings/settingsdialog.h>
 #include <utils/stringutils.h>
+#include <controls/editunitsbox.h>
 
 #include "utilities/commonstructs.h"
 
@@ -25,6 +26,7 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
     connect(ui->edtVoltage, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
 
     setValidators();
+    setUnits();
     setValues();
 
     connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
@@ -120,7 +122,7 @@ void FullAberrationFrame::checkEditZero(QString dud)
 {
     (void)dud; // make it explicit that this is not used
 
-    auto * edt = dynamic_cast<QLineEdit*>(sender());
+    auto * edt = dynamic_cast<EditUnitsBox*>(sender());
 
     if(edt == nullptr)
         return;
@@ -227,6 +229,44 @@ bool FullAberrationFrame::dlgApply_clicked()
     emit aberrationsApplied();
 
     return true;
+}
+
+void FullAberrationFrame::setUnits() {
+    ui->edtVoltage->setUnits("kV");
+    ui->edtAperture->setUnits("mrad");
+    ui->edtDefocusSpread->setUnits("nm");
+    ui->edtConverge->setUnits("mrad");
+
+    ui->edtC10->setUnits("nm");
+    ui->edtC12Mag->setUnits("nm");
+    ui->edtC12Ang->setUnits("°");
+
+    ui->edtC21Mag->setUnits("nm");
+    ui->edtC21Ang->setUnits("°");
+    ui->edtC23Mag->setUnits("nm");
+    ui->edtC23Ang->setUnits("°");
+
+    ui->edtC30->setUnits("μm");
+    ui->edtC32Mag->setUnits("μm");
+    ui->edtC32Ang->setUnits("°");
+    ui->edtC34Mag->setUnits("μm");
+    ui->edtC34Ang->setUnits("°");
+
+    ui->edtC41Mag->setUnits("μm");
+    ui->edtC41Ang->setUnits("°");
+    ui->edtC43Mag->setUnits("μm");
+    ui->edtC43Ang->setUnits("°");
+    ui->edtC45Mag->setUnits("μm");
+    ui->edtC45Ang->setUnits("°");
+
+    ui->edtC50->setUnits("μm");
+    ui->edtC52Mag->setUnits("μm");
+    ui->edtC52Ang->setUnits("°");
+    ui->edtC54Mag->setUnits("μm");
+    ui->edtC54Ang->setUnits("°");
+    ui->edtC56Mag->setUnits("μm");
+    ui->edtC56Ang->setUnits("°");
+
 }
 
 

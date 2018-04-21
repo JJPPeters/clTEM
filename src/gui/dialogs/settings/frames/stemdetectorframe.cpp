@@ -1,5 +1,7 @@
 #include <utils/stringutils.h>
 #include <dialogs/settings/settingsdialog.h>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QTableWidgetItem>
 #include "stemdetectorframe.h"
 #include "ui_stemdetectorframe.h"
 
@@ -16,6 +18,16 @@ StemDetectorFrame::StemDetectorFrame(QWidget *parent, std::vector<StemDetector>&
     ui->tblDetectors->setColumnWidth(4, 70);
 
     ui->tblDetectors->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+
+    ui->edtInner->setUnits("mrad");
+    ui->edtOuter->setUnits("mrad");
+    ui->edtCentreX->setUnits("mrad");
+    ui->edtCentreY->setUnits("mrad");
+
+    ui->edtInner->setText("0");
+    ui->edtOuter->setText("10");
+    ui->edtCentreX->setText("0");
+    ui->edtCentreY->setText("0");
 
     connect(ui->edtInner, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
     connect(ui->edtOuter, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));

@@ -13,6 +13,9 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->edtSliceThickness->setValidator(pValidator);
     ui->edtSliceOffset->setValidator(pValidator);
 
+    ui->edtSliceThickness->setUnits("Å");
+    ui->edtSliceOffset->setUnits("Å");
+
     connect(ui->edtSliceThickness, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
     connect(ui->edtSliceOffset, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
 
@@ -247,12 +250,12 @@ bool AreaLayoutFrame::getErrorStringStem() {
 }
 
 void AreaLayoutFrame::checkEditZero(QString txt) {
-    if (ui->edtSliceThickness->text().toInt() > 0)
+    if (ui->edtSliceThickness->text().toFloat() > 0)
         ui->edtSliceThickness->setStyleSheet("");
     else
         ui->edtSliceThickness->setStyleSheet("color: #FF8C00");
 
-    if (ui->edtSliceOffset->text().toInt() >= 0)
+    if (ui->edtSliceOffset->text().toFloat() >= 0)
         ui->edtSliceOffset->setStyleSheet("");
     else
         ui->edtSliceOffset->setStyleSheet("color: #FF8C00");

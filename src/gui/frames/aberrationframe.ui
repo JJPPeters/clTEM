@@ -25,7 +25,7 @@
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QLineEdit" name="edtDefocus">
+    <widget class="EditUnitsBox" name="edtDefocus">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -54,7 +54,7 @@
     </widget>
    </item>
    <item row="0" column="3">
-    <widget class="QLineEdit" name="edtSphere">
+    <widget class="EditUnitsBox" name="edtSphere">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -83,7 +83,7 @@
     </widget>
    </item>
    <item row="0" column="5">
-    <widget class="QLineEdit" name="edtVoltage">
+    <widget class="EditUnitsBox" name="edtVoltage">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -112,7 +112,7 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QLineEdit" name="edtStigMag">
+    <widget class="EditUnitsBox" name="edtStigMag">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -141,7 +141,7 @@
     </widget>
    </item>
    <item row="1" column="3">
-    <widget class="QLineEdit" name="edtStigAng">
+    <widget class="EditUnitsBox" name="edtStigAng">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -170,7 +170,7 @@
     </widget>
    </item>
    <item row="1" column="5">
-    <widget class="QLineEdit" name="edtAperture">
+    <widget class="EditUnitsBox" name="edtAperture">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -199,7 +199,7 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QLineEdit" name="edtDelta">
+    <widget class="EditUnitsBox" name="edtDelta">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -228,7 +228,7 @@
     </widget>
    </item>
    <item row="2" column="3">
-    <widget class="QLineEdit" name="edtConverge">
+    <widget class="EditUnitsBox" name="edtConverge">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -284,6 +284,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

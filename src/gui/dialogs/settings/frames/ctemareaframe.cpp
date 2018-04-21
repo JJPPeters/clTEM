@@ -22,6 +22,12 @@ CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa) :
 
     ui->edtRangeXY->setValidator(pValidator);
 
+    ui->edtStartX->setUnits("Å");
+    ui->edtStartY->setUnits("Å");
+    ui->edtFinishX->setUnits("Å");
+    ui->edtFinishY->setUnits("Å");
+    ui->edtRangeXY->setUnits("Å");
+
     // set teh default values
     on_btnReset_clicked();
 
