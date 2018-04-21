@@ -82,7 +82,7 @@ __kernel void clImagingKernel( __global const float2* input,
 			float spatialCoh = exp( -1.0f * M_PI_F*M_PI_F * beta2*beta2 * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2)  / (wavelength*wavelength) );
 			float tC10 = 0.5f * C10 * cModSq(w);
 			float2 tC12 = 0.5f * cMult(C12, cPow(wc, 2));
-			float2 tC21 = cMult(C12, cMult(cPow(wc, 2), w)) / 3.0f;
+			float2 tC21 = cMult(C21, cMult(cPow(wc, 2), w)) / 3.0f;
 			float2 tC23 = cMult(C23, cPow(wc, 3)) / 3.0f;
 			float tC30 = 0.25f * C30 * cModSq(w)*cModSq(w);
 			float2 tC32 = 0.25f * cMult(C32, cMult(cPow(wc, 3), w));
