@@ -45,8 +45,6 @@ private slots:
 private:
     Ui::AreaLayoutFrame *ui;
 
-    int lbl_precision = 5;
-
     std::shared_ptr<SimulationManager> SimManager;
 
     CtemAreaFrame *CtemFrame;

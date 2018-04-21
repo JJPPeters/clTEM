@@ -37,8 +37,6 @@ private:
     Ui::CbedAreaFrame *ui;
 
     CbedPosition Position;
-
-    int edt_precision = 5;
 };
 
 #endif // CBEDAREAFRAME_H

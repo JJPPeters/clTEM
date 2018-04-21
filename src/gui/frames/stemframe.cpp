@@ -64,8 +64,8 @@ void StemFrame::updateScaleLabels()
     float scaleX = Main->getStemArea()->getScaleX();
     float scaleY = Main->getStemArea()->getScaleY();
 
-    ui->lblStemScaleX->setText( "x: " + QString::fromStdString( Utils::numToString(scaleX, 2) + " Å" ) );
-    ui->lblStemScaleY->setText( "y: " + QString::fromStdString( Utils::numToString(scaleY, 2) + " Å" ) );
+    ui->lblStemScaleX->setText( "x: " + Utils_Qt::numToQString(scaleX, 2) + " Å" );
+    ui->lblStemScaleY->setText( "y: " + Utils_Qt::numToQString(scaleY, 2) + " Å" );
 }
 
 void StemFrame::on_edtTds_textChanged(const QString &arg1)

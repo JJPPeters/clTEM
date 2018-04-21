@@ -88,8 +88,8 @@ void AreaLayoutFrame::areasChanged() {
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
         realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution() );
 
-        ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX(), lbl_precision) + " Å");
-        ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY(), lbl_precision) + " Å");
+        ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
+        ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
     }
     else if (mode == 2) { // CBED
         auto pos = CbedFrame->getCbedPos();
@@ -116,17 +116,17 @@ void AreaLayoutFrame::areasChanged() {
     double angleScale = freqScale * SimManager->getWavelength() * 1000.0;
     double angleMax = freqMax * SimManager->getWavelength() * 1000.0;
 
-    ui->lblRealScale->setText(Utils_Qt::numToQString(realScale, lbl_precision) + " Å");
-    ui->lblFreqScale->setText(Utils_Qt::numToQString(freqScale, lbl_precision) + " Å<sup>-1</sup>");
-    ui->lblFreqMax->setText(Utils_Qt::numToQString(freqMax, lbl_precision) + " Å<sup>-1</sup>");
-    ui->lblAngleScale->setText(Utils_Qt::numToQString(angleScale, lbl_precision) + " mrad");
-    ui->lblAngleMax->setText(Utils_Qt::numToQString(angleMax, lbl_precision) + " mrad");
+    ui->lblRealScale->setText(Utils_Qt::numToQString(realScale) + " Å");
+    ui->lblFreqScale->setText(Utils_Qt::numToQString(freqScale) + " Å<sup>-1</sup>");
+    ui->lblFreqMax->setText(Utils_Qt::numToQString(freqMax) + " Å<sup>-1</sup>");
+    ui->lblAngleScale->setText(Utils_Qt::numToQString(angleScale) + " mrad");
+    ui->lblAngleMax->setText(Utils_Qt::numToQString(angleMax) + " mrad");
 
     float dz = SimManager->getSliceThickness();
     float oz = SimManager->getSliceOffset();
 
-    ui->edtSliceThickness->setText(Utils_Qt::numToQString(dz, lbl_precision));
-    ui->edtSliceOffset->setText(Utils_Qt::numToQString(oz, lbl_precision));
+    ui->edtSliceThickness->setText(Utils_Qt::numToQString(dz));
+    ui->edtSliceOffset->setText(Utils_Qt::numToQString(oz));
 }
 
 void AreaLayoutFrame::on_cmbResolution_currentIndexChanged(const QString &arg1) {

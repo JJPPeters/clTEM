@@ -68,7 +68,7 @@ set ( clTEM_SRCS
         dialogs/settings/frames/cbedareaframe.cpp
 		dialogs/settings/frames/stemdetectorframe.cpp
 		dialogs/settings/frames/arealayoutframe.cpp
-        utils/stringutils.cpp utils/stringutils.h)
+        utils/stringutils.cpp utils/stringutils.h utils/guiutils.cpp utils/guiutils.h)
 
 set ( clTEM_UIS
 		mainwindow.ui

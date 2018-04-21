@@ -48,11 +48,11 @@ CtemAreaFrame::~CtemAreaFrame()
 void CtemAreaFrame::xFinishChanged(QString dud) {
     auto range =  ui->edtFinishX->text().toFloat() - ui->edtStartX->text().toFloat();
     if (!ui->edtRangeXY->hasFocus())
-        ui->edtRangeXY->setText(Utils_Qt::numToQString( range, edt_precision ));
+        ui->edtRangeXY->setText(Utils_Qt::numToQString( range ));
 
     auto finish = ui->edtStartY->text().toFloat() + range;
     if (!ui->edtFinishY->hasFocus())
-        ui->edtFinishY->setText(Utils_Qt::numToQString( finish, edt_precision ));
+        ui->edtFinishY->setText(Utils_Qt::numToQString( finish ));
 
     // check that values are correct
     setInvalidWarning(checkValidValues());
@@ -62,10 +62,10 @@ void CtemAreaFrame::xFinishChanged(QString dud) {
 void CtemAreaFrame::yFinishChanged(QString dud) {
     auto range =  ui->edtFinishY->text().toFloat() - ui->edtStartY->text().toFloat();
     if (!ui->edtRangeXY->hasFocus())
-        ui->edtRangeXY->setText(Utils_Qt::numToQString( range, edt_precision ));
+        ui->edtRangeXY->setText(Utils_Qt::numToQString( range ));
     auto finish = ui->edtStartX->text().toFloat() + range;
     if (!ui->edtFinishX->hasFocus())
-        ui->edtFinishX->setText(Utils_Qt::numToQString( finish, edt_precision ));
+        ui->edtFinishX->setText(Utils_Qt::numToQString( finish ));
 
     // check that values are correct
     setInvalidWarning(checkValidValues());
@@ -78,9 +78,9 @@ void CtemAreaFrame::rangeChanged(QString dud) {
     auto finish_y = ui->edtStartY->text().toFloat() + range;
 
     if (!ui->edtFinishX->hasFocus())
-        ui->edtFinishX->setText(Utils_Qt::numToQString( finish_x, edt_precision ));
+        ui->edtFinishX->setText(Utils_Qt::numToQString( finish_x ));
     if (!ui->edtFinishY->hasFocus())
-        ui->edtFinishY->setText(Utils_Qt::numToQString( finish_y, edt_precision ));
+        ui->edtFinishY->setText(Utils_Qt::numToQString( finish_y ));
 
     // check that values are correct
     setInvalidWarning(checkValidValues());
@@ -125,15 +125,15 @@ void CtemAreaFrame::on_btnReset_clicked() {
     auto xRangeTup = simArea.getLimitsX();
     auto yRangeTup = simArea.getLimitsY();
 
-    ui->edtStartX->setText(Utils_Qt::numToQString( xRangeTup[0], edt_precision ));
-    ui->edtFinishX->setText(Utils_Qt::numToQString( xRangeTup[1], edt_precision ));
+    ui->edtStartX->setText(Utils_Qt::numToQString( xRangeTup[0] ));
+    ui->edtFinishX->setText(Utils_Qt::numToQString( xRangeTup[1] ));
 
-    ui->edtStartY->setText(Utils_Qt::numToQString( yRangeTup[0], edt_precision ));
-    ui->edtFinishY->setText(Utils_Qt::numToQString( yRangeTup[1], edt_precision ));
+    ui->edtStartY->setText(Utils_Qt::numToQString( yRangeTup[0] ));
+    ui->edtFinishY->setText(Utils_Qt::numToQString( yRangeTup[1] ));
 
     auto range = xRangeTup[1] - xRangeTup[0]; // this will be the same as the y one
 
-    ui->edtRangeXY->setText(Utils_Qt::numToQString( range, edt_precision ));
+    ui->edtRangeXY->setText(Utils_Qt::numToQString( range ));
 
     emit areaChanged();
 }
@@ -142,5 +142,5 @@ void CtemAreaFrame::editing_finished() {
     QLineEdit* sndr = (QLineEdit*) sender();
 
     auto val = sndr->text().toFloat();
-    sndr->setText(Utils_Qt::numToQString( val, edt_precision ));
+    sndr->setText(Utils_Qt::numToQString( val ));
 }

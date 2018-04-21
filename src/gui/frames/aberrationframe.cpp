@@ -3,17 +3,18 @@
 
 #include <utilities/stringutils.h>
 #include <QtGui/QRegExpValidator>
+#include <utils/stringutils.h>
 
 #include "dialogs/settings/settingsdialog.h"
 
 AberrationFrame::AberrationFrame(QWidget *parent) :
-    QWidget(parent), Main(0),
+    QWidget(parent), Main(nullptr),
     ui(new Ui::AberrationForm)
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtDefocus->setValidator(pmValidator);
     ui->edtSphere->setValidator(pmValidator);
@@ -40,9 +41,11 @@ AberrationFrame::~AberrationFrame()
 
 void AberrationFrame::checkEditZero(QString dud)
 {
-    QLineEdit* edt = static_cast<QLineEdit*>(sender());
+    (void)dud; // we don't use this
 
-    if(edt == NULL)
+    auto * edt = dynamic_cast<QLineEdit*>(sender());
+
+    if(edt == nullptr)
         return;
 
     float val = edt->text().toFloat();
@@ -55,7 +58,7 @@ void AberrationFrame::checkEditZero(QString dud)
 
 void AberrationFrame::on_btnMore_clicked()
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
 
     updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
@@ -71,21 +74,21 @@ void AberrationFrame::on_btnMore_clicked()
 
 void AberrationFrame::updateTextBoxes()
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
     auto p = Main->Manager->getMicroscopeParams();
 
-    ui->edtDefocus->setText(QString::fromStdString(Utils::numToString(p->C10 / 10))); // nm
-    ui->edtSphere->setText(QString::fromStdString(Utils::numToString(p->C30 / 10000))); // um
+    ui->edtDefocus->setText(Utils_Qt::numToQString(p->C10 / 10)); // nm
+    ui->edtSphere->setText(Utils_Qt::numToQString(p->C30 / 10000)); // um
 
-    ui->edtStigMag->setText(QString::fromStdString(Utils::numToString(p->C12.Mag / 10))); // nm
-    ui->edtStigAng->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * p->C12.Ang))); // degrees
+    ui->edtStigMag->setText(Utils_Qt::numToQString(p->C12.Mag / 10)); // nm
+    ui->edtStigAng->setText(Utils_Qt::numToQString((180 / Constants::Pi) * p->C12.Ang)); // degrees
 
-    ui->edtDelta->setText(QString::fromStdString(Utils::numToString(p->Delta / 10))); // nm
-    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(p->Alpha))); // mrad
+    ui->edtDelta->setText(Utils_Qt::numToQString(p->Delta / 10)); // nm
+    ui->edtConverge->setText(Utils_Qt::numToQString(p->Alpha)); // mrad
 
-    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(p->Voltage))); // kV
-    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(p->Aperture))); // mrad
+    ui->edtVoltage->setText(Utils_Qt::numToQString(p->Voltage)); // kV
+    ui->edtAperture->setText(Utils_Qt::numToQString(p->Aperture)); // mrad
 }
 
 void AberrationFrame::updateAberrations()
@@ -94,7 +97,7 @@ void AberrationFrame::updateAberrations()
 
     // designed to only really be called before it matters, not after every edit...
 
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
     auto params = Main->getMicroscopeParams();
 

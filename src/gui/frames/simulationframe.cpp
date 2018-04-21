@@ -2,9 +2,10 @@
 #include <dialogs/settings/settingsdialog.h>
 #include "simulationframe.h"
 #include "ui_simulationframe.h"
+#include <utils/stringutils.h>
 
 SimulationFrame::SimulationFrame(QWidget *parent) :
-    QWidget(parent), Main(0),
+    QWidget(parent), Main(nullptr),
     ui(new Ui::SimulationFrame)
 {
     ui->setupUi(this);
@@ -18,21 +19,21 @@ SimulationFrame::~SimulationFrame()
 
 void SimulationFrame::updateStructureInfo(std::tuple<float, float, float, int> ranges)
 {
-    ui->lblWidth->setText(QString::fromStdString(Utils::numToString(std::get<0>(ranges), 2, true) + " Å"));
-    ui->lblHeight->setText(QString::fromStdString(Utils::numToString(std::get<1>(ranges), 2, true) + " Å"));
-    ui->lblDepth->setText(QString::fromStdString(Utils::numToString(std::get<2>(ranges), 2, true) + " Å"));
-    ui->lblAtoms->setText(QString::fromStdString(Utils::numToString(std::get<3>(ranges))));
+    ui->lblWidth->setText(Utils_Qt::numToQString(std::get<0>(ranges), 2, true) + " Å");
+    ui->lblHeight->setText(Utils_Qt::numToQString(std::get<1>(ranges), 2, true) + " Å");
+    ui->lblDepth->setText(Utils_Qt::numToQString(std::get<2>(ranges), 2, true) + " Å");
+    ui->lblAtoms->setText(Utils_Qt::numToQString(std::get<3>(ranges)));
 }
 
 void SimulationFrame::updateResolutionInfo(float pixScale, float invScale, float invMax)
 {
     //TODO: find way of stopping the program using scientific notation, particularly for the inverse scale
 
-    ui->lblRealScale->setText(QString::fromStdString(Utils::numToString(pixScale, 2) + " Å"));
+    ui->lblRealScale->setText(Utils_Qt::numToQString(pixScale, 2) + " Å");
 
-    ui->lblInverseScale->setText(QString::fromStdString(Utils::numToString(invScale*1000, 2) + "&times;10<sup>3</sup> Å<sup>-1</sup>"));
+    ui->lblInverseScale->setText(Utils_Qt::numToQString(invScale*1000, 2) + "&times;10<sup>3</sup> Å<sup>-1</sup>");
 
-    ui->lblMaxInverse->setText(QString::fromStdString(Utils::numToString(invMax, 2) + " mrad"));
+    ui->lblMaxInverse->setText(Utils_Qt::numToQString(invMax, 2) + " mrad");
 }
 
 void SimulationFrame::on_cmbResolution_currentIndexChanged(const QString &selection)
@@ -45,7 +46,7 @@ void SimulationFrame::on_cmbResolution_currentIndexChanged(const QString &select
 
 void SimulationFrame::on_chkFull3D_toggled(bool checked)
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
     if(checked && ui->chkFiniteDiff->isChecked())
@@ -57,7 +58,7 @@ void SimulationFrame::on_chkFull3D_toggled(bool checked)
 
 void SimulationFrame::on_chkFiniteDiff_toggled(bool checked)
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
     if(checked && ui->chkFull3D->isChecked())
@@ -69,7 +70,7 @@ void SimulationFrame::on_chkFiniteDiff_toggled(bool checked)
 
 void SimulationFrame::on_btnSimArea_clicked()
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
     // update the manager from the ui
@@ -90,7 +91,7 @@ void SimulationFrame::on_btnSimArea_clicked()
 void SimulationFrame::updateLimits()
 {
     // I could just send the signal one deeper, but I really cba. lets just get out mainwindow pointer instead...
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
     auto r = Main->getSimulationArea();

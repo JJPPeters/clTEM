@@ -92,10 +92,8 @@ void CbedFrame::update_text_boxes()
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    int edt_precision = 5;
-
-    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos(), edt_precision) );
-    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos(), edt_precision) );
+    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
+    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
     ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getStoredTdsRunsCbed()) );
     ui->chkTds->setChecked( Main->Manager->getTdsEnabledCbed() );
 }
