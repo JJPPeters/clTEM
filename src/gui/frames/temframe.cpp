@@ -15,7 +15,7 @@ TemFrame::TemFrame(QWidget *parent) :
 
     ui->edtDose->setValidator(pValidator);
 
-    ui->edtDose->setUnits("eA¹");
+    ui->edtDose->setUnits("e⁻A⁻²");
 }
 
 TemFrame::~TemFrame()
