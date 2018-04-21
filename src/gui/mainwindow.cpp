@@ -168,6 +168,8 @@ void MainWindow::on_actionOpen_triggered()
     updateScales();
 
     ui->tStem->updateScaleLabels();
+
+    StatusBar->setFileLabel(fileName);
 }
 
 void MainWindow::on_actionOpenCL_triggered()

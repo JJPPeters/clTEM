@@ -26,3 +26,7 @@ void StatusLayout::setTotalProgress(float prog)
 {
     ui->progressBar_2->setValue(static_cast<int>(prog*100));
 }
+
+void StatusLayout::setFileLabel(const QString &lbl) {
+    ui->lblFile->setText(lbl);
+}

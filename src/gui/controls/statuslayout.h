@@ -17,6 +17,7 @@ public:
 
     void setSliceProgress(float prog);
     void setTotalProgress(float prog);
+    void setFileLabel(const QString &lbl);
 
 private:
     Ui::StatusLayout *ui;
