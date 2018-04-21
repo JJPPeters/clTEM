@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include <ui_imagetab.h>
+#include <simulationmanager.h>
 
 #include "imageplot/imageplotwidget.h"
 #include "utilities/json.hpp"
@@ -39,10 +40,11 @@ public:
     nlohmann::json getSettings();
 
     template <typename T>
-    void setPlotWithData(Image<T> img, nlohmann::json stngs, IntensityScale scale = IntensityScale::Linear, bool doReplot = true)
+    void setPlotWithData(Image<T> img, QString units, double sc_x, double sc_y, double lo_x, double lo_y, nlohmann::json stngs, IntensityScale scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
     {
         settings = stngs;
-        ui->widget->SetImageTemplate(img, scale, doReplot);
+        image_units = units;
+        ui->widget->SetImageTemplate(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
     }
 
 private:
@@ -54,9 +56,14 @@ private:
 
     TabType MyType;
 
+    QString image_units;
+
 public slots:
     void forwardSaveData() { emit saveDataActivated(); }
     void forwardSaveImage() { emit saveImageActivated(); }
+
+private slots:
+    void updatePositionLabels(double x, double y);
 };
 
 #endif // IMAGETAB_H

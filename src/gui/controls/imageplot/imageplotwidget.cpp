@@ -2,7 +2,7 @@
 
 ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
 {
-    setInteractions(QCP::iRangeZoom);
+    setInteractions(QCP::iRangeZoom | QCP::iRangeDrag);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -63,7 +63,7 @@ void ImagePlotWidget::matchPlotToPalette() {
     yAxis->grid()->setZeroLinePen(zeroPen);
 }
 
-void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, const int sy, IntensityScale scale, bool doReplot) {
+void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, const int sy, IntensityScale intensity_scale, bool doReplot) {
     if (sx*sy != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
 
@@ -84,15 +84,27 @@ void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, c
     //check imageobject is not null?
     ImageObject->data()->setSize(sx, sy);
 
-    double r_x = ((double) sx - 1.0) / 2.0;
-    double r_y = ((double) sy - 1.0) / 2.0;
+    double r_x_low, r_x_high, r_y_low, r_y_high;
 
-    ImageObject->data()->setRange(QCPRange(-r_x, r_x), QCPRange(-r_y, r_y));
+    if (zero_pos == ZeroPosition::Centre) {
+        // these plus and minus ones may only work for the even images we have
+        r_x_low = -scale_x * ((double) sx + 1) / 2.0;
+        r_y_low = -scale_y * ((double) sy + 1) / 2.0;
+        r_x_high = scale_x * ((double) sx - 1) / 2.0;
+        r_y_high = scale_y * ((double) sy - 1) / 2.0;
+    } else {
+        r_x_low = zero_x;
+        r_y_low = zero_y;
+        r_x_high = zero_x + scale_x * ((double) sx - 1.0);
+        r_y_high = zero_y + scale_y * ((double) sy - 1.0);
+    }
+
+    ImageObject->data()->setRange(QCPRange(r_x_low, r_x_high), QCPRange(r_y_low, r_y_high));
 
     for (int xIndex=0; xIndex<sx; ++xIndex)
         for (int yIndex=0; yIndex<sy; ++yIndex)
         {
-            if (scale == IntensityScale::Linear)
+            if (intensity_scale == IntensityScale::Linear)
                 ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
             else
                 ImageObject->data()->setCell(xIndex, yIndex, std::log10(1+image[yIndex*sx+xIndex])); // TODO: check image isn't negative (and so on...)
@@ -280,15 +292,15 @@ void ImagePlotWidget::resetAxes(bool doReplot) {
         yAxis->setRange(-500, 500);
     }
     else {
-        double r_x = (double) size_x / 2;
-        double r_y = (double) size_y / 2;
+        auto kr = ImageObject->data()->keyRange();
+        auto vr = ImageObject->data()->valueRange();
 
         if (crop_image) {
-            xAxis->setRange(crop_l - r_x, -crop_r + r_x);
-            yAxis->setRange(crop_t - r_y, -crop_b + r_y);
+            xAxis->setRange(scale_x*(crop_l-0.5) + kr.lower, -scale_x*(crop_r-0.5) + kr.upper);
+            yAxis->setRange(scale_y*(crop_b-0.5) + vr.lower, -scale_y*(crop_t-0.5) + vr.upper);
         } else {
-            xAxis->setRange(-r_x, r_x);
-            yAxis->setRange(-r_y, r_y);
+            xAxis->setRange(kr.lower-scale_x*0.5, kr.upper+scale_x*0.5);
+            yAxis->setRange(vr.lower-scale_y*0.5, vr.upper+scale_y*0.5);
         }
     }
 

@@ -382,7 +382,10 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
-                    tab->setPlotWithData(im, settings);
+                    double lx = sm.getPaddedSimLimitsX()[0];
+                    double ly = sm.getPaddedSimLimitsY()[0];
+                    double sc = sm.getRealScale();
+                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
                 }
             }
         }
@@ -393,7 +396,10 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
-                    tab->setPlotWithData(im, settings);
+                    double lx = sm.getPaddedSimLimitsX()[0];
+                    double ly = sm.getPaddedSimLimitsY()[0];
+                    double sc = sm.getRealScale();
+                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
                 }
             }
         }
@@ -407,7 +413,10 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
-                    tab->setPlotWithData(im, settings);
+                    double lx = sm.getPaddedSimLimitsX()[0];
+                    double ly = sm.getPaddedSimLimitsY()[0];
+                    double sc = sm.getRealScale();
+                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
                 }
             }
         }
@@ -421,7 +430,16 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
-                    tab->setPlotWithData(im, settings, IntensityScale::Log);
+                    double sc;
+                    QString unit;
+                    if (sm.getMode() == SimulationMode::CBED) {
+                        sc = sm.getInverseScaleAngle();
+                        unit = "mrad";
+                    } else {
+                        sc = sm.getInverseScale();
+                        unit = "A⁻¹";
+                    }
+                    tab->setPlotWithData(im, unit, sc, sc, 0.0, 0.0, settings, IntensityScale::Log, ZeroPosition::Centre);
                 }
             }
         }
@@ -439,7 +457,13 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                             settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
-                    tab->setPlotWithData(im, settings);
+
+                    double lx = sm.getStemArea()->getLimitsX()[0];
+                    double ly = sm.getStemArea()->getLimitsY()[0];
+                    double scx = sm.getStemArea()->getScaleX();
+                    double scy = sm.getStemArea()->getScaleY();
+
+                    tab->setPlotWithData(im, "Å", scx, scy, lx, ly, settings);
                 }
             }
         }

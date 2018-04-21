@@ -24,6 +24,10 @@ enum IntensityScale {
     Linear,
     Log };
 
+enum ZeroPosition {
+    Centre,
+    BottomLeft };
+
 typedef std::map<std::string, std::map<std::string, std::string>>::iterator it_type;
 
 class ImagePlotWidget : public QCustomPlot
@@ -33,6 +37,7 @@ class ImagePlotWidget : public QCustomPlot
 signals:
     void saveDataClicked();
     void saveImageClicked();
+    void mouseHoverEvent(double, double);
 
 public:
     ImagePlotWidget(QWidget *parent);
@@ -45,7 +50,7 @@ public:
     void matchPlotToPalette();
 
     template <typename T>
-    void SetImageTemplate(Image<T> img, IntensityScale scale = IntensityScale::Linear, bool doReplot = true)
+    void SetImageTemplate(Image<T> img, double z_x = 0.0, double z_y = 0.0, double sc_x = 1.0, double sc_y = 1.0, IntensityScale intensity_scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
     {
         std::vector<double> im_d(img.data.size());
         for (int i = 0; i < img.data.size(); ++i)
@@ -54,7 +59,12 @@ public:
         crop_l = img.pad_l;
         crop_b = img.pad_b;
         crop_r = img.pad_r;
-        SetImage(im_d, img.width, img.height, scale, doReplot);
+        scale_x = sc_x;
+        scale_y = sc_y;
+        zero_x = z_x;
+        zero_y = z_y;
+        zero_pos = zp;
+        SetImage(im_d, img.width, img.height, intensity_scale, doReplot);
     }
 
     void DrawCircle(double x, double y, QColor colour = Qt::red, QBrush fill = QBrush(Qt::red), double radius = 2, Qt::PenStyle line = Qt::SolidLine, double thickness = 2);
@@ -118,6 +128,8 @@ private:
 
     bool haveImage = false;
 
+    ZeroPosition zero_pos;
+
     double AspectRatio = 1;
 
     bool crop_image = false;
@@ -125,7 +137,10 @@ private:
     int size_x, size_y;
     int crop_t, crop_l, crop_b, crop_r;
 
-    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale scale = IntensityScale::Linear, bool doReplot = true);
+    double scale_x, scale_y;
+    double zero_x, zero_y;
+
+    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
 
     void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
 
@@ -139,6 +154,17 @@ private:
     void setImageRatio(int axisWidth, int axisHeight);
 
     void cropImage(bool doReplot = true);
+
+    void mouseMoveEvent(QMouseEvent* event) {
+        if (haveImage) {
+            auto p = event->pos();
+            double x = xAxis->pixelToCoord(p.x());
+            double y = yAxis->pixelToCoord(p.y());
+
+            emit mouseHoverEvent(x, y);
+        }
+        QCustomPlot::mouseMoveEvent(event);
+    }
 
 public slots:
     void SetColorLimits(double ul);
