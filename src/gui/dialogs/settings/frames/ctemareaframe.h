@@ -42,8 +42,6 @@ private slots:
 private:
     Ui::CtemAreaFrame *ui;
 
-    int edt_precision = 5;
-
     SimulationArea simArea;
 
     bool checkValidValues();

@@ -26,6 +26,8 @@ private:
 
     void setValues();
 
+    void setUnits();
+
     std::shared_ptr<MicroscopeParameters> MicroParams;
 
 private slots:

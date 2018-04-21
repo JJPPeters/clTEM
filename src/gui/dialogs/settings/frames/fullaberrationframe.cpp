@@ -4,8 +4,11 @@
 #include <QtGui/QRegExpValidator>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
+#include <utility>
 #include <utilities/stringutils.h>
 #include <dialogs/settings/settingsdialog.h>
+#include <utils/stringutils.h>
+#include <controls/editunitsbox.h>
 
 #include "utilities/commonstructs.h"
 
@@ -15,7 +18,7 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
 {
     ui->setupUi(this);
 
-    MicroParams = params;
+    MicroParams = std::move(params);
 
     connect(ui->edtAperture, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
     connect(ui->edtDefocusSpread, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
@@ -23,6 +26,7 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
     connect(ui->edtVoltage, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
 
     setValidators();
+    setUnits();
     setValues();
 
     connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
@@ -32,8 +36,7 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
 
 void FullAberrationFrame::setValidators()
 {
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtVoltage->setValidator(pValidator);
     ui->edtAperture->setValidator(pValidator);
@@ -74,40 +77,40 @@ void FullAberrationFrame::setValidators()
 void FullAberrationFrame::setValues()
 {
     // this is fun, right?
-    ui->edtVoltage->setText(QString::fromStdString(Utils::numToString(MicroParams->Voltage))); // kV
-    ui->edtAperture->setText(QString::fromStdString(Utils::numToString(MicroParams->Aperture))); // mrad
-    ui->edtDefocusSpread->setText(QString::fromStdString(Utils::numToString(MicroParams->Delta / 10))); // nm
-    ui->edtConverge->setText(QString::fromStdString(Utils::numToString(MicroParams->Alpha))); // mrad
+    ui->edtVoltage->setText(Utils_Qt::numToQString(MicroParams->Voltage)); // kV
+    ui->edtAperture->setText(Utils_Qt::numToQString(MicroParams->Aperture)); // mrad
+    ui->edtDefocusSpread->setText(Utils_Qt::numToQString(MicroParams->Delta / 10)); // nm
+    ui->edtConverge->setText(Utils_Qt::numToQString(MicroParams->Alpha)); // mrad
 
-    ui->edtC10->setText(QString::fromStdString(Utils::numToString(MicroParams->C10 / 10))); // nm
-    ui->edtC12Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C12.Mag / 10))); // nm
-    ui->edtC12Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C12.Ang))); // degrees
+    ui->edtC10->setText(Utils_Qt::numToQString(MicroParams->C10 / 10)); // nm
+    ui->edtC12Mag->setText(Utils_Qt::numToQString(MicroParams->C12.Mag / 10)); // nm
+    ui->edtC12Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C12.Ang)); // degrees
 
-    ui->edtC21Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C21.Mag / 10))); // nm
-    ui->edtC21Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C21.Ang))); // degrees
-    ui->edtC23Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C23.Mag / 10))); // nm
-    ui->edtC23Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C23.Ang))); // degrees
+    ui->edtC21Mag->setText(Utils_Qt::numToQString(MicroParams->C21.Mag / 10)); // nm
+    ui->edtC21Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C21.Ang)); // degrees
+    ui->edtC23Mag->setText(Utils_Qt::numToQString(MicroParams->C23.Mag / 10)); // nm
+    ui->edtC23Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C23.Ang)); // degrees
 
-    ui->edtC30->setText(QString::fromStdString(Utils::numToString(MicroParams->C30 / 10000))); // um
-    ui->edtC32Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C32.Mag / 10000))); // um
-    ui->edtC32Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C32.Ang))); // degrees
-    ui->edtC34Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C34.Mag / 10000))); // um
-    ui->edtC34Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C34.Ang))); // degrees
+    ui->edtC30->setText(Utils_Qt::numToQString(MicroParams->C30 / 10000)); // um
+    ui->edtC32Mag->setText(Utils_Qt::numToQString(MicroParams->C32.Mag / 10000)); // um
+    ui->edtC32Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C32.Ang)); // degrees
+    ui->edtC34Mag->setText(Utils_Qt::numToQString(MicroParams->C34.Mag / 10000)); // um
+    ui->edtC34Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C34.Ang)); // degrees
 
-    ui->edtC41Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C41.Mag / 10000))); // um
-    ui->edtC41Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C41.Ang))); // degrees
-    ui->edtC43Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C43.Mag / 10000))); // um
-    ui->edtC43Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C43.Ang))); // degrees
-    ui->edtC45Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C45.Mag / 10000))); // um
-    ui->edtC45Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C45.Ang))); // degrees
+    ui->edtC41Mag->setText(Utils_Qt::numToQString(MicroParams->C41.Mag / 10000)); // um
+    ui->edtC41Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C41.Ang)); // degrees
+    ui->edtC43Mag->setText(Utils_Qt::numToQString(MicroParams->C43.Mag / 10000)); // um
+    ui->edtC43Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C43.Ang)); // degrees
+    ui->edtC45Mag->setText(Utils_Qt::numToQString(MicroParams->C45.Mag / 10000)); // um
+    ui->edtC45Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C45.Ang)); // degrees
 
-    ui->edtC50->setText(QString::fromStdString(Utils::numToString(MicroParams->C50 / 10000))); // um
-    ui->edtC52Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C52.Mag / 10000))); // um
-    ui->edtC52Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang))); // degrees
-    ui->edtC54Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C54.Mag / 10000))); // um
-    ui->edtC54Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang))); // degrees
-    ui->edtC56Mag->setText(QString::fromStdString(Utils::numToString(MicroParams->C56.Mag / 10000))); // um
-    ui->edtC56Ang->setText(QString::fromStdString(Utils::numToString((180 / Constants::Pi) * MicroParams->C52.Ang))); // degrees
+    ui->edtC50->setText(Utils_Qt::numToQString(MicroParams->C50 / 10000)); // um
+    ui->edtC52Mag->setText(Utils_Qt::numToQString(MicroParams->C52.Mag / 10000)); // um
+    ui->edtC52Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C52.Ang)); // degrees
+    ui->edtC54Mag->setText(Utils_Qt::numToQString(MicroParams->C54.Mag / 10000)); // um
+    ui->edtC54Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C52.Ang)); // degrees
+    ui->edtC56Mag->setText(Utils_Qt::numToQString(MicroParams->C56.Mag / 10000)); // um
+    ui->edtC56Ang->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->C52.Ang)); // degrees
 }
 
 FullAberrationFrame::~FullAberrationFrame()
@@ -117,9 +120,11 @@ FullAberrationFrame::~FullAberrationFrame()
 
 void FullAberrationFrame::checkEditZero(QString dud)
 {
-    QLineEdit* edt = qobject_cast<QLineEdit*>(sender());
+    (void)dud; // make it explicit that this is not used
 
-    if(edt == NULL)
+    auto * edt = dynamic_cast<EditUnitsBox*>(sender());
+
+    if(edt == nullptr)
         return;
 
     float val = edt->text().toFloat();
@@ -133,7 +138,7 @@ void FullAberrationFrame::checkEditZero(QString dud)
 void FullAberrationFrame::dlgCancel_clicked()
 {
     // don't need to do anything, just return
-    AberrationsDialog* dlg = static_cast<AberrationsDialog*>(parentWidget());
+    auto * dlg = dynamic_cast<AberrationsDialog*>(parentWidget());
     dlg->reject();
 }
 
@@ -142,7 +147,7 @@ void FullAberrationFrame::dlgOk_clicked()
     // same as clicking apply then closing the dialog
     if(dlgApply_clicked())
     {
-        AberrationsDialog* dlg = static_cast<AberrationsDialog*>(parentWidget());
+        auto * dlg = dynamic_cast<AberrationsDialog*>(parentWidget());
         dlg->accept();
     }
 }
@@ -224,6 +229,44 @@ bool FullAberrationFrame::dlgApply_clicked()
     emit aberrationsApplied();
 
     return true;
+}
+
+void FullAberrationFrame::setUnits() {
+    ui->edtVoltage->setUnits("kV");
+    ui->edtAperture->setUnits("mrad");
+    ui->edtDefocusSpread->setUnits("nm");
+    ui->edtConverge->setUnits("mrad");
+
+    ui->edtC10->setUnits("nm");
+    ui->edtC12Mag->setUnits("nm");
+    ui->edtC12Ang->setUnits("°");
+
+    ui->edtC21Mag->setUnits("nm");
+    ui->edtC21Ang->setUnits("°");
+    ui->edtC23Mag->setUnits("nm");
+    ui->edtC23Ang->setUnits("°");
+
+    ui->edtC30->setUnits("μm");
+    ui->edtC32Mag->setUnits("μm");
+    ui->edtC32Ang->setUnits("°");
+    ui->edtC34Mag->setUnits("μm");
+    ui->edtC34Ang->setUnits("°");
+
+    ui->edtC41Mag->setUnits("μm");
+    ui->edtC41Ang->setUnits("°");
+    ui->edtC43Mag->setUnits("μm");
+    ui->edtC43Ang->setUnits("°");
+    ui->edtC45Mag->setUnits("μm");
+    ui->edtC45Ang->setUnits("°");
+
+    ui->edtC50->setUnits("μm");
+    ui->edtC52Mag->setUnits("μm");
+    ui->edtC52Ang->setUnits("°");
+    ui->edtC54Mag->setUnits("μm");
+    ui->edtC54Ang->setUnits("°");
+    ui->edtC56Mag->setUnits("μm");
+    ui->edtC56Ang->setUnits("°");
+
 }
 
 

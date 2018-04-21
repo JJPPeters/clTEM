@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <utils/stringutils.h>
+#include <QtGui/QRegExpValidator>
 
 TemFrame::TemFrame(QWidget *parent) :
     QWidget(parent),
@@ -10,9 +11,11 @@ TemFrame::TemFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtDose->setValidator(pValidator);
+
+    ui->edtDose->setUnits("e⁻A⁻²");
 }
 
 TemFrame::~TemFrame()
@@ -22,7 +25,10 @@ TemFrame::~TemFrame()
 
 void TemFrame::on_edtDose_textChanged(const QString &arg1)
 {
-    if(arg1.toInt() < 1)
+    (void)arg1; // don't want this.
+    auto v = ui->edtDose->text();
+
+    if(v.toFloat() < 0)
         ui->edtDose->setStyleSheet("color: #FF8C00");
     else
         ui->edtDose->setStyleSheet("");
@@ -67,7 +73,7 @@ void TemFrame::setBinningIndex(int index) {
 
 void TemFrame::setDose(float dose)
 {
-    ui->edtDose->setText(Utils_Qt::numToQString((int) dose, edt_precision));
+    ui->edtDose->setText(Utils_Qt::numToQString((int) dose));
 }
 
 int TemFrame::getBinning() {
@@ -91,7 +97,7 @@ void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
     auto nm = sm->getCcdName();
     int bn = sm->getCcdBinning();
 
-    ui->edtDose->setText( Utils_Qt::numToQString(dse, 5) );
+    ui->edtDose->setText( Utils_Qt::numToQString(dse) );
 
     // TODO: could use findtext?
     // set the name if it exists...

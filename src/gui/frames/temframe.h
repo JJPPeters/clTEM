@@ -50,7 +50,6 @@ private slots:
 private:
     Ui::TemFrame *ui;
 
-    int edt_precision = 5;
 };
 
 #endif // TEMFRAME_H

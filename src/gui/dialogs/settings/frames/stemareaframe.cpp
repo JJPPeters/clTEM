@@ -29,6 +29,19 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
 
     ui->edtPadding->setValidator(pValidator);
 
+    ui->edtStartX->setUnits("Å");
+    ui->edtStartY->setUnits("Å");
+    ui->edtFinishX->setUnits("Å");
+    ui->edtFinishY->setUnits("Å");
+
+    ui->edtRangeX->setUnits("Å");
+    ui->edtRangeY->setUnits("Å");
+
+    ui->edtPixelsX->setUnits("Å");
+    ui->edtPixelsY->setUnits("Å");
+
+    ui->edtPadding->setUnits("Å");
+
     connect(ui->edtPixelsX, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
     connect(ui->edtPixelsY, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
 
@@ -51,7 +64,6 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
     connect(ui->edtRangeX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
     connect(ui->edtRangeY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
     connect(ui->edtPadding, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-
 
     // set teh default values
     on_btnReset_clicked();
@@ -83,7 +95,7 @@ void StemAreaFrame::xStartRangeChanged(QString dud) {
     auto finish_x = ui->edtStartX->text().toFloat() + range;
 
     if (!ui->edtFinishX->hasFocus())
-        ui->edtFinishX->setText(Utils_Qt::numToQString( finish_x, edt_precision ));
+        ui->edtFinishX->setText(Utils_Qt::numToQString( finish_x ));
     setInvalidXWarning(checkValidXValues());
     emit areaChanged();
 }
@@ -93,7 +105,7 @@ void StemAreaFrame::yStartRangeChanged(QString dud) {
     auto finish_y = ui->edtStartY->text().toFloat() + range;
 
     if (!ui->edtFinishY->hasFocus())
-        ui->edtFinishY->setText(Utils_Qt::numToQString( finish_y, edt_precision ));
+        ui->edtFinishY->setText(Utils_Qt::numToQString( finish_y ));
     setInvalidYWarning(checkValidYValues());
     emit areaChanged();
 }
@@ -101,10 +113,10 @@ void StemAreaFrame::yStartRangeChanged(QString dud) {
 void StemAreaFrame::xFinishChanged(QString dud) {
     auto range =  ui->edtFinishX->text().toFloat() - ui->edtStartX->text().toFloat();
     if (!ui->edtRangeX->hasFocus())
-        ui->edtRangeX->setText(Utils_Qt::numToQString( range, edt_precision ));
+        ui->edtRangeX->setText(Utils_Qt::numToQString( range ));
     auto finish = ui->edtStartX->text().toFloat() + range;
     if (!ui->edtFinishX->hasFocus())
-        ui->edtFinishX->setText(Utils_Qt::numToQString( finish, edt_precision ));
+        ui->edtFinishX->setText(Utils_Qt::numToQString( finish ));
 
     // check that values are correct
     setInvalidXWarning(checkValidXValues());
@@ -114,10 +126,10 @@ void StemAreaFrame::xFinishChanged(QString dud) {
 void StemAreaFrame::yFinishChanged(QString dud) {
     auto range =  ui->edtFinishY->text().toFloat() - ui->edtStartY->text().toFloat();
     if (!ui->edtRangeY->hasFocus())
-        ui->edtRangeY->setText(Utils_Qt::numToQString( range, edt_precision ));
+        ui->edtRangeY->setText(Utils_Qt::numToQString( range ));
     auto finish = ui->edtStartY->text().toFloat() + range;
     if (!ui->edtFinishY->hasFocus())
-        ui->edtFinishY->setText(Utils_Qt::numToQString( finish, edt_precision ));
+        ui->edtFinishY->setText(Utils_Qt::numToQString( finish ));
 
     // check that values are correct
     setInvalidYWarning(checkValidYValues());
@@ -175,17 +187,17 @@ void StemAreaFrame::on_btnReset_clicked() {
     int py = Area.getPixelsY();
     float padding = Area.getPadding();
 
-    ui->edtStartX->setText(Utils_Qt::numToQString( xLims[0], edt_precision ));
-    ui->edtFinishX->setText(Utils_Qt::numToQString( xLims[1], edt_precision ));
-    ui->edtPixelsX->setText(Utils_Qt::numToQString( px, edt_precision ));
-    ui->edtRangeX->setText(Utils_Qt::numToQString( xLims[1] - xLims[0], edt_precision ));
+    ui->edtStartX->setText(Utils_Qt::numToQString( xLims[0] ));
+    ui->edtFinishX->setText(Utils_Qt::numToQString( xLims[1] ));
+    ui->edtPixelsX->setText(Utils_Qt::numToQString( px ));
+    ui->edtRangeX->setText(Utils_Qt::numToQString( xLims[1] - xLims[0] ));
 
-    ui->edtStartY->setText(Utils_Qt::numToQString( yLims[0], edt_precision ));
-    ui->edtFinishY->setText(Utils_Qt::numToQString( yLims[1], edt_precision ));
-    ui->edtPixelsY->setText(Utils_Qt::numToQString( py, edt_precision ));
-    ui->edtRangeY->setText(Utils_Qt::numToQString( yLims[1] - yLims[0], edt_precision ));
+    ui->edtStartY->setText(Utils_Qt::numToQString( yLims[0] ));
+    ui->edtFinishY->setText(Utils_Qt::numToQString( yLims[1] ));
+    ui->edtPixelsY->setText(Utils_Qt::numToQString( py ));
+    ui->edtRangeY->setText(Utils_Qt::numToQString( yLims[1] - yLims[0] ));
 
-    ui->edtPadding->setText(Utils_Qt::numToQString(padding, edt_precision));
+    ui->edtPadding->setText(Utils_Qt::numToQString(padding));
 
     emit areaChanged();
 }
@@ -194,5 +206,5 @@ void StemAreaFrame::editing_finished() {
     QLineEdit* sndr = (QLineEdit*) sender();
 
     auto val = sndr->text().toFloat();
-    sndr->setText(Utils_Qt::numToQString( val, edt_precision ));
+    sndr->setText(Utils_Qt::numToQString( val ));
 }

@@ -363,7 +363,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="2">
-        <widget class="QLineEdit" name="edtSliceThickness">
+        <widget class="EditUnitsBox" name="edtSliceThickness">
          <property name="minimumSize">
           <size>
            <width>100</width>
@@ -406,7 +406,7 @@
         </widget>
        </item>
        <item row="0" column="4">
-        <widget class="QLineEdit" name="edtSliceOffset">
+        <widget class="EditUnitsBox" name="edtSliceOffset">
          <property name="minimumSize">
           <size>
            <width>100</width>
@@ -429,6 +429,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
   <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>

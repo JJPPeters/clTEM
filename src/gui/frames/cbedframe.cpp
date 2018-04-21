@@ -9,12 +9,15 @@ CbedFrame::CbedFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
     QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
     ui->edtPosX->setValidator(pmValidator);
     ui->edtPosY->setValidator(pmValidator);
     ui->edtTds->setValidator(pIntValidator);
+
+    ui->edtPosX->setUnits("Å");
+    ui->edtPosY->setUnits("Å");
 }
 
 CbedFrame::~CbedFrame()
@@ -35,27 +38,31 @@ void CbedFrame::on_edtTds_textChanged(const QString &arg1)
 
 void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
 {
-    if (Main == 0)
+    (void)arg1; // don't want this
+
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    float v = arg1.toFloat();
+    float v = ui->edtPosY->text().toFloat();
 
     Main->Manager->getCBedPosition()->setYPos(v);
 }
 
 void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
 {
-    if (Main == 0)
+    (void)arg1; // don't want this
+
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    float v = arg1.toFloat();
+    float v = ui->edtPosX->text().toFloat();
 
     Main->Manager->getCBedPosition()->setXPos(v);
 }
 
 void CbedFrame::on_btnSim_clicked()
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
     emit startSim();
@@ -92,10 +99,8 @@ void CbedFrame::update_text_boxes()
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    int edt_precision = 5;
-
-    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos(), edt_precision) );
-    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos(), edt_precision) );
+    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
+    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
     ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getStoredTdsRunsCbed()) );
     ui->chkTds->setChecked( Main->Manager->getTdsEnabledCbed() );
 }

@@ -47,8 +47,6 @@ private:
 
     StemArea Area;
 
-    int edt_precision = 5;
-
     bool checkValidXValues();
     bool checkValidYValues();
     void setInvalidXWarning(bool valid);

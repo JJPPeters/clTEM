@@ -1,5 +1,7 @@
-#include <utilities/stringutils.h>
+#include <utils/stringutils.h>
 #include <dialogs/settings/settingsdialog.h>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QTableWidgetItem>
 #include "stemdetectorframe.h"
 #include "ui_stemdetectorframe.h"
 
@@ -17,6 +19,16 @@ StemDetectorFrame::StemDetectorFrame(QWidget *parent, std::vector<StemDetector>&
 
     ui->tblDetectors->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 
+    ui->edtInner->setUnits("mrad");
+    ui->edtOuter->setUnits("mrad");
+    ui->edtCentreX->setUnits("mrad");
+    ui->edtCentreY->setUnits("mrad");
+
+    ui->edtInner->setText("0");
+    ui->edtOuter->setText("10");
+    ui->edtCentreX->setText("0");
+    ui->edtCentreY->setText("0");
+
     connect(ui->edtInner, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
     connect(ui->edtOuter, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
 
@@ -24,8 +36,8 @@ StemDetectorFrame::StemDetectorFrame(QWidget *parent, std::vector<StemDetector>&
     connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
     connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
 
-    for(int i = 0; i < chosenDetectors.size(); ++i)
-        addItemToList(chosenDetectors[i]);
+    for (const auto &chosenDetector : chosenDetectors)
+        addItemToList(chosenDetector);
 
     setNewName();
 }
@@ -63,16 +75,15 @@ void StemDetectorFrame::on_btnDelete_clicked()
     QList<QTableWidgetItem *> selection = ui->tblDetectors->selectedItems();
 
     std::vector<int> toRemove;
-    for(int i = 0; i < selection.size(); ++i)
-        if(selection.at(i)->column() == 0)
-            toRemove.push_back(selection.at(i)->row());
+    for (auto i : selection)
+        if(i->column() == 0)
+            toRemove.push_back(i->row());
 
     std::sort(toRemove.begin(), toRemove.end());
 
     int n = 0;
-    for(int i = 0; i < toRemove.size(); ++i)
-    {
-        ui->tblDetectors->removeRow(toRemove[i] - n);
+    for (int i : toRemove) {
+        ui->tblDetectors->removeRow(i - n);
         ++n;
     }
 
@@ -89,7 +100,7 @@ void StemDetectorFrame::on_edtName_textChanged(const QString &arg1)
 
 bool StemDetectorFrame::checkNameValid(std::string name)
 {
-    if(name == "" || name == "Img" || name == "EW A" || name == "EW θ")
+    if(name.empty() || name == "Img" || name == "EW A" || name == "EW θ")
         return false;
 
     int n = ui->tblDetectors->rowCount();
@@ -103,9 +114,7 @@ bool StemDetectorFrame::checkNameValid(std::string name)
 
 bool StemDetectorFrame::checkRadiiValid()
 {
-    if(ui->edtInner->text().toFloat() >= ui->edtOuter->text().toFloat())
-        return false;
-    return true;
+    return ui->edtInner->text().toFloat() < ui->edtOuter->text().toFloat();
 }
 
 void StemDetectorFrame::addItemToList(StemDetector det)
@@ -113,21 +122,21 @@ void StemDetectorFrame::addItemToList(StemDetector det)
     int n = ui->tblDetectors->rowCount();
     ui->tblDetectors->insertRow(n);
 
-    QTableWidgetItem* cell_0 = new QTableWidgetItem();
+    auto * cell_0 = new QTableWidgetItem();
     cell_0->setTextAlignment(Qt::AlignCenter);
     cell_0->setText(QString::fromStdString(det.name));
 
     auto cell_1 = cell_0->clone();
-    cell_1->setText(QString::fromStdString(Utils::numToString(det.inner)));
+    cell_1->setText(Utils_Qt::numToQString(det.inner));
 
     auto cell_2 = cell_0->clone();
-    cell_2->setText(QString::fromStdString(Utils::numToString(det.outer)));
+    cell_2->setText(Utils_Qt::numToQString(det.outer));
 
     auto cell_3 = cell_0->clone();
-    cell_3->setText(QString::fromStdString(Utils::numToString(det.xcentre)));
+    cell_3->setText(Utils_Qt::numToQString(det.xcentre));
 
     auto cell_4 = cell_0->clone();
-    cell_4->setText(QString::fromStdString(Utils::numToString(det.ycentre)));
+    cell_4->setText(Utils_Qt::numToQString(det.ycentre));
 
     ui->tblDetectors->setItem(n, 0, cell_0);
     ui->tblDetectors->setItem(n, 1, cell_1);
@@ -139,7 +148,7 @@ void StemDetectorFrame::addItemToList(StemDetector det)
 void StemDetectorFrame::dlgCancel_clicked()
 {
     // don't need to do anything, just return
-    StemDetectorDialog* dlg = static_cast<StemDetectorDialog*>(parentWidget());
+    auto * dlg = dynamic_cast<StemDetectorDialog*>(parentWidget());
     dlg->reject();
 }
 
@@ -148,7 +157,7 @@ void StemDetectorFrame::dlgOk_clicked()
     // same as clicking apply then closing the dialog
     if(dlgApply_clicked())
     {
-        StemDetectorDialog* dlg = static_cast<StemDetectorDialog*>(parentWidget());
+        auto * dlg = dynamic_cast<StemDetectorDialog*>(parentWidget());
         dlg->accept();
     }
 }
@@ -157,7 +166,7 @@ bool StemDetectorFrame::dlgApply_clicked()
 {
     chosenDetectors.clear();
     int nRows = ui->tblDetectors->rowCount();
-    chosenDetectors.resize(nRows);
+    chosenDetectors.resize(static_cast<unsigned long>(nRows));
 
     for (int i = 0; i < nRows; ++i)
     {
@@ -177,6 +186,8 @@ bool StemDetectorFrame::dlgApply_clicked()
 
 void StemDetectorFrame::doRadiiValid(QString dud)
 {
+    (void)dud; // don't need this
+
     if (!checkRadiiValid())
     {
         ui->edtInner->setStyleSheet("color: #FF8C00");

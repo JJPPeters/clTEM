@@ -17,6 +17,10 @@ CbedAreaFrame::CbedAreaFrame(QWidget *parent, CbedPosition pos) :
 
     ui->edtPadding->setValidator(pValidator);
 
+    ui->edtPosX->setUnits("Å");
+    ui->edtPosY->setUnits("Å");
+    ui->edtPadding->setUnits("Å");
+
     connect(ui->edtPadding, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
 
     connect(ui->edtPosX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
@@ -45,9 +49,9 @@ CbedPosition CbedAreaFrame::getCbedPos() {
 
 void CbedAreaFrame::on_btnReset_clicked()
 {
-    ui->edtPosX->setText(Utils_Qt::numToQString( Position.getXPos(), edt_precision ));
-    ui->edtPosY->setText(Utils_Qt::numToQString( Position.getYPos(), edt_precision ));
-    ui->edtPadding->setText(Utils_Qt::numToQString( Position.getPadding(), edt_precision ));
+    ui->edtPosX->setText(Utils_Qt::numToQString( Position.getXPos()));
+    ui->edtPosY->setText(Utils_Qt::numToQString( Position.getYPos()));
+    ui->edtPadding->setText(Utils_Qt::numToQString( Position.getPadding()));
     emit areaChanged();
 }
 
@@ -55,5 +59,5 @@ void CbedAreaFrame::editing_finished() {
     QLineEdit* sndr = (QLineEdit*) sender();
 
     auto val = sndr->text().toFloat();
-    sndr->setText(Utils_Qt::numToQString( val, edt_precision ));
+    sndr->setText(Utils_Qt::numToQString( val ));
 }
