@@ -16,6 +16,10 @@ ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
     yAxis->setTickLabels(false);
     yAxis->setBasePen(Qt::NoPen);
 
+    // this is what really does the magic
+    xAxis->setOffset(100);
+    yAxis->setOffset(100);
+
     // to get origin in centre
     xAxis->setRange(-500, 500);
     yAxis->setRange(-500, 500);
@@ -24,8 +28,8 @@ ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
 
     axisRect()->setAutoMargins(QCP::msNone);
     // minus 10 means we can't accidentally scroll on it...
-    axisRect()->setMinimumMargins(QMargins(-10,-10,-10,-10));
-    axisRect()->setMargins(QMargins(-10,-10,-10,-10));
+    axisRect()->setMinimumMargins(QMargins(0,0,0,0));
+    axisRect()->setMargins(QMargins(0,0,0,0));
 
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 }

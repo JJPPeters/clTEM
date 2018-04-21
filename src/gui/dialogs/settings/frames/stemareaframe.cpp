@@ -37,9 +37,6 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
     ui->edtRangeX->setUnits("Å");
     ui->edtRangeY->setUnits("Å");
 
-    ui->edtPixelsX->setUnits("Å");
-    ui->edtPixelsY->setUnits("Å");
-
     ui->edtPadding->setUnits("Å");
 
     connect(ui->edtPixelsX, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
