@@ -9,7 +9,7 @@ CbedFrame::CbedFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
     QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
     ui->edtPosX->setValidator(pmValidator);
@@ -38,27 +38,31 @@ void CbedFrame::on_edtTds_textChanged(const QString &arg1)
 
 void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
 {
-    if (Main == 0)
+    (void)arg1; // don't want this
+
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    float v = arg1.toFloat();
+    float v = ui->edtPosY->text().toFloat();
 
     Main->Manager->getCBedPosition()->setYPos(v);
 }
 
 void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
 {
-    if (Main == 0)
+    (void)arg1; // don't want this
+
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    float v = arg1.toFloat();
+    float v = ui->edtPosX->text().toFloat();
 
     Main->Manager->getCBedPosition()->setXPos(v);
 }
 
 void CbedFrame::on_btnSim_clicked()
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
     emit startSim();

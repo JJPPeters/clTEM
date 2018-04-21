@@ -20,12 +20,14 @@ public:
     {
         auto t = text();
         QLineEdit::setText(t);
+        QLineEdit::focusInEvent(e);
     }
 
     void focusOutEvent(QFocusEvent* e) override
     {
         auto t = QLineEdit::text();
         setText(t);
+        QLineEdit::focusOutEvent(e);
     }
 
     QString text()
