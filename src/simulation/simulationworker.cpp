@@ -141,12 +141,16 @@ void SimulationWorker::sortAtoms(bool doTds)
         BinnedA[i].resize(numberOfSlices);
     }
 
+    int count_in_range = 0;
     for(int i = 0; i < atom_count; i++)
     {
-        Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
-        Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
-        Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i]);
-        BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
+        if (HostZIDs[i] > 0 && HostBlockIDs[i] > 0) {
+            Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
+            Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
+            Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i]);
+            BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
+            ++count_in_range;
+        }
     }
 
     unsigned long long max_bin_xy = 0;
@@ -192,7 +196,7 @@ void SimulationWorker::sortAtoms(bool doTds)
     }
 
     // Last element indicates end of last block as total number of atoms.
-    blockStartPositions[numberOfSlices*BlocksX*BlocksY] = atom_count;
+    blockStartPositions[numberOfSlices*BlocksX*BlocksY] = count_in_range;
 
     ClBlockStartPositions = ctx.CreateBuffer<int, Manual>(numberOfSlices * BlocksX * BlocksY + 1);
 

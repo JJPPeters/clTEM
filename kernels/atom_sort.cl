@@ -41,21 +41,29 @@ __kernel void clAtomSort( __global const float* x_input,
 {		
 	int xid = get_global_id(0);	
 	if(xid < n_atoms) 
-	{	
-		// get the fractional position of the atoms (in the structure), times by the number of blocks and floor
-		int bidx = floor( (x_input[xid] - min_x) / (max_x - min_x) * blocks_x); 
-		int bidy = floor( (y_input[xid] - min_y) / (max_y - min_y) * blocks_y); 
-		// I think this assumes that the z is always from 0?
-		int zid  = floor( (max_z - z_input[xid]) / dz); 
+	{
+	    if (x_input[xid] >= min_x && x_input[xid] <= max_x && y_input[xid] >= min_y && y_input[xid] <= max_y)
+	    {
+            // get the fractional position of the atoms (in the structure), times by the number of blocks and floor
+            int bidx = floor( (x_input[xid] - min_x) / (max_x - min_x) * blocks_x);
+            int bidy = floor( (y_input[xid] - min_y) / (max_y - min_y) * blocks_y);
+            // I think this assumes that the z is always from 0?
+            int zid  = floor( (max_z - z_input[xid]) / dz);
 
-		// account for any edge cases that are exactly on the limit of z
-		zid -= (zid==n_slices); 
-		bidx -= (bidx==blocks_x); 
-		bidy -= (bidy==blocks_y);
+            // account for any edge cases that are exactly on the limit of z
+            zid -= (zid==n_slices);
+            bidx -= (bidx==blocks_x);
+            bidy -= (bidy==blocks_y);
 
-		//calculate the actual block id and return
-		int bid = bidx + blocks_x*bidy; 
-		block_ids[xid] = bid; 
-		z_ids[xid] = zid; 
+            // calculate the actual block id and return
+            int bid = bidx + blocks_x * bidy;
+            block_ids[xid] = bid;
+            z_ids[xid] = zid;
+        }
+        else
+        {
+            block_ids[xid] = -1;
+            z_ids[xid] = -1;
+        }
 	}		
 }
