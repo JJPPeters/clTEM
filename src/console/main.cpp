@@ -36,6 +36,46 @@ static std::mutex out_mtx;
 static int total_pcnt;
 static int slice_pcnt;
 
+void printHelp()
+{
+    std::cout << "usage: cltem_cmd xyz_file [options]\n"
+                 "  options:\n"
+                 "    -h : (--help) print this help message and exit\n"
+                 "    -v : (--version) print the clTEM command line version number and exit\n"
+                 "    -l : (--list) print the available OpenCL devices and exit\n"
+                 "    -o : (--output) REQUIRED set the output directory for the simulation results\n"
+                 "    -c : (--config) REQUIRED set the .json config file for the simulation\n"
+                 "    -d : (--device) REQUIRED set the OpenCL device(s). Accepts format:\n"
+                 "             default : uses the default OpenCL device(s)\n"
+                 "             all     : uses all available OpenCL device(s)\n"
+                 "             gpus    : use all available gpus\n"
+                 "             cpus    : use all available cpus\n"
+                 "             gpu     : use the first gpu available\n"
+                 "             cpu     : use the first cpu available\n"
+                 "             #:#     : comma separated list in for format platform:device (ids)\n"
+                 "    --verbose : show full output" << std::endl;
+}
+
+void printVersion()
+{
+    std::cout << "clTEM command line interface v0.1a" << std::endl;
+}
+
+void listDevices()
+{
+    auto devices = OpenCL::GetDeviceList(Device::DeviceType::All);
+
+    std::cout << "OpenCL devices available" << std::endl;
+
+    int prev_plat = -1;
+    for (clDevice& d : devices)
+    {
+        if (prev_plat != d.GetPlatformNumber())
+            std::cout << "Platform: " << d.GetPlatformNumber() << ", " << d.GetPlatformName() << std::endl;
+        std::cout << "\tDevice: " << d.GetDeviceNumber() << ", " << d.GetDeviceName() << std::endl;
+    }
+}
+
 void reportSliceProgress(float frac)
 {
     std::lock_guard<std::mutex> lock(out_mtx);
@@ -125,7 +165,7 @@ int main(int argc, char *argv[])
                 };
         // getopt_long stores the option index here.
         int option_index = 0;
-        c = getopt_long (argc, argv, "hvo:c:d:", long_options, &option_index);
+        c = getopt_long (argc, argv, "hvlo:c:d:V", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1)
@@ -136,13 +176,13 @@ int main(int argc, char *argv[])
             case 0:
                 break;
             case 'h':
-                std::cout << "Help message goes here!" << std::endl;
+                printHelp();
                 return 0;
             case 'v':
-                std::cout << "Version message goes here!" << std::endl;
+                printVersion();
                 return 0;
             case 'l':
-                std::cout << "List OpenCL devices here!" << std::endl;
+                listDevices();
                 return 0;
             case 'o':
                 output_dir = optarg;
