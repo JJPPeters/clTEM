@@ -41,10 +41,12 @@ namespace Utils_Qt
         // https://stackoverflow.com/questions/15165502/double-to-string-without-scientific-notation-or-trailing-zeros-efficiently
         // use fixed, but remove trailing zeros/decimals
         std::string s = Utils::numToString(num, prec, isFixed);
-        s.erase(s.find_last_not_of('0') + 1, std::string::npos); //remove trailing 000s
-        if (s[s.size()-1] == '.')
-            s = s.substr(0, s.size()-1); //remove dangling decimal
 
+        if (s.find(".") != std::string::npos) { // only remove trailing decimals
+            s.erase(s.find_last_not_of('0') + 1, std::string::npos); //remove trailing 000s
+            if (s[s.size() - 1] == '.')
+                s = s.substr(0, s.size() - 1); //remove dangling decimal
+        }
         return QString::fromStdString(s);
     }
 };

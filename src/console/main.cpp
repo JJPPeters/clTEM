@@ -84,7 +84,7 @@ void reportSliceProgress(float frac)
 
 
     std::cout << "Slice progress: " << slice_pcnt << "%, total progress: " << total_pcnt << "%          \r" << std::flush;
-    if (total_pcnt >= 1.0f)
+    if (total_pcnt >= 100.0f)
         std::cout << std::endl;
 }
 
@@ -95,7 +95,7 @@ void reportTotalProgress(float frac)
 
 
     std::cout << "Slice progress: " << slice_pcnt << "%, total progress: " << total_pcnt << "%          \r" << std::flush;
-    if (total_pcnt >= 1.0f)
+    if (total_pcnt >= 100.0f)
         std::cout << std::endl;
 }
 
