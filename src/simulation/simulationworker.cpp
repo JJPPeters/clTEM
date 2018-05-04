@@ -802,8 +802,11 @@ void SimulationWorker::doMultiSliceStep(int slice)
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     FourierTrans.Do(clPotential, clWaveFunction3, Direction::Forwards);
+    ctx.WaitForQueueFinish();
     BandLimit(Work);
+    ctx.WaitForQueueFinish();
     FourierTrans.Do(clWaveFunction3, clPotential, Direction::Inverse);
+    ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
@@ -812,29 +815,34 @@ void SimulationWorker::doMultiSliceStep(int slice)
     {
         // Apply low pass filter to wavefunction
         FourierTrans.Do(clWaveFunction1[i - 1], clWaveFunction3, Direction::Forwards);
+        ctx.WaitForQueueFinish();
         BandLimit(Work);
+        ctx.WaitForQueueFinish();
         FourierTrans.Do(clWaveFunction3, clWaveFunction1[i - 1], Direction::Inverse);
+        ctx.WaitForQueueFinish();
         
         //Multiply potential with wavefunction
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
         ComplexMultiply(Work);
+        ctx.WaitForQueueFinish();
 
         // go to reciprocal space
         FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction3, Direction::Forwards);
+        ctx.WaitForQueueFinish();
 
         // convolve with propagator
         ComplexMultiply.SetArg(0, clWaveFunction3, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clPropagator, ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
         ComplexMultiply(Work);
+        ctx.WaitForQueueFinish();
 
         // IFFT back to real space
         FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
+        ctx.WaitForQueueFinish();
     }
-
-    ctx.WaitForQueueFinish();
 }
 
 void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
