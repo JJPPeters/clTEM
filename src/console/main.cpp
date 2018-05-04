@@ -129,7 +129,7 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
             settings["microscope"].erase("alpha");
             settings["microscope"].erase("delta");
         }
-
+        
         fileio::SaveTiff<float>(out_path + "/" + name + ".tif", im.data, im.width, im.height);
         fileio::SaveSettingsJson(out_path + "/" + name + ".json", settings);
     }

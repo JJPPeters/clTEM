@@ -69,7 +69,6 @@ __kernel void clInitialiseSTEMWavefunction( __global float2* output,
 	{
 		int Index = xid + yid*width;
 		float cond_ap2 = (cond_ap * 0.001f) / wavelength;
-		//float k = hypot(k_x[xid], k_y[xid]);
         float k = sqrt( (k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]) );
 		if (k < cond_ap2)
 		{

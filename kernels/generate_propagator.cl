@@ -36,16 +36,8 @@ __kernel void clGeneratePropagator( __global float2* propagator,
 		k0x*=k0x;
 		k0y*=k0y;
 
-		if (sqrt(k0x+k0y) < k_max)
-		{
-			propagator[Index].x = cos(Pi*dz*wavelength*(k0x+k0y));
-			propagator[Index].y = -1.0f*sin(Pi*dz*wavelength*(k0x+k0y));
-		}
-		else
-		{
-			propagator[Index].x = 0.0f;
-			propagator[Index].y = 0.0f;
-		}
+		propagator[Index].x = cos(Pi*dz*wavelength*(k0x+k0y));
+		propagator[Index].y = -1.0f*sin(Pi*dz*wavelength*(k0x+k0y));
 	}
 }
 

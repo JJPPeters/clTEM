@@ -22,7 +22,7 @@ __kernel void clBandLimit( __global float2* input_output,
 	if(xid < width && yid < height)
 	{
 		int Index = xid + width*yid;
-		float k = hypot(k_x[xid],k_y[yid]);
+		float k = sqrt( k_x[xid]*k_x[xid] + k_y[yid]*k_y[yid] );
 		input_output[Index].x *= (k<=k_max);
 		input_output[Index].y *= (k<=k_max);
 	}

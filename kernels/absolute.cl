@@ -19,7 +19,7 @@ __kernel void clAbs(__global float2* input,
 		int Index = xid + yid*width;
 		float real = input[Index].x;
 		float imag = input[Index].y;
-		input[Index].x = hypot(real,imag)*hypot(real,imag);
+		input[Index].x = sqrt( real*real + imag*imag );
 		input[Index].y = 0;
 	}
 }

@@ -38,7 +38,7 @@ __kernel void clDQE(__global const float2* input,
 		
 		float xp = xid - midx;
 		float yp = yid - midy;
-		float rad = hypot(xp,yp);
+		float rad = sqrt(xp*xp + yp*yp);
 		int dqe = floor(rad/binning);
 		int dqe2 = dqe+1;
 		float dqeval = dqe_data[min(dqe,724)];

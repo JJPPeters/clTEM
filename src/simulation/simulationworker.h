@@ -87,7 +87,7 @@ private:
 
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction1;
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction2;
-    std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction3;
+    std::shared_ptr<clMemory<cl_float2, Manual>> clWaveFunction3;
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction4;
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction1Minus; //for finite difference?
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction1Plus; //for finite difference?

@@ -506,7 +506,7 @@ void SimulationWorker::initialiseSimulation()
 
     // these will never change, so set them here
     fftShift.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
-    fftShift.SetArg(1, clWaveFunction3[0], ArgumentType::Output);
+    fftShift.SetArg(1, clWaveFunction3, ArgumentType::Output);
     fftShift.SetArg(2, resolution);
     fftShift.SetArg(3, resolution);
 
@@ -516,7 +516,7 @@ void SimulationWorker::initialiseSimulation()
     BandLimit = clKernel(ctx, Kernels::BandLimitSource.c_str(), 6, "clBandLimit");
 
     // These never change, so set them here
-    BandLimit.SetArg(0, clWaveFunction3[0], ArgumentType::InputOutput);
+    BandLimit.SetArg(0, clWaveFunction3, ArgumentType::InputOutput);
     BandLimit.SetArg(1, resolution);
     BandLimit.SetArg(2, resolution);
     BandLimit.SetArg(3, bandwidthkmax);
@@ -610,7 +610,7 @@ void SimulationWorker::initialiseCtem()
 
     clWaveFunction1.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
     clWaveFunction2.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-    clWaveFunction3.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
+    clWaveFunction3 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
     clWaveFunction4.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
 
     if (isFD)
@@ -668,7 +668,7 @@ void SimulationWorker::initialiseCbed()
             clWaveFunction1Plus.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
         }
     }
-    clWaveFunction3.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
+    clWaveFunction3 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
 
     clTDSMaskDiff = ctx.CreateBuffer<cl_float, Manual>(resolution*resolution);
 
@@ -801,15 +801,20 @@ void SimulationWorker::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    FourierTrans.Do(clPotential, clWaveFunction3[0], Direction::Forwards);
+    FourierTrans.Do(clPotential, clWaveFunction3, Direction::Forwards);
     BandLimit(Work);
-    FourierTrans.Do(clWaveFunction3[0], clPotential, Direction::Inverse);
+    FourierTrans.Do(clWaveFunction3, clPotential, Direction::Inverse);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     for (int i = 1; i <= n_parallel; i++)
     {
+        // Apply low pass filter to wavefunction
+        FourierTrans.Do(clWaveFunction1[i - 1], clWaveFunction3, Direction::Forwards);
+        BandLimit(Work);
+        FourierTrans.Do(clWaveFunction3, clWaveFunction1[i - 1], Direction::Inverse);
+        
         //Multiply potential with wavefunction
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
@@ -817,10 +822,10 @@ void SimulationWorker::doMultiSliceStep(int slice)
         ComplexMultiply(Work);
 
         // go to reciprocal space
-        FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction3[0], Direction::Forwards);
+        FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction3, Direction::Forwards);
 
         // convolve with propagator
-        ComplexMultiply.SetArg(0, clWaveFunction3[0], ArgumentType::Input);
+        ComplexMultiply.SetArg(0, clWaveFunction3, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clPropagator, ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
         ComplexMultiply(Work);
@@ -870,11 +875,11 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    FourierTrans(clPotential, clWaveFunction3[0], Direction::Forwards);
+    FourierTrans(clPotential, clWaveFunction3, Direction::Forwards);
     ctx.WaitForQueueFinish();
     BandLimit(Work);
     ctx.WaitForQueueFinish();
-    FourierTrans(clWaveFunction3[0], clPotential, Direction::Inverse);
+    FourierTrans(clWaveFunction3, clPotential, Direction::Inverse);
 
     ctx.WaitForQueueFinish();
 
@@ -885,12 +890,12 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
     {
 
         //FFT Psi into Grad2.
-        FourierTrans(clWaveFunction1[i], clWaveFunction3[0], Direction::Forwards);
+        FourierTrans(clWaveFunction1[i], clWaveFunction3, Direction::Forwards);
 
         ctx.WaitForQueueFinish();
 
         //Grad Kernel on Grad2.
-        GradKernel.SetArg(0, clWaveFunction3[0], ArgumentType::Input);
+        GradKernel.SetArg(0, clWaveFunction3, ArgumentType::Input);
         GradKernel.SetArg(1, clXFrequencies, ArgumentType::Input);
         GradKernel.SetArg(2, clYFrequencies, ArgumentType::Input);
         GradKernel.SetArg(3, resolution);
@@ -900,7 +905,7 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
         ctx.WaitForQueueFinish();
 
         //IFT Grad2 into Grad.
-        FourierTrans(clWaveFunction3[0], clWaveFunction4[i], Direction::Inverse);
+        FourierTrans(clWaveFunction3, clWaveFunction4[i], Direction::Inverse);
 
         ctx.WaitForQueueFinish();
 
@@ -920,11 +925,11 @@ void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
         ctx.WaitForQueueFinish();
 
         //Bandlimit PsiPlus
-        FourierTrans(clWaveFunction1Plus[i], clWaveFunction3[0], Direction::Forwards);
+        FourierTrans(clWaveFunction1Plus[i], clWaveFunction3, Direction::Forwards);
         ctx.WaitForQueueFinish();
         BandLimit(Work);
         ctx.WaitForQueueFinish();
-        FourierTrans(clWaveFunction3[0], clWaveFunction1Plus[i], Direction::Inverse);
+        FourierTrans(clWaveFunction3, clWaveFunction1Plus[i], Direction::Inverse);
 
         ctx.WaitForQueueFinish();
 
@@ -956,7 +961,7 @@ void SimulationWorker::simulateCtemImage()
     float wavelength = job->simManager->getWavelength();
     auto mParams = job->simManager->getMicroscopeParams();
 
-    clKernel ABS = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
+    clKernel ABS2 = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
 
     // Set arguments for imaging kernel
     ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
@@ -991,11 +996,11 @@ void SimulationWorker::simulateCtemImage()
     // Now get and display absolute value
     FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
 
-    ABS.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
-    ABS.SetArg(1, clImageWaveFunction, ArgumentType::Output);
-    ABS.SetArg(2, resolution);
-    ABS.SetArg(3, resolution);
-    ABS(Work);
+    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
+    ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
+    ABS2.SetArg(2, resolution);
+    ABS2.SetArg(3, resolution);
+    ABS2(Work);
 };
 
 // TODO: what should be done with the conversion factor?
@@ -1058,7 +1063,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     ctx.WaitForQueueFinish();
 
     //abs for detected image
-    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::InputOutput);
+    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
     ABS2.SetArg(1, Temp1, ArgumentType::Output);
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
@@ -1097,13 +1102,14 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     ctx.WaitForQueueFinish();
 
     // TODO: what is this abs for? (or should it be abs squared?)
-    ABS.SetArg(0, Temp1, ArgumentType::InputOutput);
-    ABS.SetArg(1, resolution);
-    ABS.SetArg(2, resolution);
-
-    ABS(Work);
-
-    ctx.WaitForQueueFinish();
+//    ABS2.SetArg(0, Temp1, ArgumentType::Input);
+//    ABS2.SetArg(1, clWaveFunction1[0], ArgumentType::Output);
+//    ABS2.SetArg(2, resolution);
+//    ABS2.SetArg(3, resolution);
+//
+//    ABS2(Work);
+//
+//    ctx.WaitForQueueFinish();
 
     float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
 
@@ -1123,10 +1129,10 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
         // see: https://stackoverflow.com/questions/19944111/creating-a-gaussian-random-generator-with-a-mean-and-standard-deviation
 
         // use the built in stuff for ease
-        std::poisson_distribution<int> dist(N_tot * compdata[i].x);
+        std::poisson_distribution<int> dist(N_tot * compdata[i].x); // TODO: here we are assuming this funtion is only real?
         float poiss = (float) dist(rng);
 
-        compdata[i].x = conversionfactor * poiss; // Was round not floor
+        compdata[i].x = conversionfactor * poiss;
         compdata[i].y = 0;
     }
 
@@ -1155,14 +1161,15 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     ctx.WaitForQueueFinish();
 
-    // might want to be sqrt (aka normal abs)
-    ABS.SetArg(0, clImageWaveFunction, ArgumentType::Input);
-    ABS.SetArg(1, resolution);
-    ABS.SetArg(2, resolution);
-
-    ABS(Work);
-
-    ctx.WaitForQueueFinish();
+//    // might want to be sqrt (aka normal abs)
+//    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
+//    ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
+//    ABS2.SetArg(2, resolution);
+//    ABS2.SetArg(3, resolution);
+//
+//    ABS2(Work);
+//
+//    ctx.WaitForQueueFinish();
 }
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
@@ -1178,7 +1185,7 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
 
 //    ctx.WaitForQueueFinish();
 
-    std::vector<cl_float2> compdata = clWaveFunction3[0]->CreateLocalCopy();
+    std::vector<cl_float2> compdata = clWaveFunction3->CreateLocalCopy();
 
     for (int i = 0; i < resolution * resolution; i++)
         // Get absolute value for display...
@@ -1240,8 +1247,10 @@ std::vector<float> SimulationWorker::getCtemImage()
     // Original data is complex so copy complex version down first
     std::vector<cl_float2> compdata = clImageWaveFunction->CreateLocalCopy();
 
+    ctx.WaitForQueueFinish();
+
     for (int i = 0; i < resolution * resolution; i++)
-        data_out[i] = compdata[i].s[0]; // already abs in simulateCTEM function (but is still 'complex' type?)
+        data_out[i] = compdata[i].x; // already abs in simulateCTEM function (but is still 'complex' type?)
 
     return data_out;
 }
@@ -1287,7 +1296,7 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
     float xcPx = xc / angle_scale;
     float ycPx = yc / angle_scale;
 
-    TDSMaskingAbsKernel.SetArg(0, clWaveFunction3[0], ArgumentType::Input);
+    TDSMaskingAbsKernel.SetArg(0, clWaveFunction3, ArgumentType::Input);
     TDSMaskingAbsKernel.SetArg(1, clTDSMaskDiff, ArgumentType::Output);
     TDSMaskingAbsKernel.SetArg(2, resolution);
     TDSMaskingAbsKernel.SetArg(3, resolution);

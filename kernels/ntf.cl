@@ -37,7 +37,7 @@ __kernel void clNTF(__global const float2* input,
 			
 		float xp = xid - midx;
 		float yp = yid - midy;
-		float rad = hypot(xp,yp);
+		float rad = sqrt(xp*xp + yp*yp);
 		int ntf = floor(rad/binning);
 		int ntf2 = ntf+1;
 		float ntfval = ntf_data[min(ntf,724)];

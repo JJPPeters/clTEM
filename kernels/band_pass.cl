@@ -29,7 +29,7 @@ __kernel void clFloatBandPass( __global const float2* restrict input,
 		int Index = xid + yid*width;
     	float centX = width/2.0f + x_centre;
     	float centY = height/2.0f + y_centre;
-    	float radius = hypot(xid-centX,yid-centY);
+    	float radius = sqrt( (xid-centX)*(xid-centX) + (yid-centY)*(yid-centY) );
     	//float x = xid - (width/2.0f + x_centre);
     	//float y = yid - (height/2.0f + y_centre);
     	//float radius = sqrt( x*x + y*y );
