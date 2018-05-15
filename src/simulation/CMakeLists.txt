@@ -18,6 +18,7 @@ endif(TIFF_FOUND)
 set(SIM_HDRS
         simulationmanager.h
         structure/crystalstructure.h
+        structure/atom.h
         utilities/commonstructs.h
         utilities/stringutils.h
         utilities/structureutils.h
@@ -36,7 +37,7 @@ set(SIM_SCRS
 #        simulations/stemsimulation.cpp
 #        simulations/microscopesimulation.cpp
         threadworker.cpp
-        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h)
+        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS} )
 

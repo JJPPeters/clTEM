@@ -7,31 +7,35 @@ struct Atom
     int A;
     float x, y, z;
 
-    Atom() : x(0.0f), y(0.0f), z(0.0f) {}
+    Atom() : A(0), x(0.0f), y(0.0f), z(0.0f) {}
 
     Atom(int _A, float _x, float _y, float _z) : A(_A), x(_x), y(_y), z(_z) {}
 
-    // this is only for position testing
-    bool operator==(const Atom &RHS)
-    {
+    // this is only for position testing (Not element testing)
+    bool operator==(const Atom &RHS) {
         return x == RHS.x && y == RHS.y && z == RHS.z;
     }
 
-    Atom operator* (float f)
-    {
-        return Atom(A, f*x, f*y, f*z);
+    Atom operator* (float f) {
+        return {A, f*x, f*y, f*z};
     }
 };
 
-struct AtomOcc : public Atom
+struct AtomSite : public Atom
 {
     float occ;
-    AtomOcc() : Atom(), occ(0.0f) {}
-    AtomOcc(int _A, float _x, float _y, float _z, float _occ) : Atom(_A, _x, _y, _z), occ(_occ) {}
+    float ux, uy, uz;
+    AtomSite() : Atom(), occ(1.0f), ux(0.0f), uy(0.0f), uz(0.0f) {}
+    AtomSite(int _A, float _x, float _y, float _z, float _occ, float _ux, float _uy, float _uz) : Atom(_A, _x, _y, _z), occ(_occ), ux(_ux), uy(_uy), uz(_uz) {}
 
-    Atom operator* (float f)
-    {
-        return AtomOcc(A, f*x, f*y, f*z, occ);
+    AtomSite operator* (float f) {
+        return AtomSite(A, f*x, f*y, f*z, occ, ux, uy, uz);
+    }
+
+    void setThermal(float u) {
+        ux = u;
+        uy = u;
+        uz = u;
     }
 };
 

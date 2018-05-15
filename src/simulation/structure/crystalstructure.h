@@ -32,22 +32,15 @@ private:
     std::mt19937 rng;
     std::normal_distribution<> dist;
 
-//    int BlocksX;
-//    int BlocksY;
-
-//    float Dz;
-
-//    bool Sorted;
-
     int AtomCount;
 
     void resetLimits();
     void updateLimits(const Atom &a);
 
-    void processOccupancyList(std::vector<AtomOcc> &aList);
+    void processOccupancyList(std::vector<AtomSite> &aList);
 
 public:
-    CrystalStructure(std::string fPath);
+    CrystalStructure(std::string& fPath);
 
     /// Loads the given xyz file getting the atom coordinates in Angstroms
     /// \param fPath - path to .xyz file to open
@@ -61,11 +54,6 @@ public:
 
     void clearStructure();
 
-//    void resetSorted() {Sorted = false;}
-
-//    bool isSorted() {return Sorted;}
-
-//    float getSimZRange();
     float getZRange();
 
 //    std::tuple<float, float> getSimRanges();
@@ -73,15 +61,6 @@ public:
 
     int getTotalAtomCount() {return AtomCount;}
     int getAtomCountInRange(float xs, float xf, float ys, float yf);
-
-//    float getSimMinX() {return MinX - 8;}
-//    float getSimMaxX() {return MaxX + 8;}
-//
-//    float getSimMinY() {return MinY - 8;}
-//    float getSimMaxY() {return MaxY + 8;}
-//
-//    float getSimMinZ() {return MinZ - 3;}
-//    float getSimMaxZ() {return MaxZ + 3;}
 
 //    float getStructMinX() {return MinX;}
 //    float getStructMaxX() {return MaxX;}
@@ -94,15 +73,6 @@ public:
 //    float getStructMinZ() {return MinZ;}
 //    float getStructMaxZ() {return MaxZ;}
     std::valarray<float> getLimitsZ() {return {MinZ, MaxZ};}
-
-//    int getBlocksX(){return BlocksX;}
-//    int getBlocksY(){return BlocksY;}
-
-//    float getBlockScaleX() {return (getSimMaxX() - getSimMinX()) / getBlocksX();}
-//    float getBlockScaleY() {return (getSimMaxY() - getSimMinY()) / getBlocksY();}
-
-//    float getDz() {return Dz;}
-
 };
 
 #endif // CRYSTALSTRUCTURE_H
