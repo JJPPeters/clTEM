@@ -16,7 +16,7 @@ class CrystalStructure
 {
 private:
     /// Vector of atoms with coordinates in Angstroms
-    std::vector<Atom> Atoms;
+    std::vector<AtomSite> Atoms;
 
     std::string filePath;
 
@@ -48,9 +48,9 @@ public:
 
     std::string getFileName() {return filePath;}
 
-    std::vector<Atom> getAtoms() {return Atoms;}
+    std::vector<AtomSite> getAtoms() {return Atoms;}
 
-    float generateTdsFactor();
+    float generateTdsFactor(float u);
 
     void clearStructure();
 

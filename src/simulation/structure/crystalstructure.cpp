@@ -10,7 +10,7 @@
 CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0)//, Sorted(false)
 {
     resetLimits();
-    Atoms = std::vector<Atom>();
+    Atoms = std::vector<AtomSite>();
 
     srand(time(NULL));
     openXyz(fPath);
@@ -92,7 +92,6 @@ void CrystalStructure::openXyz(std::string fPath)
 
     // TODO: report warning on unused headers?
 
-    AtomSite thisAtom;
     std::vector<AtomSite> prevAtoms;
     prevAtoms.reserve(5); //this array will be resized a lot so reserve space. 5 should be plenty for any atoms sharing same sites
 
@@ -111,6 +110,8 @@ void CrystalStructure::openXyz(std::string fPath)
         if (values.size() < max_header)
             throw std::runtime_error(
                     ".xyz file columns are fewer than header entries. line: " + std::to_string(2 + count));
+
+        AtomSite thisAtom;
 
         std::string atomSymbol = values[h_A];
         thisAtom.A = Utils::ElementSymbolToNumber(atomSymbol);
@@ -138,7 +139,7 @@ void CrystalStructure::openXyz(std::string fPath)
             if (!prevAtoms.empty()) // we do!
             {
                 // we have a list of atoms, if this new one is in the same place then we just add it
-                if (prevAtoms[0] == (Atom) thisAtom) {
+                if (prevAtoms[0] == thisAtom) {
                     prevAtoms.push_back(thisAtom);
                 } else // this means we have a complete array and we need to process it
                 {
@@ -235,10 +236,10 @@ void CrystalStructure::resetLimits()
     MaxZ = std::numeric_limits<float>::min();
 }
 
-float CrystalStructure::generateTdsFactor()
+float CrystalStructure::generateTdsFactor(float u)
 {
     // TODO: check this behaves as expected, may want to reset the random stuff
-    float randNormal = 0.075f * (float) dist(rng);
+    float randNormal = u * (float) dist(rng);
 
     return randNormal;
 }

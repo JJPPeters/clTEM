@@ -63,9 +63,9 @@ void SimulationWorker::sortAtoms(bool doTds)
         if (doTds)
         {
             // TODO: need a log guard here or in the structure file...
-            dx = job->simManager->getStructure()->generateTdsFactor();
-            dy = job->simManager->getStructure()->generateTdsFactor();
-            dz = job->simManager->getStructure()->generateTdsFactor();
+            dx = job->simManager->getStructure()->generateTdsFactor(atoms[i].ux);
+            dy = job->simManager->getStructure()->generateTdsFactor(atoms[i].uy);
+            dz = job->simManager->getStructure()->generateTdsFactor(atoms[i].uz);
         }
 
         AtomANum[i] = atoms[i].A;
