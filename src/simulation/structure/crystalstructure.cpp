@@ -239,7 +239,8 @@ void CrystalStructure::resetLimits()
 float CrystalStructure::generateTdsFactor(float u)
 {
     // TODO: check this behaves as expected, may want to reset the random stuff
-    float randNormal = u * (float) dist(rng);
+    // sqrt as we have the mean squared displacement (variance), but want the standard deviation
+    float randNormal = std::sqrt(u) * (float) dist(rng);
 
     return randNormal;
 }

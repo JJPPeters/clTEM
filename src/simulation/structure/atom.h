@@ -29,7 +29,8 @@ struct AtomSite : public Atom
     AtomSite(int _A, float _x, float _y, float _z, float _occ, float _ux, float _uy, float _uz) : Atom(_A, _x, _y, _z), occ(_occ), ux(_ux), uy(_uy), uz(_uz) {}
 
     AtomSite operator* (float f) {
-        return AtomSite(A, f*x, f*y, f*z, occ, ux, uy, uz);
+        // u is in Angstrom squared
+        return AtomSite(A, f*x, f*y, f*z, occ, f*f*ux, f*f*uy, f*f*uz);
     }
 
     void setThermal(float u) {
