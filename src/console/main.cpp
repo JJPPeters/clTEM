@@ -104,8 +104,6 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
-    settings["parameters"] = StructureParameters::getCurrentName();
-
     // save the images....
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
