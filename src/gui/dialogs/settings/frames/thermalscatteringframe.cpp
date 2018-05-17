@@ -16,7 +16,7 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent) :
 //    ui->tblDetectors->setColumnWidth(3, 70);
 //    ui->tblDetectors->setColumnWidth(4, 70);
 //
-//    ui->tblDetectors->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->tblDisplacements->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 //
 //    ui->edtInner->setUnits("mrad");
 //    ui->edtOuter->setUnits("mrad");
