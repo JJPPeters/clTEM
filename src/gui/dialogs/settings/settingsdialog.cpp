@@ -115,6 +115,17 @@ void StemDetectorDialog::coreDetectorsChanged()
 }
 
 
+ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent) :
+        SettingsDialog(parent)
+{
+    ThermalFrame = new ThermalScatteringFrame(this);//, simArea);
+    ui->vLayout->insertWidget(0, ThermalFrame);
+
+    this->setWindowTitle("Thermal scattering");
+
+    this->setFixedSize(this->minimumSizeHint());
+}
+
 
 void StemAreaDialog::coreStemAreaChanged()
 {

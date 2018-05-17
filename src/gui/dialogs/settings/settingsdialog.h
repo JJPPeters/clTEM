@@ -5,6 +5,7 @@
 #include <dialogs/settings/frames/ctemareaframe.h>
 #include <dialogs/settings/frames/stemdetectorframe.h>
 #include <dialogs/settings/frames/stemareaframe.h>
+#include <dialogs/settings/frames/thermalscatteringframe.h>
 #include <dialogs/settings/frames/arealayoutframe.h>
 #include <dialogs/settings/frames/globalsettingsframe.h>
 #include <structure/crystalstructure.h>
@@ -90,6 +91,19 @@ private slots:
 
 public:
     explicit AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
+
+};
+
+
+class ThermalScatteringDialog : public SettingsDialog
+{
+Q_OBJECT
+
+private:
+    ThermalScatteringFrame* ThermalFrame;
+
+public:
+    explicit ThermalScatteringDialog(QWidget *parent);
 
 };
 

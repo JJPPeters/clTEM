@@ -157,7 +157,7 @@
     </property>
     <widget class="QMenu" name="menuParameters">
      <property name="title">
-      <string>Parameters...</string>
+      <string>Config...</string>
      </property>
      <addaction name="actionImport_parameters"/>
      <addaction name="actionExport_parameters"/>
@@ -170,6 +170,7 @@
      <string>Simulation</string>
     </property>
     <addaction name="actionGeneral"/>
+    <addaction name="actionThermal_scattering"/>
     <addaction name="actionSet_area"/>
     <addaction name="actionAberrations"/>
     <addaction name="separator"/>
@@ -290,6 +291,11 @@
   <action name="actionImport_3">
    <property name="text">
     <string>Import</string>
+   </property>
+  </action>
+  <action name="actionThermal_scattering">
+   <property name="text">
+    <string>Thermal scattering</string>
    </property>
   </action>
  </widget>

@@ -77,6 +77,8 @@ private slots:
 
     void on_actionAberrations_triggered();
 
+    void on_actionThermal_scattering_triggered();
+
     void on_actionSimulate_EW_triggered(bool do_image = false);
 
     void cancel_simulation();
