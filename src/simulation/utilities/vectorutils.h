@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <stddef.h>
 
 namespace Utils
 {
