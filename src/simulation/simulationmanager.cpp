@@ -130,6 +130,9 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
 {
     std::lock_guard<std::mutex> lck(image_update_mtx);
 
+    // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
+    float average_factor = (float) getTdsRuns();
+
     for (auto const& i : ims)
     {
 
@@ -139,7 +142,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
             if (im.data.size() != current.data.size())
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
             for (int j = 0; j < current.data.size(); ++j)
-                current.data[j] += im.data[j];
+                current.data[j] += im.data[j] / average_factor;
             Images[i.first] = current;
         } else
             Images.insert(std::map<std::string, Image<float>>::value_type(i.first, i.second));
