@@ -37,6 +37,7 @@ void CrystalStructure::openXyz(std::string fPath)
     // get the first line and set it as the number of atoms
     Utils::safeGetline(inputStream, line);
     AtomCount = std::stoi(line);
+    Atoms.reserve(AtomCount);
 
     // get the next line, in my format, this contains the column info
     Utils::safeGetline(inputStream, line);
@@ -140,11 +141,11 @@ void CrystalStructure::openXyz(std::string fPath)
             {
                 // we have a list of atoms, if this new one is in the same place then we just add it
                 if (prevAtoms[0] == thisAtom) {
-                    prevAtoms.push_back(thisAtom);
+                    prevAtoms.emplace_back(thisAtom);
                 } else // this means we have a complete array and we need to process it
                 {
                     processOccupancyList(prevAtoms); // this adds the atoms and clears the vector
-                    prevAtoms.push_back(thisAtom);
+                    prevAtoms.emplace_back(thisAtom);
                 }
             } else // we don't, so we make it here!
             {
@@ -152,7 +153,9 @@ void CrystalStructure::openXyz(std::string fPath)
             }
             ++count;
         } else {
-            Atoms.push_back(thisAtom * ScaleFactor);
+            // for TDS this all happens in processOccupancyList
+            Atoms.emplace_back(thisAtom * ScaleFactor);
+            updateLimits(thisAtom * ScaleFactor);
             ++count;
         }
     }
@@ -182,7 +185,7 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
 
     if (aList.size() == 1 and aList[0].occ == 1.0) // small try at optimising
     {
-        Atoms.push_back(aList[0] * ScaleFactor);
+        Atoms.emplace_back(aList[0] * ScaleFactor);
         updateLimits(aList[0] * ScaleFactor);
     }
     else
@@ -194,7 +197,7 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
         {
             if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0))
             {
-                Atoms.push_back(a * ScaleFactor);
+                Atoms.emplace_back(a * ScaleFactor);
                 updateLimits(a * ScaleFactor);
             }
 
