@@ -10,35 +10,26 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    ui->tblDetectors->setColumnWidth(0, 120);
-//    ui->tblDetectors->setColumnWidth(1, 70);
-//    ui->tblDetectors->setColumnWidth(2, 70);
-//    ui->tblDetectors->setColumnWidth(3, 70);
-//    ui->tblDetectors->setColumnWidth(4, 70);
-//
+    ui->tblDisplacements->setColumnWidth(0, 80);
+    ui->tblDisplacements->setColumnWidth(1, 200);
+
     ui->tblDisplacements->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-//
-//    ui->edtInner->setUnits("mrad");
-//    ui->edtOuter->setUnits("mrad");
-//    ui->edtCentreX->setUnits("mrad");
-//    ui->edtCentreY->setUnits("mrad");
-//
-//    ui->edtInner->setText("0");
-//    ui->edtOuter->setText("10");
-//    ui->edtCentreX->setText("0");
-//    ui->edtCentreY->setText("0");
-//
+
+    ui->edtDefault->setUnits("Å²");
+    ui->edtDisplacement->setUnits("Å²");
+
+    ui->edtDefault->setText("0.0");
+    ui->edtDisplacement->setText("0.0");
+
 //    connect(ui->edtInner, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
 //    connect(ui->edtOuter, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
-//
-//    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-//    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-//    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
-//
+
+    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
+    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
+    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+
 //    for (const auto &chosenDetector : chosenDetectors)
 //        addItemToList(chosenDetector);
-//
-//    setNewName();
 }
 
 ThermalScatteringFrame::~ThermalScatteringFrame()
@@ -55,12 +46,12 @@ void ThermalScatteringFrame::dlgCancel_clicked()
 
 void ThermalScatteringFrame::dlgOk_clicked()
 {
-//    // same as clicking apply then closing the dialog
-//    if(dlgApply_clicked())
-//    {
-//        auto * dlg = dynamic_cast<StemDetectorDialog*>(parentWidget());
-//        dlg->accept();
-//    }
+    // same as clicking apply then closing the dialog
+    if(dlgApply_clicked())
+    {
+        auto * dlg = dynamic_cast<ThermalScatteringDialog*>(parentWidget());
+        dlg->accept();
+    }
 }
 
 bool ThermalScatteringFrame::dlgApply_clicked()
@@ -82,5 +73,5 @@ bool ThermalScatteringFrame::dlgApply_clicked()
 //
 //    emit detectorsChanged();
 //
-//    return true;
+    return true;
 }

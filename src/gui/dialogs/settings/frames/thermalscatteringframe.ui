@@ -18,13 +18,13 @@
     <widget class="QTableWidget" name="tblDisplacements">
      <property name="minimumSize">
       <size>
-       <width>400</width>
+       <width>280</width>
        <height>300</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>200</width>
+       <width>280</width>
        <height>16777215</height>
       </size>
      </property>
@@ -139,7 +139,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="cmbElement">
          <property name="minimumSize">
           <size>
            <width>100</width>
@@ -162,7 +162,7 @@
         </widget>
        </item>
        <item>
-        <widget class="EditUnitsBox" name="edtDefault_3">
+        <widget class="EditUnitsBox" name="edtDisplacement">
          <property name="minimumSize">
           <size>
            <width>100</width>
@@ -188,16 +188,16 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="btnDelete">
+        <widget class="QPushButton" name="btnAdd">
          <property name="text">
-          <string>Delete</string>
+          <string>Add</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btnAdd">
+        <widget class="QPushButton" name="btnDelete">
          <property name="text">
-          <string>Add</string>
+          <string>Delete</string>
          </property>
         </widget>
        </item>
