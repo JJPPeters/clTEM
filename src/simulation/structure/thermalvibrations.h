@@ -49,6 +49,10 @@ public:
 
         return u_squareds[element];
     }
+
+    static float getDefault(){
+        return u_default;
+    }
 };
 
 
