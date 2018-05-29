@@ -429,13 +429,15 @@ float SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
         u = thermal_vibrations->getDefault();
     else if (thermal_vibrations->force_defined)
         u = thermal_vibrations->getVibrations((unsigned int) at.A);
-    else {
+    else if (Structure->isThermalFileDefined()) {
         if (direction == 0)
             u = at.ux;
         else if (direction == 1)
             u = at.uy;
         else if (direction == 2)
             u = at.uz;
+    } else {
+        u = thermal_vibrations->getDefault();
     }
 
 

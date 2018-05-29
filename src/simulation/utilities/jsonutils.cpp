@@ -207,7 +207,50 @@ namespace JSONUtils {
         try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
         } catch (json::out_of_range& e) {}
 
+        *(man.getThermalVibrations().get()) = JsonToThermalVibrations(j);
+        man.getThermalVibrations()->force_defined = true;
+
         return man;
+    }
+
+    ThermalVibrations JsonToThermalVibrations(json& j) {
+
+        ThermalVibrations out_therms;
+
+        bool force_default = false;
+        bool override_file = false;
+        float def = 0.0f;
+
+        std::vector<float> vibs;
+        std::vector<int> els;
+
+        try { force_default = readJsonEntry<bool>(j, "thermal parameters", "force default");
+        } catch (json::out_of_range& e) {}
+
+        try { override_file = readJsonEntry<bool>(j, "thermal parameters", "override file");
+        } catch (json::out_of_range& e) {}
+
+        try { def = readJsonEntry<float>(j, "thermal parameters", "default");
+        } catch (json::out_of_range& e) {}
+
+        try {
+            json element_section = readJsonEntry<json>(j, "thermal parameters", "values");
+            for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
+                std::string element = it.key();
+                try{
+                    auto v = readJsonEntry<float>(element_section, element);
+                    els.emplace_back( Utils::ElementSymbolToNumber(element) );
+                    vibs.emplace_back(v);
+                } catch (json::out_of_range& e) {}
+            }
+
+        } catch (json::out_of_range& e) {}
+
+        out_therms.setVibrations(def, els, vibs);
+        out_therms.force_defined = override_file;
+        out_therms.force_default = force_default;
+
+        return out_therms;
     }
 
     json FullManagerToJson(SimulationManager& man) {
@@ -410,7 +453,7 @@ namespace JSONUtils {
 
     json stemDetectorToJson(StemDetector d) {
         json j;
-//        j["stem"]["detector"]["name"] = d.name;
+
         j["radius"]["inner"] = d.inner;
         j["radius"]["outer"] = d.outer;
         j["radius"]["units"] = "mrad";

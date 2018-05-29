@@ -26,6 +26,8 @@ namespace JSONUtils {
 
     SimulationManager JsonToManager(json& j);
 
+    ThermalVibrations JsonToThermalVibrations(json& j);
+
     template <typename T>
     T readJsonEntry(json j, std::string current)
     {

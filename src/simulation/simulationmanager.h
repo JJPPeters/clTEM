@@ -256,11 +256,7 @@ private:
 
     std::mutex structure_mutex;
 
-//    bool GotStructure;
-
     std::shared_ptr<CrystalStructure> Structure;
-
-//    bool HaveDevices;
 
     std::valarray<float> padding_x, padding_y, padding_z;
 
