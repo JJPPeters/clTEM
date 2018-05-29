@@ -15,6 +15,8 @@ extern std::unordered_map<std::string, int> MapSymbolToNumber;
 // is const (and [] will add elements if the key is not present)
 int ElementSymbolToNumber(std::string sym);
 
+std::string NumberToElementSymbol(int A);
+
 int ConstructElementMap();
 
 extern int dummy_construct_map;

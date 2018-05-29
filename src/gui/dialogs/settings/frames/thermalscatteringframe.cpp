@@ -36,17 +36,26 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent) :
         ui->cmbElement->addItem( QString::fromStdString(it.first));
     }
 
+    ui->chkForceDefault->setChecked(ThermalVibrations::force_default);
+    ui->chkOverride->setChecked(ThermalVibrations::force_defined);
 
-//    connect(ui->edtInner, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
-//    connect(ui->edtOuter, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
+    // add the defined elements to the table...
+    auto el = ThermalVibrations::getDefinedElements();
+    auto vib = ThermalVibrations::getDefinedVibrations();
+
+    // shouldn't be needed, but just in case...
+    if (el.size() != vib.size())
+        throw(std::runtime_error("Cannot get thermal vibrations with different elements and vibration vector sizes"));
+
+    for (int i = 0; i < el.size(); ++i) {
+        std::string temp_element = Utils::NumberToElementSymbol(el[i]);
+        addItemToList( temp_element , vib[i]);
+    }
 
     // connect up our OK, etc... buttons
     connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
     connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
     connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
-
-//    for (const auto &chosenDetector : chosenDetectors)
-//        addItemToList(chosenDetector);
 }
 
 ThermalScatteringFrame::~ThermalScatteringFrame()
@@ -91,4 +100,63 @@ bool ThermalScatteringFrame::dlgApply_clicked()
     ThermalVibrations::setVibrations(def, elements, displacements);
 
     return true;
+}
+
+void ThermalScatteringFrame::addItemToList(std::string el, float vib) {
+    int n = ui->tblDisplacements->rowCount();
+
+    bool found = false;
+    for (int i = 0; i < n && !found; ++i) {
+        if (el == ui->tblDisplacements->item(i, 0)->text().toStdString()) {
+            n = i;
+            found = true;
+        }
+    }
+
+    if (!found)
+        ui->tblDisplacements->insertRow(n);
+
+    auto *cell_0 = new QTableWidgetItem();
+    cell_0->setTextAlignment(Qt::AlignCenter);
+    cell_0->setText(QString::fromStdString(el));
+
+    auto cell_1 = cell_0->clone();
+//    cell_1->setTextAlignment(Qt::AlignCenter);
+    cell_1->setText(Utils_Qt::numToQString(vib));
+
+    ui->tblDisplacements->setItem(n, 0, cell_0);
+    ui->tblDisplacements->setItem(n, 1, cell_1);
+}
+
+void ThermalScatteringFrame::on_btnAdd_clicked() {
+    std::string el = ui->cmbElement->currentText().toStdString();
+
+    float vib = ui->edtDisplacement->text().toFloat();
+
+    addItemToList(el, vib);
+}
+
+void ThermalScatteringFrame::on_btnDelete_clicked() {
+    QList<QTableWidgetItem *> selection = ui->tblDisplacements->selectedItems();
+
+    std::vector<int> toRemove;
+    for (auto i : selection)
+        if(i->column() == 0)
+            toRemove.push_back(i->row());
+
+    std::sort(toRemove.begin(), toRemove.end());
+
+    int n = 0;
+    for (int i : toRemove) {
+        ui->tblDisplacements->removeRow(i - n);
+        ++n;
+    }
+}
+
+void ThermalScatteringFrame::on_chkForceDefault_toggled(bool checked) {
+    ThermalVibrations::force_default = checked;
+}
+
+void ThermalScatteringFrame::on_chkOverride_toggled(bool checked) {
+    ThermalVibrations::force_defined = checked;
 }

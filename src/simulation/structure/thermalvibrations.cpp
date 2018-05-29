@@ -10,4 +10,6 @@ bool ThermalVibrations::force_defined = false;
 
 float ThermalVibrations::u_default = 0.0f;
 
-std::vector<float> ThermalVibrations::u_squareds = std::vector<float>(Utils::VectorSymbolToNumber.size(), ThermalVibrations::u_default);
+std::vector<int> ThermalVibrations::set_elements = {};
+
+std::vector<float> ThermalVibrations::u_squareds = std::vector<float>();//Utils::VectorSymbolToNumber.size(), ThermalVibrations::u_default);

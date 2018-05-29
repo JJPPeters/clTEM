@@ -3,14 +3,23 @@
 namespace Utils
 {
 
-    int ElementSymbolToNumber(std::string sym)
-    {
+    int ElementSymbolToNumber(std::string sym) {
         auto got = MapSymbolToNumber.find(sym);
 
         if ( got == MapSymbolToNumber.end() )
             throw std::runtime_error("Unidentified element:" + sym);
 
         return got->second;
+    }
+
+    std::string NumberToElementSymbol(int A) {
+
+        for (const auto& v : VectorSymbolToNumber) {
+            if (v.second == A)
+                return v.first;
+        }
+
+        throw std::runtime_error("Unidentified atomic number: " + std::to_string(A));
     }
 
     int ConstructElementMap() {
@@ -24,9 +33,7 @@ namespace Utils
 
     std::unordered_map<std::string, int> MapSymbolToNumber = {};
 
-//const std::map<std::string, int> MapSymbolToNumber =
     const std::vector<std::pair<std::string, int>> VectorSymbolToNumber = {
-//const std::map<std::string, int> MapSymbolToNumber = {
             {"H",1},
             {"He",2},
             {"Li",3},
