@@ -22,7 +22,7 @@ namespace JSONUtils {
 
     json stemDetectorToJson(StemDetector d);
 
-    json thermalVibrationsToJson();
+    json thermalVibrationsToJson(SimulationManager& man);
 
     SimulationManager JsonToManager(json& j);
 

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <map>
 #include <valarray>
+#include <structure/thermalvibrations.h>
 
 #include "structure/crystalstructure.h"
 #include "utilities/commonstructs.h"
@@ -26,12 +27,18 @@ public:
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
               slice_offset(sm.slice_offset), structure_parameters(sm.structure_parameters), structure_parameters_name(sm.structure_parameters_name)
     {
-        if (sm.Structure) // structure doesnt always exist
-            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
+        thermal_vibrations = std::make_shared<ThermalVibrations>(*(sm.thermal_vibrations));
+
+        if (sm.Structure)// structure doesnt always exist
+            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+
+        std::random_device rd;
+        rng = std::mt19937(rd());
+        dist = std::normal_distribution<>(0, 1);
     }
 
     SimulationManager& operator=(const SimulationManager& sm)
@@ -231,12 +238,21 @@ public:
     std::vector<float> getStructureParameters() {return structure_parameters;}
     std::string getStructureParametersName() {return structure_parameters_name;}
 
+    std::shared_ptr<ThermalVibrations> getThermalVibrations() {return thermal_vibrations;}
+
+    float generateTdsFactor(AtomSite& at, int direction);
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
 
     std::vector<float> structure_parameters;
     std::string structure_parameters_name;
+
+
+    std::mt19937 rng;
+    std::normal_distribution<> dist;
+    std::shared_ptr<ThermalVibrations> thermal_vibrations;
 
     std::mutex structure_mutex;
 

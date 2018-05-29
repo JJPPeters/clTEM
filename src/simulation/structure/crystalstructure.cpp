@@ -7,17 +7,12 @@
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
-CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0)//, Sorted(false)
+CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false)
 {
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
-    srand(time(NULL));
     openXyz(fPath);
-
-    std::random_device rd;
-    rng = std::mt19937(rd());
-    dist = std::normal_distribution<>(0, 1);
 }
 
 void CrystalStructure::openXyz(std::string fPath)
@@ -90,6 +85,8 @@ void CrystalStructure::openXyz(std::string fPath)
     }
 
     auto max_header = std::max<int>({h_A, h_x, h_y, h_z, h_occ, h_u, h_ux, h_uy, h_uz});
+
+    file_defined_thermals = h_u != 0 || h_ux != 0 || h_uy != 0 || h_uz != 0;
 
     // TODO: report warning on unused headers?
 
@@ -239,20 +236,6 @@ void CrystalStructure::resetLimits()
     MaxZ = std::numeric_limits<float>::min();
 }
 
-float CrystalStructure::generateTdsFactor(float u)
-{
-    // TODO: check this behaves as expected, may want to reset the random stuff
-    // sqrt as we have the mean squared displacement (variance), but want the standard deviation
-    float randNormal = std::sqrt(u) * (float) dist(rng);
-
-    return randNormal;
-}
-
-//float CrystalStructure::getSimZRange()
-//{
-//    return getSimMaxZ() - getSimMinZ();
-//}
-
 float CrystalStructure::getZRange()
 {
     return MaxZ - MinZ;
@@ -270,11 +253,6 @@ int CrystalStructure::getAtomCountInRange(float xs, float xf, float ys, float yf
 
     return count;
 }
-
-//std::tuple<float, float> CrystalStructure::getSimRanges()
-//{
-//    return std::make_tuple(getSimMaxX()- getSimMinX(), getSimMaxY()- getSimMinY());
-//}
 
 std::tuple<float, float> CrystalStructure::getStructRanges()
 {

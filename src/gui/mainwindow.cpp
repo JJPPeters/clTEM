@@ -848,7 +848,7 @@ void MainWindow::on_actionAberrations_triggered()
 }
 
 void MainWindow::on_actionThermal_scattering_triggered() {
-    ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this);
+    ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
 //    connect(myDialog, SIGNAL(aberrationsChanged()), ui->tAberr, SLOT(updateTextBoxes()));
     myDialog->exec();
 }

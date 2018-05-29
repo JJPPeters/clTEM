@@ -103,7 +103,7 @@ private:
     ThermalScatteringFrame* ThermalFrame;
 
 public:
-    explicit ThermalScatteringDialog(QWidget *parent);
+    explicit ThermalScatteringDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
 
 };
 

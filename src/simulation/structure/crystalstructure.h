@@ -10,6 +10,8 @@
 #include "clstatic.h"
 #include "utilities/commonstructs.h"
 
+#include "thermalvibrations.h"
+
 #include "atom.h"
 
 class CrystalStructure
@@ -20,6 +22,8 @@ private:
 
     std::string filePath;
 
+    bool file_defined_thermals;
+
     float ScaleFactor;
 
     float MaxX;
@@ -28,9 +32,6 @@ private:
     float MinY;
     float MaxZ;
     float MinZ;
-
-    std::mt19937 rng;
-    std::normal_distribution<> dist;
 
     int AtomCount;
 
@@ -42,6 +43,8 @@ private:
 public:
     CrystalStructure(std::string& fPath);
 
+    bool isThermalFileDefined() { return file_defined_thermals; }
+
     /// Loads the given xyz file getting the atom coordinates in Angstroms
     /// \param fPath - path to .xyz file to open
     void openXyz(std::string fPath);
@@ -50,28 +53,19 @@ public:
 
     std::vector<AtomSite> getAtoms() {return Atoms;}
 
-    float generateTdsFactor(float u);
-
     void clearStructure();
 
     float getZRange();
 
-//    std::tuple<float, float> getSimRanges();
     std::tuple<float, float> getStructRanges();
 
     int getTotalAtomCount() {return AtomCount;}
     int getAtomCountInRange(float xs, float xf, float ys, float yf);
 
-//    float getStructMinX() {return MinX;}
-//    float getStructMaxX() {return MaxX;}
     std::valarray<float> getLimitsX() {return {MinX, MaxX};}
 
-//    float getStructMinY() {return MinY;}
-//    float getStructMaxY() {return MaxY;}
     std::valarray<float> getLimitsY() {return {MinY, MaxY};}
 
-//    float getStructMinZ() {return MinZ;}
-//    float getStructMaxZ() {return MaxZ;}
     std::valarray<float> getLimitsZ() {return {MinZ, MaxZ};}
 };
 

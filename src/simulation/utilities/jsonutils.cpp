@@ -395,8 +395,14 @@ namespace JSONUtils {
                 j["cbed"]["tds"]["configurations"] = man.getTdsRunsCbed();
         }
 
-        if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all) {
-            j["thermal parameters"] = thermalVibrationsToJson();
+        // don't export if we have file defined vibrations and no override
+        bool export_thermals = !(man.getStructure()->isThermalFileDefined() && !man.getThermalVibrations()->force_default && !man.getThermalVibrations()->force_defined);
+
+        if (export_thermals || force_all) {
+            if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all)
+                j["thermal parameters"] = thermalVibrationsToJson(man);
+        } else {
+            j["thermal parameters"] = "input file defined";
         }
 
         return j;
@@ -415,17 +421,17 @@ namespace JSONUtils {
         return j;
     }
 
-    json thermalVibrationsToJson() {
+    json thermalVibrationsToJson(SimulationManager& man) {
         json j;
 
-        j["force default"] = ThermalVibrations::force_default;
-        j["override file"] = ThermalVibrations::force_defined;
+        j["force default"] = man.getThermalVibrations()->force_default;
+        j["override file"] = man.getThermalVibrations()->force_defined;
 
-        j["default"] = ThermalVibrations::getDefault();
+        j["default"] = man.getThermalVibrations()->getDefault();
         j["units"] = "Å²";
 
-        auto els = ThermalVibrations::getDefinedElements();
-        auto vibs = ThermalVibrations::getDefinedVibrations();
+        auto els = man.getThermalVibrations()->getDefinedElements();
+        auto vibs = man.getThermalVibrations()->getDefinedVibrations();
 
         if (els.size() != vibs.size())
             throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");

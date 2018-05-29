@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <utilities/commonstructs.h>
+#include <simulationmanager.h>
 
 namespace Ui {
 class ThermalScatteringFrame;
@@ -13,7 +14,7 @@ class ThermalScatteringFrame : public QWidget
     Q_OBJECT
 
 public:
-    explicit ThermalScatteringFrame(QWidget *parent);
+    explicit ThermalScatteringFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
 
     ~ThermalScatteringFrame();
 
@@ -28,12 +29,10 @@ private slots:
 
     void on_btnDelete_clicked();
 
-    void on_chkForceDefault_toggled(bool checked);
-
-    void on_chkOverride_toggled(bool checked);
-
 private:
     Ui::ThermalScatteringFrame *ui;
+
+    std::shared_ptr<SimulationManager> Manager;
 
     void addItemToList(std::string el, float vib);
 

@@ -50,7 +50,7 @@ void SimulationWorker::uploadParameters(std::vector<float> param)
 void SimulationWorker::sortAtoms(bool doTds)
 {
     auto atoms = job->simManager->getStructure()->getAtoms();
-    unsigned int atom_count = (unsigned int) atoms.size(); // Needs to be cast to int as opencl kernel expects that size
+    auto atom_count = (unsigned int) atoms.size(); // Needs to be cast to int as opencl kernel expects that size
 
     std::vector<int> AtomANum(atom_count);
     std::vector<float> AtomXPos(atom_count);
@@ -63,9 +63,9 @@ void SimulationWorker::sortAtoms(bool doTds)
         if (doTds)
         {
             // TODO: need a log guard here or in the structure file...
-            dx = job->simManager->getStructure()->generateTdsFactor(atoms[i].ux);
-            dy = job->simManager->getStructure()->generateTdsFactor(atoms[i].uy);
-            dz = job->simManager->getStructure()->generateTdsFactor(atoms[i].uz);
+            dx = job->simManager->generateTdsFactor(atoms[i], 0);
+            dy = job->simManager->generateTdsFactor(atoms[i], 1);
+            dz = job->simManager->generateTdsFactor(atoms[i], 2);
         }
 
         AtomANum[i] = atoms[i].A;

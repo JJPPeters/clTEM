@@ -6,8 +6,8 @@
 #include "thermalscatteringframe.h"
 #include "ui_thermalscatteringframe.h"
 
-ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent) :
-    QWidget(parent), ui(new Ui::ThermalScatteringFrame)
+ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+    QWidget(parent), ui(new Ui::ThermalScatteringFrame), Manager(simManager)
 {
     ui->setupUi(this);
 
@@ -26,7 +26,7 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent) :
     ui->edtDisplacement->setUnits("Å²");
 
     // set the text box values
-    ui->edtDefault->setText( QString::number( ThermalVibrations::getDefault() ) );
+    ui->edtDefault->setText( QString::number( Manager->getThermalVibrations()->getDefault() ) );
     ui->edtDisplacement->setText("0.0");
 
     // fill the combo box from our map of atomic numbers to symbols
@@ -36,12 +36,12 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent) :
         ui->cmbElement->addItem( QString::fromStdString(it.first));
     }
 
-    ui->chkForceDefault->setChecked(ThermalVibrations::force_default);
-    ui->chkOverride->setChecked(ThermalVibrations::force_defined);
+    ui->chkForceDefault->setChecked(Manager->getThermalVibrations()->force_default);
+    ui->chkOverride->setChecked(Manager->getThermalVibrations()->force_defined);
 
     // add the defined elements to the table...
-    auto el = ThermalVibrations::getDefinedElements();
-    auto vib = ThermalVibrations::getDefinedVibrations();
+    auto el = Manager->getThermalVibrations()->getDefinedElements();
+    auto vib = Manager->getThermalVibrations()->getDefinedVibrations();
 
     // shouldn't be needed, but just in case...
     if (el.size() != vib.size())
@@ -97,7 +97,10 @@ bool ThermalScatteringFrame::dlgApply_clicked()
         displacements[i] = ui->tblDisplacements->item(i, 1)->text().toFloat();
     }
 
-    ThermalVibrations::setVibrations(def, elements, displacements);
+    Manager->getThermalVibrations()->setVibrations(def, elements, displacements);
+
+    Manager->getThermalVibrations()->force_defined = ui->chkOverride->isChecked();
+    Manager->getThermalVibrations()->force_default = ui->chkForceDefault->isChecked();
 
     return true;
 }
@@ -151,12 +154,4 @@ void ThermalScatteringFrame::on_btnDelete_clicked() {
         ui->tblDisplacements->removeRow(i - n);
         ++n;
     }
-}
-
-void ThermalScatteringFrame::on_chkForceDefault_toggled(bool checked) {
-    ThermalVibrations::force_default = checked;
-}
-
-void ThermalScatteringFrame::on_chkOverride_toggled(bool checked) {
-    ThermalVibrations::force_defined = checked;
 }
