@@ -5,6 +5,9 @@
 #include <mutex>
 #include <algorithm>
 
+// This class is purely static, and is mainly used for reading in the required data and storing it.
+// When it is actually needed, it is copied to the SimulationManager classes so they have their own copy
+// and this can be edited whilst a simulation is running...
 class StructureParameters
 {
 private:
@@ -32,7 +35,7 @@ public:
             Current = 0;
     }
 
-    static std::vector<float> getParams()
+    static std::vector<float> getCurrentParams()
     {
         std::lock_guard<std::mutex> lck(mtx);
         return Params[Current];

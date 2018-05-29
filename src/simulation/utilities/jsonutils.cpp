@@ -232,7 +232,7 @@ namespace JSONUtils {
         j["mode"]["id"] = mode;
         j["mode"]["name"] = man.getModeString();
 
-        j["potentials"] = StructureParameters::getCurrentName();
+        j["potentials"] = man.getStructureParametersName();
 
         j["resolution"] = man.getResolution();
 
@@ -395,6 +395,10 @@ namespace JSONUtils {
                 j["cbed"]["tds"]["configurations"] = man.getTdsRunsCbed();
         }
 
+        if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all) {
+            j["thermal parameters"] = thermalVibrationsToJson();
+        }
+
         return j;
     }
 
@@ -407,6 +411,28 @@ namespace JSONUtils {
         j["centre"]["x"] = d.xcentre;
         j["centre"]["y"] = d.ycentre;
         j["centre"]["units"] = "mrad";
+
+        return j;
+    }
+
+    json thermalVibrationsToJson() {
+        json j;
+
+        j["force default"] = ThermalVibrations::force_default;
+        j["override file"] = ThermalVibrations::force_defined;
+
+        j["default"] = ThermalVibrations::getDefault();
+        j["units"] = "Å²";
+
+        auto els = ThermalVibrations::getDefinedElements()
+        auto vibs = ThermalVibrations::getDefinedVibrations();
+
+        if (els.size() != vibs.size())
+            throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");
+
+        for(int i = 0; i < els.size(); ++i) {
+            j["values"][ Utils::NumberToElementSymbol(els[i]) ] = vibs.size();
+        }
 
         return j;
     }

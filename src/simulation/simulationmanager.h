@@ -24,7 +24,7 @@ public:
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
-              slice_offset(sm.slice_offset)
+              slice_offset(sm.slice_offset), structure_parameters(sm.structure_parameters), structure_parameters_name(sm.structure_parameters_name)
     {
         if (sm.Structure) // structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -223,9 +223,20 @@ public:
     void setSliceThickness(float thk) { slice_dz = thk; }
     void setSliceOffset(float off) { slice_offset = off; }
 
+    void setStructureParameters(std::string name, std::vector<float> params) {
+        structure_parameters = params;
+        structure_parameters_name = name;
+    }
+
+    std::vector<float> getStructureParameters() {return structure_parameters;}
+    std::string getStructureParametersName() {return structure_parameters_name;}
+
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
+
+    std::vector<float> structure_parameters;
+    std::string structure_parameters_name;
 
     std::mutex structure_mutex;
 

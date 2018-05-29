@@ -472,8 +472,6 @@ void MainWindow::setUiActive(bool active)
     ui->tTem->setActive(active);
     ui->tCbed->setActive(active);
     ui->tStem->setActive(active);
-
-    ui->actionGeneral->setEnabled(active);
 }
 
 void MainWindow::loadSavedOpenClSettings()
@@ -510,20 +508,23 @@ bool MainWindow::checkSimulationPrerequisites()
     std::vector<std::string> errorList;
 
     if(std::get<0>(Devices).size() <= 0)
-        errorList.push_back("No OpenCL devices selected.");
+        errorList.emplace_back("No OpenCL devices selected.");
 
     if(!Manager->getStructure())
-        errorList.push_back("No structure loaded.");
+        errorList.emplace_back("No structure loaded.");
 
     if(!Manager->haveResolution())
-        errorList.push_back("No valid simulation resolution set.");
+        errorList.emplace_back("No valid simulation resolution set.");
 
     auto mp = Manager->getMicroscopeParams();
 
     if(mp->Voltage <= 0)
-        errorList.push_back("Voltage must be a non-zero positive number.");
+        errorList.emplace_back("Voltage must be a non-zero positive number.");
     if(mp->Aperture <= 0)
-        errorList.push_back("Aperture must be a non-zero positive number.");
+        errorList.emplace_back("Aperture must be a non-zero positive number.");
+
+    if(Manager->getStructureParameters().empty())
+        errorList.emplace_back("Potentials have not been loaded correctly.");
 
     // TODO: check beta (alpha) and delta?
 
@@ -777,10 +778,12 @@ void MainWindow::updateManagerFromGui() {
     // CBED/STEM TDS
     // CTEM CCD stuff
 
+    // copy the potentials over
+    Manager->setStructureParameters(StructureParameters::getCurrentName(), StructureParameters::getCurrentParams());
+
     // Sort out TDS bits
     Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
     Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
-
 
     Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
     Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());

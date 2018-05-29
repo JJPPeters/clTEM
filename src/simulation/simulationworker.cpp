@@ -22,7 +22,7 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
     if (!job->simManager)
         throw std::runtime_error("Cannot access simulation parameters");
 
-    uploadParameters(StructureParameters::getParams()); //TODO: get the params to this point... (through a static class?)
+    uploadParameters(job->simManager->getStructureParameters());
 
     // now what we do depends on the simulation type (I think...)
     auto mode = job->simManager->getMode();

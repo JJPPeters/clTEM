@@ -10,6 +10,8 @@
 #include <ccdparams.h>
 #include "json.hpp"
 
+#include "structure/thermalvibrations.h"
+
 namespace JSONUtils {
 
     using json = nlohmann::json;
@@ -19,6 +21,8 @@ namespace JSONUtils {
     json FullManagerToJson(SimulationManager& man);
 
     json stemDetectorToJson(StemDetector d);
+
+    json thermalVibrationsToJson();
 
     SimulationManager JsonToManager(json& j);
 
