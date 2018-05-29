@@ -424,14 +424,14 @@ namespace JSONUtils {
         j["default"] = ThermalVibrations::getDefault();
         j["units"] = "Å²";
 
-        auto els = ThermalVibrations::getDefinedElements()
+        auto els = ThermalVibrations::getDefinedElements();
         auto vibs = ThermalVibrations::getDefinedVibrations();
 
         if (els.size() != vibs.size())
             throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");
 
         for(int i = 0; i < els.size(); ++i) {
-            j["values"][ Utils::NumberToElementSymbol(els[i]) ] = vibs.size();
+            j["values"][ Utils::NumberToElementSymbol(els[i]) ] = vibs[i];
         }
 
         return j;
