@@ -1,6 +1,5 @@
 project( clTEM_gui )
 cmake_minimum_required( VERSION 3.5 )
-#set ( CMAKE_BUILD_TYPE Release )
 
 cmake_policy(SET CMP0071 NEW)
 

@@ -3,9 +3,6 @@
 
 #include <QSettings>
 #include <QStandardPaths>
-//#include <QWidget>
-//#include <QFileDialog>
-//#include <QtWidgets/QMessageBox>
 #include <controls/imagetab.h>
 #include <controls/statuslayout.h>
 
@@ -16,9 +13,6 @@
 #include <ccdparams.h>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
-//#include <QtWidgets/QProgressBar>
-//
-//#include "dialogs/settings/settingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -38,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType< SimulationManager >( "SimulationManager" );
 
     QCoreApplication::setOrganizationName("PetersSoft");
-    QCoreApplication::setApplicationName("TEM++");
+    QCoreApplication::setApplicationName("clTEM");
 
     QSettings settings;
     if (!settings.contains("dialog/currentPath"))
