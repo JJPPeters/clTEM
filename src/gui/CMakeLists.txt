@@ -1,6 +1,5 @@
 project( clTEM_gui )
 cmake_minimum_required( VERSION 3.5 )
-#set ( CMAKE_BUILD_TYPE Release )
 
 cmake_policy(SET CMP0071 NEW)
 
@@ -67,6 +66,7 @@ set ( clTEM_SRCS
 		dialogs/settings/frames/stemareaframe.cpp
         dialogs/settings/frames/cbedareaframe.cpp
 		dialogs/settings/frames/stemdetectorframe.cpp
+		dialogs/settings/frames/thermalscatteringframe.cpp
 		dialogs/settings/frames/arealayoutframe.cpp
         utils/stringutils.cpp utils/stringutils.h utils/guiutils.cpp utils/guiutils.h controls/editunitsbox.cpp controls/editunitsbox.h)
 
@@ -88,6 +88,7 @@ set ( clTEM_UIS
         dialogs/settings/frames/stemareaframe.ui
         dialogs/settings/frames/cbedareaframe.ui
 		dialogs/settings/frames/arealayoutframe.ui
+        dialogs/settings/frames/thermalscatteringframe.ui
 	)
 
 QT5_WRAP_UI(UIS ${clTEM_UIS})

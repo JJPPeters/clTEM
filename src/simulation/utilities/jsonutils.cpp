@@ -207,7 +207,49 @@ namespace JSONUtils {
         try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
         } catch (json::out_of_range& e) {}
 
+        *(man.getThermalVibrations()) = JsonToThermalVibrations(j);
+
         return man;
+    }
+
+    ThermalVibrations JsonToThermalVibrations(json& j) {
+
+        ThermalVibrations out_therms;
+
+        bool force_default = false;
+        bool override_file = false;
+        float def = 0.0f;
+
+        std::vector<float> vibs;
+        std::vector<int> els;
+
+        try { force_default = readJsonEntry<bool>(j, "thermal parameters", "force default");
+        } catch (json::out_of_range& e) {}
+
+        try { override_file = readJsonEntry<bool>(j, "thermal parameters", "override file");
+        } catch (json::out_of_range& e) {}
+
+        try { def = readJsonEntry<float>(j, "thermal parameters", "default");
+        } catch (json::out_of_range& e) {}
+
+        try {
+            json element_section = readJsonEntry<json>(j, "thermal parameters", "values");
+            for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
+                std::string element = it.key();
+                try{
+                    auto v = readJsonEntry<float>(element_section, element);
+                    els.emplace_back( Utils::ElementSymbolToNumber(element) );
+                    vibs.emplace_back(v);
+                } catch (json::out_of_range& e) {}
+            }
+
+        } catch (json::out_of_range& e) {}
+
+        out_therms.setVibrations(def, els, vibs);
+        out_therms.force_defined = override_file;
+        out_therms.force_default = force_default;
+
+        return out_therms;
     }
 
     json FullManagerToJson(SimulationManager& man) {
@@ -232,7 +274,7 @@ namespace JSONUtils {
         j["mode"]["id"] = mode;
         j["mode"]["name"] = man.getModeString();
 
-        j["potentials"] = StructureParameters::getCurrentName();
+        j["potentials"] = man.getStructureParametersName();
 
         j["resolution"] = man.getResolution();
 
@@ -395,18 +437,52 @@ namespace JSONUtils {
                 j["cbed"]["tds"]["configurations"] = man.getTdsRunsCbed();
         }
 
+        // don't export if we have file defined vibrations and no override
+        bool export_thermals = true;
+        if (man.getStructure()) // structure does not always exist
+            export_thermals = !(man.getStructure()->isThermalFileDefined() && !man.getThermalVibrations()->force_default && !man.getThermalVibrations()->force_defined);
+
+        if (export_thermals || force_all) {
+            if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all)
+                j["thermal parameters"] = thermalVibrationsToJson(man);
+        } else {
+            j["thermal parameters"] = "input file defined";
+        }
+
         return j;
     }
 
     json stemDetectorToJson(StemDetector d) {
         json j;
-//        j["stem"]["detector"]["name"] = d.name;
+
         j["radius"]["inner"] = d.inner;
         j["radius"]["outer"] = d.outer;
         j["radius"]["units"] = "mrad";
         j["centre"]["x"] = d.xcentre;
         j["centre"]["y"] = d.ycentre;
         j["centre"]["units"] = "mrad";
+
+        return j;
+    }
+
+    json thermalVibrationsToJson(SimulationManager& man) {
+        json j;
+
+        j["force default"] = man.getThermalVibrations()->force_default;
+        j["override file"] = man.getThermalVibrations()->force_defined;
+
+        j["default"] = man.getThermalVibrations()->getDefault();
+        j["units"] = "Å²";
+
+        auto els = man.getThermalVibrations()->getDefinedElements();
+        auto vibs = man.getThermalVibrations()->getDefinedVibrations();
+
+        if (els.size() != vibs.size())
+            throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");
+
+        for(int i = 0; i < els.size(); ++i) {
+            j["values"][ Utils::NumberToElementSymbol(els[i]) ] = vibs[i];
+        }
 
         return j;
     }

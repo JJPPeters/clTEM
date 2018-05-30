@@ -7,6 +7,22 @@
 namespace Utils
 {
 
+    // https://stackoverflow.com/questions/236129/the-most-elegant-way-to-iterate-the-words-of-a-string
+    // split a string by the whitespace
+    std::vector<std::string> splitStringSpace(const std::string &in)
+    {
+        std::vector<std::string> out;
+        std::istringstream iss(in);
+
+        while (iss) {
+            std::string subs;
+            iss >> subs;
+            out.emplace_back(subs);
+        }
+
+        return out;
+    }
+
     // Taken from http://stackoverflow.com/a/6089413
     std::istream& safeGetline(std::istream& is, std::string& t)
     {
@@ -30,7 +46,7 @@ namespace Utils
                 if(sb->sgetc() == '\n')
                     sb->sbumpc();
                 return is;
-            case EOF:
+            case std::streambuf::traits_type::eof():
                 // Also handle the case when the last line has no line ending
                 if(t.empty())
                     is.setstate(std::ios::eofbit);

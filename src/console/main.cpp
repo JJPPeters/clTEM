@@ -104,8 +104,6 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
-    settings["parameters"] = StructureParameters::getCurrentName();
-
     // save the images....
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -298,8 +296,6 @@ int main(int argc, char *argv[])
     auto imageRet = imageReturned;
     man_ptr->setImageReturnFunc(imageRet);
 
-    man_list.emplace_back(man_ptr);
-
     std::cout << "Output directory: " << output_dir << std::endl;
     fs::path dir(output_dir);
     if (!fs::is_directory(dir)) {
@@ -352,6 +348,14 @@ int main(int argc, char *argv[])
 
     exe_path_string = std::string(exe_dir);
 #endif
+    // need to load potentials from external sources, then our manager is complete
+    // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
+    std::string params_path = exe_path_string + "/params";
+    std::string p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
+    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
+    man_ptr->setStructureParameters(p_name, params);
+
+    man_list.emplace_back(man_ptr);
 
     // open the kernels
     std::string kernel_path = exe_path_string + "/kernels";
@@ -374,11 +378,6 @@ int main(int argc, char *argv[])
     Kernels::AbsSource = Utils::resourceToChar(kernel_path, "absolute.cl");
     Kernels::DqeSource = Utils::resourceToChar(kernel_path, "dqe.cl");
     Kernels::NtfSource = Utils::resourceToChar(kernel_path, "ntf.cl");
-
-    std::string params_path = exe_path_string + "/params";
-    std::string p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
-    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
-    StructureParameters::setParams(params, p_name);
 
     std::string ccds_path = exe_path_string + "/ccds";
 

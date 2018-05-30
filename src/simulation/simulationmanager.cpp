@@ -2,6 +2,7 @@
 
 #include <ios>
 #include <fstream>
+#include <memory>
 
 std::valarray<float> const SimulationManager::default_xy_padding = {-8.0f, 8.0f};
 std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
@@ -10,13 +11,15 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(true),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
-                                         slice_offset(0.0f)
+                                         slice_offset(0.0f), structure_parameters_name(""), structure_parameters()
 {
     // Here is where the default values are set!
-    MicroParams = std::shared_ptr<MicroscopeParameters>(new MicroscopeParameters);
-    SimArea = std::shared_ptr<SimulationArea>(new SimulationArea);
-    StemSimArea = std::shared_ptr<StemArea>(new StemArea);
-    CbedPos = std::shared_ptr<CbedPosition>(new CbedPosition);
+    MicroParams = std::make_shared<MicroscopeParameters>();
+    SimArea = std::make_shared<SimulationArea>();
+    StemSimArea = std::make_shared<StemArea>();
+    CbedPos = std::make_shared<CbedPosition>();
+    thermal_vibrations = std::make_shared<ThermalVibrations>();
+
 
     Mode = SimulationMode::CTEM;
     full3dInts = 20;
@@ -29,6 +32,10 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
     MicroParams->Delta = 30;
     MicroParams->Alpha = 0.3;
     MicroParams->C30 = 10000;
+
+    std::random_device rd;
+    rng = std::mt19937(rd());
+    dist = std::normal_distribution<>(0, 1);
 }
 
 void SimulationManager::setStructure(std::string filePath)
@@ -130,6 +137,9 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
 {
     std::lock_guard<std::mutex> lck(image_update_mtx);
 
+    // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
+    float average_factor = (float) getTdsRuns();
+
     for (auto const& i : ims)
     {
 
@@ -139,7 +149,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
             if (im.data.size() != current.data.size())
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
             for (int j = 0; j < current.data.size(); ++j)
-                current.data[j] += im.data[j];
+                current.data[j] += im.data[j] / average_factor;
             Images[i.first] = current;
         } else
             Images.insert(std::map<std::string, Image<float>>::value_type(i.first, i.second));
@@ -402,4 +412,37 @@ unsigned int SimulationManager::getStoredTdsRuns() {
         return TdsRunsCbed;
 
     return 1;
+}
+
+float SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
+    if (direction < 0 || direction > 2)
+        throw std::runtime_error("Error trying to apply thermal displacement to axis: " + std::to_string(direction));
+
+    // need element (just pass atom?)
+
+    // TODO: check this behaves as expected, may want to reset the random stuff
+    // sqrt as we have the mean squared displacement (variance), but want the standard deviation
+
+    float u = 0.0f;
+
+    if ( thermal_vibrations->force_default )
+        u = thermal_vibrations->getDefault();
+    else if (thermal_vibrations->force_defined)
+        u = thermal_vibrations->getVibrations((unsigned int) at.A);
+    else if (Structure->isThermalFileDefined()) {
+        if (direction == 0)
+            u = at.ux;
+        else if (direction == 1)
+            u = at.uy;
+        else if (direction == 2)
+            u = at.uz;
+    } else {
+        // defaults are built into this
+        u = thermal_vibrations->getVibrations((unsigned int) at.A);
+    }
+
+
+    float randNormal = std::sqrt(u) * (float) dist(rng);
+
+    return randNormal;
 }

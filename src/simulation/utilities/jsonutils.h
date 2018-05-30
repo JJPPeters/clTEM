@@ -10,6 +10,8 @@
 #include <ccdparams.h>
 #include "json.hpp"
 
+#include "structure/thermalvibrations.h"
+
 namespace JSONUtils {
 
     using json = nlohmann::json;
@@ -20,7 +22,11 @@ namespace JSONUtils {
 
     json stemDetectorToJson(StemDetector d);
 
+    json thermalVibrationsToJson(SimulationManager& man);
+
     SimulationManager JsonToManager(json& j);
+
+    ThermalVibrations JsonToThermalVibrations(json& j);
 
     template <typename T>
     T readJsonEntry(json j, std::string current)

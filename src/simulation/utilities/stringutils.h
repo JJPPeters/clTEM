@@ -10,6 +10,8 @@
 
 namespace Utils
 {
+    std::vector<std::string> splitStringSpace(const std::string &in);
+
     // Taken from http://stackoverflow.com/a/6089413
     std::istream& safeGetline(std::istream& is, std::string& t);
 

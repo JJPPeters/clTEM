@@ -22,7 +22,7 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
     if (!job->simManager)
         throw std::runtime_error("Cannot access simulation parameters");
 
-    uploadParameters(StructureParameters::getParams()); //TODO: get the params to this point... (through a static class?)
+    uploadParameters(job->simManager->getStructureParameters());
 
     // now what we do depends on the simulation type (I think...)
     auto mode = job->simManager->getMode();
@@ -50,7 +50,7 @@ void SimulationWorker::uploadParameters(std::vector<float> param)
 void SimulationWorker::sortAtoms(bool doTds)
 {
     auto atoms = job->simManager->getStructure()->getAtoms();
-    unsigned int atom_count = (unsigned int) atoms.size(); // Needs to be cast to int as opencl kernel expects that size
+    auto atom_count = (unsigned int) atoms.size(); // Needs to be cast to int as opencl kernel expects that size
 
     std::vector<int> AtomANum(atom_count);
     std::vector<float> AtomXPos(atom_count);
@@ -63,9 +63,9 @@ void SimulationWorker::sortAtoms(bool doTds)
         if (doTds)
         {
             // TODO: need a log guard here or in the structure file...
-            dx = job->simManager->getStructure()->generateTdsFactor();
-            dy = job->simManager->getStructure()->generateTdsFactor();
-            dz = job->simManager->getStructure()->generateTdsFactor();
+            dx = job->simManager->generateTdsFactor(atoms[i], 0);
+            dy = job->simManager->generateTdsFactor(atoms[i], 1);
+            dz = job->simManager->generateTdsFactor(atoms[i], 2);
         }
 
         AtomANum[i] = atoms[i].A;

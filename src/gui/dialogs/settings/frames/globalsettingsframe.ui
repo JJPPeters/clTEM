@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>536</width>
-    <height>542</height>
+    <width>565</width>
+    <height>454</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,7 +50,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>0</width>
+              <width>10</width>
               <height>20</height>
              </size>
             </property>
@@ -92,7 +92,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>0</width>
+              <width>10</width>
               <height>20</height>
              </size>
             </property>
@@ -130,7 +130,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Parameters: </string>
+             <string>Potentials: </string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -176,7 +176,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>0</width>
+              <width>10</width>
               <height>20</height>
              </size>
             </property>
@@ -189,7 +189,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>0</width>
+              <width>10</width>
               <height>20</height>
              </size>
             </property>
