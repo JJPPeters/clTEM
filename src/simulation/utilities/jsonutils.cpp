@@ -438,7 +438,9 @@ namespace JSONUtils {
         }
 
         // don't export if we have file defined vibrations and no override
-        bool export_thermals = !(man.getStructure()->isThermalFileDefined() && !man.getThermalVibrations()->force_default && !man.getThermalVibrations()->force_defined);
+        bool export_thermals = true;
+        if (man.getStructure()) // structure does not always exist
+            export_thermals = !(man.getStructure()->isThermalFileDefined() && !man.getThermalVibrations()->force_default && !man.getThermalVibrations()->force_defined);
 
         if (export_thermals || force_all) {
             if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all)
