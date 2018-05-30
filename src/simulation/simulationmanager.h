@@ -71,6 +71,8 @@ public:
         ccd_binning = sm.ccd_binning;
         ccd_dose = sm.ccd_dose;
         slice_offset = sm.slice_offset;
+        structure_parameters = sm.structure_parameters;
+        structure_parameters_name = sm.structure_parameters_name;
 
         if (sm.Structure) // structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -78,6 +80,7 @@ public:
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
+        thermal_vibrations = std::make_shared<ThermalVibrations>(*(sm.thermal_vibrations));
 
         return *this;
     }
@@ -239,6 +242,7 @@ public:
     std::string getStructureParametersName() {return structure_parameters_name;}
 
     std::shared_ptr<ThermalVibrations> getThermalVibrations() {return thermal_vibrations;}
+    void setThermalVibrations(ThermalVibrations tv) {thermal_vibrations = std::make_shared<ThermalVibrations>(tv);}
 
     float generateTdsFactor(AtomSite& at, int direction);
 

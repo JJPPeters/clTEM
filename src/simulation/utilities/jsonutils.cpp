@@ -207,8 +207,7 @@ namespace JSONUtils {
         try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
         } catch (json::out_of_range& e) {}
 
-        *(man.getThermalVibrations().get()) = JsonToThermalVibrations(j);
-        man.getThermalVibrations()->force_defined = true;
+        *(man.getThermalVibrations()) = JsonToThermalVibrations(j);
 
         return man;
     }
