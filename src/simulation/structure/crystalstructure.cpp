@@ -86,7 +86,7 @@ void CrystalStructure::openXyz(std::string fPath)
 
     auto max_header = std::max<int>({h_A, h_x, h_y, h_z, h_occ, h_u, h_ux, h_uy, h_uz});
 
-    file_defined_thermals = h_u != 0 || h_ux != 0 || h_uy != 0 || h_uz != 0;
+    file_defined_thermals = h_u != -1 || h_ux != -1 || h_uy != -1 || h_uz != -1;
 
     // TODO: report warning on unused headers?
 
