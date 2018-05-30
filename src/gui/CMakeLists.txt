@@ -5,6 +5,8 @@ cmake_policy(SET CMP0071 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
+
+set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
@@ -31,14 +33,14 @@ add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
-if(CMAKE_BUILD_TYPE MATCHES RELEASE)
+if(CMAKE_BUILD_TYPE MATCHES Release)
 	if(WIN32)
 		if(CMAKE_COMPILER_IS_GNUCXX)
 			# I think this is needed to make it a full GUI app, otherwise it will show the console
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
 		endif(CMAKE_COMPILER_IS_GNUCXX)
 	endif(WIN32)
-endif(CMAKE_BUILD_TYPE MATCHES RELEASE)
+endif(CMAKE_BUILD_TYPE MATCHES Release)
 
 set ( clTEM_HDRS
 	)
@@ -93,6 +95,16 @@ set ( clTEM_UIS
 
 QT5_WRAP_UI(UIS ${clTEM_UIS})
 
-add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS})
+# I need this to bypass some errors with windres and the rc files
+# essentially I removed the <flags> section to achieve this
+# Thanks very much to https://stackoverflow.com/questions/3526794/how-do-i-build-a-win32-app-with-a-resource-file-using-cmake-and-mingw
+if(MINGW)
+	set(CMAKE_RC_COMPILER_INIT windres)
+	ENABLE_LANGUAGE(RC)
+	SET(CMAKE_RC_COMPILE_OBJECT
+			"<CMAKE_RC_COMPILER> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+endif(MINGW)
+
+add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} cltem.rc)
 target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation)
 target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation )
