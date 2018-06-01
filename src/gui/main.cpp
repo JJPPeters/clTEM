@@ -3,6 +3,8 @@
 #include <iostream>
 #include <QtWidgets/QMessageBox>
 #include <clmanager.h>
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +25,32 @@ int main(int argc, char *argv[])
         msgBox.exec();
         a.exit(1); // not sure I need both of these, but just to be sure
         return 1;
+    }
+
+    QFile f("D:\\Users\\Jon\\Git\\clTEM-dev\\clTEM-git\\src\\gui\\test-style.qss");
+    if (f.open(QFile::ReadOnly | QFile::Text)) {
+        QTextStream in(&f);
+        QString s = in.readAll();
+        f.close();
+
+        QString d1 = "#2A2A2A";
+        QString l2 = "#A8A8A8";
+
+        s.replace("{d2}", "#404040"); // dark
+        s.replace("{d1}", d1); // darkest
+        s.replace("{l1}", "#D8D8D8"); // lightest
+        s.replace("{l2}", l2); // light
+        s.replace("{a1}", "#6A9D1A"); // accent
+
+        a.setStyleSheet(s);
+
+        // this is so the plots function properly...
+        QPalette darkPalette;
+        darkPalette.setColor(QPalette::Window, QColor(d1));
+        darkPalette.setColor(QPalette::Mid, QColor(l2));
+
+        qApp->setPalette(darkPalette);
+
     }
 
     w.show();
