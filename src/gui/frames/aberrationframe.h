@@ -26,6 +26,8 @@ private slots:
 
     void on_btnMore_clicked();
 
+    void on_edtVoltage_textChanged(const QString &arg1);
+
 public slots:
     void updateTextBoxes();
 

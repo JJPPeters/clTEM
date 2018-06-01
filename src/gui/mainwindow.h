@@ -60,6 +60,8 @@ public:
 public slots:
     void updateScales();
 
+    void updateVoltageMrad(float voltage);
+
 private slots:
     void set_active_mode(int mode);
 

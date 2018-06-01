@@ -39,10 +39,10 @@ AberrationFrame::AberrationFrame(QWidget *parent) :
 
     // these connect to a slot that makes the text colour change if the value is zero
     // I don't want to disable 0 in the regex as people might want it as a leading character (e.g. 0.1)
-    connect(ui->edtAperture, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtDelta, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtConverge, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtVoltage, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtAperture, &QLineEdit::textChanged, this, &AberrationFrame::checkEditZero);
+    connect(ui->edtDelta, &QLineEdit::textChanged, this, &AberrationFrame::checkEditZero);
+    connect(ui->edtConverge, &QLineEdit::textChanged, this, &AberrationFrame::checkEditZero);
+    connect(ui->edtVoltage, &QLineEdit::textChanged, this, &AberrationFrame::checkEditZero); // this also has a 'by name' slot
 }
 
 AberrationFrame::~AberrationFrame()
@@ -133,4 +133,13 @@ void AberrationFrame::updateAberrations()
     params->C10 = C10;
     params->C12 = ComplexAberration(C12m, C12a);
     params->C30 = C30;
+}
+
+void AberrationFrame::on_edtVoltage_textChanged(const QString &arg1) {
+    // this slot is used to update the other panels for the mrad scale change
+    if (Main == nullptr)
+        throw std::runtime_error("Error connecting aberration frame to main window.");
+
+    float volt = ui->edtVoltage->text().toFloat();
+    Main->updateVoltageMrad( volt );
 }

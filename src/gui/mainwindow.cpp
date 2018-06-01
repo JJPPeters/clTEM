@@ -852,3 +852,13 @@ void MainWindow::on_actionThermal_scattering_triggered() {
 //    connect(myDialog, SIGNAL(aberrationsChanged()), ui->tAberr, SLOT(updateTextBoxes()));
     myDialog->exec();
 }
+
+void MainWindow::updateVoltageMrad(float voltage) {
+    if (!Manager->haveStructure() || !Manager->haveResolution())
+        return;
+
+    // update the voltage in teh manager
+    Manager->getMicroscopeParams()->Voltage = voltage;
+
+    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
+}
