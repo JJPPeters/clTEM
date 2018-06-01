@@ -72,7 +72,7 @@ AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<Microscope
     this->setWindowTitle("Aberrations");
 
     // don't think I ever need to disconnect this, should be handles by Qt when the objects are destroyed
-    connect(AberrFrame, SIGNAL(aberrationsApplied()), this, SLOT(coreAberrationsChanged()));
+    connect(AberrFrame, &FullAberrationFrame::aberrationsApplied, this, &AberrationsDialog::coreAberrationsChanged);
 
     this->setFixedSize(this->minimumSizeHint());
 }
@@ -104,7 +104,7 @@ StemDetectorDialog::StemDetectorDialog(QWidget *parent, std::vector<StemDetector
 
     this->setWindowTitle("STEM detectors");
 
-    connect(DetFrame, SIGNAL(detectorsChanged()), this, SLOT(coreDetectorsChanged()));
+    connect(DetFrame, &StemDetectorFrame::detectorsChanged, this, &StemDetectorDialog::coreDetectorsChanged);
 
     this->setFixedSize(this->minimumSizeHint());
 }
@@ -134,12 +134,7 @@ void StemAreaDialog::coreStemAreaChanged()
 
 StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, std::shared_ptr<SimulationArea> sim)
 {
-    //AreaFrame = new StemAreaFrame(this, area, sim);
-    //ui->vLayout->insertWidget(0, AreaFrame);
-
     this->setWindowTitle("STEM area");
-
-    //connect(AreaFrame, SIGNAL(areaChanged()), this, SLOT(coreStemAreaChanged()));
 
     this->setFixedSize(this->minimumSizeHint());
 }

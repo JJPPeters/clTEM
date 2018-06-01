@@ -27,7 +27,7 @@ void StemFrame::on_btnDetectors_clicked()
         throw std::runtime_error("Error connecting STEM frame to main window.");
     StemDetectorDialog* myDialog = new StemDetectorDialog(this, Main->getDetectors());
 
-    connect(myDialog, SIGNAL(detectorsChanged()), this, SLOT(updateDetectors()));
+    connect(myDialog, &StemDetectorDialog::detectorsChanged, this, &StemFrame::updateDetectors);
 
     myDialog->exec();
 }
@@ -48,10 +48,10 @@ void StemFrame::on_btnArea_clicked()
 
     SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
 
-    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), Main->getSimulationFrame(), SLOT(setResolutionText(QString)));
-    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), Main, SLOT(set_active_mode(int)));
-    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), Main->getCbedFrame(), SLOT(update_text_boxes()));
-    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), this, SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, Main->getSimulationFrame(), &SimulationFrame::setResolutionText);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, Main->getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, this, &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, Main, &MainWindow::updateScales);
 
     myDialog->exec();
@@ -61,7 +61,7 @@ void StemFrame::on_btnArea_clicked()
 
 void StemFrame::updateScaleLabels()
 {
-    if (Main == 0)
+    if (Main == nullptr)
         throw std::runtime_error("Error connecting STEM frame to main window.");
 
     float scaleX = Main->getStemArea()->getScaleX();

@@ -78,7 +78,7 @@ void AberrationFrame::on_btnMore_clicked()
     AberrationsDialog* myDialog = new AberrationsDialog(this, Main->getMicroscopeParams());
 
     // how this is dosconnected when the dialog is destroyed...
-    connect(myDialog, SIGNAL(aberrationsChanged()), this, SLOT(updateTextBoxes()));
+    connect(myDialog, &AberrationsDialog::aberrationsChanged, this, &AberrationFrame::updateTextBoxes);
 
     // we don't need to try and get anything from this dialog as it just updates the pointers we gave it!
     myDialog->exec();

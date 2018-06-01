@@ -4,6 +4,7 @@
 #import <QRegExpValidator>
 #import <QTableWidgetItem>
 #include <utilities/commonstructs.h>
+#include <dialogs/settings/settingsdialog.h>
 
 #include "utilities/stringutils.h"
 
@@ -30,9 +31,10 @@ OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice> current_devices)
 
     ui->edtRatio->setValidator(new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*")));
 
-    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+    auto parent_dlg = dynamic_cast<OpenClDialog*>(parentWidget());
+    connect(parent_dlg, &OpenClDialog::okSignal, this, &OpenClFrame::dlgOk_clicked);
+    connect(parent_dlg, &OpenClDialog::cancelSignal, this, &OpenClFrame::dlgCancel_clicked);
+    connect(parent_dlg, &OpenClDialog::applySignal, this, &OpenClFrame::dlgApply_clicked);
 
     for (int i = 0; i < current_devices.size(); ++i)
     {

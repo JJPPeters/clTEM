@@ -1,15 +1,18 @@
 #include <QtGui/QRegExpValidator>
+#include <dialogs/settings/settingsdialog.h>
 #include "globalsettingsframe.h"
 #include "ui_globalsettingsframe.h"
 
 GlobalSettingsFrame::GlobalSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
     QWidget(parent), Manager(simManager),
-    ui(new Ui::GlobalSettingsFrame) {
+    ui(new Ui::GlobalSettingsFrame)
+{
     ui->setupUi(this);
 
-    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+    auto parent_dlg = dynamic_cast<GlobalSettingsDialog*>(parentWidget());
+    connect(parent_dlg, &GlobalSettingsDialog::okSignal, this, &GlobalSettingsFrame::dlgOk_clicked);
+    connect(parent_dlg, &GlobalSettingsDialog::cancelSignal, this, &GlobalSettingsFrame::dlgCancel_clicked);
+    connect(parent_dlg, &GlobalSettingsDialog::applySignal, this, &GlobalSettingsFrame::dlgApply_clicked);
 
     QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 

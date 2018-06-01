@@ -29,12 +29,13 @@ StemDetectorFrame::StemDetectorFrame(QWidget *parent, std::vector<StemDetector>&
     ui->edtCentreX->setText("0");
     ui->edtCentreY->setText("0");
 
-    connect(ui->edtInner, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
-    connect(ui->edtOuter, SIGNAL(textChanged(QString)), this, SLOT(doRadiiValid(QString)));
+    connect(ui->edtInner, &QLineEdit::textChanged, this, &StemDetectorFrame::doRadiiValid);
+    connect(ui->edtOuter, &QLineEdit::textChanged, this, &StemDetectorFrame::doRadiiValid);
 
-    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+    auto parent_dlg = dynamic_cast<StemDetectorDialog*>(parentWidget());
+    connect(parent_dlg, &StemDetectorDialog::okSignal, this, &StemDetectorFrame::dlgOk_clicked);
+    connect(parent_dlg, &StemDetectorDialog::cancelSignal, this, &StemDetectorFrame::dlgCancel_clicked);
+    connect(parent_dlg, &StemDetectorDialog::applySignal, this, &StemDetectorFrame::dlgApply_clicked);
 
     for (const auto &chosenDetector : chosenDetectors)
         addItemToList(chosenDetector);

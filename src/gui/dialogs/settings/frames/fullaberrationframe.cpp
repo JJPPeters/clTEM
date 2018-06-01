@@ -20,18 +20,19 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
 
     MicroParams = std::move(params);
 
-    connect(ui->edtAperture, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtDefocusSpread, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtConverge, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtVoltage, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtAperture, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtDefocusSpread, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtConverge, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtVoltage, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
 
     setValidators();
     setUnits();
     setValues();
 
-    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+    auto parent_dlg = dynamic_cast<AberrationsDialog*>(parentWidget());
+    connect(parent_dlg, &AberrationsDialog::okSignal, this, &FullAberrationFrame::dlgOk_clicked);
+    connect(parent_dlg, &AberrationsDialog::cancelSignal, this, &FullAberrationFrame::dlgCancel_clicked);
+    connect(parent_dlg, &AberrationsDialog::applySignal, this, &FullAberrationFrame::dlgApply_clicked);
 }
 
 void FullAberrationFrame::setValidators()

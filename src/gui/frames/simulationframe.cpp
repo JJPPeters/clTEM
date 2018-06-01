@@ -78,10 +78,10 @@ void SimulationFrame::on_btnSimArea_clicked()
 
     SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
 
-    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), this, SLOT(setResolutionText(QString)));
-    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), Main, SLOT(set_active_mode(int)));
-    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), Main->getCbedFrame(), SLOT(update_text_boxes()));
-    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), Main->getStemFrame(), SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, this, &SimulationFrame::setResolutionText);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, Main->getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, Main->getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, Main, &MainWindow::updateScales);
 
     myDialog->exec();

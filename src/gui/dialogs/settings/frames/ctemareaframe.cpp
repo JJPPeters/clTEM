@@ -31,19 +31,19 @@ CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa) :
     // set teh default values
     on_btnReset_clicked();
 
-    connect(ui->edtStartX, SIGNAL(textChanged(QString)), this, SLOT(rangeChanged(QString)));
-    connect(ui->edtStartY, SIGNAL(textChanged(QString)), this, SLOT(rangeChanged(QString)));
+    connect(ui->edtStartX, &QLineEdit::textChanged, this, &CtemAreaFrame::rangeChanged);
+    connect(ui->edtStartY, &QLineEdit::textChanged, this, &CtemAreaFrame::rangeChanged);
 
-    connect(ui->edtFinishX, SIGNAL(textChanged(QString)), this, SLOT(xFinishChanged(QString)));
-    connect(ui->edtFinishY, SIGNAL(textChanged(QString)), this, SLOT(yFinishChanged(QString)));
+    connect(ui->edtFinishX, &QLineEdit::textChanged, this, &CtemAreaFrame::xFinishChanged);
+    connect(ui->edtFinishY, &QLineEdit::textChanged, this, &CtemAreaFrame::yFinishChanged);
 
-    connect(ui->edtRangeXY, SIGNAL(textChanged(QString)), this, SLOT(rangeChanged(QString)));
+    connect(ui->edtRangeXY, &QLineEdit::textChanged, this, &CtemAreaFrame::rangeChanged);
 
-    connect(ui->edtStartX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtStartY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtFinishX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtFinishY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtRangeXY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtStartX, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
+    connect(ui->edtStartY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
+    connect(ui->edtFinishX, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
+    connect(ui->edtFinishY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
+    connect(ui->edtRangeXY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
 }
 
 CtemAreaFrame::~CtemAreaFrame()

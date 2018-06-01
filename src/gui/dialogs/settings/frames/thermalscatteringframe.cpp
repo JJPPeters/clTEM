@@ -53,9 +53,10 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
     }
 
     // connect up our OK, etc... buttons
-    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+    auto parent_dlg = dynamic_cast<ThermalScatteringDialog*>(parentWidget());
+    connect(parent_dlg, &ThermalScatteringDialog::okSignal, this, &ThermalScatteringFrame::dlgOk_clicked);
+    connect(parent_dlg, &ThermalScatteringDialog::cancelSignal, this, &ThermalScatteringFrame::dlgCancel_clicked);
+    connect(parent_dlg, &ThermalScatteringDialog::applySignal, this, &ThermalScatteringFrame::dlgApply_clicked);
 }
 
 ThermalScatteringFrame::~ThermalScatteringFrame()

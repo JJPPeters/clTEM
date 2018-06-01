@@ -39,28 +39,28 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
 
     ui->edtPadding->setUnits("Å");
 
-    connect(ui->edtPixelsX, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
-    connect(ui->edtPixelsY, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
+    connect(ui->edtPixelsX, &QLineEdit::textChanged, this, &StemAreaFrame::valuesChanged);
+    connect(ui->edtPixelsY, &QLineEdit::textChanged, this, &StemAreaFrame::valuesChanged);
 
-    connect(ui->edtStartX, SIGNAL(textChanged(QString)), this, SLOT(xStartRangeChanged(QString)));
-    connect(ui->edtFinishX, SIGNAL(textChanged(QString)), this, SLOT(xFinishChanged(QString)));
-    connect(ui->edtRangeX, SIGNAL(textChanged(QString)), this, SLOT(xStartRangeChanged(QString)));
+    connect(ui->edtStartX, &QLineEdit::textChanged, this, &StemAreaFrame::xStartRangeChanged);
+    connect(ui->edtFinishX, &QLineEdit::textChanged, this, &StemAreaFrame::xFinishChanged);
+    connect(ui->edtRangeX, &QLineEdit::textChanged, this, &StemAreaFrame::xStartRangeChanged);
 
-    connect(ui->edtStartY, SIGNAL(textChanged(QString)), this, SLOT(yStartRangeChanged(QString)));
-    connect(ui->edtFinishY, SIGNAL(textChanged(QString)), this, SLOT(yFinishChanged(QString)));
-    connect(ui->edtRangeY, SIGNAL(textChanged(QString)), this, SLOT(yStartRangeChanged(QString)));
+    connect(ui->edtStartY, &QLineEdit::textChanged, this, &StemAreaFrame::yStartRangeChanged);
+    connect(ui->edtFinishY, &QLineEdit::textChanged, this, &StemAreaFrame::yFinishChanged);
+    connect(ui->edtRangeY, &QLineEdit::textChanged, this, &StemAreaFrame::yStartRangeChanged);
 
-    connect(ui->edtPadding, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
+    connect(ui->edtPadding, &QLineEdit::textChanged, this, &StemAreaFrame::valuesChanged);
 
-    connect(ui->edtStartX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtStartY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtFinishX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtFinishY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtPixelsX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtPixelsY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtRangeX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtRangeY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtPadding, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtStartX, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtStartY, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtFinishX, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtFinishY, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtPixelsX, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtPixelsY, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtRangeX, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtRangeY, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
+    connect(ui->edtPadding, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
 
     // set teh default values
     on_btnReset_clicked();

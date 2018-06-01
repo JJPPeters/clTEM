@@ -21,11 +21,11 @@ CbedAreaFrame::CbedAreaFrame(QWidget *parent, CbedPosition pos) :
     ui->edtPosY->setUnits("Å");
     ui->edtPadding->setUnits("Å");
 
-    connect(ui->edtPadding, SIGNAL(textChanged(QString)), this, SLOT(valuesChanged(QString)));
+    connect(ui->edtPadding, &QLineEdit::textChanged, this, &CbedAreaFrame::valuesChanged);
 
-    connect(ui->edtPosX, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtPosY, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
-    connect(ui->edtPadding, SIGNAL(editingFinished()), this, SLOT(editing_finished()));
+    connect(ui->edtPosX, &QLineEdit::editingFinished, this, &CbedAreaFrame::editing_finished);
+    connect(ui->edtPosY, &QLineEdit::editingFinished, this, &CbedAreaFrame::editing_finished);
+    connect(ui->edtPadding, &QLineEdit::editingFinished, this, &CbedAreaFrame::editing_finished);
 
     // this just resets the values to the currently stored ones
     on_btnReset_clicked();

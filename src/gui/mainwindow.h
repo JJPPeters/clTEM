@@ -62,9 +62,9 @@ public slots:
 
     void updateVoltageMrad(float voltage);
 
-private slots:
     void set_active_mode(int mode);
 
+private slots:
     void on_actionOpen_triggered();
 
     void on_actionOpenCL_triggered();
@@ -81,7 +81,7 @@ private slots:
 
     void on_actionThermal_scattering_triggered();
 
-    void on_actionSimulate_EW_triggered(bool do_image = false);
+    void on_actionSimulate_EW_triggered();
 
     void cancel_simulation();
 

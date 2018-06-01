@@ -1,4 +1,5 @@
 #include <utils/stringutils.h>
+#include <dialogs/settings/settingsdialog.h>
 #include "arealayoutframe.h"
 #include "ui_arealayoutframe.h"
 
@@ -16,12 +17,13 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->edtSliceThickness->setUnits("Å");
     ui->edtSliceOffset->setUnits("Å");
 
-    connect(ui->edtSliceThickness, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
-    connect(ui->edtSliceOffset, SIGNAL(textChanged(QString)), this, SLOT(checkEditZero(QString)));
+    connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
+    connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
 
-    connect(parent, SIGNAL(okSignal()), this, SLOT(dlgOk_clicked()));
-    connect(parent, SIGNAL(cancelSignal()), this, SLOT(dlgCancel_clicked()));
-    connect(parent, SIGNAL(applySignal()), this, SLOT(dlgApply_clicked()));
+    auto parent_dlg = dynamic_cast<SimAreaDialog*>(parentWidget());
+    connect(parent_dlg, &SimAreaDialog::okSignal, this, &AreaLayoutFrame::dlgOk_clicked);
+    connect(parent_dlg, &SimAreaDialog::cancelSignal, this, &AreaLayoutFrame::dlgCancel_clicked);
+    connect(parent_dlg, &SimAreaDialog::applySignal, this, &AreaLayoutFrame::dlgApply_clicked);
 
     SimulationArea ctemArea = *SimManager->getSimulationArea();
     StemArea stemArea = *SimManager->getStemArea();
@@ -35,15 +37,15 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->vStemLayout->insertWidget(0, StemFrame);
     ui->vCbedLayout->insertWidget(0, CbedFrame);
 
-    connect(CtemFrame, SIGNAL(areaChanged()), this, SLOT(areasChanged()));
-    connect(StemFrame, SIGNAL(areaChanged()), this, SLOT(areasChanged()));
-    connect(CbedFrame, SIGNAL(areaChanged()), this, SLOT(areasChanged()));
+    connect(CtemFrame, &CtemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
 
-    connect(CtemFrame, SIGNAL(applyChanges()), this, SLOT(apply_pressed()));
-    connect(StemFrame, SIGNAL(applyChanges()), this, SLOT(apply_pressed()));
-    connect(CbedFrame, SIGNAL(applyChanges()), this, SLOT(apply_pressed()));
+    connect(CtemFrame, &CtemAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
+    connect(StemFrame, &StemAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
+    connect(CbedFrame, &CbedAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
 
-    connect(ui->tabAreaWidget, SIGNAL(currentChanged(int)), this, SLOT(areasChanged()));
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
 
     // set current tab to view
     auto mode = SimManager->getMode();

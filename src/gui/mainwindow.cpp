@@ -87,18 +87,18 @@ MainWindow::MainWindow(QWidget *parent) :
     auto p = Manager->getMicroscopeParams();
     ui->tAberr->updateTextBoxes();
 
-    connect(ui->tSim, SIGNAL(resolutionSet(int)), this, SLOT(resolution_changed(int)));
+    connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
-    connect(ui->tStem, SIGNAL(startSim()), this, SLOT(on_actionSimulate_EW_triggered()));
-    connect(ui->tTem, SIGNAL(startSim()), this, SLOT(on_actionSimulate_EW_triggered()));
-    connect(ui->tCbed, SIGNAL(startSim()), this, SLOT(on_actionSimulate_EW_triggered()));
-    connect(ui->twMode, SIGNAL(currentChanged(int)), this, SLOT(on_twMode_currentChanged(int)));
+    connect(ui->tStem, &StemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
+    connect(ui->tTem, &TemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
+    connect(ui->tCbed, &CbedFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
+    connect(ui->twMode, &QTabWidget::currentChanged, this, &MainWindow::on_twMode_currentChanged);
 
-    connect(ui->tTem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
-    connect(ui->tCbed, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
-    connect(ui->tStem, SIGNAL(stopSim()), this, SLOT(cancel_simulation()));
+    connect(ui->tTem, &TemFrame::stopSim, this, &MainWindow::cancel_simulation);
+    connect(ui->tCbed, &CbedFrame::stopSim, this, &MainWindow::cancel_simulation);
+    connect(ui->tStem, &StemFrame::stopSim, this, &MainWindow::cancel_simulation);
 
-    connect(ui->tTem, SIGNAL(setCtemCrop(bool)), this, SLOT(set_ctem_crop(bool)));
+    connect(ui->tTem, &TemFrame::setCtemCrop, this, &MainWindow::set_ctem_crop);
 
     connect(this, &MainWindow::sliceProgressUpdated, this, &MainWindow::sliceProgressChanged);
     connect(this, &MainWindow::totalProgressUpdated, this, &MainWindow::totalProgressChanged);
@@ -295,7 +295,7 @@ void MainWindow::updateImages(std::map<std::string, Image<float>> ims, Simulatio
     emit imagesReturned(ims, sm);
 }
 
-void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
+void MainWindow::on_actionSimulate_EW_triggered()
 {
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
@@ -311,7 +311,7 @@ void MainWindow::on_actionSimulate_EW_triggered(bool do_image)
     }
     catch (const std::runtime_error& e)
     {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
 //        msgBox.setDetailedText(e.what());
@@ -830,10 +830,10 @@ void MainWindow::on_actionSet_area_triggered()
 
     SimAreaDialog* myDialog = new SimAreaDialog(this, Manager);
 
-    connect(myDialog->getFrame(), SIGNAL(resolutionChanged(QString)), ui->tSim, SLOT(setResolutionText(QString)));
-    connect(myDialog->getFrame(), SIGNAL(modeChanged(int)), this, SLOT(set_active_mode(int)));
-    connect(myDialog->getFrame(), SIGNAL(updateMainCbed()), getCbedFrame(), SLOT(update_text_boxes()));
-    connect(myDialog->getFrame(), SIGNAL(updateMainStem()), getStemFrame(), SLOT(updateScaleLabels()));
+    connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, ui->tSim, &SimulationFrame::setResolutionText);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, this, &MainWindow::set_active_mode);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, this, &MainWindow::updateScales);
 
     myDialog->exec();
@@ -843,13 +843,12 @@ void MainWindow::on_actionAberrations_triggered()
 {
     ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
     AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->getMicroscopeParams());
-    connect(myDialog, SIGNAL(aberrationsChanged()), ui->tAberr, SLOT(updateTextBoxes()));
+    connect(myDialog, &AberrationsDialog::aberrationsChanged, ui->tAberr, &AberrationFrame::updateTextBoxes);
     myDialog->exec();
 }
 
 void MainWindow::on_actionThermal_scattering_triggered() {
     ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
-//    connect(myDialog, SIGNAL(aberrationsChanged()), ui->tAberr, SLOT(updateTextBoxes()));
     myDialog->exec();
 }
 

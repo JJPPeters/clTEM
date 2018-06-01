@@ -31,7 +31,7 @@ ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
     axisRect()->setMinimumMargins(QMargins(0,0,0,0));
     axisRect()->setMargins(QMargins(0,0,0,0));
 
-    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
+    connect(this, &ImagePlotWidget::customContextMenuRequested, this, &ImagePlotWidget::contextMenuRequest);
 }
 
 bool ImagePlotWidget::event(QEvent *event) {
@@ -312,12 +312,12 @@ void ImagePlotWidget::resetAxes(bool doReplot) {
 void ImagePlotWidget::contextMenuRequest(QPoint pos) {
     QMenu* menu = new QMenu(this);
 
-    menu->addAction("Reset zoom", this, SLOT(resetAxes()));
+    menu->addAction("Reset zoom", this, &ImagePlotWidget::resetAxes);
 
     QMenu* save_menu = new QMenu("Export...", menu);
 
-    save_menu->addAction("Data", this, SLOT(exportTiff()));
-    save_menu->addAction("RGB", this, SLOT(exportBmp()));
+    save_menu->addAction("Data", this, &ImagePlotWidget::exportTiff);
+    save_menu->addAction("RGB", this, &ImagePlotWidget::exportBmp);
 
     menu->addMenu(save_menu);
 
