@@ -18,14 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    // test opencl
-    try {
-        ClManager::getDeviceList();
-    }
-    catch (const std::exception& e) {
-        // TODO: later, this shouldn't exit but should just disable everything relevant
-        throw std::runtime_error("Failed to get any OpenCl devices. Exiting...");
-    }
+    // opencl test has been moved to main.cpp
 
     // register types for our image returns!!
     qRegisterMetaType< std::map<std::string, Image<float>> >( "std::map<std::string, Image<float>>" );
@@ -317,6 +310,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
 //        msgBox.setDetailedText(e.what());
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
         msgBox.exec();
         setUiActive(true);
         return;
