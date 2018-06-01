@@ -212,26 +212,27 @@ int main(int argc, char *argv[])
     // check the options we need have at least been entered
     bool valid_flags = true;
 
-    if (non_option_args.empty())
-    {
+    if (non_option_args.empty()) {
         std::cerr << "Require non-option argument as structure (.xyz) file" << std::endl;
         valid_flags = false;
     }
 
-    if (output_dir.empty())
-    {
+    if (output_dir.empty()) {
         std::cerr << "Require output directory argument (-o, --output)" << std::endl;
         valid_flags = false;
     }
 
-    if (device_options.empty())
-    {
+    if (device_options.empty()) {
         std::cerr << "Require OpenCL device(s) to be selected (-d, --device)" << std::endl;
         valid_flags = false;
     }
 
-    if (non_option_args.size() > 1)
-    {
+    if (input_params.empty()) {
+        std::cerr << "Require a configuration file argument (-c, --config)" << std::endl;
+        valid_flags = false;
+    }
+
+    if (non_option_args.size() > 1) {
         std::cerr << "Only expecting one non-option argument. Instead got:" << std::endl;
         for (std::string& s : non_option_args)
             std::cerr << s << std::endl;
@@ -263,16 +264,12 @@ int main(int argc, char *argv[])
 
     nlohmann::json j;
 
-    if (input_params.empty())
-        std::cout << "No configuration file provided. Using default settings..." << std::endl;
-    else {
-        std::cout << "Config file: " << input_params << std::endl;
-        try {
-            j = fileio::OpenSettingsJson(input_params);
-        } catch (...) {
-            std::cout << "Error opening config file. Exiting..." << std::endl;
-            return 1;
-        }
+    std::cout << "Config file: " << input_params << std::endl;
+    try {
+        j = fileio::OpenSettingsJson(input_params);
+    } catch (...) {
+        std::cout << "Error opening config file. Exiting..." << std::endl;
+        return 1;
     }
 
     // make our manager...
