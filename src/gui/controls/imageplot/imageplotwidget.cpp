@@ -312,7 +312,7 @@ void ImagePlotWidget::resetAxes(bool doReplot) {
 void ImagePlotWidget::contextMenuRequest(QPoint pos) {
     QMenu* menu = new QMenu(this);
 
-    menu->addAction("Reset zoom", this, &ImagePlotWidget::resetAxes);
+    menu->addAction("Reset zoom", this, &ImagePlotWidget::resetAxes_slot);
 
     QMenu* save_menu = new QMenu("Export...", menu);
 

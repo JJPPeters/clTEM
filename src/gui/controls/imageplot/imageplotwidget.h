@@ -166,12 +166,14 @@ private:
         QCustomPlot::mouseMoveEvent(event);
     }
 
+    void resetAxes(bool doReplot = true);
+
 public slots:
     void SetColorLimits(double ul);
 
     void SetColorMap(QCPColorGradient Map);
 
-    void resetAxes(bool doReplot = true);
+    void resetAxes_slot() {resetAxes(true);} // this is purely for the slot...
 
     void exportTiff();
 
