@@ -70,7 +70,7 @@ set ( clTEM_SRCS
 		dialogs/settings/frames/stemdetectorframe.cpp
 		dialogs/settings/frames/thermalscatteringframe.cpp
 		dialogs/settings/frames/arealayoutframe.cpp
-        utils/stringutils.cpp utils/stringutils.h utils/guiutils.cpp utils/guiutils.h controls/editunitsbox.cpp controls/editunitsbox.h)
+        utils/stringutils.cpp utils/stringutils.h utils/guiutils.cpp utils/guiutils.h controls/editunitsbox.cpp controls/editunitsbox.h controls/flattitlebar.cpp controls/flattitlebar.h)
 
 set ( clTEM_UIS
 		mainwindow.ui

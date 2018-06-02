@@ -6,6 +6,7 @@
 #include <frames/simulationframe.h>
 #include <frames/stemframe.h>
 #include <frames/cbedframe.h>
+#include <controls/flattitlebar.h>
 
 #include "simulationmanager.h"
 #include "simulationthread.h"
@@ -107,6 +108,8 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
+    FlatTitleBar *m_title;
 
     StatusLayout* StatusBar;
 

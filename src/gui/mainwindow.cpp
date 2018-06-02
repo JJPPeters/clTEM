@@ -52,6 +52,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle("clTEM");
 
+    ui->titleBar = new FlatTitleBar(this);
+
+    ui->mainLayout->insertWidget(1, ui->menuBar);
+
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW A", TabType::CTEM);
     ImageTab* EwAng = new ImageTab(ui->twReal, "EW θ", TabType::CTEM);
