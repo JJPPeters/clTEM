@@ -140,15 +140,6 @@ void MainWindow::on_actionOpen_triggered()
         return;
     Manager->setStructure(fileName.toStdString());
 
-    auto ar = Manager->getSimulationArea();
-    bool changed = false;
-    changed &= Manager->getStemArea()->setRangeX(ar->getLimitsX()[0], ar->getLimitsX()[1]);
-    changed &= Manager->getStemArea()->setRangeY(ar->getLimitsY()[0], ar->getLimitsY()[1]);
-
-    // TODO: so I want a message here?
-//    if(changed)
-//        QMessageBox::warning(this, tr("Area conflict"), tr("Warning STEM area has been modified"), QMessageBox::Ok);
-
     // update frames to show limits
     updateRanges();
 

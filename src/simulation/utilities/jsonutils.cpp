@@ -30,6 +30,9 @@ namespace JSONUtils {
         try { man.setFull3dInts( readJsonEntry<unsigned int>(j, "full 3d", "integrals") );
         } catch (json::out_of_range& e) {}
 
+        try { man.setMaintainAreas( readJsonEntry<bool>(j, "maintain areas") );
+        } catch (json::out_of_range& e) {}
+
         //
         // Do all the microscope parameters stuff...
         //
@@ -287,6 +290,7 @@ namespace JSONUtils {
         auto xl = man.getPaddedSimLimitsX();
         auto yl = man.getPaddedSimLimitsY();
 
+        j["maintain areas"] = man.getMaintainAreas();
         j["simulation area"]["x"]["start"] = xl[0];
         j["simulation area"]["x"]["finish"] = xl[1];
         j["simulation area"]["x"]["units"] = "Å";
