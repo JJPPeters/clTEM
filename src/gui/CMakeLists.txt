@@ -95,6 +95,11 @@ set ( clTEM_UIS
 
 QT5_WRAP_UI(UIS ${clTEM_UIS})
 
+set ( clTEM_RSCS
+		theme/theme.qrc
+		)
+QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})
+
 # I need this to bypass some errors with windres and the rc files
 # essentially I removed the <flags> section to achieve this
 # Thanks very much to https://stackoverflow.com/questions/3526794/how-do-i-build-a-win32-app-with-a-resource-file-using-cmake-and-mingw
@@ -105,6 +110,6 @@ if(MINGW)
 			"<CMAKE_RC_COMPILER> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
-add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} cltem.rc)
+add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
 target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation)
 target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation )

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/Theme">
+        <file>flat-theme.qss</file>
+    </qresource>
+</RCC>

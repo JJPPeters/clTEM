@@ -27,14 +27,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QFile f("D:\\Users\\Jon\\Git\\clTEM-dev\\clTEM-git\\src\\gui\\test-style.qss");
+    QFile f(":/Theme/flat-theme.qss");
     if (f.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream in(&f);
         QString s = in.readAll();
         f.close();
 
         QString d1 = "#2A2A2A";
-        QString l2 = "#A8A8A8";
+        QString l2 = "#777777";
 
         s.replace("{d2}", "#404040"); // dark
         s.replace("{d1}", d1); // darkest
