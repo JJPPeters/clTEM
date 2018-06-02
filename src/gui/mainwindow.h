@@ -7,6 +7,7 @@
 #include <frames/stemframe.h>
 #include <frames/cbedframe.h>
 #include <controls/flattitlebar.h>
+#include <controls/borderlesswindow.h>
 
 #include "simulationmanager.h"
 #include "simulationthread.h"
@@ -20,7 +21,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow : public BorderlessWindow
 {
     Q_OBJECT
 
