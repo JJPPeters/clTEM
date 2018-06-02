@@ -17,7 +17,6 @@ QLineEdit {
 QComboBox {
 	color: {l1};
 	background-color: {d1};
-	selection-background-color: transparent;
 	border: 0px solid transparent;
 }
 
@@ -29,15 +28,24 @@ QComboBox QAbstractItemView
 	border: 1px solid {d1};
 }
 
+QComboBox::item:selected {
+    background-color: {a1};
+}
+
 QComboBox::drop-down {
      subcontrol-origin: padding;
      subcontrol-position: top right;
      width: 20px;
 
      border-left: 2px solid {a1};
+
+     /* If i put this image here, it auto scales? */
  }
 
 QComboBox::down-arrow {
+    width: 10px;
+    height: 10px;
+    image: url(:/Theme/icons/down-arrow.png);
 }
 
 /* === QPushButton === */
@@ -152,6 +160,10 @@ QMenu::separator {
 	margin-bottom: 5px;
 }
 
+QMenu::right-arrow {
+    image: url(:/Theme/icons/right-arrow.png);;
+}
+
 /* === QMenuBar === */
 QMenuBar {
 	background-color: {d1};
@@ -212,9 +224,12 @@ QFrame[frameShape="5"] /* QFrame::VLine == 0x0005 */
 QTableWidget {
     gridline-color: transparent;
     background: {d2};
-    selection-background-color: {a1};
     border: 0px solid transparent;
     color: {l1};
+}
+
+QTableWidget::item:selected {
+    background: {a1};
 }
 
 QHeaderView::section {
