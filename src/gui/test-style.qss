@@ -1,0 +1,219 @@
+/*a lot of inspiration is taken from: https://github.com/martinrotter/qt-material-stylesheet*/
+
+/* === Window === */
+QWidget:window {					/* Borders around the code editor and debug window */
+	border: 0px solid {d1};
+	background-color: {d1};
+}
+
+QLineEdit {
+	background: {d1};
+	border: 1px transparent {l2};
+	color: {l1}; /*text colour*/
+}
+
+/* === QComboBox === */
+
+QComboBox {
+	color: {l1};
+	background-color: {d1};
+	selection-background-color: transparent;
+	border: 0px solid transparent;
+}
+
+QComboBox QAbstractItemView
+{    
+	background: {d2};
+    selection-background-color: {a1};
+    color: {l1};
+	border: 1px solid {d1};
+}
+
+QComboBox::drop-down {
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 20px;
+
+     border-left: 2px solid {a1};
+ }
+
+QComboBox::down-arrow {
+}
+
+/* === QPushButton === */
+
+QPushButton {
+	background-color: {a1};
+	color: {d1};
+	border: 0px solid transparent;
+	padding: 4px 22px;
+}
+
+QPushButton:hover {
+	color: {l1};
+}
+
+QPushButton:pressed {
+	background: solid {l2};
+	color: {d1};
+}
+
+/* === QCheckBox === */
+
+QCheckBox, QRadioButton {
+	color: {l1};
+}
+
+QCheckBox::indicator::unchecked  {
+	background-color: {d1};
+	border: 0px solid transparent;
+	border-radius: 6px;
+}
+
+QCheckBox::indicator::checked {
+	background-color: {a1};
+	border: 3px solid {d1};
+	border-radius: 6px;
+}
+
+/* === QTabBar === */
+
+QTabBar {
+	background: transparent;
+}
+
+QTabWidget::pane {
+	background: transparent;	/* Only at the very bottom of the tabs */
+}
+
+QTabBar::tab {
+	background: transparent;
+	border: 0px solid transparent;
+	border-bottom: 2px solid transparent;
+	color: {l2};
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+QTabBar::tab:hover {
+	background-color: transparent;
+	border: 0px solid transparent;
+	border-bottom: 2px solid {l2};
+	color: {l1};
+}
+
+QTabBar::tab:selected {
+	background-color: transparent;
+	border: 0px solid transparent;
+	border-top: none;
+	border-bottom: 2px solid {a1};
+	color: {l1};
+}
+
+QStackedWidget {
+	background: {d2};	/* This covers a bunch of things, I was thinking about making it transparent, */
+						/* but I would have to find all the other elements... but QTabWidget::pane may be it */
+}
+
+QLabel {
+	background: transparent;
+	color: {l1};
+}
+
+/* === QMenu === */
+
+QMenu {
+	background-color: {d2};		/* File Menu Background color */
+	color: {l1};
+	border: 1px solid {d1};
+}
+
+QMenu::item:selected {
+	background-color: {a1};
+	color: {d1};
+}
+
+QMenu::item:pressed {
+	background-color: {l2};
+	color: {d1};
+}
+
+QMenu::separator {
+	height: 1px;
+	background: {l2};
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+/* === QMenuBar === */
+QMenuBar {
+	background-color: {d1};
+	color: {l1};
+}
+
+QMenuBar::item:selected {
+	background-color: {a1};
+	color: {d1};
+}
+
+QMenuBar::item:pressed {
+	background-color: {a1};
+	color: {d1};
+}
+
+/* === QProgressBar === */
+
+QProgressBar {
+	background: solid {d2};
+	border: 0px transparent;
+}
+
+QProgressBar::chunk {
+	background: solid {a1};
+}
+
+/* === QGroupBox === */
+
+QGroupBox {
+    border: 1px solid {l2};
+    margin-top: 1em;
+}
+
+QGroupBox::title {
+	color: {l1};
+    subcontrol-origin: margin;
+    left: 6px;
+    padding: 0px 3px 2px 3px;
+}
+
+/* === HLine/VLine === */
+/*https://stackoverflow.com/questions/14581498/qt-stylesheet-for-hline-vline-color*/
+
+QFrame[frameShape="4"], /* QFrame::HLine == 0x0004 */
+QFrame[frameShape="5"] /* QFrame::VLine == 0x0005 */
+{
+    background: {l2};
+}
+
+/* === QTableWidget === */
+
+QTableWidget {
+    gridline-color: transparent;
+    background: {d2};
+    selection-background-color: {a1};
+    border: 0px solid transparent;
+    color: {l1};
+}
+
+QHeaderView::section {
+    background-color: {d1};
+    padding: 4px;
+    border-style: none;
+    border: 0px solid transparent;
+    color: {l1};
+    border-bottom: 2px solid {a1};
+}
