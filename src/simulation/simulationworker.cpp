@@ -128,18 +128,12 @@ void SimulationWorker::sortAtoms(bool doTds)
     std::vector<int> HostBlockIDs = ClBlockIds->CreateLocalCopy();
     std::vector<int> HostZIDs = ClZIds->CreateLocalCopy();
 
-    std::vector<std::vector<std::vector<float>>> Binnedx((unsigned long) BlocksX*BlocksY);
-    std::vector<std::vector<std::vector<float>>> Binnedy((unsigned long) BlocksX*BlocksY);
-    std::vector<std::vector<std::vector<float>>> Binnedz((unsigned long) BlocksX*BlocksY);
-    std::vector<std::vector<std::vector<int>>> BinnedA((unsigned long) BlocksX*BlocksY);
-
-    for(int i = 0 ; i < BlocksX*BlocksY ; i++)
-    {
-        Binnedx[i].resize(numberOfSlices);
-        Binnedy[i].resize(numberOfSlices);
-        Binnedz[i].resize(numberOfSlices);
-        BinnedA[i].resize(numberOfSlices);
-    }
+    // this silly initialising is to make the first two levels of our vectors, we then dynamically
+    // fill the next level in the following loop :)
+    std::vector<std::vector<std::vector<float>>> Binnedx((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
+    std::vector<std::vector<std::vector<float>>> Binnedy((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
+    std::vector<std::vector<std::vector<float>>> Binnedz((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
+    std::vector<std::vector<std::vector<int>>> BinnedA((unsigned long) BlocksX*BlocksY, std::vector<std::vector<int>>(numberOfSlices));
 
     int count_in_range = 0;
     for(int i = 0; i < atom_count; i++)

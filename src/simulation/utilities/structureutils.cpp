@@ -31,7 +31,7 @@ namespace Utils
     }
 
 
-    std::unordered_map<std::string, int> MapSymbolToNumber = {};
+    std::unordered_map<std::string, int> MapSymbolToNumber;
 
     const std::vector<std::pair<std::string, int>> VectorSymbolToNumber = {
             {"H",1},
