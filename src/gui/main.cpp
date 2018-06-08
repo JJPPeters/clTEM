@@ -8,13 +8,12 @@ int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
-    MainWindow w;
 
     try {
         ClManager::getDeviceList();
     } catch (const std::exception& e) {
         // TODO: later, this shouldn't exit but should just disable everything relevant
-        QMessageBox msgBox(&w);
+        QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText("Failed to find OpenCl");
         msgBox.setIcon(QMessageBox::Critical);
@@ -25,6 +24,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    MainWindow w;
     w.show();
 
     return a.exec();
