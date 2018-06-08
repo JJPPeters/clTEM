@@ -1,0 +1,226 @@
+{
+    "cbed": {
+        "position": {
+            "padding": 0.0,
+            "units": "Å",
+            "x": 0.0,
+            "y": 0.0
+        },
+        "tds": {
+            "configurations": 10,
+            "enabled": false
+        }
+    },
+    "ctem": {
+        "area": {
+            "x": {
+                "finish": 10.0,
+                "start": 0.0
+            },
+            "y": {
+                "finish": 10.0,
+                "start": 0.0
+            }
+        },
+        "ccd": {
+            "binning": 1,
+            "dose": {
+                "units": "e- per square Å",
+                "val": 10000.0
+            },
+            "name": "Perfect"
+        }
+    },
+    "full 3d": {
+        "integrals": 20,
+        "state": false
+    },
+    "microscope": {
+        "aberrations": {
+            "C10": {
+                "units": "nm",
+                "val": 0.0
+            },
+            "C12": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "nm, °"
+            },
+            "C21": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "nm, °"
+            },
+            "C23": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "nm, °"
+            },
+            "C30": {
+                "units": "μm",
+                "val": 1.0
+            },
+            "C32": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C34": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C41": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C43": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C45": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C50": {
+                "units": "μm",
+                "val": 0.0
+            },
+            "C52": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C54": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            },
+            "C56": {
+                "ang": 0.0,
+                "mag": 0.0,
+                "units": "μm, °"
+            }
+        },
+        "alpha": {
+            "units": "mrad",
+            "val": 0.30000001192092896
+        },
+        "aperture": {
+            "units": "mrad",
+            "val": 25.0
+        },
+        "delta": {
+            "units": "nm",
+            "val": 6.0
+        },
+        "voltage": {
+            "units": "kV",
+            "val": 200.0
+        }
+    },
+    "mode": {
+        "id": 0,
+        "name": "CTEM"
+    },
+    "potentials": "kirkland",
+    "resolution": 512,
+    "simulation area": {
+        "x": {
+            "finish": 18.0,
+            "start": -8.0,
+            "units": "Å"
+        },
+        "y": {
+            "finish": 18.0,
+            "start": -8.0,
+            "units": "Å"
+        }
+    },
+    "slice offset": {
+        "units": "Å",
+        "val": 0.5
+    },
+    "slice thickness": {
+        "units": "Å",
+        "val": 1.0
+    },
+    "stem": {
+        "area": {
+            "padding": {
+                "units": "Å",
+                "val": 0.0
+            },
+            "x": {
+                "finish": 10.0,
+                "start": 0.0,
+                "units": "Å"
+            },
+            "y": {
+                "finish": 10.0,
+                "start": 0.0,
+                "units": "Å"
+            }
+        },
+        "concurrent pixels": 1,
+        "detectors": {
+            "ABF": {
+                "centre": {
+                    "units": "mrad",
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "radius": {
+                    "inner": 11.0,
+                    "outer": 23.0,
+                    "units": "mrad"
+                }
+            },
+            "ADF": {
+                "centre": {
+                    "units": "mrad",
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "radius": {
+                    "inner": 45.0,
+                    "outer": 150.0,
+                    "units": "mrad"
+                }
+            },
+            "BF": {
+                "centre": {
+                    "units": "mrad",
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "radius": {
+                    "inner": 0.0,
+                    "outer": 23.0,
+                    "units": "mrad"
+                }
+            }
+        },
+        "scan": {
+            "x": {
+                "pixels": 50
+            },
+            "y": {
+                "pixels": 50
+            }
+        },
+        "tds": {
+            "configurations": 10,
+            "enabled": false
+        }
+    },
+    "thermal parameters": {
+        "default": 0.00559999980032444,
+        "force default": false,
+        "override file": false,
+        "units": "Å²"
+    }
+}

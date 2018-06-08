@@ -17,6 +17,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->edtSliceThickness->setUnits("Å");
     ui->edtSliceOffset->setUnits("Å");
 
+    ui->chkKeep->setChecked(simMan->getMaintainAreas());
+
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
     connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
 
@@ -201,6 +203,8 @@ bool AreaLayoutFrame::apply_pressed() {
 
     SimManager->setSliceThickness(dz);
     SimManager->setSliceOffset(oz);
+
+    SimManager->setMaintainAreas(ui->chkKeep->isChecked());
 
     // get which mode we are in
     auto mode = ui->tabAreaWidget->currentIndex();
