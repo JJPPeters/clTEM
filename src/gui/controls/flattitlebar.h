@@ -18,9 +18,11 @@ private:
 public:
     FlatTitleBar( QWidget *parent) ;
 
+//    bool nativeEvent(const QByteArray& eventType, void *message, long *result);
+
 protected:
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+//    void mousePressEvent(QMouseEvent *event);
+//    void mouseMoveEvent(QMouseEvent *event);
 };
 
 

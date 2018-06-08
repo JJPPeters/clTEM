@@ -5,12 +5,15 @@
 #include <clmanager.h>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
+#include <controls/borderlesswindow.h>
 
 int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
-    MainWindow w;
+//    MainWindow w;
+
+    BorderlessWindow w;
 
     try {
         ClManager::getDeviceList();
@@ -53,7 +56,7 @@ int main(int argc, char *argv[])
 
     }
 
-    w.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+//    w.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 
     w.show();
 

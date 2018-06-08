@@ -7,7 +7,7 @@
 #include <frames/stemframe.h>
 #include <frames/cbedframe.h>
 #include <controls/flattitlebar.h>
-#include <controls/borderlesswindow.h>
+//#include <controls/borderlesswindow.h>
 
 #include "simulationmanager.h"
 #include "simulationthread.h"
@@ -21,7 +21,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public BorderlessWindow
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
@@ -108,8 +108,6 @@ private slots:
     void saveBmp();
 
 private:
-    Ui::MainWindow *ui;
-
     FlatTitleBar *m_title;
 
     StatusLayout* StatusBar;
@@ -127,6 +125,10 @@ private:
     void loadExternalSources();
 
     void updateGuiFromManager();
+
+protected:
+    Ui::MainWindow *ui;
+
 };
 
 #endif // MAINWINDOW_H
