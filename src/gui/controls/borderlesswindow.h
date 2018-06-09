@@ -32,14 +32,16 @@
 
 class BorderlessWindow : public QMainWindow {
     Q_OBJECT
-//
-////    FlatTitleBar* tb;
+
+    FlatTitleBar* tb;
 public:
     explicit BorderlessWindow(QWidget *parent = nullptr);
 
     bool testHitGlobal(QWidget* w, long x, long y);
 
-//    void setWindowTitle(const QString& title);
+    void setWindowTitle(const QString& title);
+
+    void changeEvent(QEvent* event);
 
 #ifndef QT_NO_MENUBAR
     void setMenuBar(QMenuBar *menubar);

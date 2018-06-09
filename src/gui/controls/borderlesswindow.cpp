@@ -65,12 +65,13 @@ void BorderlessWindow::window_borderless()
 {
     if (isVisible())
     {
+        // these seem to break minimising
 //        auto defaultStyle = (WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME);
 //        SetWindowLongPtr((HWND)winId(), GWL_STYLE, WS_POPUP | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
 
         window_shadow();
 
-//        SetWindowPos((HWND)winId(), 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+        SetWindowPos((HWND)winId(), nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
     }
 }
 
@@ -85,7 +86,7 @@ bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
 void BorderlessWindow::window_shadow()
 {
     const MARGINS shadow = { 1, 1, 1, 1 };
-//    DwmExtendFrameIntoClientArea((HWND)winId(), &shadow);
+    DwmExtendFrameIntoClientArea((HWND)winId(), &shadow);
 }
 
 bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, long *result)
@@ -196,6 +197,35 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
             return QWidget::nativeEvent(eventType, message, result);
         }
     }
+}
+
+void BorderlessWindow::setWindowTitle(const QString &title) {
+    auto t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
+    if (t_bar)
+        t_bar->setTitle(title);
+
+    QWidget::setWindowTitle(title);
+}
+
+void BorderlessWindow::changeEvent(QEvent *event) {
+    // change the maximise icon if we need to
+
+    // also compensate for maximised with extra padding
+    if (event->type() == QEvent::WindowStateChange) {
+        auto t_bar = menuWidget()->findChild<FlatTitleBar *>("title_bar");
+        t_bar->setMaximiseIcon();
+
+        auto win = window();
+        if (win->windowState().testFlag(Qt::WindowMaximized)) {
+            t_bar->setContentsMargins(0, 0, 18, 0); // the other margin doesnt seem to apply to this?
+            win->setContentsMargins(9, 9, 9, 9);
+        } else {
+            t_bar->setContentsMargins(0, 0, 0, 0);
+            win->setContentsMargins(0, 0, 0, 0);
+        }
+    }
+
+    QWidget::changeEvent(event);
 }
 
 #endif

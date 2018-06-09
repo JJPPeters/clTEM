@@ -6,34 +6,57 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QHBoxLayout>
+#include <QtCore/QFileInfo>
+#include <QtWidgets/QFileIconProvider>
 #include "flattitlebar.h"
 
 FlatTitleBar::FlatTitleBar(QWidget *parent)
 {
-    auto title = new QLabel(parent->windowTitle());
-    auto btn_min = new QPushButton ("_");
-    auto btn_max = new QPushButton ("□");
-    auto btn_close = new QPushButton ("x");
+    auto app_icon = new QLabel();
+    auto title = new QLabel("");
+    auto btn_min = new QPushButton();
+    auto btn_max = new QPushButton();
+    auto btn_close = new QPushButton();
 
     btn_min->setObjectName("min");
     btn_max->setObjectName("max");
     btn_close->setObjectName("close");
+    title->setObjectName("title");
+
+    btn_min->setAccessibleName("title_min");
+    btn_max->setAccessibleName("title_max");
+    btn_close->setAccessibleName("title_close");
 
     auto *layout = new QHBoxLayout(this);
     layout->setSpacing(1);
     layout->setMargin(0);
-    layout->setContentsMargins(0, 0, 0, 2);
+    layout->setContentsMargins(6, 0, 0, 2);
 
+    QFileInfo fileInfo(qApp->arguments().at(0));
+    auto icon = QFileIconProvider().icon(fileInfo);
+    app_icon->setPixmap(icon.pixmap(16, 16));
+
+    title->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    title->setContentsMargins(6, 0, 0, 0);
+
+    layout->addWidget(app_icon);
     layout->addWidget(title);
     layout->addWidget(btn_min);
     layout->addWidget(btn_max);
     layout->addWidget(btn_close);
+
+    layout->setStretch(0, 0);
+    layout->setStretch(1, 1);
 
     int h = 30;
     int w = (int) (h*1.5);
     btn_min->setFixedSize(w, h);
     btn_max->setFixedSize(w, h);
     btn_close->setFixedSize(w, h);
+
+    btn_min->setIcon(QIcon(":/Theme/icons/minimise.png"));
+    btn_close->setIcon(QIcon(":/Theme/icons/close.png"));
+    setMaximiseIcon();
 
     connect(btn_min, &QPushButton::clicked, this, &FlatTitleBar::minimise_window);
     connect(btn_max, &QPushButton::clicked, this, &FlatTitleBar::maximise_window);
@@ -57,7 +80,6 @@ bool FlatTitleBar::testHitButtonsGlobal(long x, long y) {
     }
 
     return false;
-
 }
 
 bool FlatTitleBar::testHitButtonGlobal(QString name, long x, long y) {
@@ -81,4 +103,23 @@ void FlatTitleBar::maximise_window() {
         win->showNormal();
     else
         win->showMaximized();
+}
+
+void FlatTitleBar::setTitle(const QString &title) {
+    auto t_widget = findChild<QLabel*>("title");
+
+    if(t_widget)
+        t_widget->setText(title);
+}
+
+void FlatTitleBar::setMaximiseIcon() {
+    auto win = window();
+    auto t_btn = findChild<QPushButton*>("max");
+
+    if(t_btn) {
+        if (win->windowState().testFlag(Qt::WindowMaximized))
+            t_btn->setIcon(QIcon(":/Theme/icons/unmaximise.png"));
+        else
+            t_btn->setIcon(QIcon(":/Theme/icons/maximise.png"));
+    }
 }

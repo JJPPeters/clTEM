@@ -36,14 +36,25 @@ int main(int argc, char *argv[])
         QString s = in.readAll();
         f.close();
 
-        QString d1 = "#2A2A2A";
-        QString l2 = "#777777";
+        QString d1 = "#2A2A2A"; // darkest
+        QString d2 = "#404040"; // dark
+        QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
+        QString l1 = "#D8D8D8"; // lightest
+        QString l2 = "#777777"; // light
 
-        s.replace("{d2}", "#404040"); // dark
-        s.replace("{d1}", d1); // darkest
-        s.replace("{l1}", "#D8D8D8"); // lightest
-        s.replace("{l2}", l2); // light
-        s.replace("{a1}", "#6A9D1A"); // accent
+        QString a1 = "#6A9D1A"; // accent
+        QString c1 = "#9D1A29"; // close/negative
+        QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
+
+
+        s.replace("{d1}", d1);
+        s.replace("{d2}", d2);
+        s.replace("{d3}", d3);
+        s.replace("{l1}", l1);
+        s.replace("{l2}", l2);
+        s.replace("{a1}", a1);
+        s.replace("{c1}", c1);
+        s.replace("{c2}", c2);
 
         a.setStyleSheet(s);
 

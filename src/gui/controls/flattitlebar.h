@@ -13,21 +13,25 @@
 
 class FlatTitleBar : public QFrame {
     Q_OBJECT
+
+    friend class BorderlessWindow;
+
 private slots:
 
     void minimise_window();
     void maximise_window();
 
 public:
+    void setMaximiseIcon();
+
+public:
     explicit FlatTitleBar( QWidget *parent = nullptr) ;
 
     bool testHitButtonsGlobal(long x, long y);
-//    bool nativeEvent(const QByteArray& eventType, void *message, long *result);
+
     bool testHitButtonGlobal(QString name, long x, long y);
 
-protected:
-//    void mousePressEvent(QMouseEvent *event);
-//    void mouseMoveEvent(QMouseEvent *event);
+    void setTitle(const QString& title);
 };
 
 

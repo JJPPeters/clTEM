@@ -112,4 +112,4 @@ endif(MINGW)
 
 add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
 target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation)
-target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation )
+target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64/dwmapi.lib")
