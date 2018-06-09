@@ -64,10 +64,7 @@ int main(int argc, char *argv[])
         darkPalette.setColor(QPalette::Mid, QColor(l2));
 
         qApp->setPalette(darkPalette);
-
     }
-
-//    w.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 
     w.show();
 

@@ -30,7 +30,7 @@ FlatTitleBar::FlatTitleBar(QWidget *parent)
     auto *layout = new QHBoxLayout(this);
     layout->setSpacing(1);
     layout->setMargin(0);
-    layout->setContentsMargins(6, 0, 0, 2);
+    layout->setContentsMargins(10, 0, 0, 2);
 
     QFileInfo fileInfo(qApp->arguments().at(0));
     auto icon = QFileIconProvider().icon(fileInfo);

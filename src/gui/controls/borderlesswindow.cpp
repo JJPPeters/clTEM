@@ -93,10 +93,21 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
     {
         case WM_NCCALCSIZE:
         {
-            //this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
+            // https://stackoverflow.com/questions/24718872/problems-while-handling-the-wm-nccalcsize-message
+
+            int cx = GetSystemMetrics(SM_CXSIZEFRAME);
+            int cy = GetSystemMetrics(SM_CYSIZEFRAME);
+
+            RECT *clientRect = &(reinterpret_cast<NCCALCSIZE_PARAMS*>(msg->lParam))->rgrc[0];
+            clientRect->left     += (cx);
+            clientRect->top      += (0);
+            clientRect->right    -= (cx);
+            clientRect->bottom   -= (cy);
             *result = 0;
             return true;
         }
+        case WM_NCACTIVATE: //Solve a problem with the borders drawing over my window
+            return true;
         case WM_NCHITTEST:
         {
             if (*result == HTCAPTION)
@@ -204,14 +215,13 @@ void BorderlessWindow::changeEvent(QEvent *event) {
     // also compensate for maximised with extra padding
     if (event->type() == QEvent::WindowStateChange) {
         auto t_bar = menuWidget()->findChild<FlatTitleBar *>("title_bar");
-        t_bar->setMaximiseIcon();
+        if (t_bar)
+            t_bar->setMaximiseIcon();
 
         auto win = window();
         if (win->windowState().testFlag(Qt::WindowMaximized)) {
-            t_bar->setContentsMargins(0, 0, 18, 0); // the other margin doesnt seem to apply to this?
-            win->setContentsMargins(9, 9, 9, 9);
+            win->setContentsMargins(0, 9, 0, 0);
         } else {
-            t_bar->setContentsMargins(0, 0, 0, 0);
             win->setContentsMargins(0, 0, 0, 0);
         }
     }
