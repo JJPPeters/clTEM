@@ -54,7 +54,10 @@ QPushButton {
 	background-color: {a1};
 	color: {d1};
 	border: 0px solid transparent;
-	padding: 4px 22px;
+}
+
+FlatTitleBar {
+	background-color: {d2};
 }
 
 /*QPushButton:hover {

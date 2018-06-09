@@ -1,27 +1,55 @@
-//
-// Created by jon on 02/06/18.
-//
+////
+//// Created by jon on 02/06/18.
+////
 
-#include <QtCore/QEvent>
-#include <QtWidgets/QVBoxLayout>
-
+#include <c++/7.3.0/iostream>
 #include "borderlesswindow.h"
 
-#include "ui_mainwindow.h"
-
-//unsigned int BorderlessWindow::border = 5;
-
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
-        MainWindow(parent)
+        QMainWindow(parent)
 {
-    ui->titleBar = new FlatTitleBar(this);
-    ui->mainLayout->insertWidget(1, ui->menuBar);
 
-//    ui->mainLayout->setStretch(0,0);
-//    ui->mainLayout->setStretch(1,0);
-//    ui->mainLayout->setStretch(2,0);
-//    ui->mainLayout->setStretch(3,0);
-//    ui->mainLayout->setStretch(4,1);
+}
+
+void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
+{
+    QLayout *topLayout = layout();
+
+    if (topLayout->menuBar() && topLayout->menuBar() != menuBar) {
+        // Reparent corner widgets before we delete the old menu bar.
+        QMenuBar *oldMenuBar = dynamic_cast<QMenuBar *>(topLayout->menuBar());
+        if (menuBar) {
+            // TopLeftCorner widget.
+            QWidget *cornerWidget = oldMenuBar->cornerWidget(Qt::TopLeftCorner);
+            if (cornerWidget)
+                menuBar->setCornerWidget(cornerWidget, Qt::TopLeftCorner);
+            // TopRightCorner widget.
+            cornerWidget = oldMenuBar->cornerWidget(Qt::TopRightCorner);
+            if (cornerWidget)
+                menuBar->setCornerWidget(cornerWidget, Qt::TopRightCorner);
+        }
+        oldMenuBar->hide();
+        oldMenuBar->deleteLater();
+    }
+
+    auto t_widget = new QWidget(this);
+
+    auto t_layout = new QVBoxLayout(this);
+    t_layout->setSpacing(0);
+    t_layout->setMargin(0);
+    t_layout->setContentsMargins(0, 0, 0, 0);
+
+    auto t_title = new FlatTitleBar(this);
+    t_title->setObjectName("title_bar");
+
+    t_layout->addWidget(t_title);
+    t_layout->addWidget(menuBar);
+
+    t_widget->setLayout(t_layout);
+
+    t_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    topLayout->setMenuBar(t_widget);
 }
 
 void BorderlessWindow::showEvent(QShowEvent *event)
@@ -37,13 +65,21 @@ void BorderlessWindow::window_borderless()
 {
     if (isVisible())
     {
-        //defaultStyle = (WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME)
-        SetWindowLongPtr((HWND)winId(), GWL_STYLE, WS_POPUP | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
+//        auto defaultStyle = (WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME);
+//        SetWindowLongPtr((HWND)winId(), GWL_STYLE, WS_POPUP | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
 
         window_shadow();
 
-        SetWindowPos((HWND)winId(), 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+//        SetWindowPos((HWND)winId(), 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
     }
+}
+
+bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
+{
+    QPoint pg(x, y);
+    QPoint p = w->mapFromGlobal(pg);
+
+    return w->rect().contains(p);
 }
 
 void BorderlessWindow::window_shadow()
@@ -139,14 +175,15 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
                 }
             }
 
-//            //TODO: allow move?
+            // this handles if we are in the title bar, or the main content
             if(*result == 0) {
-                if (y < winrect.top + 30 && x < winrect.right - 50) {
-                    *result = HTCAPTION; // this says we are in a title bar...
-                } else {
-                    *result = HTCLIENT; // this is client space
-                }
+                // get the height of our title bar
+                auto t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
 
+                if (testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
+                    *result = HTCAPTION; // this says we are in a title bar...
+                else
+                    *result = HTCLIENT; // this is client space
             }
 
             return true;
@@ -155,8 +192,9 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
         {
             return close();
         }
-        default:
+        default: {
             return QWidget::nativeEvent(eventType, message, result);
+        }
     }
 }
 

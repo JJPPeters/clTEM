@@ -2,75 +2,83 @@
 // Created by jon on 02/06/18.
 //
 
+#include <QApplication>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QHBoxLayout>
 #include "flattitlebar.h"
 
-FlatTitleBar::FlatTitleBar(QWidget *parent) : m_parent(parent->window())
+FlatTitleBar::FlatTitleBar(QWidget *parent)
 {
     auto title = new QLabel(parent->windowTitle());
-    auto pPB = new QPushButton ("x");
+    auto btn_min = new QPushButton ("_");
+    auto btn_max = new QPushButton ("□");
+    auto btn_close = new QPushButton ("x");
+
+    btn_min->setObjectName("min");
+    btn_max->setObjectName("max");
+    btn_close->setObjectName("close");
 
     auto *layout = new QHBoxLayout(this);
-    layout->addWidget(title);
-    layout->addWidget(pPB);
+    layout->setSpacing(1);
+    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 2);
 
-    connect(pPB, &QPushButton::clicked, m_parent, &QWidget::close);
+    layout->addWidget(title);
+    layout->addWidget(btn_min);
+    layout->addWidget(btn_max);
+    layout->addWidget(btn_close);
+
+    int h = 30;
+    int w = (int) (h*1.5);
+    btn_min->setFixedSize(w, h);
+    btn_max->setFixedSize(w, h);
+    btn_close->setFixedSize(w, h);
+
+    connect(btn_min, &QPushButton::clicked, this, &FlatTitleBar::minimise_window);
+    connect(btn_max, &QPushButton::clicked, this, &FlatTitleBar::maximise_window);
+    connect(btn_close, &QPushButton::clicked, qApp, &QApplication::quit);
 }
 
-//void FlatTitleBar::mousePressEvent(QMouseEvent *event)
-//{
-//    // warning: for testing
-//    // this doesnt work if the title bar is still there, it will skip a bit
-//    if(event->button() == Qt::LeftButton)
-//    {
-//        m_pCursor = event->globalPos() - m_parent->geometry().topLeft();
-//        event->accept();
-//    }
-//}
-//
-//void FlatTitleBar::mouseMoveEvent(QMouseEvent *event)
-//{
-//    if(event->buttons() & Qt::LeftButton)
-//    {
-//        m_parent->move(event->globalPos() - m_pCursor);
-//        event->accept();
-//    }
-//}
+#include <iostream>
+#include <QtWidgets/QStyleOption>
+#include <QtGui/QPainter>
 
-#ifdef Q_OS_WIN
-// https://forum.qt.io/topic/26108/customize-window-frame/9
-//#include <WinUser.h>
-#include <windowsx.h>
-#include <dwmapi.h>
-#include <gdiplus.h>
-//#include <GdiPlusColor.h>
+bool FlatTitleBar::testHitButtonsGlobal(long x, long y) {
 
-#include <windows.h>
-#include <objidl.h>
+    QList<QPushButton*> lstBtns = findChildren<QPushButton*>();
+    QPoint pg(x, y);
 
+    for(const auto& btn : lstBtns) {
+        QPoint p = btn->mapFromGlobal(pg);
+        bool hit = btn->rect().contains(p);
+        if (hit)
+            return true;
+    }
 
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QWidget>
-#include <QApplication>
+    return false;
 
-#include "flattitlebar.h"
+}
 
-#endif
+bool FlatTitleBar::testHitButtonGlobal(QString name, long x, long y) {
+    QPushButton* btn = findChild<QPushButton*>(name);
+    QPoint pg(x, y);
 
+    QPoint p = btn->mapFromGlobal(pg);
+    return btn->rect().contains(p);
+}
 
-//bool FlatTitleBar::nativeEvent(const QByteArray& eventType, void *message, long *result) {
-//
-//    MSG* msg;
-//    if ( eventType == "windows_generic_MSG" )
-//        msg = reinterpret_cast<MSG*>(message);
-//    else
-//        return QWidget::nativeEvent(eventType, message, result);
-//
-//    if (msg->message == WM_NCHITTEST) {
-//        *result = HTCAPTION;
-//        return true;
-//    }
-//
-//}
+void FlatTitleBar::minimise_window() {
+    auto win = window();
+
+    win->showMinimized();
+}
+
+void FlatTitleBar::maximise_window() {
+    auto win = window();
+
+    if (win->windowState().testFlag(Qt::WindowMaximized))
+        win->showNormal();
+    else
+        win->showMaximized();
+}

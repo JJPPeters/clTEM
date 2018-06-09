@@ -1,68 +1,59 @@
+////
+//// Created by jon on 02/06/18.
+////
 //
-// Created by jon on 02/06/18.
-//
-
 #ifndef CLTEM_BORDERLESSWINDOW_H
 #define CLTEM_BORDERLESSWINDOW_H
 
-
-//#include <QtWidgets/QMainWindow>
-//#include <QApplication>
-//#include <QMouseEvent>
-// for testing
-//#include <iostream>
-
+#include <QtWidgets/QMainWindow>
 
 #ifdef Q_OS_WIN
 // https://forum.qt.io/topic/26108/customize-window-frame/9
-//#include <WinUser.h>
 #include <windowsx.h>
 #include <dwmapi.h>
 #include <gdiplus.h>
-//#include <GdiPlusColor.h>
 
 #include <windows.h>
 #include <objidl.h>
 
-
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QWidget>
 #include <QApplication>
-#include <mainwindow.h>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QMenuBar>
 
 #include "flattitlebar.h"
+#include "borderlesswindow.h"
 
 #endif
 
-// for the mouse move event filter stuff:
-// https://stackoverflow.com/questions/1935021/getting-mousemoveevents-in-qt
+//// for the mouse move event filter stuff:
+//// https://stackoverflow.com/questions/1935021/getting-mousemoveevents-in-qt
 
-class BorderlessWindow : public MainWindow {
+class BorderlessWindow : public QMainWindow {
     Q_OBJECT
-
-//    FlatTitleBar* tb;
+//
+////    FlatTitleBar* tb;
 public:
-    explicit BorderlessWindow(QWidget *parent = 0);
+    explicit BorderlessWindow(QWidget *parent = nullptr);
 
-    void showEvent(QShowEvent *event);
+    bool testHitGlobal(QWidget* w, long x, long y);
+
+//    void setWindowTitle(const QString& title);
+
+#ifndef QT_NO_MENUBAR
+    void setMenuBar(QMenuBar *menubar);
+#endif
+
+    void showEvent(QShowEvent *event) override;
 
 #ifdef Q_OS_WIN
     void window_borderless();
 
     void window_shadow();
 
-//    bool winEvent(MSG *msg, long *result);
-    bool nativeEvent(const QByteArray& eventType, void *message, long *result);
+    bool nativeEvent(const QByteArray& eventType, void *message, long *result) override;
 #endif
-
-private:
-//    // used to define where our edge is to grab it
-//    static unsigned int border;
-//
-//    bool eventFilter(QObject *obj, QEvent *event) override;
-//
-//    void mouseEdgeEvent(QMouseEvent *event);
 };
-
 
 #endif //CLTEM_BORDERLESSWINDOW_H

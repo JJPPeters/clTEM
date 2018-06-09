@@ -13,13 +13,11 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 //    MainWindow w;
 
-    BorderlessWindow w;
-
     try {
         ClManager::getDeviceList();
     } catch (const std::exception& e) {
         // TODO: later, this shouldn't exit but should just disable everything relevant
-        QMessageBox msgBox(&w);
+        QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText("Failed to find OpenCl");
         msgBox.setIcon(QMessageBox::Critical);
@@ -29,6 +27,8 @@ int main(int argc, char *argv[])
         a.exit(1); // not sure I need both of these, but just to be sure
         return 1;
     }
+
+    MainWindow w;
 
     QFile f(":/Theme/flat-theme.qss");
     if (f.open(QFile::ReadOnly | QFile::Text)) {

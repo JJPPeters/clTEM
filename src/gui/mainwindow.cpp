@@ -15,7 +15,7 @@
 #include <utilities/jsonutils.h>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
+    BorderlessWindow(parent),
     ui(new Ui::MainWindow)
 {
     // opencl test has been moved to main.cpp

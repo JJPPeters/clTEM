@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <widget class="BorderlessWindow" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -37,20 +37,7 @@
      <number>0</number>
     </property>
     <item>
-     <layout class="QVBoxLayout" name="mainLayout">
-      <item>
-       <widget class="FlatTitleBar" name="titleBar" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QWidget" name="menuBarDummy" native="true"/>
-      </item>
+     <layout class="QVBoxLayout" name="mainLayout" stretch="0,1">
       <item>
        <layout class="QHBoxLayout" name="hTabs" stretch="0,0,0,1">
         <property name="leftMargin">
@@ -192,7 +179,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuInput">
@@ -376,9 +363,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>FlatTitleBar</class>
-   <extends>QWidget</extends>
-   <header>controls/flattitlebar.h</header>
+   <class>BorderlessWindow</class>
+   <extends>QMainWindow</extends>
+   <header>controls/borderlesswindow.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
