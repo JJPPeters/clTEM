@@ -64,15 +64,7 @@ void BorderlessWindow::showEvent(QShowEvent *event)
 void BorderlessWindow::window_borderless()
 {
     if (isVisible())
-    {
-        // these seem to break minimising
-//        auto defaultStyle = (WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME);
-//        SetWindowLongPtr((HWND)winId(), GWL_STYLE, WS_POPUP | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
-
         window_shadow();
-
-        SetWindowPos((HWND)winId(), nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
-    }
 }
 
 bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
@@ -101,8 +93,7 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
     {
         case WM_NCCALCSIZE:
         {
-            //this kills the window frame and title bar we added with
-            //WS_THICKFRAME and WS_CAPTION
+            //this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
             *result = 0;
             return true;
         }
