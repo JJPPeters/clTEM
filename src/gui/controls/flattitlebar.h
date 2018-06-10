@@ -15,17 +15,19 @@ class FlatTitleBar : public QFrame {
     Q_OBJECT
 
     friend class BorderlessWindow;
+    friend class BorderlessDialog;
 
 private slots:
 
     void minimise_window();
     void maximise_window();
+    void close_window();
 
 public:
     void setMaximiseIcon();
 
 public:
-    explicit FlatTitleBar( QWidget *parent = nullptr) ;
+    explicit FlatTitleBar(QWidget *parent, bool is_dialog = false);
 
     bool testHitButtonsGlobal(long x, long y);
 

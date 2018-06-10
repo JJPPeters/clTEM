@@ -9,6 +9,7 @@
 #include <dialogs/settings/frames/arealayoutframe.h>
 #include <dialogs/settings/frames/globalsettingsframe.h>
 #include <structure/crystalstructure.h>
+#include <controls/borderlessdialog.h>
 
 #include "frames/openclframe.h"
 #include "frames/fullaberrationframe.h"
@@ -17,7 +18,7 @@ namespace Ui {
 class SettingsDialog;
 }
 
-class SettingsDialog : public QDialog
+class SettingsDialog : public BorderlessDialog
 {
     Q_OBJECT
 

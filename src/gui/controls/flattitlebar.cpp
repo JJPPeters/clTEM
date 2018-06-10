@@ -10,8 +10,7 @@
 #include <QtWidgets/QFileIconProvider>
 #include "flattitlebar.h"
 
-FlatTitleBar::FlatTitleBar(QWidget *parent)
-{
+FlatTitleBar::FlatTitleBar(QWidget *parent, bool is_dialog) {
     auto app_icon = new QLabel();
     auto title = new QLabel("");
     auto btn_min = new QPushButton();
@@ -26,6 +25,7 @@ FlatTitleBar::FlatTitleBar(QWidget *parent)
     btn_min->setAccessibleName("title_min");
     btn_max->setAccessibleName("title_max");
     btn_close->setAccessibleName("title_close");
+    title->setAccessibleName("title_title");
 
     auto *layout = new QHBoxLayout(this);
     layout->setSpacing(1);
@@ -41,8 +41,10 @@ FlatTitleBar::FlatTitleBar(QWidget *parent)
 
     layout->addWidget(app_icon);
     layout->addWidget(title);
-    layout->addWidget(btn_min);
-    layout->addWidget(btn_max);
+    if (!is_dialog) {
+        layout->addWidget(btn_min);
+        layout->addWidget(btn_max);
+    }
     layout->addWidget(btn_close);
 
     layout->setStretch(0, 0);
@@ -60,7 +62,7 @@ FlatTitleBar::FlatTitleBar(QWidget *parent)
 
     connect(btn_min, &QPushButton::clicked, this, &FlatTitleBar::minimise_window);
     connect(btn_max, &QPushButton::clicked, this, &FlatTitleBar::maximise_window);
-    connect(btn_close, &QPushButton::clicked, qApp, &QApplication::quit);
+    connect(btn_close, &QPushButton::clicked, this, &FlatTitleBar::close_window);
 }
 
 #include <iostream>
@@ -103,6 +105,12 @@ void FlatTitleBar::maximise_window() {
         win->showNormal();
     else
         win->showMaximized();
+}
+
+void FlatTitleBar::close_window() {
+    auto win = window();
+
+    win->close();
 }
 
 void FlatTitleBar::setTitle(const QString &title) {

@@ -3,12 +3,17 @@
 ////
 
 #include <c++/7.3.0/iostream>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 #include "borderlesswindow.h"
 
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
         QMainWindow(parent)
 {
-
+    QGraphicsDropShadowEffect *wndShadow = new QGraphicsDropShadowEffect;
+    wndShadow->setBlurRadius(9.0);
+    wndShadow->setColor(QColor(0, 0, 0, 160));
+    wndShadow->setOffset(4.0);
+    setGraphicsEffect(wndShadow);
 }
 
 void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
@@ -63,8 +68,9 @@ void BorderlessWindow::showEvent(QShowEvent *event)
 #ifdef Q_OS_WIN
 void BorderlessWindow::window_borderless()
 {
-    if (isVisible())
+    if (isVisible()) {
         window_shadow();
+    }
 }
 
 bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
@@ -94,25 +100,29 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
         case WM_NCCALCSIZE:
         {
             // https://stackoverflow.com/questions/24718872/problems-while-handling-the-wm-nccalcsize-message
-
             int cx = GetSystemMetrics(SM_CXSIZEFRAME);
             int cy = GetSystemMetrics(SM_CYSIZEFRAME);
 
             RECT *clientRect = &(reinterpret_cast<NCCALCSIZE_PARAMS*>(msg->lParam))->rgrc[0];
-            clientRect->left     += (cx);
-            clientRect->top      += (0);
-            clientRect->right    -= (cx);
-            clientRect->bottom   -= (cy);
+
+            int w = clientRect->right - clientRect->left;
+            int h = clientRect->bottom - clientRect->top;
+
+            //int scrn = qApp->desktop()->screenNumber(this);
+//                    check QScreen for more possiblities
+
+            if (w > 1920) {
+                clientRect->left += (cx);
+                clientRect->top += (0);
+                clientRect->right -= (cx);
+                clientRect->bottom -= (cy);
+            }
+
             *result = 0;
             return true;
         }
-        case WM_NCACTIVATE: //Solve a problem with the borders drawing over my window
-            return true;
         case WM_NCHITTEST:
         {
-            if (*result == HTCAPTION)
-                return QWidget::nativeEvent(eventType, message, result);
-
             *result = 0;
             const LONG border_width = 8; //in pixels
             RECT winrect;
@@ -183,7 +193,7 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
                 // get the height of our title bar
                 auto t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
 
-                if (testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
+                if (t_bar && testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
                     *result = HTCAPTION; // this says we are in a title bar...
                 else
                     *result = HTCLIENT; // this is client space
@@ -220,7 +230,10 @@ void BorderlessWindow::changeEvent(QEvent *event) {
 
         auto win = window();
         if (win->windowState().testFlag(Qt::WindowMaximized)) {
-            win->setContentsMargins(0, 9, 0, 0);
+//            int cx = GetSystemMetrics(SM_CXSIZEFRAME);
+            int cy = GetSystemMetrics(SM_CYSIZEFRAME);
+
+            win->setContentsMargins(0, cy, 0, 0);
         } else {
             win->setContentsMargins(0, 0, 0, 0);
         }

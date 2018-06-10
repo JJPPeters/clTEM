@@ -2,10 +2,10 @@
 //// Created by jon on 02/06/18.
 ////
 //
-#ifndef CLTEM_BORDERLESSWINDOW_H
-#define CLTEM_BORDERLESSWINDOW_H
+#ifndef CLTEM_BORDERLESSDIALOG_H
+#define CLTEM_BORDERLESSDIALOG_H
 
-#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QDialog>
 
 #ifdef Q_OS_WIN
 // https://forum.qt.io/topic/26108/customize-window-frame/9
@@ -30,11 +30,12 @@
 //// for the mouse move event filter stuff:
 //// https://stackoverflow.com/questions/1935021/getting-mousemoveevents-in-qt
 
-class BorderlessWindow : public QMainWindow {
+class BorderlessDialog : public QDialog {
     Q_OBJECT
 
+    FlatTitleBar* tb;
 public:
-    explicit BorderlessWindow(QWidget *parent = nullptr);
+    explicit BorderlessDialog(QWidget *parent = nullptr);
 
     bool testHitGlobal(QWidget* w, long x, long y);
 
@@ -43,7 +44,7 @@ public:
     void changeEvent(QEvent* event);
 
 #ifndef QT_NO_MENUBAR
-    void setMenuBar(QMenuBar *menubar);
+    void addTitleBar();
 #endif
 
     void showEvent(QShowEvent *event) override;
@@ -57,4 +58,4 @@ public:
 #endif
 };
 
-#endif //CLTEM_BORDERLESSWINDOW_H
+#endif //CLTEM_BORDERLESSDIALOG_H
