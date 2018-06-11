@@ -5,6 +5,7 @@
 #include <c++/7.3.0/iostream>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include "borderlesswindow.h"
+#include <QDesktopWidget>
 
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
         QMainWindow(parent)
@@ -108,12 +109,11 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
             int w = clientRect->right - clientRect->left;
             int h = clientRect->bottom - clientRect->top;
 
-            //int scrn = qApp->desktop()->screenNumber(this);
-//                    check QScreen for more possiblities
+            auto scr_rect = QApplication::desktop()->availableGeometry(this);
 
-            if (w > 1920) {
+            if (w > scr_rect.width() && h > scr_rect.height()) {
                 clientRect->left += (cx);
-                clientRect->top += (0);
+                clientRect->top += (cy);
                 clientRect->right -= (cx);
                 clientRect->bottom -= (cy);
             }

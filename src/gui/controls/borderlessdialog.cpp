@@ -64,16 +64,6 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
     {
         case WM_NCCALCSIZE:
         {
-            // https://stackoverflow.com/questions/24718872/problems-while-handling-the-wm-nccalcsize-message
-
-            int cx = GetSystemMetrics(SM_CXSIZEFRAME);
-            int cy = GetSystemMetrics(SM_CYSIZEFRAME);
-
-            RECT *clientRect = &(reinterpret_cast<NCCALCSIZE_PARAMS*>(msg->lParam))->rgrc[0];
-            clientRect->left     += (cx);
-            clientRect->top      += (0);
-            clientRect->right    -= (cx);
-            clientRect->bottom   -= (cy);
             *result = 0;
             return true;
         }
