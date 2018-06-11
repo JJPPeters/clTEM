@@ -113,7 +113,7 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
 
             if (w > scr_rect.width() && h > scr_rect.height()) {
                 clientRect->left += (cx);
-                clientRect->top += (cy);
+                clientRect->top += (0);
                 clientRect->right -= (cx);
                 clientRect->bottom -= (cy);
             }
