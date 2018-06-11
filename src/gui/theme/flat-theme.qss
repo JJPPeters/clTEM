@@ -207,7 +207,7 @@ QMenu::separator {
 }
 
 QMenu::right-arrow {
-    image: url(:/Theme/icons/right-arrow.png);;
+    image: url(:/Theme/icons/right-arrow.png);
 }
 
 /* === QMenuBar === */

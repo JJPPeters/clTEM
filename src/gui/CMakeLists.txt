@@ -70,7 +70,10 @@ set ( clTEM_SRCS
 		dialogs/settings/frames/stemdetectorframe.cpp
 		dialogs/settings/frames/thermalscatteringframe.cpp
 		dialogs/settings/frames/arealayoutframe.cpp
-        utils/stringutils.cpp utils/stringutils.h utils/guiutils.cpp utils/guiutils.h controls/editunitsbox.cpp controls/editunitsbox.h controls/flattitlebar.cpp controls/flattitlebar.h
+        utils/stringutils.cpp
+		utils/guiutils.cpp
+		controls/editunitsbox.cpp
+		controls/flattitlebar.cpp
 		controls/borderlesswindow.cpp
 		controls/borderlessdialog.cpp)
 
@@ -95,6 +98,11 @@ set ( clTEM_UIS
         dialogs/settings/frames/thermalscatteringframe.ui
 	)
 
+IF(WIN32)
+    set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/themeframe.ui )
+    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp )
+ENDIF()
+
 QT5_WRAP_UI(UIS ${clTEM_UIS})
 
 set ( clTEM_RSCS
@@ -114,4 +122,8 @@ endif(MINGW)
 
 add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
 target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation)
-target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64/dwmapi.lib")
+target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation)
+
+IF(WIN32)
+    target_link_libraries( clTEM_gui "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64/dwmapi.lib")
+ENDIF()

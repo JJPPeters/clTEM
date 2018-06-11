@@ -71,6 +71,8 @@ private slots:
 
     void on_actionOpenCL_triggered();
 
+    void on_actionTheme_triggered();
+
     void on_actionGeneral_triggered();
 
     void on_actionImport_parameters_triggered();

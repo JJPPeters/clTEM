@@ -212,6 +212,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionOpenCL"/>
+    <addaction name="actionTheme"/>
    </widget>
    <addaction name="menuInput"/>
    <addaction name="menuSimulation"/>
@@ -327,6 +328,27 @@
   <action name="actionThermal_scattering">
    <property name="text">
     <string>Thermal scattering</string>
+   </property>
+  </action>
+  <action name="actionNative">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Native</string>
+   </property>
+  </action>
+  <action name="actionDark">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Dark</string>
+   </property>
+  </action>
+  <action name="actionTheme">
+   <property name="text">
+    <string>Theme</string>
    </property>
   </action>
  </widget>
