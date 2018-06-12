@@ -69,7 +69,8 @@ void BorderlessWindow::showEvent(QShowEvent *event)
 void BorderlessWindow::window_borderless()
 {
     if (isVisible()) {
-        window_shadow();
+        int border = (int)(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
+        window_shadow(border);
     }
 }
 
@@ -78,18 +79,12 @@ bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
     QPoint pg(x, y);
     QPoint p = w->mapFromGlobal(pg);
 
-    auto pgx = pg.x();
-    auto pgy = pg.y();
-
-    auto px = p.x();
-    auto py = p.y();
-
     return w->rect().contains(p);
 }
 
-void BorderlessWindow::window_shadow()
+void BorderlessWindow::window_shadow(int border)
 {
-    const MARGINS shadow = { 1, 1, 1, 1 };
+    const MARGINS shadow = {border, border, border, border};
     DwmExtendFrameIntoClientArea((HWND)winId(), &shadow);
 }
 
@@ -230,26 +225,20 @@ void BorderlessWindow::setWindowTitle(const QString &title) {
 }
 
 void BorderlessWindow::changeEvent(QEvent *event) {
-    // change the maximise icon if we need to
-    if (ThemeManager::CurrentTheme == ThemeManager::Theme::Native) {
-        QWidget::changeEvent(event);
-        return;
-    }
-
     // also compensate for maximised with extra padding
     if (event->type() == QEvent::WindowStateChange) {
         auto t_bar = menuWidget()->findChild<FlatTitleBar *>("title_bar");
         if (t_bar)
             t_bar->setMaximiseIcon();
 
-        auto win = window();
-        if (win->windowState().testFlag(Qt::WindowMaximized)) {
-//            int cx = GetSystemMetrics(SM_CXSIZEFRAME);
-            int cy = GetSystemMetrics(SM_CYSIZEFRAME);
-
-            win->setContentsMargins(0, cy, 0, 0);
-        } else {
-            win->setContentsMargins(0, 0, 0, 0);
+        if (ThemeManager::CurrentTheme != ThemeManager::Theme::Native) {
+            auto win = window();
+            if (win->windowState().testFlag(Qt::WindowMaximized)) {
+                int cy = GetSystemMetrics(SM_CYSIZEFRAME);
+                win->setContentsMargins(0, cy, 0, 0);
+            } else {
+                win->setContentsMargins(0, 0, 0, 0);
+            }
         }
     }
 

@@ -37,8 +37,10 @@ void BorderlessDialog::showEvent(QShowEvent *event)
 #ifdef Q_OS_WIN
 void BorderlessDialog::window_borderless()
 {
-    if (isVisible())
-        window_shadow();
+    if (isVisible()) {
+        int border = (int)(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
+        window_shadow(border);
+    }
 }
 
 bool BorderlessDialog::testHitGlobal(QWidget* w, long x, long y)
@@ -49,9 +51,9 @@ bool BorderlessDialog::testHitGlobal(QWidget* w, long x, long y)
     return w->rect().contains(p);
 }
 
-void BorderlessDialog::window_shadow()
+void BorderlessDialog::window_shadow(int border)
 {
-    const MARGINS shadow = { 1, 1, 1, 1 };
+    const MARGINS shadow = {border, border, border, border};
     DwmExtendFrameIntoClientArea((HWND)winId(), &shadow);
 }
 

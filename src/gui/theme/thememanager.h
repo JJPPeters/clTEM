@@ -60,8 +60,13 @@ public:
 
                 if (bw) {
                     bw->setMenuBarVisible(th != Theme::Native);
+                    bw->window_borderless();
                 } else if (bd) {
                     bd->setMenuBarVisible(th != Theme::Native);
+                    bd->window_borderless();
+                    // this fixes a problem where the controls would not show everything
+                    // I assume because it has a fixed size (and the controls change size)
+                    bd->setFixedSize(bd->minimumSizeHint());
                 }
 
             }

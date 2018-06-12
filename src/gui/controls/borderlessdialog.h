@@ -60,7 +60,7 @@ public:
 #ifdef Q_OS_WIN
     void window_borderless();
 
-    void window_shadow();
+    void window_shadow(int border = -1);
 
     bool nativeEvent(const QByteArray& eventType, void *message, long *result) override;
 #endif
