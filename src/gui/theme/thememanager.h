@@ -23,7 +23,8 @@ struct ThemeManager {
 public:
     enum Theme {
         Native,
-        Dark
+        Dark,
+        Light
     };
 
     static Theme CurrentTheme;
@@ -31,6 +32,8 @@ public:
     static void setTheme(std::string th) {
         if (th == "Dark") {
             setTheme(Theme::Dark);
+        } else if (th == "Light") {
+            setTheme(Theme::Light);
         } else {
             setTheme(Theme::Native);
         }
@@ -40,6 +43,8 @@ public:
         CurrentTheme = th;
         if (th == Theme::Dark) {
             setDarkTheme();
+        } else if (th == Theme::Light) {
+            setLightTheme();
         } else {
             setNativeTheme();
         }
@@ -79,6 +84,8 @@ public:
         QSettings settings;
         if (th == Theme::Dark) {
             settings.setValue("theme", "Dark");
+        } else if (th == Theme::Light) {
+            settings.setValue("theme", "Light");
         } else {
             settings.setValue("theme", "Native");
         }
@@ -86,14 +93,13 @@ public:
 
 private:
     static void setNativeTheme() {
-        // remove our stylesheet
-        qApp->setStyleSheet("");
         // reset our palette
         qApp->setPalette(QApplication::style()->standardPalette());
+        // remove our stylesheet
+        qApp->setStyleSheet("");
     }
 
     static void setDarkTheme() {
-
         QFile f(":/Theme/flat-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
@@ -110,6 +116,12 @@ private:
             QString c1 = "#9D1A29"; // close/negative
             QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
 
+            // this is so the plots function properly...
+            QPalette darkPalette;
+            darkPalette.setColor(QPalette::Window, QColor(d1));
+            darkPalette.setColor(QPalette::Mid, QColor(l2));
+
+            qApp->setPalette(darkPalette);
 
             s.replace("{d1}", d1);
             s.replace("{d2}", d2);
@@ -121,6 +133,26 @@ private:
             s.replace("{c2}", c2);
 
             qApp->setStyleSheet(s);
+        }
+
+    }
+
+    static void setLightTheme() {
+        QFile f(":/Theme/flat-theme.qss");
+        if (f.open(QFile::ReadOnly | QFile::Text)) {
+            QTextStream in(&f);
+            QString s = in.readAll();
+            f.close();
+
+            QString d1 = "#F0F0F0"; // darkest
+            QString d2 = "#FFFFFF"; // dark
+            QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
+            QString l1 = "#000000"; // lightest
+            QString l2 = "#ADADAD"; // light
+
+            QString a1 = "#6A9D1A"; // accent
+            QString c1 = "#9D1A29"; // close/negative
+            QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
 
             // this is so the plots function properly...
             QPalette darkPalette;
@@ -128,6 +160,17 @@ private:
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
             qApp->setPalette(darkPalette);
+
+            s.replace("{d1}", d1);
+            s.replace("{d2}", d2);
+            s.replace("{d3}", d3);
+            s.replace("{l1}", l1);
+            s.replace("{l2}", l2);
+            s.replace("{a1}", a1);
+            s.replace("{c1}", c1);
+            s.replace("{c2}", c2);
+
+            qApp->setStyleSheet(s);
         }
 
     }

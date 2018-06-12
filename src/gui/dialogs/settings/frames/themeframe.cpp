@@ -11,6 +11,8 @@ ThemeFrame::ThemeFrame(QWidget *parent) :
 
     if (ThemeManager::CurrentTheme == ThemeManager::Theme::Dark)
         ui->cmbTheme->setCurrentText("Dark");
+    else if (ThemeManager::CurrentTheme == ThemeManager::Theme::Light)
+        ui->cmbTheme->setCurrentText("Light");
     else
         ui->cmbTheme->setCurrentText("Native");
 
@@ -40,8 +42,10 @@ void ThemeFrame::dlgOk_clicked()
 
 void ThemeFrame::dlgApply_clicked()
 {
-    if (ui->cmbTheme->currentText() == "Native")
-        ThemeManager::setTheme(ThemeManager::Theme::Native);
-    else if (ui->cmbTheme->currentText() == "Dark")
+    if (ui->cmbTheme->currentText() == "Dark")
         ThemeManager::setTheme(ThemeManager::Theme::Dark);
+    else if (ui->cmbTheme->currentText() == "Light")
+        ThemeManager::setTheme(ThemeManager::Theme::Light);
+    else
+        ThemeManager::setTheme(ThemeManager::Theme::Native);
 }

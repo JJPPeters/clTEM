@@ -177,6 +177,7 @@ QLabel {
 
 QLabel[accessibleName="title_title"] {
 	font-size: 12px;
+	color: {d1};
 }
 
 /* === QMenu === */
