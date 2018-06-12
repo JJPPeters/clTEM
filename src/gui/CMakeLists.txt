@@ -100,7 +100,7 @@ set ( clTEM_UIS
 
 IF(WIN32)
     set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/themeframe.ui )
-    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp )
+    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp theme/thememanager.cpp theme/thememanager.h)
 ENDIF()
 
 QT5_WRAP_UI(UIS ${clTEM_UIS})

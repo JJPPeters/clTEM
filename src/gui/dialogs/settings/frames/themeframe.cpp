@@ -1,4 +1,5 @@
 #include <dialogs/settings/settingsdialog.h>
+#include <theme/thememanager.h>
 #include "themeframe.h"
 #include "ui_themeframe.h"
 
@@ -7,6 +8,11 @@ ThemeFrame::ThemeFrame(QWidget *parent) :
     ui(new Ui::ThemeFrame)
 {
     ui->setupUi(this);
+
+    if (ThemeManager::CurrentTheme == ThemeManager::Theme::Dark)
+        ui->cmbTheme->setCurrentText("Dark");
+    else
+        ui->cmbTheme->setCurrentText("Native");
 
     auto parent_dlg = dynamic_cast<ThemeDialog*>(parentWidget());
     connect(parent_dlg, &ThemeDialog::okSignal, this, &ThemeFrame::dlgOk_clicked);
@@ -34,9 +40,8 @@ void ThemeFrame::dlgOk_clicked()
 
 void ThemeFrame::dlgApply_clicked()
 {
-
-}
-
-void ThemeFrame::on_cmbTheme_currentIndexChanged(int index) {
-    std::string text = ui->cmbTheme->currentText().toStdString();
+    if (ui->cmbTheme->currentText() == "Native")
+        ThemeManager::setTheme(ThemeManager::Theme::Native);
+    else if (ui->cmbTheme->currentText() == "Dark")
+        ThemeManager::setTheme(ThemeManager::Theme::Dark);
 }

@@ -3,6 +3,7 @@
 ////
 
 #include <c++/7.3.0/iostream>
+#include <theme/thememanager.h>
 #include "borderlessdialog.h"
 
 BorderlessDialog::BorderlessDialog(QWidget *parent) :
@@ -19,15 +20,17 @@ void BorderlessDialog::addTitleBar()
 
     t_title->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-
     layout()->setMenuBar(t_title);
+
+    setMenuBarVisible(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
 }
 
 void BorderlessDialog::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 #ifdef Q_OS_WIN
-    window_borderless();
+//    if (ThemeManager::CurrentTheme != ThemeManager::Theme::Native)
+        window_borderless();
 #endif
 }
 
@@ -54,6 +57,13 @@ void BorderlessDialog::window_shadow()
 
 bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, long *result)
 {
+    bool is_borderless = ThemeManager::CurrentTheme != ThemeManager::Theme::Native;
+    auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+
+    if (!is_borderless) {
+        return QWidget::nativeEvent(eventType, message, result);
+    }
+
     MSG* msg;
     if ( eventType == "windows_generic_MSG" )
         msg = reinterpret_cast<MSG*>(message);
@@ -79,12 +89,10 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
 
             // this handles if we are in the title bar, or the main content
             if(*result == 0) {
-                if(FlatTitleBar* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar())) {
                     if (t_bar && testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
                         *result = HTCAPTION; // this says we are in a title bar...
                     else
                         *result = HTCLIENT; // this is client space
-                }
             }
 
             return true;
@@ -100,7 +108,7 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
 }
 
 void BorderlessDialog::setWindowTitle(const QString &title) {
-    if(FlatTitleBar* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar()))
+    if(auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar()))
         t_bar->setTitle(title);
 
     QWidget::setWindowTitle(title);

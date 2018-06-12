@@ -6,13 +6,15 @@
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <controls/borderlesswindow.h>
+#include <theme/thememanager.h>
+#include <QtCore/QSettings>
 
 int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
-//    MainWindow w;
 
+    // this tests for opencl, if we dont have it, then there is no point in loading the program
     try {
         ClManager::getDeviceList();
     } catch (const std::exception& e) {
@@ -28,43 +30,24 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // set the app details so we can save/load settings
+    QCoreApplication::setOrganizationName("PetersSoft");
+    QCoreApplication::setApplicationName("clTEM");
+
     MainWindow w;
 
-    QFile f(":/Theme/flat-theme.qss");
-    if (f.open(QFile::ReadOnly | QFile::Text)) {
-        QTextStream in(&f);
-        QString s = in.readAll();
-        f.close();
+#ifdef _WIN32
 
-        QString d1 = "#2A2A2A"; // darkest
-        QString d2 = "#404040"; // dark
-        QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
-        QString l1 = "#D8D8D8"; // lightest
-        QString l2 = "#777777"; // light
+    QSettings settings;
+    if (!settings.contains("theme"))
+        settings.setValue("theme", "Native");
 
-        QString a1 = "#6A9D1A"; // accent
-        QString c1 = "#9D1A29"; // close/negative
-        QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
+    auto theme = settings.value("theme").toString().toStdString();
 
+    // load this theme from the settings
+    ThemeManager::setTheme(theme);
 
-        s.replace("{d1}", d1);
-        s.replace("{d2}", d2);
-        s.replace("{d3}", d3);
-        s.replace("{l1}", l1);
-        s.replace("{l2}", l2);
-        s.replace("{a1}", a1);
-        s.replace("{c1}", c1);
-        s.replace("{c2}", c2);
-
-        a.setStyleSheet(s);
-
-        // this is so the plots function properly...
-        QPalette darkPalette;
-        darkPalette.setColor(QPalette::Window, QColor(d1));
-        darkPalette.setColor(QPalette::Mid, QColor(l2));
-
-        qApp->setPalette(darkPalette);
-    }
+#endif
 
     w.show();
 

@@ -25,9 +25,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType< std::map<std::string, Image<float>> >( "std::map<std::string, Image<float>>" );
     qRegisterMetaType< SimulationManager >( "SimulationManager" );
 
-    QCoreApplication::setOrganizationName("PetersSoft");
-    QCoreApplication::setApplicationName("clTEM");
-
     QSettings settings;
     if (!settings.contains("dialog/currentPath"))
         settings.setValue("dialog/currentPath", QStandardPaths::HomeLocation);

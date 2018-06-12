@@ -36,6 +36,14 @@ class BorderlessWindow : public QMainWindow {
 public:
     explicit BorderlessWindow(QWidget *parent = nullptr);
 
+    void setMenuBarVisible(bool visible) {
+        auto* t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
+        if(t_bar) {
+            t_bar->setEnabled(visible);
+            t_bar->setVisible(visible);
+        }
+    }
+
     bool testHitGlobal(QWidget* w, long x, long y);
 
     void setWindowTitle(const QString& title);

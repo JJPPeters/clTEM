@@ -6,15 +6,11 @@
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include "borderlesswindow.h"
 #include <QDesktopWidget>
+#include <theme/thememanager.h>
 
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
         QMainWindow(parent)
 {
-    QGraphicsDropShadowEffect *wndShadow = new QGraphicsDropShadowEffect;
-    wndShadow->setBlurRadius(9.0);
-    wndShadow->setColor(QColor(0, 0, 0, 160));
-    wndShadow->setOffset(4.0);
-    setGraphicsEffect(wndShadow);
 }
 
 void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
@@ -56,13 +52,16 @@ void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
     t_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     topLayout->setMenuBar(t_widget);
+
+    setMenuBarVisible(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
 }
 
 void BorderlessWindow::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 #ifdef Q_OS_WIN
-    window_borderless();
+//    if (ThemeManager::CurrentTheme != ThemeManager::Theme::Native)
+        window_borderless();
 #endif
 }
 
@@ -79,6 +78,12 @@ bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
     QPoint pg(x, y);
     QPoint p = w->mapFromGlobal(pg);
 
+    auto pgx = pg.x();
+    auto pgy = pg.y();
+
+    auto px = p.x();
+    auto py = p.y();
+
     return w->rect().contains(p);
 }
 
@@ -90,6 +95,13 @@ void BorderlessWindow::window_shadow()
 
 bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, long *result)
 {
+    bool is_borderless = ThemeManager::CurrentTheme != ThemeManager::Theme::Native;
+    auto* t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
+
+    if (!is_borderless) {
+        return QWidget::nativeEvent(eventType, message, result);
+    }
+
     MSG* msg;
     if ( eventType == "windows_generic_MSG" )
         msg = reinterpret_cast<MSG*>(message);
@@ -191,8 +203,6 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
             // this handles if we are in the title bar, or the main content
             if(*result == 0) {
                 // get the height of our title bar
-                auto t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
-
                 if (t_bar && testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
                     *result = HTCAPTION; // this says we are in a title bar...
                 else
@@ -221,6 +231,10 @@ void BorderlessWindow::setWindowTitle(const QString &title) {
 
 void BorderlessWindow::changeEvent(QEvent *event) {
     // change the maximise icon if we need to
+    if (ThemeManager::CurrentTheme == ThemeManager::Theme::Native) {
+        QWidget::changeEvent(event);
+        return;
+    }
 
     // also compensate for maximised with extra padding
     if (event->type() == QEvent::WindowStateChange) {

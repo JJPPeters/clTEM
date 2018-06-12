@@ -21,8 +21,6 @@ private slots:
 
     void dlgCancel_clicked();
 
-    void on_cmbTheme_currentIndexChanged(int index);
-
 public:
     explicit ThemeFrame(QWidget *parent);
     ~ThemeFrame();

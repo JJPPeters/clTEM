@@ -37,6 +37,14 @@ class BorderlessDialog : public QDialog {
 public:
     explicit BorderlessDialog(QWidget *parent = nullptr);
 
+    void setMenuBarVisible(bool visible) {
+        auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+        if(t_bar) {
+            t_bar->setEnabled(visible);
+            t_bar->setVisible(visible);
+        }
+    }
+
     bool testHitGlobal(QWidget* w, long x, long y);
 
     void setWindowTitle(const QString& title);
