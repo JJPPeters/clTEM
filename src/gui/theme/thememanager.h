@@ -93,10 +93,10 @@ public:
 
 private:
     static void setNativeTheme() {
-        // reset our palette
-        qApp->setPalette(QApplication::style()->standardPalette());
         // remove our stylesheet
         qApp->setStyleSheet("");
+        // reset our palette
+        qApp->setPalette(QApplication::style()->standardPalette());
     }
 
     static void setDarkTheme() {
