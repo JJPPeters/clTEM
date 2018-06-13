@@ -50,7 +50,7 @@ QComboBox::drop-down {
 QComboBox::down-arrow {
     width: 10px;
     height: 10px;
-    image: url(:/Theme/icons/down-arrow.png);
+    image: url(:/Theme/icons/down-arrow_{t}.png);
 }
 
 /* === QPushButton === */
@@ -208,7 +208,7 @@ QMenu::separator {
 }
 
 QMenu::right-arrow {
-    image: url(:/Theme/icons/right-arrow.png);
+    image: url(:/Theme/icons/right-arrow_{t}.png);
 }
 
 /* === QMenuBar === */

@@ -2,14 +2,15 @@
 //// Created by jon on 02/06/18.
 ////
 
-#include <c++/7.3.0/iostream>
-#include <theme/thememanager.h>
 #include "borderlessdialog.h"
+#include <theme/thememanager.h>
 
 BorderlessDialog::BorderlessDialog(QWidget *parent) :
         QDialog(parent)
-{}
+{
+}
 
+#ifdef _WIN32
 void BorderlessDialog::addTitleBar()
 {
     if(!layout())
@@ -28,13 +29,9 @@ void BorderlessDialog::addTitleBar()
 void BorderlessDialog::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-#ifdef Q_OS_WIN
-//    if (ThemeManager::CurrentTheme != ThemeManager::Theme::Native)
-        window_borderless();
-#endif
+    window_borderless();
 }
 
-#ifdef Q_OS_WIN
 void BorderlessDialog::window_borderless()
 {
     if (isVisible()) {
@@ -134,6 +131,14 @@ void BorderlessDialog::changeEvent(QEvent *event) {
     }
 
     QWidget::changeEvent(event);
+}
+
+void BorderlessDialog::setMenuBarVisible(bool visible) {
+    auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+    if(t_bar) {
+        t_bar->setEnabled(visible);
+        t_bar->setVisible(visible);
+    }
 }
 
 #endif

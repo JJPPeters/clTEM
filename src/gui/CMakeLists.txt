@@ -22,7 +22,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 
 if(Qt5Widgets_FOUND)
-	message(STATUS "Found Qt version: " ${Qt5Widgets_VERSION})
+    message(STATUS "Found Qt version: " ${Qt5Widgets_VERSION})
 endif()
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
@@ -34,90 +34,88 @@ add_definitions(${Qt5PrintSupport_DEFINITIONS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
-	if(WIN32)
-		if(CMAKE_COMPILER_IS_GNUCXX)
-			# I think this is needed to make it a full GUI app, otherwise it will show the console
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
-		endif(CMAKE_COMPILER_IS_GNUCXX)
-	endif(WIN32)
+    if(WIN32)
+        if(CMAKE_COMPILER_IS_GNUCXX)
+            # I think this is needed to make it a full GUI app, otherwise it will show the console
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
+        endif(CMAKE_COMPILER_IS_GNUCXX)
+    endif(WIN32)
 endif(CMAKE_BUILD_TYPE MATCHES Release)
 
 set ( clTEM_HDRS
-	)
+        )
 
 set ( clTEM_SRCS
-		main.cpp
-		mainwindow.cpp
-		simulationthread.cpp
+        main.cpp
+        mainwindow.cpp
+        simulationthread.cpp
         controls/statuslayout.cpp
-		controls/tabpanel.cpp
+        controls/tabpanel.cpp
         controls/tabpanelbar.cpp
-		controls/imagetab.cpp
+        controls/imagetab.cpp
         controls/imageplot/qcustomplot.cpp
-		controls/imageplot/imageplotwidget.cpp
+        controls/imageplot/imageplotwidget.cpp
         frames/simulationframe.cpp
-		frames/temframe.cpp
-		frames/stemframe.cpp
-		frames/cbedframe.cpp
-		frames/aberrationframe.cpp
-		dialogs/settings/settingsdialog.cpp
-		dialogs/settings/frames/openclframe.cpp
-		dialogs/settings/frames/globalsettingsframe.cpp
-		dialogs/settings/frames/fullaberrationframe.cpp
+        frames/temframe.cpp
+        frames/stemframe.cpp
+        frames/cbedframe.cpp
+        frames/aberrationframe.cpp
+        dialogs/settings/settingsdialog.cpp
+        dialogs/settings/frames/openclframe.cpp
+        dialogs/settings/frames/globalsettingsframe.cpp
+        dialogs/settings/frames/fullaberrationframe.cpp
         dialogs/settings/frames/ctemareaframe.cpp
-		dialogs/settings/frames/stemareaframe.cpp
+        dialogs/settings/frames/stemareaframe.cpp
         dialogs/settings/frames/cbedareaframe.cpp
-		dialogs/settings/frames/stemdetectorframe.cpp
-		dialogs/settings/frames/thermalscatteringframe.cpp
-		dialogs/settings/frames/arealayoutframe.cpp
+        dialogs/settings/frames/stemdetectorframe.cpp
+        dialogs/settings/frames/thermalscatteringframe.cpp
+        dialogs/settings/frames/arealayoutframe.cpp
         utils/stringutils.cpp
-		utils/guiutils.cpp
-		controls/editunitsbox.cpp
-		controls/flattitlebar.cpp
-		controls/borderlesswindow.cpp
-		controls/borderlessdialog.cpp)
+        utils/guiutils.cpp
+        controls/editunitsbox.cpp
+        controls/borderlesswindow.cpp
+        controls/borderlessdialog.cpp)
 
 set ( clTEM_UIS
-		mainwindow.ui
-		frames/simulationframe.ui
-		frames/temframe.ui
-		frames/stemframe.ui
-		frames/cbedframe.ui
-		frames/aberrationframe.ui
-		controls/imagetab.ui
+        mainwindow.ui
+        frames/simulationframe.ui
+        frames/temframe.ui
+        frames/stemframe.ui
+        frames/cbedframe.ui
+        frames/aberrationframe.ui
+        controls/imagetab.ui
         controls/statuslayout.ui
-		dialogs/settings/settingsdialog.ui
-		dialogs/settings/frames/openclframe.ui
+        dialogs/settings/settingsdialog.ui
+        dialogs/settings/frames/openclframe.ui
         dialogs/settings/frames/globalsettingsframe.ui
-		dialogs/settings/frames/fullaberrationframe.ui
-		dialogs/settings/frames/stemdetectorframe.ui
+        dialogs/settings/frames/fullaberrationframe.ui
+        dialogs/settings/frames/stemdetectorframe.ui
         dialogs/settings/frames/ctemareaframe.ui
         dialogs/settings/frames/stemareaframe.ui
         dialogs/settings/frames/cbedareaframe.ui
-		dialogs/settings/frames/arealayoutframe.ui
+        dialogs/settings/frames/arealayoutframe.ui
         dialogs/settings/frames/thermalscatteringframe.ui
-	)
+        )
 
 IF(WIN32)
+    # add the ui stuff for themes, if we can set them (aka on windows)
     set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/themeframe.ui )
-    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp theme/thememanager.cpp theme/thememanager.h)
+    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
+    # add the theme resources if they are needed
+    set ( clTEM_RSCS theme/theme.qrc )
+    QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})
 ENDIF()
 
 QT5_WRAP_UI(UIS ${clTEM_UIS})
-
-set ( clTEM_RSCS
-		theme/theme.qrc
-		)
-QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})
 
 # I need this to bypass some errors with windres and the rc files
 # essentially I removed the <flags> section to achieve this
 # Thanks very much to https://stackoverflow.com/questions/3526794/how-do-i-build-a-win32-app-with-a-resource-file-using-cmake-and-mingw
 if(MINGW)
-	set(CMAKE_RC_COMPILER_INIT windres)
-	ENABLE_LANGUAGE(RC)
-	SET(CMAKE_RC_COMPILE_OBJECT
-			"<CMAKE_RC_COMPILER> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+    set(CMAKE_RC_COMPILER_INIT windres)
+    ENABLE_LANGUAGE(RC)
+    SET(CMAKE_RC_COMPILE_OBJECT
+            "<CMAKE_RC_COMPILER> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
 add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)

@@ -17,7 +17,6 @@
 #include <controls/borderlessdialog.h>
 #include <QtCore/QSettings>
 
-
 struct ThemeManager {
 
 public:
@@ -106,6 +105,7 @@ private:
             QString s = in.readAll();
             f.close();
 
+            QString t = "dark"; // theme name (for icons)
             QString d1 = "#2A2A2A"; // darkest
             QString d2 = "#404040"; // dark
             QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
@@ -122,6 +122,8 @@ private:
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
             qApp->setPalette(darkPalette);
+
+            s.replace("{t}", t);
 
             s.replace("{d1}", d1);
             s.replace("{d2}", d2);
@@ -144,6 +146,7 @@ private:
             QString s = in.readAll();
             f.close();
 
+            QString t = "light"; // theme name (for icons)
             QString d1 = "#F0F0F0"; // darkest
             QString d2 = "#FFFFFF"; // dark
             QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
@@ -161,6 +164,7 @@ private:
 
             qApp->setPalette(darkPalette);
 
+            s.replace("{t}", t);
             s.replace("{d1}", d1);
             s.replace("{d2}", d2);
             s.replace("{d3}", d3);

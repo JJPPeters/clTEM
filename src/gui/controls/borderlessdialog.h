@@ -7,7 +7,7 @@
 
 #include <QtWidgets/QDialog>
 
-#ifdef Q_OS_WIN
+#ifdef _WIN32
 // https://forum.qt.io/topic/26108/customize-window-frame/9
 #include <windowsx.h>
 #include <dwmapi.h>
@@ -33,23 +33,17 @@
 class BorderlessDialog : public QDialog {
     Q_OBJECT
 
-    FlatTitleBar* tb;
 public:
     explicit BorderlessDialog(QWidget *parent = nullptr);
 
-    void setMenuBarVisible(bool visible) {
-        auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
-        if(t_bar) {
-            t_bar->setEnabled(visible);
-            t_bar->setVisible(visible);
-        }
-    }
+#ifdef _WIN32
+    void setMenuBarVisible(bool visible);
 
     bool testHitGlobal(QWidget* w, long x, long y);
 
     void setWindowTitle(const QString& title);
 
-    void changeEvent(QEvent* event);
+    void changeEvent(QEvent* event) override;
 
 #ifndef QT_NO_MENUBAR
     void addTitleBar();
@@ -57,12 +51,14 @@ public:
 
     void showEvent(QShowEvent *event) override;
 
-#ifdef Q_OS_WIN
     void window_borderless();
 
     void window_shadow(int border = -1);
 
     bool nativeEvent(const QByteArray& eventType, void *message, long *result) override;
+
+private:
+    FlatTitleBar* tb;
 #endif
 };
 

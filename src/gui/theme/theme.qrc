@@ -1,11 +1,13 @@
 <RCC>
     <qresource prefix="/Theme">
         <file>flat-theme.qss</file>
-        <file>icons/down-arrow.png</file>
-        <file>icons/right-arrow.png</file>
         <file>icons/close.png</file>
         <file>icons/maximise.png</file>
         <file>icons/unmaximise.png</file>
         <file>icons/minimise.png</file>
+        <file>icons/down-arrow_dark.png</file>
+        <file>icons/right-arrow_dark.png</file>
+        <file>icons/down-arrow_light.png</file>
+        <file>icons/right-arrow_light.png</file>
     </qresource>
 </RCC>

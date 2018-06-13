@@ -2,10 +2,7 @@
 //// Created by jon on 02/06/18.
 ////
 
-#include <c++/7.3.0/iostream>
-#include <QtWidgets/QGraphicsDropShadowEffect>
 #include "borderlesswindow.h"
-#include <QDesktopWidget>
 #include <theme/thememanager.h>
 
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
@@ -13,6 +10,7 @@ BorderlessWindow::BorderlessWindow(QWidget *parent) :
 {
 }
 
+#ifdef _WIN32
 void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
 {
     QLayout *topLayout = layout();
@@ -59,13 +57,9 @@ void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
 void BorderlessWindow::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
-#ifdef Q_OS_WIN
-//    if (ThemeManager::CurrentTheme != ThemeManager::Theme::Native)
-        window_borderless();
-#endif
+    window_borderless();
 }
 
-#ifdef Q_OS_WIN
 void BorderlessWindow::window_borderless()
 {
     if (isVisible()) {
@@ -243,6 +237,24 @@ void BorderlessWindow::changeEvent(QEvent *event) {
     }
 
     QWidget::changeEvent(event);
+}
+
+void BorderlessWindow::setMenuBarVisible(bool visible) {
+    auto* t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
+    if(t_bar) {
+        t_bar->setEnabled(visible);
+        t_bar->setVisible(visible);
+    }
+
+    if (visible) {
+        if (window()->windowState().testFlag(Qt::WindowMaximized)) {
+            int cy = GetSystemMetrics(SM_CYSIZEFRAME);
+            window()->setContentsMargins(0, cy, 0, 0);
+        } else {
+            window()->setContentsMargins(0, 0, 0, 0);
+        }
+    } else
+        window()->setContentsMargins(0, 0, 0, 0);
 }
 
 #endif

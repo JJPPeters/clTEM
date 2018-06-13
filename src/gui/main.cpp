@@ -6,8 +6,10 @@
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <controls/borderlesswindow.h>
-#include <theme/thememanager.h>
 #include <QtCore/QSettings>
+#ifdef _WIN32
+#include <theme/thememanager.h>
+#endif
 
 int main(int argc, char *argv[])
 {
