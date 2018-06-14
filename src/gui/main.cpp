@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
         a.exit(1); // not sure I need both of these, but just to be sure
         return 1;
     }
-
+    
     // set the app details so we can save/load settings
     QCoreApplication::setOrganizationName("PetersSoft");
     QCoreApplication::setApplicationName("clTEM");
