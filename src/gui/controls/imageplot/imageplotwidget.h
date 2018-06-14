@@ -40,32 +40,12 @@ signals:
     void mouseHoverEvent(double, double);
 
 public:
-    ImagePlotWidget(QWidget *parent);
-
-    ~ImagePlotWidget() {}
+    explicit ImagePlotWidget(QWidget *parent);
 
     // this is used to update the colours by filtering the events
-    bool event(QEvent *event);
+    bool event(QEvent *event) override;
 
     void matchPlotToPalette();
-
-    template <typename T>
-    void SetImageTemplate(Image<T> img, double z_x = 0.0, double z_y = 0.0, double sc_x = 1.0, double sc_y = 1.0, IntensityScale intensity_scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
-    {
-        std::vector<double> im_d(img.data.size());
-        for (int i = 0; i < img.data.size(); ++i)
-            im_d[i] = (double) img.data[i];
-        crop_t = img.pad_t;
-        crop_l = img.pad_l;
-        crop_b = img.pad_b;
-        crop_r = img.pad_r;
-        scale_x = sc_x;
-        scale_y = sc_y;
-        zero_x = z_x;
-        zero_y = z_y;
-        zero_pos = zp;
-        SetImage(im_d, img.width, img.height, intensity_scale, doReplot);
-    }
 
     void DrawCircle(double x, double y, QColor colour = Qt::red, QBrush fill = QBrush(Qt::red), double radius = 2, Qt::PenStyle line = Qt::SolidLine, double thickness = 2);
 
@@ -140,10 +120,6 @@ private:
     double scale_x, scale_y;
     double zero_x, zero_y;
 
-    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
-
-    void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
-
     int lastWidth, lastHeight;
 
     void resizeEvent(QResizeEvent* event);
@@ -181,6 +157,34 @@ public slots:
 
 private slots:
     void contextMenuRequest(QPoint pos);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Image display stuff here
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public:
+    // this template just helps us display a complex or real image
+    template <typename T>
+    void SetImageTemplate(Image<T> img, double z_x = 0.0, double z_y = 0.0, double sc_x = 1.0, double sc_y = 1.0, IntensityScale intensity_scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
+    {
+        std::vector<double> im_d(img.data.size());
+        for (int i = 0; i < img.data.size(); ++i)
+            im_d[i] = (double) img.data[i];
+        crop_t = img.pad_t;
+        crop_l = img.pad_l;
+        crop_b = img.pad_b;
+        crop_r = img.pad_r;
+        scale_x = sc_x;
+        scale_y = sc_y;
+        zero_x = z_x;
+        zero_y = z_y;
+        zero_pos = zp;
+        SetImage(im_d, img.width, img.height, intensity_scale, doReplot);
+    }
+
+private:
+    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
+
+    void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
 
 };
 

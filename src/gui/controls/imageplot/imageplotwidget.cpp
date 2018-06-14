@@ -314,12 +314,14 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
 
     menu->addAction("Reset zoom", this, &ImagePlotWidget::resetAxes_slot);
 
-    QMenu* save_menu = new QMenu("Export...", menu);
+    if (haveImage) {
+        QMenu *save_menu = new QMenu("Export...", menu);
 
-    save_menu->addAction("Data", this, &ImagePlotWidget::exportTiff);
-    save_menu->addAction("RGB", this, &ImagePlotWidget::exportBmp);
+        save_menu->addAction("Data", this, &ImagePlotWidget::exportTiff);
+        save_menu->addAction("RGB", this, &ImagePlotWidget::exportBmp);
 
-    menu->addMenu(save_menu);
+        menu->addMenu(save_menu);
+    }
 
     menu->popup(mapToGlobal(pos));
 }
