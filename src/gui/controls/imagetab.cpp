@@ -9,8 +9,10 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex
     ui->setupUi(this);
     ui->widget;
 
-    if (!is_complex)
-        ui->cmbComplex->hide();
+    if (!is_complex) {
+        ui->cmbComplex->setEnabled(false);
+        ui->cmbComplex->setFixedWidth(0); // do this, so the ui doesnt resize
+    }
 
     connect(ui->widget, &ImagePlotWidget::saveDataClicked, this, &ImageTab::forwardSaveData);
     connect(ui->widget, &ImagePlotWidget::saveImageClicked, this, &ImageTab::forwardSaveImage);
