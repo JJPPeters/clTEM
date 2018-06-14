@@ -8,16 +8,20 @@
 #include <dialogs/settings/frames/thermalscatteringframe.h>
 #include <dialogs/settings/frames/arealayoutframe.h>
 #include <dialogs/settings/frames/globalsettingsframe.h>
-#include <structure/crystalstructure.h>
+#include "dialogs/settings/frames/openclframe.h"
+#include "dialogs/settings/frames/fullaberrationframe.h"
+#ifdef _WIN32
+#include "dialogs/settings/frames/themeframe.h"
+#endif
 
-#include "frames/openclframe.h"
-#include "frames/fullaberrationframe.h"
+#include <structure/crystalstructure.h>
+#include <controls/borderlessdialog.h>
 
 namespace Ui {
 class SettingsDialog;
 }
 
-class SettingsDialog : public QDialog
+class SettingsDialog : public BorderlessDialog
 {
     Q_OBJECT
 
@@ -56,6 +60,21 @@ public:
 
     std::tuple<std::vector<clDevice>, std::vector<float>> getChosenDevices();
 };
+
+
+class ThemeDialog : public SettingsDialog
+{
+Q_OBJECT
+
+#ifdef _WIN32
+private:
+    ThemeFrame* tFrame;
+#endif
+
+public:
+    explicit ThemeDialog(QWidget *parent);
+};
+
 
 
 class GlobalSettingsDialog : public SettingsDialog

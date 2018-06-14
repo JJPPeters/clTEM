@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <widget class="BorderlessWindow" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,123 +20,154 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,10">
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <layout class="QHBoxLayout" name="hTabs" stretch="0,0,0,1">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
+     <layout class="QVBoxLayout" name="mainLayout" stretch="0,1">
       <item>
-       <widget class="QTabWidget" name="twSim">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <layout class="QHBoxLayout" name="hTabs" stretch="0,0,0,1">
+        <property name="leftMargin">
+         <number>9</number>
         </property>
-        <property name="tabPosition">
-         <enum>QTabWidget::North</enum>
+        <property name="topMargin">
+         <number>9</number>
         </property>
-        <property name="currentIndex">
-         <number>0</number>
+        <property name="rightMargin">
+         <number>9</number>
         </property>
-        <widget class="SimulationFrame" name="tSim">
-         <attribute name="title">
-          <string>Simulation</string>
-         </attribute>
-        </widget>
-       </widget>
+        <property name="bottomMargin">
+         <number>9</number>
+        </property>
+        <item>
+         <widget class="QTabWidget" name="twSim">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="tabPosition">
+           <enum>QTabWidget::North</enum>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="SimulationFrame" name="tSim">
+           <attribute name="title">
+            <string>Simulation</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="twAberr">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="tabPosition">
+           <enum>QTabWidget::North</enum>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="AberrationFrame" name="tAberr">
+           <attribute name="title">
+            <string>Aberrations</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="twMode">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="tabPosition">
+           <enum>QTabWidget::North</enum>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <property name="usesScrollButtons">
+           <bool>false</bool>
+          </property>
+          <widget class="TemFrame" name="tTem">
+           <attribute name="title">
+            <string>TEM</string>
+           </attribute>
+          </widget>
+          <widget class="StemFrame" name="tStem">
+           <attribute name="title">
+            <string>STEM</string>
+           </attribute>
+          </widget>
+          <widget class="CbedFrame" name="tCbed">
+           <attribute name="title">
+            <string>CBED</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <spacer name="hs1">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
       <item>
-       <widget class="QTabWidget" name="twAberr">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <layout class="QHBoxLayout" name="hPlots">
+        <property name="leftMargin">
+         <number>9</number>
         </property>
-        <property name="tabPosition">
-         <enum>QTabWidget::North</enum>
+        <property name="topMargin">
+         <number>9</number>
         </property>
-        <property name="currentIndex">
-         <number>0</number>
+        <property name="rightMargin">
+         <number>9</number>
         </property>
-        <widget class="AberrationFrame" name="tAberr">
-         <attribute name="title">
-          <string>Aberrations</string>
-         </attribute>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="twMode">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+        <property name="bottomMargin">
+         <number>9</number>
         </property>
-        <property name="tabPosition">
-         <enum>QTabWidget::North</enum>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <property name="usesScrollButtons">
-         <bool>false</bool>
-        </property>
-        <widget class="TemFrame" name="tTem">
-         <attribute name="title">
-          <string>TEM</string>
-         </attribute>
-        </widget>
-        <widget class="StemFrame" name="tStem">
-         <attribute name="title">
-          <string>STEM</string>
-         </attribute>
-        </widget>
-        <widget class="CbedFrame" name="tCbed">
-         <attribute name="title">
-          <string>CBED</string>
-         </attribute>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <spacer name="hs1">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="hPlots">
-      <item>
-       <widget class="QTabWidget" name="twReal">
-        <property name="currentIndex">
-         <number>-1</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="twRecip"/>
+        <item>
+         <widget class="QTabWidget" name="twReal">
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="twRecip"/>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -181,6 +212,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionOpenCL"/>
+    <addaction name="actionTheme"/>
    </widget>
    <addaction name="menuInput"/>
    <addaction name="menuSimulation"/>
@@ -298,6 +330,27 @@
     <string>Thermal scattering</string>
    </property>
   </action>
+  <action name="actionNative">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Native</string>
+   </property>
+  </action>
+  <action name="actionDark">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Dark</string>
+   </property>
+  </action>
+  <action name="actionTheme">
+   <property name="text">
+    <string>Theme</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -329,6 +382,12 @@
    <class>AberrationFrame</class>
    <extends>QWidget</extends>
    <header>frames/aberrationframe.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BorderlessWindow</class>
+   <extends>QMainWindow</extends>
+   <header>controls/borderlesswindow.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

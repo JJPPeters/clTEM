@@ -3,10 +3,13 @@
 #include "ui_settingsdialog.h"
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::SettingsDialog)
+        BorderlessDialog(parent),
+        ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
+#ifdef _WIN32
+    addTitleBar();
+#endif
 }
 
 SettingsDialog::~SettingsDialog()
@@ -137,4 +140,18 @@ StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, 
     this->setWindowTitle("STEM area");
 
     this->setFixedSize(this->minimumSizeHint());
+}
+
+
+
+
+ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
+#ifdef _WIN32
+    tFrame = new ThemeFrame(this);
+    ui->vLayout->insertWidget(0, tFrame);
+
+    this->setWindowTitle("Theme");
+
+    this->setFixedSize(this->minimumSizeHint());
+#endif
 }

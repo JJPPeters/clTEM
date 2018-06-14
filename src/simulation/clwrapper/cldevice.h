@@ -31,8 +31,8 @@ public:
 
     ~clDevice()
     {
-        //cl_int status = clReleaseDevice(deviceID);
-        //clError::Throw(status);
+//        cl_int status = clReleaseDevice(deviceID);
+//        clError::Throw(status);
     }
 
     cl_device_id& GetDeviceID(){ return deviceID; };

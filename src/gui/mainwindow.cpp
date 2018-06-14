@@ -13,9 +13,10 @@
 #include <ccdparams.h>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
+#include <frames/aberrationframe.h>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
+    BorderlessWindow(parent),
     ui(new Ui::MainWindow)
 {
     // opencl test has been moved to main.cpp
@@ -23,9 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // register types for our image returns!!
     qRegisterMetaType< std::map<std::string, Image<float>> >( "std::map<std::string, Image<float>>" );
     qRegisterMetaType< SimulationManager >( "SimulationManager" );
-
-    QCoreApplication::setOrganizationName("PetersSoft");
-    QCoreApplication::setApplicationName("clTEM");
 
     QSettings settings;
     if (!settings.contains("dialog/currentPath"))
@@ -51,6 +49,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     setWindowTitle("clTEM");
+
+#ifndef _WIN32
+    // Hide our theme menu options if not on windows
+    ui->actionTheme->setEnabled(false);
+    ui->actionTheme->setVisible(false);
+#endif
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW A", TabType::CTEM);
@@ -845,4 +849,14 @@ void MainWindow::updateVoltageMrad(float voltage) {
     Manager->getMicroscopeParams()->Voltage = voltage;
 
     ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
+}
+
+
+
+void MainWindow::on_actionTheme_triggered() {
+#ifdef _WIN32
+    // open out theme selector dialog
+    ThemeDialog* myDialog = new ThemeDialog(this);
+    myDialog->exec();
+#endif
 }

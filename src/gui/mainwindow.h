@@ -6,6 +6,8 @@
 #include <frames/simulationframe.h>
 #include <frames/stemframe.h>
 #include <frames/cbedframe.h>
+#include <controls/flattitlebar.h>
+#include <controls/borderlesswindow.h>
 
 #include "simulationmanager.h"
 #include "simulationthread.h"
@@ -19,7 +21,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow : public BorderlessWindow
 {
     Q_OBJECT
 
@@ -69,6 +71,8 @@ private slots:
 
     void on_actionOpenCL_triggered();
 
+    void on_actionTheme_triggered();
+
     void on_actionGeneral_triggered();
 
     void on_actionImport_parameters_triggered();
@@ -106,7 +110,7 @@ private slots:
     void saveBmp();
 
 private:
-    Ui::MainWindow *ui;
+    FlatTitleBar *m_title;
 
     StatusLayout* StatusBar;
 
@@ -123,6 +127,10 @@ private:
     void loadExternalSources();
 
     void updateGuiFromManager();
+
+protected:
+    Ui::MainWindow *ui;
+
 };
 
 #endif // MAINWINDOW_H

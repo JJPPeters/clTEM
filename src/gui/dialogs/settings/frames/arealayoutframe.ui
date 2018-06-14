@@ -14,86 +14,52 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" rowstretch="0,1,0,0" columnstretch="0">
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Resolution: </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="cmbResolution">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>26</height>
-        </size>
-       </property>
+   <item row="1" column="0">
+    <widget class="QTabWidget" name="tabAreaWidget">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tbCtem">
+      <attribute name="title">
+       <string>CTEM</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <property name="text">
-         <string>256</string>
-        </property>
+        <layout class="QVBoxLayout" name="vCtemLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+        </layout>
        </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tbStem">
+      <attribute name="title">
+       <string>STEM</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <property name="text">
-         <string>512</string>
-        </property>
+        <layout class="QVBoxLayout" name="vStemLayout"/>
        </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tbCbed">
+      <attribute name="title">
+       <string>CBED</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <property name="text">
-         <string>768</string>
-        </property>
+        <layout class="QVBoxLayout" name="vCbedLayout"/>
        </item>
-       <item>
-        <property name="text">
-         <string>1024</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1536</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>2048</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>3072</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>4096</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="chkKeep">
-       <property name="text">
-        <string>Preserve areas on file change</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+      </layout>
+     </widget>
+    </widget>
    </item>
    <item row="3" column="0">
     <widget class="tabPanel" name="tabScaleWidget">
@@ -302,53 +268,6 @@
      </widget>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QTabWidget" name="tabAreaWidget">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="tbCtem">
-      <attribute name="title">
-       <string>CTEM</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <layout class="QVBoxLayout" name="vCtemLayout">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
-         </property>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tbStem">
-      <attribute name="title">
-       <string>STEM</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <layout class="QVBoxLayout" name="vStemLayout"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tbCbed">
-      <attribute name="title">
-       <string>CBED</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <layout class="QVBoxLayout" name="vCbedLayout"/>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
    <item row="2" column="0">
     <widget class="tabPanel" name="tabZWidget">
      <property name="tabPosition">
@@ -426,6 +345,100 @@
      </widget>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="tabPanel" name="tabGeneralWidget">
+     <property name="tabPosition">
+      <enum>QTabWidget::South</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Tab 1</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Resolution: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cmbResolution">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>26</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>256</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>512</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>768</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1024</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1536</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2048</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3072</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4096</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkKeep">
+         <property name="text">
+          <string>Preserve areas on file change</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -442,8 +455,6 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>cmbResolution</tabstop>
-  <tabstop>chkKeep</tabstop>
   <tabstop>tabAreaWidget</tabstop>
   <tabstop>tabZWidget</tabstop>
   <tabstop>edtSliceThickness</tabstop>
