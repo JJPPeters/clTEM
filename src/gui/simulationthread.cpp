@@ -15,4 +15,7 @@ void SimulationThread::cancelSimulation()
 {
     if (simRunner)
         simRunner->cancelSimulation();
+
+    // wait for cancellation
+    wait();
 }

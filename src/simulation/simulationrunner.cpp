@@ -5,13 +5,14 @@
 #include <random>
 #include "simulationrunner.h"
 
-SimulationRunner::SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs) : managers(mans)
+SimulationRunner::SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs) : managers(mans), start(true)
 {
     dev_list = devs;
 }
 
 void SimulationRunner::runSimulations()
 {
+    start = true;
     for (auto m : managers)
         runSingle(m);
 }
@@ -21,6 +22,9 @@ void SimulationRunner::runSingle(std::shared_ptr<SimulationManager> sim_pointer)
     auto jobs = SplitJobs(sim_pointer);
 
     t_pool = std::make_unique<ThreadPool>(dev_list, jobs.size());
+
+    if (!start)
+        return;
 
     std::vector<std::future<void>> results;
 

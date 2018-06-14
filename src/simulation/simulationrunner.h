@@ -21,10 +21,14 @@ public:
 
     void cancelSimulation()
     {
-        t_pool->stopThreads();
+        start = false;
+        if (t_pool)
+            t_pool->stopThreads();
     }
 
 private:
+
+    bool start;
 
     void runSingle(std::shared_ptr<SimulationManager> sim_pointer);
 
