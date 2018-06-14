@@ -63,66 +63,6 @@ void ImagePlotWidget::matchPlotToPalette() {
     yAxis->grid()->setZeroLinePen(zeroPen);
 }
 
-void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
-                                   bool doReplot) {
-    // simple check that all our data is compatible
-    if (sx*sy != (int)image.size())
-        throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
-
-    // clear any old images
-    clearImage();
-
-    // calculate the aspect ration (so we can maintain it)
-    AspectRatio = (double)sx/(double)sy;
-
-    // set our axes
-    resetAxes(false);
-
-    // create our new object to actually show the data
-    ImageObject = new QCPColorMap(xAxis, yAxis);
-    ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
-    ImageObject->setInterpolate(false);
-
-    //check imageobject is not null? -> we just made it, so it should be good
-    ImageObject->data()->setSize(sx, sy);
-
-    double r_x_low, r_x_high, r_y_low, r_y_high;
-
-    if (zero_pos == ZeroPosition::Centre) {
-        // these plus and minus ones may only work for the even images we have
-        r_x_low = -scale_x * ((double) sx + 1) / 2.0;
-        r_y_low = -scale_y * ((double) sy + 1) / 2.0;
-        r_x_high = scale_x * ((double) sx - 1) / 2.0;
-        r_y_high = scale_y * ((double) sy - 1) / 2.0;
-    } else {
-        r_x_low = zero_x;
-        r_y_low = zero_y;
-        r_x_high = zero_x + scale_x * ((double) sx - 1.0);
-        r_y_high = zero_y + scale_y * ((double) sy - 1.0);
-    }
-
-    ImageObject->data()->setRange(QCPRange(r_x_low, r_x_high), QCPRange(r_y_low, r_y_high));
-
-    for (int xIndex=0; xIndex<sx; ++xIndex)
-        for (int yIndex=0; yIndex<sy; ++yIndex)
-        {
-            if (intensity_scale == IntensityScale::Linear)
-                ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
-            else
-                ImageObject->data()->setCell(xIndex, yIndex, std::log10(1+image[yIndex*sx+xIndex])); // TODO: check image isn't negative (and so on...)
-        }
-
-    size_x = sx;
-    size_y = sy;
-
-    cropImage(false);
-
-    haveImage = true;
-
-    ImageObject->rescaleDataRange(true); // TODO: maybe pass the true (to update scale better???)
-    resetAxes(doReplot);
-}
-
 void ImagePlotWidget::DrawCircle(double x, double y, QColor colour, QBrush fill, double radius, Qt::PenStyle line,
                                  double thickness) {
     QCPItemEllipse* circle(new QCPItemEllipse(this));
@@ -285,4 +225,82 @@ void ImagePlotWidget::exportTiff() {
 
 void ImagePlotWidget::exportBmp() {
     emit saveImageClicked();
+}
+
+void ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool doReplot) {
+
+    // simple check that all our data is compatible
+    if (sx*sy != (int)image.size())
+        throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
+
+    if(!ImageObject) {
+        SetImageData(image, sx, sy, intensity_scale, doReplot);
+        return;
+    }
+
+    // calculate the aspect ration (so we can maintain it)
+    AspectRatio = (double)sx/(double)sy;
+
+    ImageObject->data()->setSize(sx, sy);
+
+    double r_x_low, r_x_high, r_y_low, r_y_high;
+
+    if (zero_pos == ZeroPosition::Centre) {
+        // these plus and minus ones may only work for the even images we have
+        r_x_low = -scale_x * ((double) sx + 1) / 2.0;
+        r_y_low = -scale_y * ((double) sy + 1) / 2.0;
+        r_x_high = scale_x * ((double) sx - 1) / 2.0;
+        r_y_high = scale_y * ((double) sy - 1) / 2.0;
+    } else {
+        r_x_low = zero_x;
+        r_y_low = zero_y;
+        r_x_high = zero_x + scale_x * ((double) sx - 1.0);
+        r_y_high = zero_y + scale_y * ((double) sy - 1.0);
+    }
+
+    ImageObject->data()->setRange(QCPRange(r_x_low, r_x_high), QCPRange(r_y_low, r_y_high));
+
+    for (int xIndex=0; xIndex<sx; ++xIndex)
+        for (int yIndex=0; yIndex<sy; ++yIndex)
+        {
+            if (intensity_scale == IntensityScale::Linear)
+                ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
+            else
+                ImageObject->data()->setCell(xIndex, yIndex, std::log10(1+image[yIndex*sx+xIndex])); // TODO: check image isn't negative (and so on...)
+        }
+
+    size_x = sx;
+    size_y = sy;
+
+    ImageObject->rescaleDataRange(true); // TODO: maybe pass the true (to update scale better???)
+
+    haveImage = true;
+
+    if (doReplot)
+        replot();
+
+}
+
+void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
+                                   bool doReplot) {
+    // simple check that all our data is compatible
+    if (sx*sy != (int)image.size())
+        throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
+
+    // clear any old images
+    clearImage();
+
+    // set our axes
+    resetAxes(false);
+
+    // create our new object to actually show the data
+    ImageObject = new QCPColorMap(xAxis, yAxis);
+    ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
+    ImageObject->setInterpolate(false);
+
+    SetImagePlot(image, sx, sy, intensity_scale, false);
+
+    cropImage(false);
+
+    resetAxes(doReplot);
 }

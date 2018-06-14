@@ -106,7 +106,7 @@ public:
     bool isComplex() {return is_complex;}
 
 private:
-    QCPColorMap *ImageObject;
+    QCPColorMap *ImageObject = nullptr;
 
     bool haveImage = false;
 
@@ -265,11 +265,13 @@ private:
         zero_y = z_y;
         zero_pos = zp;
         int_scale = intensity_scale;
-        SetImageData(im_d, sx, sy, intensity_scale, doReplot);
+        SetImagePlot(im_d, sx, sy, intensity_scale, doReplot);
     }
 
     void SetImageData(const std::vector<double> &image, int sx, int sy,
                       IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
+
+    void SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool doReplot = true);
 
 };
 
