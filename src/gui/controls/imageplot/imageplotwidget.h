@@ -103,6 +103,8 @@ public:
             }
     }
 
+    bool isComplex() {return is_complex;}
+
 private:
     QCPColorMap *ImageObject;
 
@@ -199,6 +201,9 @@ public:
     }
 
     void setComplexDisplay(ShowComplex show_c, bool doReplot = true) {
+        if (!haveImage)
+            return;
+
         complex_type = show_c;
 
         auto im_d = calculateComplexData();

@@ -59,9 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
-    ImageTab* EwAmp = new ImageTab(ui->twReal, "EW A", TabType::CTEM);
-    ImageTab* EwAng = new ImageTab(ui->twReal, "EW θ", TabType::CTEM);
-
+    ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
     ImageTab* Diff = new ImageTab(ui->twRecip, "Diffraction", TabType::DIFF);
 
     StatusBar = new StatusLayout();
@@ -70,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->twReal->addTab(Img, QString::fromStdString(Img->getTabName()));
     ui->twReal->addTab(EwAmp, QString::fromStdString(EwAmp->getTabName()));
-    ui->twReal->addTab(EwAng, QString::fromStdString(EwAng->getTabName()));
 
     ui->twRecip->addTab(Diff, QString::fromStdString(Diff->getTabName()));
 
@@ -363,7 +360,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "EW A") {
+                if (tab->getTabName() == "EW") {
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
@@ -395,23 +392,6 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                 }
             }
         }
-//        else if (name == "EW_T")
-//        {
-//            int n = ui->twReal->count();
-//            for (int j = 0; j < n; ++j)
-//            {
-//                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-//                if (tab->getTabName() == "EW θ") {
-//                    settings["microscope"].erase("aberrations");
-//                    settings["microscope"].erase("alpha");
-//                    settings["microscope"].erase("delta");
-//                    double lx = sm.getPaddedSimLimitsX()[0];
-//                    double ly = sm.getPaddedSimLimitsY()[0];
-//                    double sc = sm.getRealScale();
-//                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
-//                }
-//            }
-//        }
         else if (name == "Diff")
         {
             int n = ui->twRecip->count();
@@ -643,9 +623,7 @@ void MainWindow::set_ctem_crop(bool state) {
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j) {
         ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-        if (tab->getTabName() == "EW A")
-            tab->getPlot()->setCropImage(state, true, false);
-        else if (tab->getTabName() == "EW θ")
+        if (tab->getTabName() == "EW")
             tab->getPlot()->setCropImage(state, true, false);
         else if (tab->getTabName() == "Image")
             tab->getPlot()->setCropImage(state, true, false);
