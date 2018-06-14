@@ -227,14 +227,15 @@ void ImagePlotWidget::exportBmp() {
     emit saveImageClicked();
 }
 
-void ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool doReplot) {
+void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
+                                   bool doReplot) {
 
     // simple check that all our data is compatible
     if (sx*sy != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
 
     if(!ImageObject) {
-        SetImageData(image, sx, sy, intensity_scale, doReplot);
+        SetImagePlot(image, sx, sy, intensity_scale, doReplot);
         return;
     }
 
@@ -281,7 +282,7 @@ void ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int
 
 }
 
-void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
+void ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
                                    bool doReplot) {
     // simple check that all our data is compatible
     if (sx*sy != (int)image.size())
@@ -298,7 +299,7 @@ void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int
     ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
     ImageObject->setInterpolate(false);
 
-    SetImagePlot(image, sx, sy, intensity_scale, false);
+    SetImageData(image, sx, sy, intensity_scale, false);
 
     cropImage(false);
 

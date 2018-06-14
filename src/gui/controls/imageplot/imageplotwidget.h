@@ -265,13 +265,14 @@ private:
         zero_y = z_y;
         zero_pos = zp;
         int_scale = intensity_scale;
-        SetImagePlot(im_d, sx, sy, intensity_scale, doReplot);
+        SetImageData(im_d, sx, sy, intensity_scale, doReplot);
     }
 
-    void SetImageData(const std::vector<double> &image, int sx, int sy,
+    void SetImagePlot(const std::vector<double> &image, int sx, int sy,
                       IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
 
-    void SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool doReplot = true);
+    void SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
+                      bool doReplot = true);
 
 };
 
