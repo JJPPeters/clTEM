@@ -36,12 +36,12 @@ void BorderlessWindow::setMenuBar(QMenuBar *menuBar)
 
     auto t_widget = new QWidget(this);
 
-    auto t_layout = new QVBoxLayout(this);
+    auto t_layout = new QVBoxLayout(t_widget);
     t_layout->setSpacing(0);
     t_layout->setMargin(0);
     t_layout->setContentsMargins(0, 0, 0, 0);
 
-    auto t_title = new FlatTitleBar(this);
+    auto t_title = new FlatTitleBar(t_widget);
     t_title->setObjectName("title_bar");
 
     t_layout->addWidget(t_title);
