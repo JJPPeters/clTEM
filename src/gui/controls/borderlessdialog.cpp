@@ -3,7 +3,9 @@
 ////
 
 #include "borderlessdialog.h"
+#ifdef _WIN32
 #include <theme/thememanager.h>
+#endif
 
 BorderlessDialog::BorderlessDialog(QWidget *parent) :
         QDialog(parent)

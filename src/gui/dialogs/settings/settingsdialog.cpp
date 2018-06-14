@@ -7,8 +7,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
         ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
-
+#ifdef _WIN32
     addTitleBar();
+#endif
 }
 
 SettingsDialog::~SettingsDialog()

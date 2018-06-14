@@ -3,7 +3,9 @@
 ////
 
 #include "borderlesswindow.h"
+#ifdef _WIN32
 #include <theme/thememanager.h>
+#endif
 
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
         QMainWindow(parent)
