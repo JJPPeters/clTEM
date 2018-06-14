@@ -15,6 +15,8 @@
 #include <utilities/jsonutils.h>
 #include <frames/aberrationframe.h>
 
+#include <variant>
+
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
     ui(new Ui::MainWindow)
@@ -355,7 +357,7 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
         auto im = i.second;
         // Currently assumes the positions of all the tabs
 
-        if (name == "EW_A")
+        if (name == "EW")
         {
             int n = ui->twReal->count();
             for (int j = 0; j < n; ++j)
@@ -365,10 +367,17 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
+
+                    // convert our float data to complex
+                    std::vector<std::complex<float>> comp_data(im.height*im.width);
+                    for (int i = 0; i < comp_data.size(); ++i)
+                        comp_data[i] = std::complex<float>(im.data[2*i], im.data[2*i+1]);
+                    Image<std::complex<float>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
+
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
                     double sc = sm.getRealScale();
-                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
+                    tab->setPlotWithComplexData(comp_im, "Å", sc, sc, lx, ly, settings);
                 }
             }
         }
@@ -386,23 +395,23 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                 }
             }
         }
-        else if (name == "EW_T")
-        {
-            int n = ui->twReal->count();
-            for (int j = 0; j < n; ++j)
-            {
-                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "EW θ") {
-                    settings["microscope"].erase("aberrations");
-                    settings["microscope"].erase("alpha");
-                    settings["microscope"].erase("delta");
-                    double lx = sm.getPaddedSimLimitsX()[0];
-                    double ly = sm.getPaddedSimLimitsY()[0];
-                    double sc = sm.getRealScale();
-                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
-                }
-            }
-        }
+//        else if (name == "EW_T")
+//        {
+//            int n = ui->twReal->count();
+//            for (int j = 0; j < n; ++j)
+//            {
+//                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+//                if (tab->getTabName() == "EW θ") {
+//                    settings["microscope"].erase("aberrations");
+//                    settings["microscope"].erase("alpha");
+//                    settings["microscope"].erase("delta");
+//                    double lx = sm.getPaddedSimLimitsX()[0];
+//                    double ly = sm.getPaddedSimLimitsY()[0];
+//                    double sc = sm.getRealScale();
+//                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
+//                }
+//            }
+//        }
         else if (name == "Diff")
         {
             int n = ui->twRecip->count();

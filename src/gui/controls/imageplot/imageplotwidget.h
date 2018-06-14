@@ -192,6 +192,8 @@ public:
 
         auto im_d = calculateComplexData();
 
+        float test = im_d[400];
+
         SetImageGeneric(im_d, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
                         z_x, z_y, sc_x, sc_y, intensity_scale, zp, doReplot);
     }

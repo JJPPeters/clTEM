@@ -47,6 +47,14 @@ public:
         ui->widget->SetImage(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
     }
 
+    template <typename T>
+    void setPlotWithComplexData(Image<std::complex<T>> img, QString units, double sc_x, double sc_y, double lo_x, double lo_y, nlohmann::json stngs, IntensityScale scale = IntensityScale::Linear, ShowComplex complex_display = ShowComplex::Amplitude, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
+    {
+        settings = stngs;
+        image_units = units;
+        ui->widget->SetComplexImage(img, lo_x, lo_y, sc_x, sc_y, scale, complex_display, zp, doReplot);
+    }
+
 private:
     nlohmann::json settings;
 

@@ -261,13 +261,11 @@ void SimulationWorker::doCtem(bool simImage)
         crop_r = (int) std::floor((std::get<1>(ranges) - std::get<0>(ranges)) / real_scale) + crop_l;
     }
 
-    auto ew_a = Image<float>(resolution, resolution, getExitWaveAmplitudeImage(), crop_t, crop_l, crop_b, crop_r);
-    auto ew_p = Image<float>(resolution, resolution, getExitWavePhaseImage(), crop_t, crop_l, crop_b, crop_r);
+    auto ew = Image<float>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
     auto diff = Image<float>(resolution, resolution, getDiffractionImage());
 
     // get the images we need
-    Images.insert(return_map::value_type("EW_A", ew_a));
-    Images.insert(return_map::value_type("EW_T", ew_p));
+    Images.insert(return_map::value_type("EW", ew));
     Images.insert(return_map::value_type("Diff", diff));
 
     if (job->simManager->getSimulateCtemImage()) {
@@ -1196,9 +1194,9 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
     return data_out;
 }
 
-std::vector<std::complex<float>> SimulationWorker::getExitWaveImage(int t, int l, int b, int r) {
+std::vector<float> SimulationWorker::getExitWaveImage(int t, int l, int b, int r) {
     int resolution = job->simManager->getResolution();
-    std::vector<std::complex<float>> data_out((resolution - t - b) * (resolution - l - r));
+    std::vector<float> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
     std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
 
@@ -1209,8 +1207,9 @@ std::vector<std::complex<float>> SimulationWorker::getExitWaveImage(int t, int l
                 if (i >= l && i < (resolution - r))
                 {
                     int k = i + j * resolution;
-                    data_out[cnt] = std::complex<float>(compdata[k].x, compdata[k].y);
-                    ++cnt;
+                    data_out[cnt] = compdata[k].x;
+                    data_out[cnt + 1] = compdata[k].y;
+                    cnt += 2;
                 }
 
     return data_out;
