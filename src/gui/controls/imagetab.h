@@ -44,7 +44,7 @@ public:
     {
         settings = stngs;
         image_units = units;
-        ui->widget->SetImageTemplate(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
+        ui->widget->SetImage(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
     }
 
 private:

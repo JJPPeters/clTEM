@@ -5,20 +5,20 @@
 #include <memory>
 #include <cmath>
 
-#include "controls/imageplot/qcustomplot.h"
+#include "qcustomplot.h"
 
 #include <iostream>
 #include <fstream>
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <utilities/commonstructs.h>
+#include <map>
 
 enum ShowComplex {
-        Real,
-        Complex,
-        Phase,
-        Amplitude,
-        PowerSpectrum };
+    Real,
+    Imag,
+    Phase,
+    Amplitude };
 
 enum IntensityScale {
     Linear,
@@ -162,29 +162,90 @@ private slots:
 /// Image display stuff here
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 public:
-    // this template just helps us display a complex or real image
     template <typename T>
-    void SetImageTemplate(Image<T> img, double z_x = 0.0, double z_y = 0.0, double sc_x = 1.0, double sc_y = 1.0, IntensityScale intensity_scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
+    void SetImage(Image<T> img,
+                          double z_x = 0.0, double z_y = 0.0,
+                          double sc_x = 1.0, double sc_y = 1.0,
+                          IntensityScale intensity_scale = IntensityScale::Linear,
+                          ZeroPosition zp = ZeroPosition::BottomLeft,
+                          bool doReplot = true)
     {
-        std::vector<double> im_d(img.data.size());
-        for (int i = 0; i < img.data.size(); ++i)
-            im_d[i] = (double) img.data[i];
-        crop_t = img.pad_t;
-        crop_l = img.pad_l;
-        crop_b = img.pad_b;
-        crop_r = img.pad_r;
+        is_complex = false;
+        SetImageGeneric(img.data, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
+                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, doReplot);
+    }
+
+    template <typename T>
+    void SetComplexImage(Image<std::complex<T>> img,
+                                 double z_x = 0.0,double z_y = 0.0,
+                                 double sc_x = 1.0, double sc_y = 1.0,
+                                 IntensityScale intensity_scale = IntensityScale::Linear,
+                                 ShowComplex show_comp = ShowComplex::Amplitude,
+                                 ZeroPosition zp = ZeroPosition::BottomLeft,
+                                 bool doReplot = true)
+    {
+        complex_type = show_comp;
+        is_complex = true;
+
+        std::vector<T> im_d(img.data.size());
+
+        if (show_comp == ShowComplex::Real) {
+            for (int i = 0; i < img.data.size(); ++i)
+                im_d[i] = img.data[i].real();
+        } else if (show_comp == ShowComplex::Imag) {
+            for (int i = 0; i < img.data.size(); ++i)
+                im_d[i] = img.data[i].imag();
+        } else if (show_comp == ShowComplex::Amplitude) {
+            for (int i = 0; i < img.data.size(); ++i)
+                im_d[i] = img.data[i].abs();
+        } else if (show_comp == ShowComplex::Phase) {
+            for (int i = 0; i < img.data.size(); ++i)
+                im_d[i] = img.data[i].arg();
+        }
+
+        data_complex = img.data;
+
+        SetImageGeneric(im_d, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
+                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, doReplot);
+    }
+
+private:
+    bool is_complex = false;
+
+    ShowComplex complex_type;
+
+    std::vector<std::complex<float>> data_complex; // only used when we have a complex image
+
+    template <typename T>
+    void SetImageGeneric(std::vector<T> img, int sx, int sy,
+                         int pad_t, int pad_l, int pad_b, int pad_r,
+                         double z_x, double z_y,
+                         double sc_x, double sc_y,
+                         IntensityScale intensity_scale,
+                         ZeroPosition zp,
+                         bool doReplot = true)
+    {
+        // free up this complex data if we aren't going to use it
+        if (!is_complex)
+            data_complex.clear();
+
+        std::vector<double> im_d(img.size());
+        for (int i = 0; i < img.size(); ++i)
+            im_d[i] = static_cast<double>(img[i]);
+        crop_t = pad_t;
+        crop_l = pad_l;
+        crop_b = pad_b;
+        crop_r = pad_r;
         scale_x = sc_x;
         scale_y = sc_y;
         zero_x = z_x;
         zero_y = z_y;
         zero_pos = zp;
-        SetImage(im_d, img.width, img.height, intensity_scale, doReplot);
+        SetImageData(im_d, sx, sy, intensity_scale, doReplot);
     }
 
-private:
-    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
-
-    void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
+    void SetImageData(const std::vector<double> &image, int sx, int sy,
+                      IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
 
 };
 

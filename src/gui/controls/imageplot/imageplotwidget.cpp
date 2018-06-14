@@ -63,25 +63,27 @@ void ImagePlotWidget::matchPlotToPalette() {
     yAxis->grid()->setZeroLinePen(zeroPen);
 }
 
-void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, const int sy, IntensityScale intensity_scale, bool doReplot) {
+void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
+                                   bool doReplot) {
+    // simple check that all our data is compatible
     if (sx*sy != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
 
+    // clear any old images
     clearImage();
 
+    // calculate the aspect ration (so we can maintain it)
     AspectRatio = (double)sx/(double)sy;
 
-//    rescaleAxes();
-//    setImageRatio();
+    // set our axes
     resetAxes(false);
 
+    // create our new object to actually show the data
     ImageObject = new QCPColorMap(xAxis, yAxis);
-    //addPlottable(ImageObject);
     ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
     ImageObject->setInterpolate(false);
 
-    //check image is same size as dimensions given
-    //check imageobject is not null?
+    //check imageobject is not null? -> we just made it, so it should be good
     ImageObject->data()->setSize(sx, sy);
 
     double r_x_low, r_x_high, r_y_low, r_y_high;
@@ -118,76 +120,6 @@ void ImagePlotWidget::SetImage(const std::vector<double> &image, const int sx, c
     haveImage = true;
 
     ImageObject->rescaleDataRange(true); // TODO: maybe pass the true (to update scale better???)
-    resetAxes(doReplot);
-}
-
-void
-ImagePlotWidget::SetImage(const std::vector<std::complex<double>> &image, const int sx, const int sy, ShowComplex show,
-                          bool doReplot) {
-    if (sx*sy != (int)image.size())
-        throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
-
-    clearImage();
-
-    AspectRatio = (double)sx/(double)sy;
-
-//    resetAxes(false);
-//    setImageRatio();
-    resetAxes(false);
-
-    ImageObject = new QCPColorMap(xAxis, yAxis);
-    //addPlottable(ImageObject);
-    ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
-    ImageObject->setInterpolate(false);
-
-    //check image is same size as dimensions given
-    //check imageobject is not null?
-    ImageObject->data()->setSize(sx, sy);
-
-    double r_x = ((double) sx - 1.0) / 2.0;
-    double r_y = ((double) sy - 1.0) / 2.0;
-
-    ImageObject->data()->setRange(QCPRange(-r_x, r_x), QCPRange(-r_y, r_y));
-
-    if (show == ShowComplex::Real)
-    {
-        for (int xIndex=0; xIndex<sx; ++xIndex)
-            for (int yIndex=0; yIndex<sy; ++yIndex)
-                ImageObject->data()->setCell(xIndex, yIndex, std::real(image[yIndex*sx+xIndex]));
-    }
-    else if (show == ShowComplex::Complex)
-    {
-        for (int xIndex=0; xIndex<sx; ++xIndex)
-            for (int yIndex=0; yIndex<sy; ++yIndex)
-                ImageObject->data()->setCell(xIndex, yIndex, std::imag(image[yIndex*sx+xIndex]));
-    }
-    else if (show == ShowComplex::Phase)
-    {
-        for (int xIndex=0; xIndex<sx; ++xIndex)
-            for (int yIndex=0; yIndex<sy; ++yIndex)
-                ImageObject->data()->setCell(xIndex, yIndex, std::arg(image[yIndex*sx+xIndex]));
-    }
-    else if (show == ShowComplex::Amplitude)
-    {
-        for (int xIndex=0; xIndex<sx; ++xIndex)
-            for (int yIndex=0; yIndex<sy; ++yIndex)
-                ImageObject->data()->setCell(xIndex, yIndex, std::abs(image[yIndex*sx+xIndex]));
-    }
-    else if (show == ShowComplex::PowerSpectrum)
-    {
-        for (int xIndex=0; xIndex<sx; ++xIndex)
-            for (int yIndex=0; yIndex<sy; ++yIndex)
-                ImageObject->data()->setCell(xIndex, yIndex, std::log10(1+std::abs(image[yIndex*sx+xIndex])));
-    }
-
-    size_x = sx;
-    size_y = sy;
-
-    cropImage(false);
-
-    haveImage = true;
-
-    ImageObject->rescaleDataRange();
     resetAxes(doReplot);
 }
 
