@@ -1196,6 +1196,26 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
     return data_out;
 }
 
+std::vector<std::complex<float>> SimulationWorker::getExitWaveImage(int t, int l, int b, int r) {
+    int resolution = job->simManager->getResolution();
+    std::vector<std::complex<float>> data_out((resolution - t - b) * (resolution - l - r));
+
+    std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
+
+    int cnt = 0;
+    for (int j = 0; j < resolution; ++j)
+        if (j >= b && j < (resolution - t))
+            for (int i = 0; i < resolution; ++i)
+                if (i >= l && i < (resolution - r))
+                {
+                    int k = i + j * resolution;
+                    data_out[cnt] = std::complex<float>(compdata[k].x, compdata[k].y);
+                    ++cnt;
+                }
+
+    return data_out;
+}
+
 std::vector<float> SimulationWorker::getExitWaveAmplitudeImage(int t, int l, int b, int r)
 {
     int resolution = job->simManager->getResolution();
@@ -1214,7 +1234,6 @@ std::vector<float> SimulationWorker::getExitWaveAmplitudeImage(int t, int l, int
                     ++cnt;
                 }
 
-
     return data_out;
 }
 
@@ -1225,8 +1244,6 @@ std::vector<float> SimulationWorker::getExitWavePhaseImage(int t, int l, int b, 
 
     std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
 
-//    for (int i = 0; i < resolution * resolution; i++)
-//        data_out[i] = std::atan2(compdata[i].s[1], compdata[i].s[0]);
     int cnt = 0;
     for (int j = 0; j < resolution; ++j)
         if (j >= b && j < (resolution - t))

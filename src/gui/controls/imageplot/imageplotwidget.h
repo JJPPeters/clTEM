@@ -110,6 +110,8 @@ private:
 
     ZeroPosition zero_pos;
 
+    IntensityScale int_scale;
+
     double AspectRatio = 1;
 
     bool crop_image = false;
@@ -186,27 +188,21 @@ public:
     {
         complex_type = show_comp;
         is_complex = true;
+        data_complex = img;
 
-        std::vector<T> im_d(img.data.size());
-
-        if (show_comp == ShowComplex::Real) {
-            for (int i = 0; i < img.data.size(); ++i)
-                im_d[i] = img.data[i].real();
-        } else if (show_comp == ShowComplex::Imag) {
-            for (int i = 0; i < img.data.size(); ++i)
-                im_d[i] = img.data[i].imag();
-        } else if (show_comp == ShowComplex::Amplitude) {
-            for (int i = 0; i < img.data.size(); ++i)
-                im_d[i] = img.data[i].abs();
-        } else if (show_comp == ShowComplex::Phase) {
-            for (int i = 0; i < img.data.size(); ++i)
-                im_d[i] = img.data[i].arg();
-        }
-
-        data_complex = img.data;
+        auto im_d = calculateComplexData();
 
         SetImageGeneric(im_d, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
                         z_x, z_y, sc_x, sc_y, intensity_scale, zp, doReplot);
+    }
+
+    void setComplexDisplay(ShowComplex show_c, bool doReplot = true) {
+        complex_type = show_c;
+
+        auto im_d = calculateComplexData();
+        SetImageGeneric(im_d, data_complex.width, data_complex.height,
+                        data_complex.pad_t, data_complex.pad_l, data_complex.pad_b, data_complex.pad_r,
+                        zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, doReplot);
     }
 
 private:
@@ -214,7 +210,27 @@ private:
 
     ShowComplex complex_type;
 
-    std::vector<std::complex<float>> data_complex; // only used when we have a complex image
+    Image<std::complex<float>> data_complex; // only used when we have a complex image
+
+    std::vector<float> calculateComplexData() {
+        std::vector<float> im_d(data_complex.data.size());
+
+        if (complex_type == ShowComplex::Real) {
+            for (int i = 0; i < data_complex.data.size(); ++i)
+                im_d[i] = std::real(data_complex.data[i]);
+        } else if (complex_type == ShowComplex::Imag) {
+            for (int i = 0; i < data_complex.data.size(); ++i)
+                im_d[i] = std::imag(data_complex.data[i]);
+        } else if (complex_type == ShowComplex::Amplitude) {
+            for (int i = 0; i < data_complex.data.size(); ++i)
+                im_d[i] = std::abs(data_complex.data[i]);
+        } else if (complex_type == ShowComplex::Phase) {
+            for (int i = 0; i < data_complex.data.size(); ++i)
+                im_d[i] = std::arg(data_complex.data[i]);
+        }
+
+        return im_d;
+    }
 
     template <typename T>
     void SetImageGeneric(std::vector<T> img, int sx, int sy,
@@ -227,7 +243,7 @@ private:
     {
         // free up this complex data if we aren't going to use it
         if (!is_complex)
-            data_complex.clear();
+            data_complex = Image<std::complex<float>>();
 
         std::vector<double> im_d(img.size());
         for (int i = 0; i < img.size(); ++i)
@@ -241,6 +257,7 @@ private:
         zero_x = z_x;
         zero_y = z_y;
         zero_pos = zp;
+        int_scale = intensity_scale;
         SetImageData(im_d, sx, sy, intensity_scale, doReplot);
     }
 
