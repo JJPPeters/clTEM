@@ -195,8 +195,6 @@
      <addaction name="separator"/>
      <addaction name="actionImport_default"/>
      <addaction name="actionExport_default"/>
-     <addaction name="separator"/>
-     <addaction name="actionShow_default"/>
     </widget>
     <addaction name="actionOpen"/>
     <addaction name="menuParameters"/>
@@ -368,7 +366,7 @@
   </action>
   <action name="actionShow_default">
    <property name="text">
-    <string>Show default</string>
+    <string>Show default config</string>
    </property>
   </action>
  </widget>
