@@ -201,17 +201,15 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
 void ImagePlotWidget::cropImage(bool doReplot) {
     ImageObject->data()->clearAlpha();
 
-    if (!crop_image)
-        return;
+    if (crop_image) {
+        // do the cropping if we get haven't returned yet
+        for (int ind = 0; ind < size_x * size_y; ++ind) {
+            int i = ind % size_x;
+            int j = ind / size_x;
 
-    // do the cropping if we get haven't returned yet
-    for (int ind = 0; ind < size_x*size_y; ++ind)
-    {
-        int i = ind % size_x;
-        int j = ind / size_x;
-
-        if (j < crop_b || j >= (size_y - crop_t) || i < crop_l || i >= (size_x - crop_r)) {
-            ImageObject->data()->setAlpha(i, j, 0);
+            if (j < crop_b || j >= (size_y - crop_t) || i < crop_l || i >= (size_x - crop_r)) {
+                ImageObject->data()->setAlpha(i, j, 0);
+            }
         }
     }
 
@@ -261,14 +259,14 @@ ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, 
 
     ImageObject->data()->setRange(QCPRange(r_x_low, r_x_high), QCPRange(r_y_low, r_y_high));
 
+    if (intensity_scale != IntensityScale::Linear)
+        ImageObject->setDataScaleType(QCPAxis::ScaleType::stLogarithmic);
+    else
+        ImageObject->setDataScaleType(QCPAxis::ScaleType::stLinear);
+
     for (int xIndex=0; xIndex<sx; ++xIndex)
         for (int yIndex=0; yIndex<sy; ++yIndex)
-        {
-            if (intensity_scale == IntensityScale::Linear)
-                ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
-            else
-                ImageObject->data()->setCell(xIndex, yIndex, std::log10(1+image[yIndex*sx+xIndex])); // TODO: check image isn't negative (and so on...)
-        }
+            ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
 
     size_x = sx;
     size_y = sy;
