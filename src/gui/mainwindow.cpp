@@ -846,7 +846,7 @@ void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {
     std::string param_name = settings.value("defaultParameters").toString().toStdString();
 
     // try loading default settings from the config location
-    QString config_location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString config_location = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     if(config_location.endsWith("/"))
         config_location.chop(1);
 
@@ -871,7 +871,7 @@ void MainWindow::on_actionExport_default_triggered() {
     std::string param_name = settings.value("defaultParameters").toString().toStdString();
 
     // try loading default settings from the config location
-    QString config_location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString config_location = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     if(config_location.endsWith("/"))
         config_location.chop(1);
 
@@ -899,7 +899,7 @@ void MainWindow::on_actionShow_default_triggered() {
     std::string param_name = settings.value("defaultParameters").toString().toStdString();
 
     // try loading default settings from the config location
-    QString config_location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString config_location = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     if(config_location.endsWith("/"))
         config_location.chop(1);
 
