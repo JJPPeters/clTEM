@@ -58,7 +58,7 @@ void printHelp()
 
 void printVersion()
 {
-    std::cout << "clTEM command line interface v0.1a" << std::endl;
+    std::cout << "clTEM command line interface v0.2a" << std::endl;
 }
 
 void listDevices()

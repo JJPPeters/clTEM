@@ -3,6 +3,7 @@
 
 #include <QSettings>
 #include <QStandardPaths>
+#include <QtCore/QDir>
 #include <controls/imagetab.h>
 #include <controls/statuslayout.h>
 
@@ -29,22 +30,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSettings settings;
     if (!settings.contains("dialog/currentPath"))
-        settings.setValue("dialog/currentPath", QStandardPaths::HomeLocation);
+        settings.setValue("dialog/currentPath", QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
     if (!settings.contains("dialog/currentSavePath"))
-        settings.setValue("dialog/currentSavePath", QStandardPaths::HomeLocation);
-    if (!settings.contains("defaultParameters"))
-        settings.setValue("defaultParameters", "default");
+        settings.setValue("dialog/currentSavePath", QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
 
     Manager = std::shared_ptr<SimulationManager>(new SimulationManager());
 
     std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
-    std::string param_name = settings.value("defaultParameters").toString().toStdString();
-    try {
-        nlohmann::json j = fileio::OpenSettingsJson(exe_path + "/microscopes/" + param_name + ".json");
-        *Manager = JSONUtils::JsonToManager(j);
-    } catch (const std::runtime_error& e) {
-        // don't worry, we'll just use the default settings
-    }
+
+    // try loading default settings from the config location
+    on_actionImport_default_triggered(true);
 
     loadSavedOpenClSettings();
 
@@ -839,4 +834,80 @@ void MainWindow::on_actionTheme_triggered() {
     ThemeDialog* myDialog = new ThemeDialog(this);
     myDialog->exec();
 #endif
+}
+
+void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {
+    // use preserve ui because the action defaults to false (even with the default arg set to true)
+    QSettings settings;
+
+    if (!settings.contains("defaultParameters"))
+        settings.setValue("defaultParameters", "default");
+
+    std::string param_name = settings.value("defaultParameters").toString().toStdString();
+
+    // try loading default settings from the config location
+    QString config_location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    if(config_location.endsWith("/"))
+        config_location.chop(1);
+
+    try {
+        nlohmann::json j = fileio::OpenSettingsJson(config_location.toStdString() + "/microscopes/" + param_name + ".json");
+        *Manager = JSONUtils::JsonToManager(j);
+    } catch (const std::runtime_error& e) {
+        // don't worry, we'll just use the default settings
+        Manager = std::make_shared<SimulationManager>();
+    }
+
+    if (!preserve_ui)
+        updateGuiFromManager();
+}
+
+void MainWindow::on_actionExport_default_triggered() {
+    QSettings settings;
+
+    if (!settings.contains("defaultParameters"))
+        settings.setValue("defaultParameters", "default");
+
+    std::string param_name = settings.value("defaultParameters").toString().toStdString();
+
+    // try loading default settings from the config location
+    QString config_location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    if(config_location.endsWith("/"))
+        config_location.chop(1);
+
+    std::string dirName = config_location.toStdString() + "/microscopes/";
+    std::string fileName = dirName + param_name + ".json";
+
+    QFileInfo temp_file(QString::fromStdString(fileName));
+
+    updateManagerFromGui();
+
+    QDir dir(QString::fromStdString(dirName));
+    if (!dir.exists())
+        dir.mkpath(".");
+
+    nlohmann::json j = JSONUtils::FullManagerToJson(*Manager);
+    fileio::SaveSettingsJson(fileName, j);
+}
+
+void MainWindow::on_actionShow_default_triggered() {
+    QSettings settings;
+
+    if (!settings.contains("defaultParameters"))
+        settings.setValue("defaultParameters", "default");
+
+    std::string param_name = settings.value("defaultParameters").toString().toStdString();
+
+    // try loading default settings from the config location
+    QString config_location = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    if(config_location.endsWith("/"))
+        config_location.chop(1);
+
+    std::string dirName = config_location.toStdString() + "/microscopes/"; // don't add the file, so we open in the file browser
+
+    QDir dir(QString::fromStdString(dirName));
+    if (!dir.exists())
+        dir.mkpath(".");
+
+    GuiUtils::openInDefault(QString::fromStdString(dirName));
 }
