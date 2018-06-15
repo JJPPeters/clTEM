@@ -112,7 +112,7 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
         auto im = i.second;
         // Currently assumes the positions of all the tabs
 
-        if (name == "EW_A" || name == "EW_T" || name == "Diff")
+        if (name == "EW" || name == "Diff")
         {
             settings["microscope"].erase("aberrations");
             settings["microscope"].erase("alpha");
@@ -127,9 +127,26 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
             settings["microscope"].erase("alpha");
             settings["microscope"].erase("delta");
         }
-        
-        fileio::SaveTiff<float>(out_path + "/" + name + ".tif", im.data, im.width, im.height);
-        fileio::SaveSettingsJson(out_path + "/" + name + ".json", settings);
+
+
+        if (name == "EW") { // save amplitude and phase
+            std::vector<float> abs(im.data.size());
+            std::vector<float> arg(im.data.size());
+
+            for (int j = 0; j < im.data.size(); ++j) {
+                abs[j] = std::abs(im.data[j]);
+                arg[j] = std::arg(im.data[j]);
+            }
+
+            fileio::SaveTiff<float>(out_path + "/" + name + "_amplitude.tif", abs, im.width, im.height);
+            fileio::SaveSettingsJson(out_path + "/" + name + "_amplitude.json", settings);
+
+            fileio::SaveTiff<float>(out_path + "/" + name + "_phase.tif", arg, im.width, im.height);
+            fileio::SaveSettingsJson(out_path + "/" + name + "_phase.json", settings);
+        } else {
+            fileio::SaveTiff<float>(out_path + "/" + name + ".tif", im.data, im.width, im.height);
+            fileio::SaveSettingsJson(out_path + "/" + name + ".json", settings);
+        }
     }
 }
 
