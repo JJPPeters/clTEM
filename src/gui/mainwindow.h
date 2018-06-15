@@ -79,6 +79,12 @@ private slots:
 
     void on_actionExport_parameters_triggered();
 
+    void on_actionImport_default_triggered(bool preserve_ui = true);
+
+    void on_actionExport_default_triggered();
+
+    void on_actionShow_default_triggered();
+
     void on_actionSet_area_triggered();
 
     void on_actionAberrations_triggered();

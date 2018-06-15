@@ -192,6 +192,9 @@
      </property>
      <addaction name="actionImport_parameters"/>
      <addaction name="actionExport_parameters"/>
+     <addaction name="separator"/>
+     <addaction name="actionImport_default"/>
+     <addaction name="actionExport_default"/>
     </widget>
     <addaction name="actionOpen"/>
     <addaction name="menuParameters"/>
@@ -349,6 +352,21 @@
   <action name="actionTheme">
    <property name="text">
     <string>Theme</string>
+   </property>
+  </action>
+  <action name="actionImport_default">
+   <property name="text">
+    <string>Import default</string>
+   </property>
+  </action>
+  <action name="actionExport_default">
+   <property name="text">
+    <string>Export default</string>
+   </property>
+  </action>
+  <action name="actionShow_default">
+   <property name="text">
+    <string>Show default config</string>
    </property>
   </action>
  </widget>
