@@ -40,7 +40,12 @@ public:
     nlohmann::json getSettings();
 
     template <typename T>
-    void setPlotWithData(Image<T> img, QString units, double sc_x, double sc_y, double lo_x, double lo_y, nlohmann::json stngs, IntensityScale scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
+    void setPlotWithData(Image<T> img,
+                         QString units, double sc_x, double sc_y, double lo_x, double lo_y,
+                         nlohmann::json stngs,
+                         IntensityScale scale = IntensityScale::Linear,
+                         ZeroPosition zp = ZeroPosition::BottomLeft,
+                         bool doReplot = true)
     {
         settings = stngs;
         image_units = units;
@@ -48,7 +53,12 @@ public:
     }
 
     template <typename T>
-    void setPlotWithComplexData(Image<std::complex<T>> img, QString units, double sc_x, double sc_y, double lo_x, double lo_y, nlohmann::json stngs, IntensityScale scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
+    void setPlotWithComplexData(Image<std::complex<T>> img,
+                                QString units, double sc_x, double sc_y, double lo_x, double lo_y,
+                                nlohmann::json stngs,
+                                IntensityScale scale = IntensityScale::Linear,
+                                ZeroPosition zp = ZeroPosition::BottomLeft,
+                                bool doReplot = true)
     {
         settings = stngs;
         image_units = units;

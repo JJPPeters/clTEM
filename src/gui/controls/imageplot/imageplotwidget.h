@@ -172,11 +172,11 @@ public:
                           double sc_x = 1.0, double sc_y = 1.0,
                           IntensityScale intensity_scale = IntensityScale::Linear,
                           ZeroPosition zp = ZeroPosition::BottomLeft,
-                          bool doReplot = true)
+                          bool redraw = true, bool reset = true)
     {
         is_complex = false;
         SetImageGeneric(img.data, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
-                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, doReplot);
+                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
     }
 
     template <typename T>
@@ -186,30 +186,28 @@ public:
                                  IntensityScale intensity_scale = IntensityScale::Linear,
                                  ShowComplex show_comp = ShowComplex::Amplitude,
                                  ZeroPosition zp = ZeroPosition::BottomLeft,
-                                 bool doReplot = true)
+                                 bool redraw = true, bool reset = true)
     {
         complex_type = show_comp;
         is_complex = true;
-        data_complex = img;
+        data_complex = img.data;
 
         auto im_d = calculateComplexData();
 
-        float test = im_d[400];
-
         SetImageGeneric(im_d, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
-                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, doReplot);
+                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
     }
 
-    void setComplexDisplay(ShowComplex show_c, bool doReplot = true) {
+    void setComplexDisplay(ShowComplex show_c, bool redraw = true, bool reset = false) {
         if (!haveImage)
             return;
 
         complex_type = show_c;
 
         auto im_d = calculateComplexData();
-        SetImageGeneric(im_d, data_complex.width, data_complex.height,
-                        data_complex.pad_t, data_complex.pad_l, data_complex.pad_b, data_complex.pad_r,
-                        zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, doReplot);
+        SetImageGeneric(im_d, size_x, size_y,
+                        crop_t, crop_l, crop_b, crop_r,
+                        zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, redraw, reset);
     }
 
 private:
@@ -217,23 +215,23 @@ private:
 
     ShowComplex complex_type;
 
-    Image<std::complex<float>> data_complex; // only used when we have a complex image
+    std::vector<std::complex<float>> data_complex; // only used when we have a complex image
 
     std::vector<float> calculateComplexData() {
-        std::vector<float> im_d(data_complex.data.size());
+        std::vector<float> im_d(data_complex.size());
 
         if (complex_type == ShowComplex::Real) {
-            for (int i = 0; i < data_complex.data.size(); ++i)
-                im_d[i] = std::real(data_complex.data[i]);
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::real(data_complex[i]);
         } else if (complex_type == ShowComplex::Imag) {
-            for (int i = 0; i < data_complex.data.size(); ++i)
-                im_d[i] = std::imag(data_complex.data[i]);
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::imag(data_complex[i]);
         } else if (complex_type == ShowComplex::Amplitude) {
-            for (int i = 0; i < data_complex.data.size(); ++i)
-                im_d[i] = std::abs(data_complex.data[i]);
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::abs(data_complex[i]);
         } else if (complex_type == ShowComplex::Phase) {
-            for (int i = 0; i < data_complex.data.size(); ++i)
-                im_d[i] = std::arg(data_complex.data[i]);
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::arg(data_complex[i]);
         }
 
         return im_d;
@@ -246,11 +244,11 @@ private:
                          double sc_x, double sc_y,
                          IntensityScale intensity_scale,
                          ZeroPosition zp,
-                         bool doReplot = true)
+                         bool redraw, bool reset)
     {
         // free up this complex data if we aren't going to use it
         if (!is_complex)
-            data_complex = Image<std::complex<float>>();
+            data_complex.clear();
 
         std::vector<double> im_d(img.size());
         for (int i = 0; i < img.size(); ++i)
@@ -265,14 +263,12 @@ private:
         zero_y = z_y;
         zero_pos = zp;
         int_scale = intensity_scale;
-        SetImageData(im_d, sx, sy, intensity_scale, doReplot);
+        SetImageData(im_d, sx, sy, intensity_scale, redraw, reset);
     }
 
-    void SetImagePlot(const std::vector<double> &image, int sx, int sy,
-                      IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
+    void SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw);
 
-    void SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
-                      bool doReplot = true);
+    void SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw, bool reset);
 
 };
 

@@ -631,7 +631,7 @@ void MainWindow::set_ctem_crop(bool state) {
 }
 
 void MainWindow::saveTiff() {
-    auto origin = static_cast<ImageTab*>(sender());
+    auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
     QSettings settings;
@@ -642,33 +642,26 @@ void MainWindow::saveTiff() {
 
     QFileInfo temp(filepath);
     settings.setValue("dialog/currentSavePath", temp.path());
+    std::string fo = filepath.toStdString(); // our image output path
 
-    std::string f = filepath.toStdString();
     // I feel that there should be a better way for this...
-    if (f.substr((f.length() - 4)) != ".tif")
-        f.append(".tif");
+    // get the filepath without the extension (if it is there)
+    if (fo.substr(fo.length() - 4) == ".tif")
+        fo = fo.substr(0, fo.length() - 4);
 
-    // now get the data by reference
+    // set up where we will get our data
     int sx, sy;
     std::vector<float> data;
-    origin->getPlot()->getData(data, sx, sy);
 
-    // and save
-    fileio::SaveTiff<float>(f, data, sx, sy);
-
-    // change the extension an save settings! I feel like this can be done better...
-    f.append("n");
-    f.replace(f.end()-5, f.end(), ".json");
-
-    nlohmann::json test = origin->getSettings();
-
-
-    fileio::SaveSettingsJson(f, test);
+    origin->getPlot()->getData(data, sx, sy); // get data
+    fileio::SaveTiff<float>(fo+".tif", data, sx, sy); // save data
+    nlohmann::json j_settings = origin->getSettings(); // get settings
+    fileio::SaveSettingsJson(fo+".json", j_settings); // save settings
 }
 
 void MainWindow::saveBmp() {
     // csat our sender to check this is all valid and good
-    auto origin = static_cast<ImageTab*>(sender());
+    auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
     QSettings settings;

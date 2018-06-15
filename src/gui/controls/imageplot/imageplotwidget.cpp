@@ -199,10 +199,10 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
 }
 
 void ImagePlotWidget::cropImage(bool doReplot) {
-    if (!crop_image) {
-        ImageObject->data()->clearAlpha();
+    ImageObject->data()->clearAlpha();
+
+    if (!crop_image)
         return;
-    }
 
     // do the cropping if we get haven't returned yet
     for (int ind = 0; ind < size_x*size_y; ++ind)
@@ -227,15 +227,15 @@ void ImagePlotWidget::exportBmp() {
     emit saveImageClicked();
 }
 
-void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
-                                   bool doReplot) {
+void
+ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw, bool reset) {
 
     // simple check that all our data is compatible
     if (sx*sy != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
 
     if(!ImageObject) {
-        SetImagePlot(image, sx, sy, intensity_scale, doReplot);
+        SetImagePlot(image, sx, sy, intensity_scale, redraw); // this function creates what is needed, then calls this function
         return;
     }
 
@@ -273,17 +273,18 @@ void ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int
     size_x = sx;
     size_y = sy;
 
-    ImageObject->rescaleDataRange(true); // TODO: maybe pass the true (to update scale better???)
-
     haveImage = true;
 
-    if (doReplot)
-        replot();
+    ImageObject->rescaleDataRange(true);
 
+    if (reset)
+        resetAxes(false);
+
+    cropImage(redraw);
 }
 
-void ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale,
-                                   bool doReplot) {
+void
+ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw) {
     // simple check that all our data is compatible
     if (sx*sy != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
@@ -291,17 +292,10 @@ void ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int
     // clear any old images
     clearImage();
 
-    // set our axes
-    resetAxes(false);
-
     // create our new object to actually show the data
     ImageObject = new QCPColorMap(xAxis, yAxis);
     ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
     ImageObject->setInterpolate(false);
 
-    SetImageData(image, sx, sy, intensity_scale, false);
-
-    cropImage(false);
-
-    resetAxes(doReplot);
+    SetImageData(image, sx, sy, intensity_scale, true, true);
 }
