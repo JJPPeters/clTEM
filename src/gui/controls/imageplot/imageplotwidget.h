@@ -5,20 +5,20 @@
 #include <memory>
 #include <cmath>
 
-#include "controls/imageplot/qcustomplot.h"
+#include "qcustomplot.h"
 
 #include <iostream>
 #include <fstream>
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include <utilities/commonstructs.h>
+#include <map>
 
 enum ShowComplex {
-        Real,
-        Complex,
-        Phase,
-        Amplitude,
-        PowerSpectrum };
+    Real,
+    Imag,
+    Phase,
+    Amplitude };
 
 enum IntensityScale {
     Linear,
@@ -40,32 +40,12 @@ signals:
     void mouseHoverEvent(double, double);
 
 public:
-    ImagePlotWidget(QWidget *parent);
-
-    ~ImagePlotWidget() {}
+    explicit ImagePlotWidget(QWidget *parent);
 
     // this is used to update the colours by filtering the events
-    bool event(QEvent *event);
+    bool event(QEvent *event) override;
 
     void matchPlotToPalette();
-
-    template <typename T>
-    void SetImageTemplate(Image<T> img, double z_x = 0.0, double z_y = 0.0, double sc_x = 1.0, double sc_y = 1.0, IntensityScale intensity_scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
-    {
-        std::vector<double> im_d(img.data.size());
-        for (int i = 0; i < img.data.size(); ++i)
-            im_d[i] = (double) img.data[i];
-        crop_t = img.pad_t;
-        crop_l = img.pad_l;
-        crop_b = img.pad_b;
-        crop_r = img.pad_r;
-        scale_x = sc_x;
-        scale_y = sc_y;
-        zero_x = z_x;
-        zero_y = z_y;
-        zero_pos = zp;
-        SetImage(im_d, img.width, img.height, intensity_scale, doReplot);
-    }
 
     void DrawCircle(double x, double y, QColor colour = Qt::red, QBrush fill = QBrush(Qt::red), double radius = 2, Qt::PenStyle line = Qt::SolidLine, double thickness = 2);
 
@@ -123,12 +103,16 @@ public:
             }
     }
 
+    bool isComplex() {return is_complex;}
+
 private:
-    QCPColorMap *ImageObject;
+    QCPColorMap *ImageObject = nullptr;
 
     bool haveImage = false;
 
     ZeroPosition zero_pos;
+
+    IntensityScale int_scale;
 
     double AspectRatio = 1;
 
@@ -139,10 +123,6 @@ private:
 
     double scale_x, scale_y;
     double zero_x, zero_y;
-
-    void SetImage(const std::vector<double>& image, const int sx, const int sy, IntensityScale intensity_scale = IntensityScale::Linear, bool doReplot = true);
-
-    void SetImage(const std::vector<std::complex<double>>& image, const int sx, const int sy, ShowComplex show, bool doReplot = true);
 
     int lastWidth, lastHeight;
 
@@ -181,6 +161,114 @@ public slots:
 
 private slots:
     void contextMenuRequest(QPoint pos);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Image display stuff here
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public:
+    template <typename T>
+    void SetImage(Image<T> img,
+                          double z_x = 0.0, double z_y = 0.0,
+                          double sc_x = 1.0, double sc_y = 1.0,
+                          IntensityScale intensity_scale = IntensityScale::Linear,
+                          ZeroPosition zp = ZeroPosition::BottomLeft,
+                          bool redraw = true, bool reset = true)
+    {
+        is_complex = false;
+        SetImageGeneric(img.data, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
+                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
+    }
+
+    template <typename T>
+    void SetComplexImage(Image<std::complex<T>> img,
+                                 double z_x = 0.0,double z_y = 0.0,
+                                 double sc_x = 1.0, double sc_y = 1.0,
+                                 IntensityScale intensity_scale = IntensityScale::Linear,
+                                 ShowComplex show_comp = ShowComplex::Amplitude,
+                                 ZeroPosition zp = ZeroPosition::BottomLeft,
+                                 bool redraw = true, bool reset = true)
+    {
+        complex_type = show_comp;
+        is_complex = true;
+        data_complex = img.data;
+
+        auto im_d = calculateComplexData();
+
+        SetImageGeneric(im_d, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
+                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
+    }
+
+    void setComplexDisplay(ShowComplex show_c, bool redraw = true, bool reset = false) {
+        if (!haveImage)
+            return;
+
+        complex_type = show_c;
+
+        auto im_d = calculateComplexData();
+        SetImageGeneric(im_d, size_x, size_y,
+                        crop_t, crop_l, crop_b, crop_r,
+                        zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, redraw, reset);
+    }
+
+private:
+    bool is_complex = false;
+
+    ShowComplex complex_type;
+
+    std::vector<std::complex<float>> data_complex; // only used when we have a complex image
+
+    std::vector<float> calculateComplexData() {
+        std::vector<float> im_d(data_complex.size());
+
+        if (complex_type == ShowComplex::Real) {
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::real(data_complex[i]);
+        } else if (complex_type == ShowComplex::Imag) {
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::imag(data_complex[i]);
+        } else if (complex_type == ShowComplex::Amplitude) {
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::abs(data_complex[i]);
+        } else if (complex_type == ShowComplex::Phase) {
+            for (int i = 0; i < data_complex.size(); ++i)
+                im_d[i] = std::arg(data_complex[i]);
+        }
+
+        return im_d;
+    }
+
+    template <typename T>
+    void SetImageGeneric(std::vector<T> img, int sx, int sy,
+                         int pad_t, int pad_l, int pad_b, int pad_r,
+                         double z_x, double z_y,
+                         double sc_x, double sc_y,
+                         IntensityScale intensity_scale,
+                         ZeroPosition zp,
+                         bool redraw, bool reset)
+    {
+        // free up this complex data if we aren't going to use it
+        if (!is_complex)
+            data_complex.clear();
+
+        std::vector<double> im_d(img.size());
+        for (int i = 0; i < img.size(); ++i)
+            im_d[i] = static_cast<double>(img[i]);
+        crop_t = pad_t;
+        crop_l = pad_l;
+        crop_b = pad_b;
+        crop_r = pad_r;
+        scale_x = sc_x;
+        scale_y = sc_y;
+        zero_x = z_x;
+        zero_y = z_y;
+        zero_pos = zp;
+        int_scale = intensity_scale;
+        SetImageData(im_d, sx, sy, intensity_scale, redraw, reset);
+    }
+
+    void SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw);
+
+    void SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw, bool reset);
 
 };
 

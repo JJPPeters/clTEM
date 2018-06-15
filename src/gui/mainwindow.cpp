@@ -15,6 +15,8 @@
 #include <utilities/jsonutils.h>
 #include <frames/aberrationframe.h>
 
+#include <variant>
+
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
     ui(new Ui::MainWindow)
@@ -57,9 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
-    ImageTab* EwAmp = new ImageTab(ui->twReal, "EW A", TabType::CTEM);
-    ImageTab* EwAng = new ImageTab(ui->twReal, "EW θ", TabType::CTEM);
-
+    ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
     ImageTab* Diff = new ImageTab(ui->twRecip, "Diffraction", TabType::DIFF);
 
     StatusBar = new StatusLayout();
@@ -68,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->twReal->addTab(Img, QString::fromStdString(Img->getTabName()));
     ui->twReal->addTab(EwAmp, QString::fromStdString(EwAmp->getTabName()));
-    ui->twReal->addTab(EwAng, QString::fromStdString(EwAng->getTabName()));
 
     ui->twRecip->addTab(Diff, QString::fromStdString(Diff->getTabName()));
 
@@ -355,20 +354,27 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
         auto im = i.second;
         // Currently assumes the positions of all the tabs
 
-        if (name == "EW_A")
+        if (name == "EW")
         {
             int n = ui->twReal->count();
             for (int j = 0; j < n; ++j)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "EW A") {
+                if (tab->getTabName() == "EW") {
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
+
+                    // convert our float data to complex
+                    std::vector<std::complex<float>> comp_data(im.height*im.width);
+                    for (int i = 0; i < comp_data.size(); ++i)
+                        comp_data[i] = std::complex<float>(im.data[2*i], im.data[2*i+1]);
+                    Image<std::complex<float>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
+
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
                     double sc = sm.getRealScale();
-                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
+                    tab->setPlotWithComplexData(comp_im, "Å", sc, sc, lx, ly, settings);
                 }
             }
         }
@@ -379,23 +385,6 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
-                    double lx = sm.getPaddedSimLimitsX()[0];
-                    double ly = sm.getPaddedSimLimitsY()[0];
-                    double sc = sm.getRealScale();
-                    tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
-                }
-            }
-        }
-        else if (name == "EW_T")
-        {
-            int n = ui->twReal->count();
-            for (int j = 0; j < n; ++j)
-            {
-                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-                if (tab->getTabName() == "EW θ") {
-                    settings["microscope"].erase("aberrations");
-                    settings["microscope"].erase("alpha");
-                    settings["microscope"].erase("delta");
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
                     double sc = sm.getRealScale();
@@ -634,9 +623,7 @@ void MainWindow::set_ctem_crop(bool state) {
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j) {
         ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
-        if (tab->getTabName() == "EW A")
-            tab->getPlot()->setCropImage(state, true, false);
-        else if (tab->getTabName() == "EW θ")
+        if (tab->getTabName() == "EW")
             tab->getPlot()->setCropImage(state, true, false);
         else if (tab->getTabName() == "Image")
             tab->getPlot()->setCropImage(state, true, false);
@@ -644,7 +631,7 @@ void MainWindow::set_ctem_crop(bool state) {
 }
 
 void MainWindow::saveTiff() {
-    auto origin = static_cast<ImageTab*>(sender());
+    auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
     QSettings settings;
@@ -655,33 +642,26 @@ void MainWindow::saveTiff() {
 
     QFileInfo temp(filepath);
     settings.setValue("dialog/currentSavePath", temp.path());
+    std::string fo = filepath.toStdString(); // our image output path
 
-    std::string f = filepath.toStdString();
     // I feel that there should be a better way for this...
-    if (f.substr((f.length() - 4)) != ".tif")
-        f.append(".tif");
+    // get the filepath without the extension (if it is there)
+    if (fo.substr(fo.length() - 4) == ".tif")
+        fo = fo.substr(0, fo.length() - 4);
 
-    // now get the data by reference
+    // set up where we will get our data
     int sx, sy;
     std::vector<float> data;
-    origin->getPlot()->getData(data, sx, sy);
 
-    // and save
-    fileio::SaveTiff<float>(f, data, sx, sy);
-
-    // change the extension an save settings! I feel like this can be done better...
-    f.append("n");
-    f.replace(f.end()-5, f.end(), ".json");
-
-    nlohmann::json test = origin->getSettings();
-
-
-    fileio::SaveSettingsJson(f, test);
+    origin->getPlot()->getData(data, sx, sy); // get data
+    fileio::SaveTiff<float>(fo+".tif", data, sx, sy); // save data
+    nlohmann::json j_settings = origin->getSettings(); // get settings
+    fileio::SaveSettingsJson(fo+".json", j_settings); // save settings
 }
 
 void MainWindow::saveBmp() {
     // csat our sender to check this is all valid and good
-    auto origin = static_cast<ImageTab*>(sender());
+    auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
     QSettings settings;

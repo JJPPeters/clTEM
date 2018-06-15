@@ -27,7 +27,7 @@ signals:
     void saveImageActivated();
 
 public:
-    explicit ImageTab(QWidget *parent, std::string name, TabType t);
+    explicit ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex = false);
 
     ~ImageTab();
 
@@ -40,11 +40,29 @@ public:
     nlohmann::json getSettings();
 
     template <typename T>
-    void setPlotWithData(Image<T> img, QString units, double sc_x, double sc_y, double lo_x, double lo_y, nlohmann::json stngs, IntensityScale scale = IntensityScale::Linear, ZeroPosition zp = ZeroPosition::BottomLeft, bool doReplot = true)
+    void setPlotWithData(Image<T> img,
+                         QString units, double sc_x, double sc_y, double lo_x, double lo_y,
+                         nlohmann::json stngs,
+                         IntensityScale scale = IntensityScale::Linear,
+                         ZeroPosition zp = ZeroPosition::BottomLeft,
+                         bool doReplot = true)
     {
         settings = stngs;
         image_units = units;
-        ui->widget->SetImageTemplate(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
+        ui->widget->SetImage(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
+    }
+
+    template <typename T>
+    void setPlotWithComplexData(Image<std::complex<T>> img,
+                                QString units, double sc_x, double sc_y, double lo_x, double lo_y,
+                                nlohmann::json stngs,
+                                IntensityScale scale = IntensityScale::Linear,
+                                ZeroPosition zp = ZeroPosition::BottomLeft,
+                                bool doReplot = true)
+    {
+        settings = stngs;
+        image_units = units;
+        ui->widget->SetComplexImage(img, lo_x, lo_y, sc_x, sc_y, scale, getComplexDisplayOption(), zp, doReplot);
     }
 
 private:
@@ -58,9 +76,13 @@ private:
 
     QString image_units;
 
+    ShowComplex getComplexDisplayOption();
+
 public slots:
     void forwardSaveData() { emit saveDataActivated(); }
     void forwardSaveImage() { emit saveImageActivated(); }
+
+    void on_cmbComplex_currentIndexChanged(const QString &selection);
 
 private slots:
     void updatePositionLabels(double x, double y);

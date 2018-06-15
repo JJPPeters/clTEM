@@ -63,6 +63,8 @@ private:
 
     std::vector<float> getDiffractionImage(int parallel_ind = 0);
 
+    std::vector<float> getExitWaveImage(int t = 0, int l = 0, int b = 0, int r = 0);
+
     std::vector<float> getExitWaveAmplitudeImage(int t = 0, int l = 0, int b = 0, int r = 0);
 
     std::vector<float> getExitWavePhaseImage(int t = 0, int l = 0, int b = 0, int r = 0);

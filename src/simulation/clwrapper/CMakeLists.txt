@@ -33,7 +33,7 @@ if(Boost_FOUND)
     message(STATUS "Boost libraries: " ${Boost_LIBRARY_DIRS})
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 set(HEADERS
         clcontext.h

@@ -2,12 +2,17 @@
 #include "imagetab.h"
 #include "ui_imagetab.h"
 
-ImageTab::ImageTab(QWidget *parent, std::string name, TabType t) :
+ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex) :
     QWidget(parent), TabName(name), MyType(t),
     ui(new Ui::ImageTab)
 {
     ui->setupUi(this);
     ui->widget;
+
+    if (!is_complex) {
+        ui->cmbComplex->setEnabled(false);
+        ui->cmbComplex->setFixedWidth(0); // do this, so the ui doesnt resize
+    }
 
     connect(ui->widget, &ImagePlotWidget::saveDataClicked, this, &ImageTab::forwardSaveData);
     connect(ui->widget, &ImagePlotWidget::saveImageClicked, this, &ImageTab::forwardSaveImage);
@@ -37,4 +42,24 @@ void ImageTab::updatePositionLabels(double x, double y) {
 
     ui->lblX->setText(xs);
     ui->lblY->setText(ys);
+}
+
+ShowComplex ImageTab::getComplexDisplayOption() {
+
+    auto t = ui->cmbComplex->currentText();
+    if (t == "Amplitude")
+        return ShowComplex::Amplitude;
+    else if (t == "Phase")
+        return ShowComplex::Phase;
+    else if (t == "Real")
+        return ShowComplex::Real;
+    else if (t == "Imaginary")
+        return ShowComplex::Imag;
+    else
+        throw std::runtime_error("Trying to set complex display to non-existent option");
+}
+
+void ImageTab::on_cmbComplex_currentIndexChanged(const QString &selection) {
+    // the widget handles whether it has a plot or not
+    ui->widget->setComplexDisplay(getComplexDisplayOption());
 }
