@@ -11,9 +11,6 @@
 
 void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
 {
-    if (pool.stop)
-        return;
-
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
 
@@ -21,6 +18,11 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
 
     if (!job->simManager)
         throw std::runtime_error("Cannot access simulation parameters");
+
+    if(pool.stop) {
+        job->promise.set_value();
+        return;
+    }
 
     uploadParameters(job->simManager->getStructureParameters());
 

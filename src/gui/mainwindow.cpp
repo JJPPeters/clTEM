@@ -328,8 +328,6 @@ void MainWindow::on_actionSimulate_EW_triggered()
 
     std::vector<clDevice> &d = std::get<0>(Devices);
 
-
-//    SimThread = std::shared_ptr<SimulationThread>(new SimulationThread(man_list, d));
     SimThread = std::make_shared<SimulationThread>(man_list, d);
 
     SimThread->start();
@@ -551,11 +549,6 @@ void MainWindow::cancel_simulation()
     // stop the simulation
     if (SimThread)
         SimThread->cancelSimulation();
-
-    // reset the ui
-//    disconnect(this, &MainWindow::sliceProgressUpdated, 0, 0);
-//    disconnect(this, &MainWindow::totalProgressUpdated, 0, 0);
-//    disconnect(this, &MainWindow::imagesReturned, 0, 0);
 
     setUiActive(true);
 

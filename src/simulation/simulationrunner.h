@@ -5,7 +5,6 @@
 #ifndef CLTEM_SIMULATIONRUNNER_H
 #define CLTEM_SIMULATIONRUNNER_H
 
-
 #include <functional>
 #include "simulationmanager.h"
 #include "simulationjob.h"
