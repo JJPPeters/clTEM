@@ -62,13 +62,16 @@ QPushButton {
 	min-height: 18 px;
 }
 
-/*QPushButton:hover {
-	color: {l2};
-}*/
+QPushButton:hover {
+	background-color: {a2};
+}
 
 QPushButton:pressed {
-	background: solid {l2};
-	color: {d1};
+	background: solid {a3};
+}
+
+QPushButton:disabled {
+    background-color: {e1};
 }
 
 QPushButton[accessibleName="title_min"] {
@@ -84,11 +87,11 @@ QPushButton[accessibleName="title_close"] {
 }
 
 QPushButton[accessibleName="title_min"]:hover {
-	background-color: {d1};
+	background-color: {a2};
 }
 
 QPushButton[accessibleName="title_max"]:hover {
-	background-color: {d1};
+	background-color: {a2};
 }
 
 QPushButton[accessibleName="title_close"]:hover {
@@ -96,11 +99,11 @@ QPushButton[accessibleName="title_close"]:hover {
 }
 
 QPushButton[accessibleName="title_min"]:pressed {
-	background-color: {d3};
+	background-color: {a3};
 }
 
 QPushButton[accessibleName="title_max"]:pressed {
-	background-color: {d3};
+	background-color: {a3};
 }
 
 QPushButton[accessibleName="title_close"]:pressed {

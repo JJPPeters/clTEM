@@ -108,11 +108,13 @@ private:
             QString t = "dark"; // theme name (for icons)
             QString d1 = "#2A2A2A"; // darkest
             QString d2 = "#404040"; // dark
-            QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
             QString l1 = "#D8D8D8"; // lightest
             QString l2 = "#777777"; // light
+            QString e1 = "#808080"; // disabled/inactive colour
 
             QString a1 = "#6A9D1A"; // accent
+            QString a2 = "#7db81e"; // accent (hover)
+            QString a3 = "#9ac653"; // accent (clicked)
             QString c1 = "#9D1A29"; // close/negative
             QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
 
@@ -127,10 +129,12 @@ private:
 
             s.replace("{d1}", d1);
             s.replace("{d2}", d2);
-            s.replace("{d3}", d3);
             s.replace("{l1}", l1);
             s.replace("{l2}", l2);
+            s.replace("{e1}", e1);
             s.replace("{a1}", a1);
+            s.replace("{a2}", a2);
+            s.replace("{a3}", a3);
             s.replace("{c1}", c1);
             s.replace("{c2}", c2);
 
@@ -149,11 +153,13 @@ private:
             QString t = "light"; // theme name (for icons)
             QString d1 = "#F0F0F0"; // darkest
             QString d2 = "#FFFFFF"; // dark
-            QString d3 = "#303030"; // lighter than darkest (acts as a 'clicked' for d1)
-            QString l1 = "#000000"; // lightest
-            QString l2 = "#ADADAD"; // light
+            QString l1 = "#1a1a1a"; // lightest
+            QString l2 = "#9c9c9c"; // light
+            QString e1 = "#a1a1a1"; // disabled/inactive colour
 
             QString a1 = "#6A9D1A"; // accent
+            QString a2 = "#7db81e"; // accent (hover)
+            QString a3 = "#9ac653"; // accent (clicked)
             QString c1 = "#9D1A29"; // close/negative
             QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
 
@@ -167,10 +173,12 @@ private:
             s.replace("{t}", t);
             s.replace("{d1}", d1);
             s.replace("{d2}", d2);
-            s.replace("{d3}", d3);
             s.replace("{l1}", l1);
             s.replace("{l2}", l2);
+            s.replace("{e1}", e1);
             s.replace("{a1}", a1);
+            s.replace("{a2}", a2);
+            s.replace("{a3}", a3);
             s.replace("{c1}", c1);
             s.replace("{c2}", c2);
 
