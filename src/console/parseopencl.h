@@ -38,12 +38,16 @@ std::vector<clDevice> getDevices(std::string d_str)
     else if (d_str == "gpu")
     {
         devices = OpenCL::GetDeviceList(Device::DeviceType::GPU);
+        if (devices.size() < 1)
+            throw std::runtime_error("Could not get GPU OpenCL device");
         devices.erase(devices.begin()+1, devices.end());
         std::cout << "Picking a GPU OpenCL devices" << std::endl;
     }
     else if (d_str == "cpu")
     {
         devices = OpenCL::GetDeviceList(Device::DeviceType::CPU);
+        if (devices.size() < 1)
+            throw std::runtime_error("Could not get CPU OpenCL device");
         devices.erase(devices.begin()+1, devices.end());
         std::cout << "Picking a CPU OpenCL devices" << std::endl;
     }
@@ -64,6 +68,9 @@ std::vector<clDevice> getDevices(std::string d_str)
         }
 
         std::vector<clDevice> dev_all = OpenCL::GetDeviceList(Device::DeviceType::All);
+
+        if (dev_all.size() < 1)
+            throw std::runtime_error("Could not get OpenCL devices to choose from");
 
         for (auto& p : parts)
         {
@@ -115,6 +122,9 @@ std::vector<clDevice> getDevices(std::string d_str)
                   << std::endl;
         std::cout << "\t" << devices[i].GetPlatformName() << " - " << devices[i].GetDeviceName() << std::endl;
     }
+
+    if (devices.size() < 1)
+        throw std::runtime_error("Could not get OpenCL devices...");
 
     return devices;
 
