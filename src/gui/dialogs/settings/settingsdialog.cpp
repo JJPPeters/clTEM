@@ -95,7 +95,7 @@ SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Simulation area");
 
-    this->setFixedSize(this->sizeHint());
+    this->setFixedSize(this->minimumSizeHint());
 }
 
 

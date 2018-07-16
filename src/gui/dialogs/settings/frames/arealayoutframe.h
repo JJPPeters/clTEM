@@ -21,7 +21,6 @@ signals:
     void modeChanged(int);
     void updateMainCbed();
     void updateMainStem();
-    void slicesChanged();
 
 public:
     explicit AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan);
@@ -42,6 +41,8 @@ private slots:
 
     void dlgCancel_clicked();
 
+    void slicesChanged();
+
 private:
     Ui::AreaLayoutFrame *ui;
 
@@ -54,6 +55,8 @@ private:
     bool getErrorStringCtem();
     bool getErrorStringStem();
     bool getErrorStringCbed();
+
+    void setStructLimits();
 };
 
 #endif // AREALAYOUTFRAME_H

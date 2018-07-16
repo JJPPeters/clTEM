@@ -63,6 +63,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     int ind = ui->cmbResolution->findText( QString::number(SimManager->getResolution()) );
     ui->cmbResolution->setCurrentIndex(ind);
 
+    setStructLimits();
+
     areasChanged();
 }
 
@@ -131,6 +133,9 @@ void AreaLayoutFrame::areasChanged() {
 
     float dz = SimManager->getSliceThickness();
     float oz = SimManager->getSliceOffset();
+
+    connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
+    connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
 
     ui->edtSliceThickness->setText(Utils_Qt::numToQString(dz));
     ui->edtSliceOffset->setText(Utils_Qt::numToQString(oz));
@@ -267,4 +272,33 @@ void AreaLayoutFrame::checkEditZero(QString txt) {
         ui->edtSliceOffset->setStyleSheet("");
     else
         ui->edtSliceOffset->setStyleSheet("color: #FF8C00");
+}
+
+void AreaLayoutFrame::setStructLimits() {
+    if (!SimManager->getStructure())
+        return;
+
+    auto lims_x = SimManager->getStructure()->getLimitsX();
+    auto lims_y = SimManager->getStructure()->getLimitsY();
+
+    ui->lblStructStartX->setText(Utils_Qt::numToQString(lims_x[0]) + " Å");
+    ui->lblStructFinishX->setText(Utils_Qt::numToQString(lims_x[1]) + " Å");
+    ui->lblStructStartY->setText(Utils_Qt::numToQString(lims_y[0]) + " Å");
+    ui->lblStructFinishY->setText(Utils_Qt::numToQString(lims_y[1]) + " Å");
+}
+
+void AreaLayoutFrame::slicesChanged() {
+    if (!SimManager->getStructure())
+        return;
+
+    float dz = ui->edtSliceThickness->text().toFloat();
+
+    auto z_lims = SimManager->getPaddedStructLimitsZ();
+    float z_range = z_lims[1] - z_lims[0];
+
+    unsigned int n_slices = (unsigned int) std::ceil(z_range / dz);
+    n_slices += (n_slices == 0);
+
+    ui->lblSlices->setText(Utils_Qt::numToQString(n_slices));
+
 }
