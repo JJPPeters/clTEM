@@ -54,6 +54,7 @@ std::vector<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
         status = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, valueSize, &Pvalue[0], NULL);
         clError::Throw(status);
         std::string pName(Pvalue.begin(), Pvalue.end());
+        pName.erase(std::remove(pName.begin(), pName.end(), '\0'), pName.end());
 
         // for each device get and store name, platform, and device number
         for (int j = 0; j < DevPerPlatform[i]; j++)
@@ -65,8 +66,9 @@ std::vector<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
             status = clGetDeviceInfo(devices[i][j], CL_DEVICE_NAME, valueSize, &value[0], NULL);
             clError::Throw(status);
             std::string dName(value.begin(), value.end());
+            dName.erase(std::remove(dName.begin(), dName.end(), '\0'), dName.end());
 
-            clDevice newDev(devices[i][j], i, j, pName, Utils::Trim(dName));
+            clDevice newDev(devices[i][j], i, j, Utils::Trim(pName), Utils::Trim(dName));
             DeviceList.push_back(newDev);
         }
     }

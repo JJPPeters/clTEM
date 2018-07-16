@@ -3,6 +3,7 @@
 #include <ios>
 #include <fstream>
 #include <memory>
+#include <utilities/fileio.h>
 
 std::valarray<float> const SimulationManager::default_xy_padding = {-8.0f, 8.0f};
 std::valarray<float> const SimulationManager::default_z_padding = {-3.0f, 3.0f};
@@ -141,11 +142,10 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
     std::lock_guard<std::mutex> lck(image_update_mtx);
 
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    float average_factor = (float) getTdsRuns();
+    auto average_factor = (float) getTdsRuns();
 
     for (auto const& i : ims)
     {
-
         if (Images.find(i.first) != Images.end()) {
             auto current = Images[i.first];
             auto im = i.second;
@@ -154,8 +154,13 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
             for (int j = 0; j < current.data.size(); ++j)
                 current.data[j] += im.data[j] / average_factor;
             Images[i.first] = current;
-        } else
-            Images.insert(std::map<std::string, Image<float>>::value_type(i.first, i.second));
+        } else {
+            auto d = i.second.data;
+            for (float &j : d)
+                j /= average_factor; // need to average this as the image is created (if TDS)
+            auto d_im = Image<float>(i.second.width, i.second.height, d);
+            Images.insert(std::map<std::string, Image<float>>::value_type(i.first, d_im));
+        }
     }
 
     // count how many jobs have been done...

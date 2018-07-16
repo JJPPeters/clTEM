@@ -47,6 +47,7 @@ void SimulationWorker::uploadParameters(std::vector<float> param)
 {
     ClParameterisation = ctx.CreateBuffer<float, Manual>(param.size());
     ClParameterisation->Write(param);
+    ctx.WaitForQueueFinish();
 }
 
 void SimulationWorker::sortAtoms(bool doTds)
@@ -205,7 +206,7 @@ void SimulationWorker::sortAtoms(bool doTds)
     ClBlockStartPositions->Write(blockStartPositions);
 
     // wait for the IO queue here so that we are sure the data is uploaded before we start usign it
-    ctx.WaitForIOQueueFinish();
+    ctx.WaitForQueueFinish();
 }
 
 void SimulationWorker::doCtem(bool simImage)
@@ -735,13 +736,15 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
 
     InitProbeWavefunction(WorkSize);
 
+    ctx.WaitForQueueFinish();
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// IFFT probe to real space
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // IFFT
     FourierTrans.Do(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
-
+    ctx.WaitForQueueFinish();
     // copy to second wave function used for finite difference
     if (job->simManager->isFiniteDifference())
         clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[n_parallel]->GetBuffer(), clWaveFunction1Minus[n_parallel]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, 0, 0);

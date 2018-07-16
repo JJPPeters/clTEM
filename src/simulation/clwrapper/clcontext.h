@@ -38,13 +38,13 @@ private:
     cl_command_queue Queue;
     cl_command_queue IOQueue;
     clDevice ContextDevice;
-    std::vector<MemoryRecord*> MemList;
+    std::vector<std::shared_ptr<MemoryRecord>> MemList;
 
 public:
     clContext(clDevice _ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_int _Status)
-            : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_Queue), Status(_Status){};
+            : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_Queue), Status(_Status){}
     clContext(clDevice _ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_command_queue _IOQueue, cl_int _Status)
-            : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), Status(_Status){};
+            : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), Status(_Status){}
 
 //    clContext(const clContext& cpy)
 //            : ContextDevice(cpy.ContextDevice), Context(cpy.Context), Queue(cpy.Queue), IOQueue(cpy.Queue), Status(cpy.Status), MemList(cpy.MemList.begin(), cpy.MemList.end())
@@ -60,47 +60,63 @@ public:
 //        MemList = std::vector<MemoryRecord*>(RHS.MemList.begin(), RHS.MemList.end());
 //    }
 
-    void WaitForQueueFinish(){clFinish(Queue);};
-    void WaitForIOQueueFinish(){clFinish(IOQueue);};
-    void QueueFlush(){clFlush(Queue);};
-    void IOQueueFlush(){clFlush(IOQueue);};
+    void WaitForQueueFinish() {
+        int status = clFinish(Queue);
+        clError::Throw(status);
+    }
+    void WaitForIOQueueFinish() {
+        int status = clFinish(IOQueue);
+        clError::Throw(status);
+    }
+    void QueueFlush() {
+        int status = clFlush(Queue);
+        clError::Throw(status);
+    }
+    void IOQueueFlush() {
+        int status = clFlush(IOQueue);
+        clError::Throw(status);
+    }
 
-    clDevice GetContextDevice(){return ContextDevice;};
-    cl_context& GetContext(){return Context;};
-    cl_int GetStatus(){return Status;};
-    cl_command_queue& GetQueue(){ return Queue; };
-    cl_command_queue& GetIOQueue(){return IOQueue;};
+    clDevice GetContextDevice(){return ContextDevice;}
+    cl_context& GetContext(){return Context;}
+    cl_int GetStatus(){return Status;}
+    cl_command_queue& GetQueue(){ return Queue; }
+    cl_command_queue& GetIOQueue(){return IOQueue;}
 
     size_t GetOccupiedMemorySize()
     {
-        std::vector<MemoryRecord*>::iterator it; size_t total = 0;
-        for(it = MemList.begin(); it != MemList.end(); it++)
+        size_t total = 0;
+        for(auto it = MemList.begin(); it != MemList.end(); it++)
             total += (*it)->size;
         return total;
     }
 
-    void RemoveMemRecord(MemoryRecord* rec)
+    void RemoveMemRecord(std::shared_ptr<MemoryRecord> rec)
     {
-        std::vector<MemoryRecord*>::iterator it = std::find(MemList.begin(), MemList.end(), rec);
+        auto it = std::find(MemList.begin(), MemList.end(), rec);
         if (it != MemList.end())
             MemList.erase(it);
     }
 
     template<class T,template <class> class AutoPolicy> std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(size_t size)
     {
-        MemoryRecord* rec = new MemoryRecord(size*sizeof(T));
-        std::shared_ptr<clMemory<T,AutoPolicy>> Mem( new clMemory<T,AutoPolicy>(this,size,clCreateBuffer(Context, MemoryFlags::ReadWrite, size*sizeof(T), 0, &Status),rec));
-        MemList.push_back(rec);
+        std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
+        auto b = clCreateBuffer(Context, MemoryFlags::ReadWrite, size*sizeof(T), 0, &Status);
+        clError::Throw(Status, "");
+        std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(this, size, b, rec);
+        MemList.emplace_back(rec);
         return Mem;
-    };
+    }
 
     template<class T,template <class> class AutoPolicy > std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(size_t size, enum MemoryFlags flags)
     {
-        MemoryRecord* rec = new MemoryRecord(size*sizeof(T));
-        std::shared_ptr<clMemory<T,AutoPolicy>> Mem( new clMemory<T,AutoPolicy>(this,size,clCreateBuffer(Context, flags, size*sizeof(T), 0, &Status),rec));
-        MemList.push_back(rec);
+        std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
+        auto b = clCreateBuffer(Context, flags, size*sizeof(T), 0, &Status);
+        std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(this, size, b, rec);
+        clError::Throw(Status, "");
+        MemList.emplace_back(rec);
         return Mem;
-    };
+    }
 };
 
 #endif //CLWRAPPER_T_CLCONTEXT_H

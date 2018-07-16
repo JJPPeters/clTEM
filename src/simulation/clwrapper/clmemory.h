@@ -25,7 +25,7 @@ private:
     cl_mem Buffer;
     size_t Size;
     clContext* Context;
-    MemoryRecord* Rec;
+    std::shared_ptr<MemoryRecord> Rec;
 
 public:
     // template <class T, template <class> class AutoPolicy> using Ptr = std::shared_ptr<clMemory<T,AutoPolicy>>;
@@ -89,7 +89,7 @@ public:
         return FinishedWriteEvent;
     };
 
-    clMemory<T,AutoPolicy>(clContext* context, size_t size, cl_mem buffer, MemoryRecord* rec) : Context(context), Buffer(buffer), Size(size),
+    clMemory<T,AutoPolicy>(clContext* context, size_t size, cl_mem buffer, std::shared_ptr<MemoryRecord> rec) : Context(context), Buffer(buffer), Size(size),
                                                                                                 AutoPolicy<T>(size), FinishedReadEvent(), FinishedWriteEvent(), StartReadEvent(), StartWriteEvent(), Rec(rec){};
 
     void SetFinishedEvent(clEvent KernelFinished)

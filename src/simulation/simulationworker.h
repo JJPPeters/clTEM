@@ -13,17 +13,11 @@ class SimulationWorker : public ThreadWorker
 {
 public:
     // initialise FourierTrans just with any values
-    SimulationWorker(ThreadPool &s, int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx), FourierTrans(_ctx, 256, 256)
-    {
-//        std::cout << "Created thread with ID: " << id << std::endl;
-    }
+    SimulationWorker(ThreadPool &s, int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx), FourierTrans(_ctx, 256, 256) {}
 
-    ~SimulationWorker()
-    {
-//        std::cout << "Closed thread with ID: " << id << std::endl;
-    }
+    ~SimulationWorker() = default;
 
-    void Run(std::shared_ptr<SimulationJob> _job);
+    void Run(std::shared_ptr<SimulationJob> _job) override;
 
 private:
     clContext ctx;
