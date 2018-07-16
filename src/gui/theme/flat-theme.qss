@@ -52,6 +52,66 @@ QComboBox::down-arrow {
     image: url(:/Theme/icons/down-arrow_{t}.png);
 }
 
+/* muc of this scrollbar stuff is from: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/style.qss */
+
+QScrollBar:vertical {
+    background-color: {d1};
+    width: 20px;
+    margin: 15px 3px 15px 3px;
+    border: 1px transparent;
+}
+
+QScrollBar::handle:vertical {
+    background-color: {a1};
+    min-height: 20px;
+}
+
+QScrollBar::sub-line:vertical {
+    margin: 5px 0px 5px 0px;
+    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical {
+    margin: 5px 0px 5px 0px;
+    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical:hover,
+QScrollBar::sub-line:vertical:on {
+    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical:hover,
+QScrollBar::add-line:vertical:on {
+    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
+}
+
 /* === QPushButton === */
 
 QPushButton {
