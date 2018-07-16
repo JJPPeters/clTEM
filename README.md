@@ -18,19 +18,10 @@ clTEM is an OpenCL accelerated multislice program for simulating images from a t
 - Compatible with Linux and Windows
 
 ## Usage
-### Structure files
-Structure is provided in the form of .xyz files containing the atom positions in Ångströms with some custom modifications.
-The basic format follows the rules:
-
-- First line contains the number of atoms in the structure
-- Second line contains modifiers for the structure
---  `occ` introduces an extra column defining the site occupancy. Atoms on the same site must be next to each other in the .xyz file
---`nm` reads the coordinates of the atoms in nm
-- The rest of the file contains lines in for format `Element-symbol x y z occupancy`
--- for example `Pb 0.0 0.4 0.4 1.0` if the `occ` tag has been set
+Some documentation has been written on the [github pages](https://jjppeters.github.io/clTEM/guide) site to introduce the basic concepts.
 
 ## Installation
-Currently clTEM has not been released, it is however mostly functional if you wish to compile it yourself.
+Currently clTEM has only been released in alpha. It is however mostly functional, though not entirely tested and bugs can be expected.
 
 ## Dependencies  
   
