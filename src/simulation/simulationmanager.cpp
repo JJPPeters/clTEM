@@ -155,11 +155,10 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
                 current.data[j] += im.data[j] / average_factor;
             Images[i.first] = current;
         } else {
-            auto d = i.second.data;
-            for (float &j : d)
-                j /= average_factor; // need to average this as the image is created (if TDS)
-            auto d_im = Image<float>(i.second.width, i.second.height, d);
-            Images.insert(std::map<std::string, Image<float>>::value_type(i.first, d_im));
+            auto new_averaged = i.second;
+            for (float &d : new_averaged.data)
+                d /= average_factor; // need to average this as the image is created (if TDS)
+            Images.insert(std::map<std::string, Image<float>>::value_type(i.first, new_averaged));
         }
     }
 

@@ -33,8 +33,22 @@ struct Image
                                                                                             data(d),
                                                                                             pad_t(pt), pad_l(pl),
                                                                                             pad_b(pb), pad_r(pr) {}
-//    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), data(rhs.data) {}
-//    operator=(const Image<T>& rhs) {width = rhs.width; height = rhs.height; data = rhs.data;}
+    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), data(rhs.data), pad_t(rhs.pad_t),
+                                                                                       pad_l(rhs.pad_l),
+                                                                                       pad_b(rhs.pad_b),
+                                                                                       pad_r(rhs.pad_r) {}
+
+    Image<T>& operator=(const Image<T>& rhs) {
+        width = rhs.width;
+        height = rhs.height;
+        data = rhs.data;
+        pad_t = rhs.pad_t;
+        pad_l = rhs.pad_l;
+        pad_b = rhs.pad_b;
+        pad_r = rhs.pad_r;
+    }
+
+
     int width;
     int height;
     int pad_t, pad_l, pad_b, pad_r;
