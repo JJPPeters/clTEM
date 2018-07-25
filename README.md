@@ -1,6 +1,6 @@
 
 <p align="center"> 
-<img src="https://jjppeters.github.io/clTEM/images/logo.svg" alt="Logo" width="300px"/>
+<img src="https://jjppeters.github.io/clTEM/assets/logo.svg" alt="Logo" width="256px"/>
 </p>
 
 # clTEM  
