@@ -22,7 +22,7 @@ void main()
     vec2 ProjSize = ScreenSize * ProjVoxel.xy / ProjVoxel.w;
 
     gl_PointSize = 0.8 * (ProjSize.x + ProjSize.y);
-    //BaseSize * 1.0 / (eye_position.z * Proj[2][3] + Proj[3][3]);    
+    //BaseSize * 1.0 / (eye_position.z * Proj[2][3] + Proj[3][3]);
 
     gl_Position = Proj * EyePos;                         
 }                                                                                   

@@ -322,7 +322,7 @@ void AreaLayoutFrame::plotStructure() {
         pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Vector3f(qc.red(), qc.green(), qc.blue());
+        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
     ui->pltStructure->PlotAtoms(pos, col, View::Direction::Top);

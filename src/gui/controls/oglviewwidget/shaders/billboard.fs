@@ -1,17 +1,19 @@
 #version 130
 
-uniform sampler2D SphereTexture;  
+//uniform sampler2D SphereTexture;
 
-in vec4 ColourPass;                                                                                                                                 
+//precision mediump float;
+
+in vec4 ColourPass;
                                                            
-out vec4 FragColor;                                                                 
+out vec4 FragColor;
                                                                                     
-void main()                                                                         
+void main()
 {                   
 	vec2 shifted = gl_PointCoord - vec2(0.5, 0.5);
 	float rsq = dot(shifted, shifted);
 	if(rsq >= 0.1) discard;
 
-	vec4 texValue = texture(SphereTexture, gl_PointCoord);                                                         
-    FragColor = texValue * ColourPass;
+	//vec4 texValue = texture(SphereTexture, gl_PointCoord);
+    FragColor = ColourPass;//texValue * ColourPass;
 }

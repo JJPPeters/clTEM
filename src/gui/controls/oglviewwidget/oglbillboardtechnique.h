@@ -50,7 +50,7 @@ private:
     GLint _colBufLocation;
     GLuint _PLocation;
     GLuint _MVLocation;
-    GLuint _TextureLocation;
+//    GLuint _TextureLocation;
     GLuint _ScreenSizeLocation;
 };
 

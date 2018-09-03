@@ -41,12 +41,12 @@ bool OGLBillBoardTechnique::Init()
 
     _MVLocation = GetUniformLocation("ModelView");
     _PLocation = GetUniformLocation("Proj");
-    _TextureLocation = GetUniformLocation("SphereTexture");
+//    _TextureLocation = GetUniformLocation("SphereTexture");
     _ScreenSizeLocation = GetUniformLocation("ScreenSize");
 
     if (_MVLocation == 0xffffffff ||
         _PLocation == 0xffffffff ||
-        _TextureLocation == 0xffffffff ||
+//        _TextureLocation == 0xffffffff ||
         _ScreenSizeLocation == 0xffffffff)
     {
         throw std::runtime_error("OpenGL: Failed to initialise uniform locations");
@@ -85,9 +85,9 @@ void OGLBillBoardTechnique::MakeBuffers(std::vector<Vector3f>& positions, std::v
 {
     _haveBuffers = false;
 
-    _colourBuffer = std::make_shared<OGLVertexBuffer>(OGLVertexBuffer(colours, _colBufLocation));
+    _colourBuffer = std::make_shared<OGLVertexBuffer>(OGLVertexBuffer(colours, static_cast<GLuint>(_colBufLocation)));
 
-    _positionBuffer = std::make_shared<OGLVertexBuffer>(OGLVertexBuffer(positions, _posBufLocation));
+    _positionBuffer = std::make_shared<OGLVertexBuffer>(OGLVertexBuffer(positions, static_cast<GLuint>(_posBufLocation)));
 
     _haveBuffers = true;
 }
@@ -114,7 +114,7 @@ void OGLBillBoardTechnique::SetColourTextureUnit(unsigned int TextureUnit)
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
 
-    glFuncs->glUniform1i(_TextureLocation, TextureUnit);
+//    glFuncs->glUniform1i(_TextureLocation, TextureUnit);
 }
 
 void OGLBillBoardTechnique::SetScreenSize(Vector2f size)
