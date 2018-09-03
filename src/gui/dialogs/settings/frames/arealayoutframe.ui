@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0" columnstretch="1,0">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0" columnstretch="1,0">
    <item row="0" column="1">
     <widget class="tabPanel" name="tabGeneralWidget">
      <property name="sizePolicy">
@@ -632,7 +632,7 @@
           </widget>
          </item>
          <item row="2" column="0" colspan="7">
-          <widget class="QCustomPlot" name="pltStructure" native="true">
+          <widget class="OGLViewWidget" name="pltStructure" native="true">
            <property name="minimumSize">
             <size>
              <width>500</width>
@@ -662,9 +662,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>QCustomPlot</class>
+   <class>OGLViewWidget</class>
    <extends>QWidget</extends>
-   <header>controls/imageplot/qcustomplot.h</header>
+   <header>controls/oglviewwidget/oglviewwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

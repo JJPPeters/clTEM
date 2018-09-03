@@ -310,32 +310,32 @@ void AreaLayoutFrame::slicesChanged() {
 // This needs to be called AFTER the window has been shown - do this with showevent
 // (otherwise axis scaling will not work)
 void AreaLayoutFrame::plotStructure() {
-    // TODO: might want to do on construction (in case we need to update)
-    ui->pltStructure->setInteraction(QCP::iRangeDrag, true);
-    ui->pltStructure->setInteraction(QCP::iRangeZoom, true);
-    ui->pltStructure->axisRect()->setupFullAxesBox();
-
-    // test if we have a structure to plot...
-    if (!SimManager->getStructure())
-        return;
-
-    std::vector<QCPCurve *> curves;
-
-    auto atm_t = SimManager->getStructure()->getAtomsTypes();
-    for (int i = 0; i < atm_t.size(); ++i) {
-
-        QCPCurve *mycurve = new QCPCurve(ui->pltStructure->xAxis, ui->pltStructure->yAxis);
-
-        auto ss = QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, QColor(127,127,127), GuiUtils::ElementNumberToQColour(atm_t[i]), 7);
-
-        mycurve->setLineStyle(QCPCurve::lsNone);
-        mycurve->setScatterStyle(ss);
-        curves.push_back(mycurve);
-    }
-
-    // get our atoms
-    auto atms = SimManager->getStructure()->getAtoms();
-    std::sort(atms.begin(), atms.end(), AtomSite_z_less_Sort());
+//    // TODO: might want to do on construction (in case we need to update)
+//    ui->pltStructure->setInteraction(QCP::iRangeDrag, true);
+//    ui->pltStructure->setInteraction(QCP::iRangeZoom, true);
+//    ui->pltStructure->axisRect()->setupFullAxesBox();
+//
+//    // test if we have a structure to plot...
+//    if (!SimManager->getStructure())
+//        return;
+//
+//    std::vector<QCPCurve *> curves;
+//
+//    auto atm_t = SimManager->getStructure()->getAtomsTypes();
+//    for (int i = 0; i < atm_t.size(); ++i) {
+//
+//        QCPCurve *mycurve = new QCPCurve(ui->pltStructure->xAxis, ui->pltStructure->yAxis);
+//
+//        auto ss = QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, QColor(127,127,127), GuiUtils::ElementNumberToQColour(atm_t[i]), 7);
+//
+//        mycurve->setLineStyle(QCPCurve::lsNone);
+//        mycurve->setScatterStyle(ss);
+//        curves.push_back(mycurve);
+//    }
+//
+//    // get our atoms
+//    auto atms = SimManager->getStructure()->getAtoms();
+//    std::sort(atms.begin(), atms.end(), AtomSite_z_less_Sort());
 
 
 //    // sort through them all
@@ -374,20 +374,20 @@ void AreaLayoutFrame::plotStructure() {
 //            shown.emplace_back(a);
 //    }
 
-    for (const auto &a : atms) {
-        int pos = static_cast<int>(std::find(atm_t.begin(), atm_t.end(), a.A) - atm_t.begin());
-        if (pos < atm_t.size())
-            curves[pos]->addData(a.x, a.y);
-    }
-
-    ui->pltStructure->rescaleAxes();
-
-    // TODO: need to set this to keep all the data in the view
-    // I think it depends on the window size, as well as the data range...
-    // for now, this gives the right aspect ratio
-    ui->pltStructure->xAxis->setScaleRatio(ui->pltStructure->yAxis, 1);
-
-    ui->pltStructure->replot(QCustomPlot::rpQueuedReplot);
+//    for (const auto &a : atms) {
+//        int pos = static_cast<int>(std::find(atm_t.begin(), atm_t.end(), a.A) - atm_t.begin());
+//        if (pos < atm_t.size())
+//            curves[pos]->addData(a.x, a.y);
+//    }
+//
+//    ui->pltStructure->rescaleAxes();
+//
+//    // TODO: need to set this to keep all the data in the view
+//    // I think it depends on the window size, as well as the data range...
+//    // for now, this gives the right aspect ratio
+//    ui->pltStructure->xAxis->setScaleRatio(ui->pltStructure->yAxis, 1);
+//
+//    ui->pltStructure->replot(QCustomPlot::rpQueuedReplot);
 }
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
