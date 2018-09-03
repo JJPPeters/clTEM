@@ -7,25 +7,36 @@
 OGLBillBoardTechnique::OGLBillBoardTechnique()
 {
     _haveBuffers = false;
+    Q_INIT_RESOURCE(shaders);
 }
 
 bool OGLBillBoardTechnique::Init()
 {
     if (!OGLTechnique::Init()) {
-        throw std::runtime_error("OpenGL: Failed to initialise technique base.");
-        return false;
+        throw std::runtime_error("OpenGL: Failed to initialise technique base");
     }
 
-    if (!AddShader(GL_VERTEX_SHADER, "D:\\Users\\Jon\\Git\\XYZpp\\OpenGL\\billboard.vs")) {
-        throw std::runtime_error("OpenGL: Failed to initialise vertex shader.");
+    QFile f_vert(":/OGL/Shaders/billboard.vs");
+    if (!f_vert.open(QFile::ReadOnly | QFile::Text)) {
+        throw std::runtime_error("OpenGL: Failed to read vertex shader");
     }
+    auto s_vert = QTextStream(&f_vert).readAll().toStdString();
+    if (!AddShader(GL_VERTEX_SHADER, s_vert)) {
+        throw std::runtime_error("OpenGL: Failed to initialise vertex shader");
+    }
+    f_vert.close();
 
-    if (!AddShader(GL_FRAGMENT_SHADER, "D:\\Users\\Jon\\Git\\XYZpp\\OpenGL\\billboard.fs")) {
-        throw std::runtime_error("OpenGL: Failed to initialise fragment shader.");
+    QFile f_frag(":/OGL/Shaders/billboard.fs");
+    if (!f_frag.open(QFile::ReadOnly | QFile::Text)) {
+        throw std::runtime_error("OpenGL: Failed to read fragment shader");
+    }
+    auto s_frag = QTextStream(&f_frag).readAll().toStdString();
+    if (!AddShader(GL_FRAGMENT_SHADER, s_frag)) {
+        throw std::runtime_error("OpenGL: Failed to initialise fragment shader");
     }
 
     if (!Finalise()) {
-        throw std::runtime_error("OpenGL: Failed to finalise shaders.");
+        throw std::runtime_error("OpenGL: Failed to finalise shaders");
     }
 
     _MVLocation = GetUniformLocation("ModelView");
@@ -38,15 +49,24 @@ bool OGLBillBoardTechnique::Init()
         _TextureLocation == 0xffffffff ||
         _ScreenSizeLocation == 0xffffffff)
     {
-        throw std::runtime_error("OpenGL: Failed to initialise uniform locations.");
-        return false;
+        throw std::runtime_error("OpenGL: Failed to initialise uniform locations");
     }
 
     _sphereTexture = std::make_shared<OGLTexture>(OGLTexture(GL_TEXTURE_2D));
 
-    if (!_sphereTexture->LoadCharArrayFromFile("D:\\Users\\Jon\\Git\\XYZpp\\OpenGL\\sphere.bin", 64, 64))
+    QFile f_tex(":/OGL/Shaders/sphere.bin");
+    if (!f_tex.open(QFile::ReadOnly)) {
+        throw std::runtime_error("OpenGL: Failed to read sphere texture");
+    }
+    auto b_tex = f_tex.readAll();
+    std::vector<unsigned char> c_tex(b_tex.begin(), b_tex.end());
+
+    int test = b_tex.size();
+    int teste = c_tex.size();
+
+    if (!_sphereTexture->LoadCharArrayFromFile(c_tex, 64, 64))
     {
-        throw std::runtime_error("OpenGL: Failed to load sphere texture.");
+        throw std::runtime_error("OpenGL: Failed to load sphere texture");
         return false;
     }
 
@@ -54,10 +74,8 @@ bool OGLBillBoardTechnique::Init()
     _posBufLocation = GetAttribLocation("PosBuf");
 
     if (_posBufLocation == 0xffffffff ||
-        _colBufLocation == 0xffffffff)
-    {
-        throw std::runtime_error("OpenGL: Failed to initialise buffer locations.");
-        return false;
+        _colBufLocation == 0xffffffff) {
+        throw std::runtime_error("OpenGL: Failed to initialise buffer locations");
     }
 
     return true;

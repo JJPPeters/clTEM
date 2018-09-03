@@ -76,10 +76,8 @@ void Arrow(GLdouble x1, GLdouble y1, GLdouble z1, GLdouble x2, GLdouble y2, GLdo
 
 void Cube(std::vector<Vector3f> corners, const Matrix4f& Proj, const Matrix4f& MV)
 {
-    if (corners.size() != 8)
-    {
+    if (corners.size() != 8) {
         throw std::runtime_error("OpenGL: Attempt to draw cube without 8 vertices.");
-        return;
     }
 
     glPushMatrix();

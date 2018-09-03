@@ -11,7 +11,7 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
 
-    _camera = NULL;
+    _camera = nullptr;
 
     _width = width();
     _height = height();
@@ -222,7 +222,8 @@ void OGLViewWidget::paintGL()
     _technique.Render(MV, P, _camera->GetScreenSize());
     //glPopMatrix();
 
-    Cube(_cubeCoords, P, MV);
+    if (_cubeCoords.size() == 8)
+        Cube(_cubeCoords, P, MV);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -318,5 +319,21 @@ void OGLViewWidget::wheelEvent(QWheelEvent *event)
     {
         _camera->OnScroll(event->delta());
         update();
+    }
+}
+
+Vector3f OGLViewWidget::directionEnumToVector(View::Direction d) {
+    if (d == View::Direction::Front) {
+        return Vector3f(100.0f, 0.0f, 0.0f);
+    } else if (d == View::Direction::Back) {
+        return Vector3f(-100.0f, 0.0f, 0.0f);
+    } else if (d == View::Direction::Left) {
+        return Vector3f(0.0f, 100.0f, 0.0f);
+    } else if (d == View::Direction::Right) {
+        return Vector3f(100.0f, -100.0f, 0.0f);
+    } else if (d == View::Direction::Top) {
+        return Vector3f(0.0f, 0.0f, 100.0f);
+    } else {
+        return Vector3f(0.0f, 0.0f, -100.0f);
     }
 }

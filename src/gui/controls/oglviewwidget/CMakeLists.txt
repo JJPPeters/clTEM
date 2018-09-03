@@ -2,6 +2,7 @@ project( glViewWidget_lib )
 cmake_minimum_required( VERSION 3.5 )
 
 cmake_policy(SET CMP0071 NEW)
+cmake_policy(SET CMP0072 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -34,6 +35,9 @@ add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
 include_directories(${Qt5POpenGL_INCLUDE_DIRS})
 add_definitions(${Qt5OpenGL_DEFINITIONS})
+
+set(oglViewWidgets_RSCS shaders/shaders.qrc)
+QT5_ADD_RESOURCES(RSCS ${oglViewWidgets_RSCS})
 
 find_package(OpenGL REQUIRED)
 
@@ -74,6 +78,6 @@ set ( glViewWidget_SRCS
         oglviewwidget.cpp
         )
 
-add_library ( glViewWidget STATIC ${glViewWidget_HDRS} ${glViewWidget_SRCS})
+add_library ( glViewWidget STATIC ${glViewWidget_HDRS} ${glViewWidget_SRCS} ${RSCS})
 target_include_directories(glViewWidget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR})
 target_link_libraries ( glViewWidget  Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL ${OPENGL_LIBRARIES})

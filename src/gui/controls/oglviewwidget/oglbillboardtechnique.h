@@ -23,6 +23,8 @@ public:
             _positionBuffer->Delete();
         if (_colourBuffer)
             _colourBuffer->Delete();
+
+        Q_CLEANUP_RESOURCE(shaders);
     }
 
     bool Init() override;

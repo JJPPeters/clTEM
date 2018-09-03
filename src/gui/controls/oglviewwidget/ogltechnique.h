@@ -22,7 +22,7 @@ public:
     void Disable();
 
 protected:
-    bool AddShader(GLenum ShaderType, const char* pFileName);
+    bool AddShader(GLenum ShaderType, std::string shdr);
 
     bool Finalise();
 

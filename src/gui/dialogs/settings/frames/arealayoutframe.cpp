@@ -307,9 +307,26 @@ void AreaLayoutFrame::slicesChanged() {
 
 }
 
-// This needs to be called AFTER the window has been shown - do this with showevent
-// (otherwise axis scaling will not work)
 void AreaLayoutFrame::plotStructure() {
+
+    // test if we have a structure to plot...
+    if (!SimManager->getStructure())
+        return;
+
+    auto atms = SimManager->getStructure()->getAtoms();
+
+    std::vector<Vector3f> pos(atms.size());
+    std::vector<Vector3f> col(atms.size());
+
+    for (int i = 0; i < atms.size(); ++i) {
+        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
+
+        auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
+        col[i] = Vector3f(qc.red(), qc.green(), qc.blue());
+    }
+
+    ui->pltStructure->PlotAtoms(pos, col, View::Direction::Top);
+
 //    // TODO: might want to do on construction (in case we need to update)
 //    ui->pltStructure->setInteraction(QCP::iRangeDrag, true);
 //    ui->pltStructure->setInteraction(QCP::iRangeZoom, true);

@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/OGL/Shaders">
+        <file>billboard.fs</file>
+        <file>billboard.vs</file>
+        <file>sphere.bin</file>
+    </qresource>
+</RCC>

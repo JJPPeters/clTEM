@@ -39,15 +39,10 @@ bool OGLTechnique::Init()
     return true;
 }
 
-bool OGLTechnique::AddShader(GLenum ShaderType, const char *pFileName)
+bool OGLTechnique::AddShader(GLenum ShaderType, std::string shdr)
 {
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
-
-    std::string s;
-
-    if (!ReadFile(pFileName, s))
-        return false;
 
     GLuint ShaderObject = glFuncs->glCreateShader(ShaderType);
 
@@ -57,9 +52,9 @@ bool OGLTechnique::AddShader(GLenum ShaderType, const char *pFileName)
     _shaderObjectList.push_back(ShaderObject);
 
     const GLchar* p[1];
-    p[0] = s.c_str();
+    p[0] = shdr.c_str();
 
-    GLint Lengths[1] = { (GLint)s.size() };
+    GLint Lengths[1] = { (GLint)shdr.size() };
 
     glFuncs->glShaderSource(ShaderObject, 1, p, Lengths);
 
@@ -71,7 +66,7 @@ bool OGLTechnique::AddShader(GLenum ShaderType, const char *pFileName)
     if (!success)
     {
         GLchar InfoLog[1024];
-        glFuncs->glGetShaderInfoLog(ShaderObject, 1024, NULL, InfoLog);
+        glFuncs->glGetShaderInfoLog(ShaderObject, 1024, nullptr, InfoLog);
         std::cout << InfoLog << std::endl;
         return false;
     }

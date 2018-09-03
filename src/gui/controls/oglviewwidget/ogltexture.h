@@ -17,7 +17,7 @@ class OGLTexture
 public:
     explicit OGLTexture(GLenum TextureTarget);
 
-    bool LoadCharArrayFromFile(std::string filename, int width, int height);
+    bool LoadCharArrayFromFile(std::vector<unsigned char> img, int width, int height);
 
     void Bind(GLenum TextureUnit);
 
