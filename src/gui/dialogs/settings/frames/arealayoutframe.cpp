@@ -68,6 +68,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     areasChanged();
 }
 
+
+
 AreaLayoutFrame::~AreaLayoutFrame()
 {
     delete ui;
@@ -139,6 +141,8 @@ void AreaLayoutFrame::areasChanged() {
 
     ui->edtSliceThickness->setText(Utils_Qt::numToQString(dz));
     ui->edtSliceOffset->setText(Utils_Qt::numToQString(oz));
+
+    //ui->pltStructure->setOpenGl(true);
 }
 
 void AreaLayoutFrame::on_cmbResolution_currentIndexChanged(const QString &arg1) {
@@ -301,4 +305,92 @@ void AreaLayoutFrame::slicesChanged() {
 
     ui->lblSlices->setText(Utils_Qt::numToQString(n_slices));
 
+}
+
+// This needs to be called AFTER the window has been shown - do this with showevent
+// (otherwise axis scaling will not work)
+void AreaLayoutFrame::plotStructure() {
+    // TODO: might want to do on construction (in case we need to update)
+    ui->pltStructure->setInteraction(QCP::iRangeDrag, true);
+    ui->pltStructure->setInteraction(QCP::iRangeZoom, true);
+    ui->pltStructure->axisRect()->setupFullAxesBox();
+
+    // test if we have a structure to plot...
+    if (!SimManager->getStructure())
+        return;
+
+    std::vector<QCPCurve *> curves;
+
+    auto atm_t = SimManager->getStructure()->getAtomsTypes();
+    for (int i = 0; i < atm_t.size(); ++i) {
+
+        QCPCurve *mycurve = new QCPCurve(ui->pltStructure->xAxis, ui->pltStructure->yAxis);
+
+        auto ss = QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, QColor(127,127,127), GuiUtils::ElementNumberToQColour(atm_t[i]), 7);
+
+        mycurve->setLineStyle(QCPCurve::lsNone);
+        mycurve->setScatterStyle(ss);
+        curves.push_back(mycurve);
+    }
+
+    // get our atoms
+    auto atms = SimManager->getStructure()->getAtoms();
+    std::sort(atms.begin(), atms.end(), AtomSite_z_less_Sort());
+
+
+//    // sort through them all
+//    std::vector<AtomSite> shown;
+//    float diff_lim = 0.01f;
+//    for (const auto &a : atms) {
+//        bool add = true;
+//        float xa = a.x;
+//        float ya = a.y;
+//        float za = a.z;
+//
+//        std::vector<int> to_delete;
+//        for (int i = 0; i < shown.size(); ++i) {
+//            float xs = shown[i].x;
+//            float ys = shown[i].y;
+//            float zs = shown[i].z;
+//
+//            // if atoms are closer than our limits in x/y
+//            if (std::abs(xs-xa) < diff_lim && std::abs(ys-ya) < diff_lim) {
+//                if (za > zs) {
+//                    // mark shown atoms for deletion
+//                    to_delete.push_back(i);
+//                } else {
+//                    add = false;
+//                }
+//            }
+//        }
+//
+//        // delete atoms from our shown list
+//        // we know because of how we looped through, that our delete is list in ascending order
+//        for (int i = 0; i < to_delete.size(); ++i) {
+//            shown.erase(shown.begin() + to_delete[to_delete.size() - 1 - i]);
+//        }
+//
+//        if (add)
+//            shown.emplace_back(a);
+//    }
+
+    for (const auto &a : atms) {
+        int pos = static_cast<int>(std::find(atm_t.begin(), atm_t.end(), a.A) - atm_t.begin());
+        if (pos < atm_t.size())
+            curves[pos]->addData(a.x, a.y);
+    }
+
+    ui->pltStructure->rescaleAxes();
+
+    // TODO: need to set this to keep all the data in the view
+    // I think it depends on the window size, as well as the data range...
+    // for now, this gives the right aspect ratio
+    ui->pltStructure->xAxis->setScaleRatio(ui->pltStructure->yAxis, 1);
+
+    ui->pltStructure->replot(QCustomPlot::rpQueuedReplot);
+}
+
+void AreaLayoutFrame::showEvent(QShowEvent *event) {
+    QWidget::showEvent(event);
+    plotStructure();
 }

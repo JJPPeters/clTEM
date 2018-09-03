@@ -31,6 +31,8 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
 add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
+# add_compile_definitions(QCUSTOMPLOT_USE_OPENGL)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
 if(CMAKE_BUILD_TYPE MATCHES Release)

@@ -40,4 +40,11 @@ struct AtomSite : public Atom
     }
 };
 
+// use this to sort atoms by z https://stackoverflow.com/questions/1380463/sorting-a-vector-of-custom-objects
+struct AtomSite_z_less_Sort {
+    inline bool operator() (const Atom& a1, const Atom& a2) {
+        return a1.z < a2.z;
+    }
+};
+
 #endif // ATOM_H

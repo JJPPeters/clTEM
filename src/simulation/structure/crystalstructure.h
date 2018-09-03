@@ -20,6 +20,8 @@ private:
     /// Vector of atoms with coordinates in Angstroms
     std::vector<AtomSite> Atoms;
 
+    std::vector<int> AtomTypes;
+
     std::string filePath;
 
     bool file_defined_thermals;
@@ -40,8 +42,12 @@ private:
 
     void processOccupancyList(std::vector<AtomSite> &aList);
 
+    void addAtom(AtomSite a);
+
 public:
-    CrystalStructure(std::string& fPath);
+    explicit CrystalStructure(std::string& fPath);
+
+    std::vector<int> getAtomsTypes() {return AtomTypes;}
 
     bool isThermalFileDefined() { return file_defined_thermals; }
 

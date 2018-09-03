@@ -43,6 +43,8 @@ private slots:
 
     void slicesChanged();
 
+    void showEvent(QShowEvent* event) override;
+
 private:
     Ui::AreaLayoutFrame *ui;
 
@@ -57,6 +59,8 @@ private:
     bool getErrorStringCbed();
 
     void setStructLimits();
+
+    void plotStructure();
 };
 
 #endif // AREALAYOUTFRAME_H
