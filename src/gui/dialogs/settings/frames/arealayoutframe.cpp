@@ -351,4 +351,12 @@ void AreaLayoutFrame::plotStructure() {
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
     plotStructure();
+
+    // TODO: turn this into code to get the scale of the window
+    // currently just gets the view width/height of the window in the structures coordinates
+    //auto vw = pltStructure->GetCamera()->GetOrthoViewWidth();
+    //auto vh = pltStructure->GetCamera()->GetOrthoViewHeight();
+    // show it in some static labels for testing
+    //ui->label_17->setText( QString::number(vh) );
+    //ui->label_16->setText( QString::number(vw) );
 }

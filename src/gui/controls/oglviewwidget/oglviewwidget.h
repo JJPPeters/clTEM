@@ -58,28 +58,7 @@ public:
         fitView(1.0);
     }
 
-    void MakeBuffers(std::vector<Vector3f>& positions, std::vector<Vector3f>& colours)
-    {
-        makeCurrent();
-        _technique.MakeBuffers(positions, colours);
-        doneCurrent();
-    }
-
-    void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
-
-    void SetCube(std::vector<Vector3f> Cube)
-    {
-        makeCurrent();
-        _cubeCoords = std::move(Cube);
-        doneCurrent();
-    }
-
-    void SetCamera(Vector3f position, Vector3f target, Vector3f up, float rx, float ry, float rz, ViewMode mode);
-    void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
-
-    void fitView(float extend = 1.0);
-    void fitPerspView(float extend = 1.0);
-    void fitOrthoView(float extend = 1.0);
+    std::shared_ptr<OGLCamera> GetCamera() { return _camera;}
 
 protected:
     void initializeGL() override;
@@ -105,6 +84,29 @@ private:
     Vector3f _background;
 
     QPoint _lastPos;
+
+    void MakeBuffers(std::vector<Vector3f>& positions, std::vector<Vector3f>& colours)
+    {
+        makeCurrent();
+        _technique.MakeBuffers(positions, colours);
+        doneCurrent();
+    }
+
+    void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
+
+    void SetCube(std::vector<Vector3f> Cube)
+    {
+        makeCurrent();
+        _cubeCoords = std::move(Cube);
+        doneCurrent();
+    }
+
+    void SetCamera(Vector3f position, Vector3f target, Vector3f up, float rx, float ry, float rz, ViewMode mode);
+    void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
+
+    void fitView(float extend = 1.0);
+    void fitPerspView(float extend = 1.0);
+    void fitOrthoView(float extend = 1.0);
 };
 
 #endif // MYGLWIDGET_H

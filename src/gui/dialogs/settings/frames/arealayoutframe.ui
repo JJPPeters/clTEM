@@ -511,7 +511,7 @@
            <item row="1" column="1">
             <widget class="QLabel" name="label_16">
              <property name="text">
-              <string>x range:</string>
+              <string>y range:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -579,7 +579,7 @@
            <item row="0" column="1">
             <widget class="QLabel" name="label_17">
              <property name="text">
-              <string>y range: </string>
+              <string>x range: </string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>

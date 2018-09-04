@@ -34,6 +34,9 @@ public:
 
     void SetWidthHeight(float width, float height);
 
+    float GetOrthoViewHeight() { return (_orthoProjInfo.t - _orthoProjInfo.b);}
+    float GetOrthoViewWidth() { return (_orthoProjInfo.r - _orthoProjInfo.l);}
+
     float GetWidth(){ return _width; }
     float GetHeight(){ return _height; }
 
