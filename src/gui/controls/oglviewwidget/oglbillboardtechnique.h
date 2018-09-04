@@ -31,8 +31,6 @@ public:
 
     void SetProj(const Matrix4f& P);
     void SetModelView(const Matrix4f& MV);
-    void SetColourTextureUnit(unsigned int TexterUnit);
-    void SetScreenSize(Vector2f size);
     GLint GetAttribLocation(std::string name);
 
     void MakeBuffers(std::vector<Vector3f>& positions, std::vector<Vector3f>& colours);
@@ -42,16 +40,12 @@ public:
 private:
     std::shared_ptr<OGLVertexBuffer> _positionBuffer, _colourBuffer;
 
-    std::shared_ptr<OGLTexture> _sphereTexture;
-
     bool _haveBuffers;
 
     GLint _posBufLocation;
     GLint _colBufLocation;
     GLuint _PLocation;
     GLuint _MVLocation;
-//    GLuint _TextureLocation;
-    GLuint _ScreenSizeLocation;
 };
 
 

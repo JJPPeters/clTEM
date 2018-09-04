@@ -1,17 +1,18 @@
-#version 130
+#version 330
 
-in vec4 ColourPass;
+in vec2 Vertex_UV;
+in vec4 Vertex_Color;
                                                            
 out vec4 FragColor;
                                                                                     
 void main()
-{                   
-	vec2 shifted = gl_PointCoord - vec2(0.5, 0.5);
-	float rsq = dot(shifted, shifted);
-	if(rsq >= 0.1) discard;
-
-    if (rsq >= 0.09)
+{
+	vec2 uv = Vertex_UV.xy - vec2(0.5, 0.5);
+	float rsq = dot(uv, uv);
+	if(rsq >= 0.25)
+	    discard;
+	else if (rsq >= 0.22)
         FragColor = vec4(1.0,1.0,1.0,1.0);
     else
-        FragColor = ColourPass;
+        FragColor = Vertex_Color;
 }

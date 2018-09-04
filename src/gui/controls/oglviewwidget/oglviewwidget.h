@@ -41,7 +41,7 @@ public:
             float y_max,
             float z_min,
             float z_max) {
-        // TODO: centre on strucure
+        // TODO: centre on structure
         // TODO: get limits of view and show them
 
         MakeBuffers(pos, cols);

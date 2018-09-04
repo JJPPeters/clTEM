@@ -2,6 +2,6 @@
     <qresource prefix="/OGL/Shaders">
         <file>billboard.fs</file>
         <file>billboard.vs</file>
-        <file>sphere.bin</file>
+        <file>billboard.gs</file>
     </qresource>
 </RCC>
