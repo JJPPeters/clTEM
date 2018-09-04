@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-const static float SCROLL_STEP_SCALE = 0.01f;
+const static float SCROLL_STEP_SCALE = 0.05f;
 const static float STEP_SCALE = 1.0f;
 
 OGLCamera::OGLCamera(const Vector3f& Pos, const Vector3f& Target, const Vector3f& Up, const Vector3f& Origin, float rx, float ry, float rz, ViewMode Mode)
@@ -39,7 +39,7 @@ void OGLCamera::OnMouseLeft(float dx, float dy)
 
 void OGLCamera::OnMouseRight(float dx, float dy)
 {
-    float scaling = 0.0f;
+    float scaling;
 
     if (_projMode == ViewMode::Orthographic)
     {
@@ -48,13 +48,12 @@ void OGLCamera::OnMouseRight(float dx, float dy)
     }
     else
     {
-        Vector4f p = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
 
+        Vector4f p = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
         Vector4f p1 = getMVP() * p;
 
         Vector4f right4(getCameraRight(), 1.0f);
-
-        Vector4f p2 = getMVP() * (p + right4);
+        Vector4f p2 = getMVP() * right4;
 
         if (p1.w == 0 || p2.w == 0)
             scaling = 0;
@@ -67,23 +66,22 @@ void OGLCamera::OnMouseRight(float dx, float dy)
             // so we end up with the size of a unit vector, at the origin, in pixels
             // then I fudge some factors until it seems to work OK-ish
 
+            // w is the fourth element?
             float f = 1 / p1.w;
             p1 *= f;
-            p1.w = f;
 
             f = 1 / p2.w;
             p2 *= f;
-            p2.w = f;
 
-            float x1 = (p1.x * 0.5 + 0.5) * _width;
-            float y1 = (p1.y * 0.5 + 0.5) * _height;
+            float x1 = (p1.x) * _width;
+            float y1 = (p1.y) * _height;
 
-            float x2 = (p2.x * 0.5 + 0.5) * _width;
-            float y2 = (p2.y * 0.5 + 0.5) * _height;
+            float x2 = (p2.x) * _width;
+            float y2 = (p2.y) * _height;
 
             float ff = std::sqrt((x1 - x2)*(x1 - x2) + (y1-y2)*(y1-y2));
 
-            ff = 0.8 / ff;
+            ff = 0.8f / ff;
 
             scaling = ff;
         }
@@ -106,8 +104,8 @@ void OGLCamera::OnScroll(float delta)
         // scroll out gives bigger fov so subtract
         float fov = _orthoProjInfo.t - delta * SCROLL_STEP_SCALE;
 
-        if (fov < 1)
-            fov = 1;
+        if (fov < 2)
+            fov = 2;
 
         _orthoProjInfo.t = fov;
         _orthoProjInfo.b = -fov;

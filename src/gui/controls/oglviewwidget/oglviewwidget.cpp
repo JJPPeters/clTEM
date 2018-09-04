@@ -15,6 +15,11 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 
     _width = width();
     _height = height();
+
+    // use system colours
+    // TODO: make this customisable
+    auto bk_col = qApp->palette().brush(QPalette::Background).color();
+    _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 }
 
 OGLViewWidget::~OGLViewWidget()
@@ -44,8 +49,8 @@ void OGLViewWidget::fitView(float extend)
     if (_camera->getProjectionMode() == ViewMode::Perspective)
     {
         // this might want to be iterative as the angles change as the distance is changed
-        // if this starts acting up, I would manually set the view to be in front of the cubr here,
-        // then run the function twice (make is use _camera->getCameraPosiion()
+        // if this starts acting up, I would manually set the view to be in front of the cube here,
+        // then run the function twice (make is use _camera->getCameraPosition()
         fitPerspView(extend);
     }
     else
@@ -70,7 +75,6 @@ void OGLViewWidget::fitOrthoView(float extend)
         if (std::abs(MV_coord.x) > w)
         {
             w = std::abs(MV_coord.x);
-
         }
         if (std::abs(MV_coord.y) > h)
         {
@@ -188,6 +192,10 @@ void OGLViewWidget::initializeGL()
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
 
+    // this is the background colour...
+    glClearColor(_background.x, _background.y, _background.z, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     //glFrontFace(GL_CW);
     //glCullFace(GL_BACK);
     //glEnable(GL_CULL_FACE);
@@ -222,14 +230,16 @@ void OGLViewWidget::paintGL()
     _technique.Render(MV, P, _camera->GetScreenSize());
     //glPopMatrix();
 
-    if (_cubeCoords.size() == 8)
-        Cube(_cubeCoords, P, MV);
+    // add this back in to draw the cube
+//    if (_cubeCoords.size() == 8)
+//        Cube(_cubeCoords, P, MV);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
     _camera->SetViewPortFraction(0, 0, 0.15, 70);
 
-    XyzDirection(_camera->getMV());//_camera->GetRotation(), _camera->GetUp(), _camera->GetTarget(), _camera->GetRight());
+    // Add this back in the get that little RGB axis indicator
+    //XyzDirection(_camera->getMV());//_camera->GetRotation(), _camera->GetUp(), _camera->GetTarget(), _camera->GetRight());
 
     _camera->ResetViewPort();
 }
@@ -262,16 +272,17 @@ void OGLViewWidget::mouseMoveEvent(QMouseEvent *event)
     int dx = event->x() - _lastPos.x();
     int dy = event->y() - _lastPos.y();
 
+    // mouse right is pan, mouse left is rotate
     if (event->buttons() & Qt::LeftButton)
-    {
-        _camera->OnMouseLeft(dx, dy);
-        update();
-    }
-    else if (event->buttons() & Qt::RightButton)
     {
         _camera->OnMouseRight(dx, dy);
         update();
     }
+//    else if (event->buttons() & Qt::RightButton)
+//    {
+//        _camera->OnMouseLeft(dx, dy);
+//        update();
+//    }
 
     _lastPos = event->pos();
 }
@@ -336,4 +347,18 @@ Vector3f OGLViewWidget::directionEnumToVector(View::Direction d) {
     } else {
         return Vector3f(0.0f, 0.0f, -100.0f);
     }
+}
+
+void OGLViewWidget::SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max) {
+
+    std::vector<Vector3f> cc = {Vector3f(x_min, y_min, z_min),
+                                Vector3f(x_max, y_min, z_min),
+                                Vector3f(x_min, y_max, z_min),
+                                Vector3f(x_max, y_max, z_min),
+                                Vector3f(x_min, y_min, z_max),
+                                Vector3f(x_max, y_min, z_max),
+                                Vector3f(x_min, y_max, z_max),
+                                Vector3f(x_max, y_max, z_max)};
+
+    SetCube(cc);
 }

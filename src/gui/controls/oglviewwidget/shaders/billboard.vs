@@ -11,8 +11,7 @@ out vec4 ColourPass;
 uniform vec2 ScreenSize;
 
 void main()                                                                         
-{                                                                                   
-          
+{
     ColourPass = vec4(ColBuf, 1.0);
 
     vec4 EyePos = ModelView * vec4(PosBuf, 1);
@@ -22,7 +21,6 @@ void main()
     vec2 ProjSize = ScreenSize * ProjVoxel.xy / ProjVoxel.w;
 
     gl_PointSize = 0.8 * (ProjSize.x + ProjSize.y);
-    //BaseSize * 1.0 / (eye_position.z * Proj[2][3] + Proj[3][3]);
 
-    gl_Position = Proj * EyePos;                         
+    gl_Position = 1.5 * Proj * EyePos;
 }                                                                                   

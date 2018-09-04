@@ -6,6 +6,7 @@
 #include "ctemareaframe.h"
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
+#include "controls/oglviewwidget/oglviewwidget.h"
 
 namespace Ui {
 class AreaLayoutFrame;
@@ -53,6 +54,8 @@ private:
     CtemAreaFrame *CtemFrame;
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
+
+    OGLViewWidget *pltStructure;
 
     bool getErrorStringCtem();
     bool getErrorStringStem();
