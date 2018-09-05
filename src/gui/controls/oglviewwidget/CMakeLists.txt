@@ -58,9 +58,9 @@ set ( glViewWidget_HDRS
         oglcamerapipeline.h
         ogldefines.h
         oglmaths.h
+        oglrectangletechnique.h
         ogltechnique.h
         ogltexture.h
-        oglutils.h
         oglvertexbuffer.h
         oglviewwidget.h
         )
@@ -71,9 +71,9 @@ set ( glViewWidget_SRCS
         oglcamerapipeline.cpp
         ogldefines.cpp
         oglmaths.cpp
+        oglrectangletechnique.cpp
         ogltechnique.cpp
         ogltexture.cpp
-        oglutils.cpp
         oglvertexbuffer.cpp
         oglviewwidget.cpp
         )

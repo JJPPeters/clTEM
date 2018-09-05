@@ -16,8 +16,11 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     QSurfaceFormat format;
 //    format.setDepthBufferSize(24);
 //    format.setStencilBufferSize(8);
-    format.setVersion(3, 3);
 //    format.setProfile(QSurfaceFormat::CoreProfile);
+    // sets MSAA samples
+//    format.setSamples(4);
+    // sets opengl version
+    format.setVersion(3, 3);
     pltStructure->setFormat(format);
 
     ui->vPlotLayout->addWidget(pltStructure, 1);

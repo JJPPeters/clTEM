@@ -2,8 +2,8 @@
 // Created by Jon on 03/09/2018.
 //
 
-#ifndef CLTEM_OGLBILLBOARDTECHNIQUE_H
-#define CLTEM_OGLBILLBOARDTECHNIQUE_H
+#ifndef CLTEM_OGLRECTANGLETECHNIQUE_H
+#define CLTEM_OGLRECTANGLETECHNIQUE_H
 
 
 #include "ogltechnique.h"
@@ -13,12 +13,12 @@
 
 #include <memory>
 
-class OGLBillBoardTechnique : public OGLTechnique
+class OGLRectangleTechnique : public OGLTechnique
 {
 public:
-    OGLBillBoardTechnique();
+    OGLRectangleTechnique();
 
-    ~OGLBillBoardTechnique() override {
+    ~OGLRectangleTechnique() override {
         if (_positionBuffer)
             _positionBuffer->Delete();
         if (_colourBuffer)
@@ -29,7 +29,7 @@ public:
 
     bool Init() override;
 
-    void MakeBuffers(std::vector<Vector3f>& positions, std::vector<Vector3f>& colours);
+    void MakeBuffers(std::vector<Vector3f>& positions, std::vector<Vector4f>& colours);
 
     bool Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize);
 
@@ -43,4 +43,4 @@ private:
 };
 
 
-#endif //CLTEM_OGLBILLBOARDTECHNIQUE_H
+#endif //CLTEM_OGLRECTANGLETECHNIQUE_H

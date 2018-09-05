@@ -6,8 +6,6 @@
 //#include <stdlib.h>
 #include <cassert>
 
-#include "oglutils.h"
-
 Vector3f Vector3f::Cross(const Vector3f& v) const
 {
     const float _x = y * v.z - z * v.y;

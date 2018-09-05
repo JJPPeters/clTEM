@@ -15,6 +15,7 @@
 #include "oglvertexbuffer.h"
 #include "oglbillboardtechnique.h"
 #include "oglcamera.h"
+#include "oglrectangletechnique.h"
 
 namespace View {
     enum Direction {
@@ -44,7 +45,18 @@ public:
         // TODO: centre on structure
         // TODO: get limits of view and show them
 
-        MakeBuffers(pos, cols);
+        MakeScatterBuffers(pos, cols);
+
+        std::vector<Vector3f> pos_1 = {Vector3f(0.0, 0.0, 1.0),
+                                       Vector3f(10, 0.0, 1.0),
+                                       Vector3f(10, 10, 1.0),
+                                       Vector3f(0, 10, 1.0)};
+        std::vector<Vector4f> col_1 = {Vector4f(1.0, 0.0, 0.0, 0.5f),
+                                       Vector4f(0.0, 1.0, 0.0, 0.1f),
+                                       Vector4f(0.0, 0.0, 1.0, 0.9f),
+                                       Vector4f(0.0, 1.0, 1.0, 0.9f)};
+
+        AddRectBuffer(pos_1, col_1);
 
         SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
 
@@ -54,6 +66,7 @@ public:
         if (view_dir == View::Direction::Top || view_dir == View::Direction::Bottom)
             n_d = directionEnumToVector(View::Direction::Front);
         SetCamera(v_d*-1, v_d, n_d, ViewMode::Orthographic);
+
         // TODO: cube coords need to be defined for this to work
         fitView(1.0);
     }
@@ -73,7 +86,8 @@ protected:
 private:
     Vector3f directionEnumToVector(View::Direction d);
 
-    OGLBillBoardTechnique _technique;
+    std::shared_ptr<OGLBillBoardTechnique> _technique;
+    std::shared_ptr<OGLRectangleTechnique> _recTech;
 
     std::shared_ptr<OGLCamera> _camera;
 
@@ -85,10 +99,22 @@ private:
 
     QPoint _lastPos;
 
-    void MakeBuffers(std::vector<Vector3f>& positions, std::vector<Vector3f>& colours)
+    void MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours)
     {
+        if(positions.size() != colours.size())
+            throw std::runtime_error("OpenGL: Scatter position vector size does not match scatter colour vector size");
+
         makeCurrent();
-        _technique.MakeBuffers(positions, colours);
+        _technique->MakeBuffers(positions, colours);
+        doneCurrent();
+    }
+
+    void AddRectBuffer(std::vector<Vector3f> &positions, std::vector<Vector4f> &colours) {
+        if(positions.size() != colours.size())
+            throw std::runtime_error("OpenGL: Rectangle position vector size does not match scatter colour vector size");
+
+        makeCurrent();
+        _recTech->MakeBuffers(positions, colours);
         doneCurrent();
     }
 

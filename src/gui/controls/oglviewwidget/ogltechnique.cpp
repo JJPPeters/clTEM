@@ -3,7 +3,6 @@
 //
 
 #include "ogltechnique.h"
-#include "oglutils.h"
 
 #include <iostream>
 
@@ -151,4 +150,28 @@ GLint OGLTechnique::GetProgramParam(GLint param)
     GLint ret;
     glFuncs->glGetProgramiv(_shaderProg, param, &ret);
     return ret;
+}
+
+GLint OGLTechnique::GetAttribLocation(std::string name)
+{
+    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+    glFuncs->initializeOpenGLFunctions();
+
+    return glFuncs->glGetAttribLocation(_shaderProg, name.c_str());
+}
+
+void OGLTechnique::SetModelView(const Matrix4f& MV)
+{
+    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+    glFuncs->initializeOpenGLFunctions();
+
+    glFuncs->glUniformMatrix4fv(_MVLocation, 1, GL_TRUE, (const GLfloat*)MV.m);
+}
+
+void OGLTechnique::SetProj(const Matrix4f& P)
+{
+    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+    glFuncs->initializeOpenGLFunctions();
+
+    glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_TRUE, (const GLfloat*)P.m);
 }

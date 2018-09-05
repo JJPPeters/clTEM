@@ -75,30 +75,6 @@ void OGLBillBoardTechnique::MakeBuffers(std::vector<Vector3f>& positions, std::v
     _haveBuffers = true;
 }
 
-void OGLBillBoardTechnique::SetModelView(const Matrix4f& MV)
-{
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-    glFuncs->initializeOpenGLFunctions();
-
-    glFuncs->glUniformMatrix4fv(_MVLocation, 1, GL_TRUE, (const GLfloat*)MV.m);
-}
-
-void OGLBillBoardTechnique::SetProj(const Matrix4f& P)
-{
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-    glFuncs->initializeOpenGLFunctions();
-
-    glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_TRUE, (const GLfloat*)P.m);
-}
-
-GLint OGLBillBoardTechnique::GetAttribLocation(std::string name)
-{
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-    glFuncs->initializeOpenGLFunctions();
-
-    return glFuncs->glGetAttribLocation(_shaderProg, name.c_str());
-}
-
 bool OGLBillBoardTechnique::Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize)
 {
     if (!_haveBuffers)
@@ -109,7 +85,7 @@ bool OGLBillBoardTechnique::Render(const Matrix4f &MV, const Matrix4f &P, const 
     SetModelView(MV);
 
     _colourBuffer->Draw(false);
-    _positionBuffer->Draw(true);
+    _positionBuffer->Draw(true, GL_POINTS);
 
     Disable();
 

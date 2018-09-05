@@ -15,15 +15,17 @@ class OGLVertexBuffer
 {
 public:
     OGLVertexBuffer(std::vector<Vector3f> BufferData, GLuint BufferIndex);
+    OGLVertexBuffer(std::vector<Vector4f> BufferData, GLuint BufferIndex);
 
-    void Draw(bool draw);
+    void Draw(bool draw, GLenum draw_type = GL_LINES);
 
     void Delete();
 
 private:
+
     GLuint _BufferPtr, _BufferIndex;
 
-    unsigned int _Size;
+    unsigned int _Size, _SizePer;
 
     bool Exists();
 };

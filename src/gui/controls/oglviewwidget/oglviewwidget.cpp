@@ -1,8 +1,6 @@
 // myglwidget.cpp
 #include "oglviewwidget.h"
 
-#include "oglutils.h"
-
 #include <limits>
 
 #include <iostream>
@@ -20,6 +18,9 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     // TODO: make this customisable
     auto bk_col = qApp->palette().brush(QPalette::Background).color();
     _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
+
+    _technique = std::make_shared<OGLBillBoardTechnique>();
+    _recTech = std::make_shared<OGLRectangleTechnique>();
 }
 
 OGLViewWidget::~OGLViewWidget()
@@ -192,7 +193,7 @@ void OGLViewWidget::initializeGL()
     // without this get errors with "glVertexAttribPointer"
     auto _vao = new QOpenGLVertexArrayObject( this );
     _vao->create();
-    _vao->bind();
+    _vao->bind(); // TODO: release this somewhere?
 
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
@@ -202,14 +203,25 @@ void OGLViewWidget::initializeGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+//    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-    try
-    {
-        _technique.Init();
+    //glEnable(GL_MULTISAMPLE);
+    //glEnable(GL_SAMPLE_SHADING);
+
+    // this is for alpha stuff
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    try {
+        _technique->Init();
+    } catch (std::runtime_error& err) {
+        QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
+        return;
     }
-    catch (std::runtime_error& err)
-    {
+
+    try {
+        _recTech->Init();
+    } catch (std::runtime_error& err) {
         QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
         return;
     }
@@ -226,13 +238,20 @@ void OGLViewWidget::paintGL()
     Matrix4f MV = _camera->getMV();
     Matrix4f P = _camera->getP();
 
-    _technique.Render(MV, P, _camera->GetScreenSize());
+    _technique->Render(MV, P, _camera->GetScreenSize());
+
+    _recTech->Render(MV, P, _camera->GetScreenSize());
+
+//    for(auto &rt : _recTechs)
+//        rt->Render(MV, P, _camera->GetScreenSize());
 
     // add this back in to draw the cube
 //    if (_cubeCoords.size() == 8)
-//        Cube(_cubeCoords, P, MV);
+//        CubeFrame(_cubeCoords, P, MV);
 
     glClear(GL_DEPTH_BUFFER_BIT);
+
+//    Rectangle(-50, -50, 10, 10, 0, P, MV);
 
     _camera->SetViewPortFraction(0, 0, 0.15, 70);
 
@@ -276,11 +295,11 @@ void OGLViewWidget::mouseMoveEvent(QMouseEvent *event)
         _camera->OnMouseRight(dx, dy);
         update();
     }
-//    else if (event->buttons() & Qt::RightButton)
-//    {
-//        _camera->OnMouseLeft(dx, dy);
-//        update();
-//    }
+    else if (event->buttons() & Qt::RightButton)
+    {
+        _camera->OnMouseLeft(dx, dy);
+        update();
+    }
 
     _lastPos = event->pos();
 }

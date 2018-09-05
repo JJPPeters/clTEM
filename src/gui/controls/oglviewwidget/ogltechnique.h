@@ -8,6 +8,7 @@
 
 #include <QtOpenGL>
 
+#include "oglmaths.h"
 class OGLTechnique
 {
 public:
@@ -30,7 +31,15 @@ protected:
 
     GLint GetProgramParam(GLint param);
 
+    GLint GetAttribLocation(std::string name);
+
+    void SetProj(const Matrix4f& P);
+    void SetModelView(const Matrix4f& MV);
+
     GLuint _shaderProg;
+
+    GLuint _PLocation;
+    GLuint _MVLocation;
 
 private:
     typedef std::list<GLuint> ShaderObjectList;
