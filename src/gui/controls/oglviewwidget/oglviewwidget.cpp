@@ -189,6 +189,11 @@ void OGLViewWidget::fitPerspView(float extend)
 
 void OGLViewWidget::initializeGL()
 {
+    // without this get errors with "glVertexAttribPointer"
+    auto _vao = new QOpenGLVertexArrayObject( this );
+    _vao->create();
+    _vao->bind();
+
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
 
@@ -196,12 +201,7 @@ void OGLViewWidget::initializeGL()
     glClearColor(_background.x, _background.y, _background.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //glFrontFace(GL_CW);
-    //glCullFace(GL_BACK);
-    //glEnable(GL_CULL_FACE);
-    glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_POINT_SPRITE);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
     try
@@ -226,9 +226,7 @@ void OGLViewWidget::paintGL()
     Matrix4f MV = _camera->getMV();
     Matrix4f P = _camera->getP();
 
-    //glPushMatrix();
     _technique.Render(MV, P, _camera->GetScreenSize());
-    //glPopMatrix();
 
     // add this back in to draw the cube
 //    if (_cubeCoords.size() == 8)

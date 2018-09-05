@@ -1,8 +1,8 @@
-#version 330
+#version 150
                                                                                     
 layout(points) in;
 layout(triangle_strip) out;                                                         
-layout(max_vertices = 4) out;                                                       
+layout(max_vertices = 4) out;
 
 uniform mat4 Proj;
 

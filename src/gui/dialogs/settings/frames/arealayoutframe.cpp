@@ -10,6 +10,16 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->setupUi(this);
 
     pltStructure = new OGLViewWidget(this);
+
+    // this is just from theQt website, Not really sure what it does,
+    // but it mkes OpenGL work on my linux laptop (intel 4th gen)
+    QSurfaceFormat format;
+//    format.setDepthBufferSize(24);
+//    format.setStencilBufferSize(8);
+    format.setVersion(3, 3);
+//    format.setProfile(QSurfaceFormat::CoreProfile);
+    pltStructure->setFormat(format);
+
     ui->vPlotLayout->addWidget(pltStructure, 1);
     pltStructure->setMinimumWidth(400);
 
@@ -354,9 +364,9 @@ void AreaLayoutFrame::showEvent(QShowEvent *event) {
 
     // TODO: turn this into code to get the scale of the window
     // currently just gets the view width/height of the window in the structures coordinates
-    //auto vw = pltStructure->GetCamera()->GetOrthoViewWidth();
-    //auto vh = pltStructure->GetCamera()->GetOrthoViewHeight();
+//    auto vw = pltStructure->GetCamera()->GetOrthoViewWidth();
+//    auto vh = pltStructure->GetCamera()->GetOrthoViewHeight();
     // show it in some static labels for testing
-    //ui->label_17->setText( QString::number(vh) );
-    //ui->label_16->setText( QString::number(vw) );
+//    ui->label_17->setText( QString::number(vh) );
+//    ui->label_16->setText( QString::number(vw) );
 }

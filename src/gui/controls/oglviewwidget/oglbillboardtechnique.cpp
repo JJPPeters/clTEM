@@ -2,6 +2,7 @@
 // Created by Jon on 03/09/2018.
 //
 
+#include <iostream>
 #include "oglbillboardtechnique.h"
 
 OGLBillBoardTechnique::OGLBillBoardTechnique()
@@ -34,6 +35,7 @@ bool OGLBillBoardTechnique::Init()
     if (!AddShader(GL_GEOMETRY_SHADER, s_geo)) {
         throw std::runtime_error("OpenGL: Failed to initialise geometry shader");
     }
+    f_geo.close();
 
     QFile f_frag(":/OGL/Shaders/billboard.fs");
     if (!f_frag.open(QFile::ReadOnly | QFile::Text)) {
@@ -43,6 +45,7 @@ bool OGLBillBoardTechnique::Init()
     if (!AddShader(GL_FRAGMENT_SHADER, s_frag)) {
         throw std::runtime_error("OpenGL: Failed to initialise fragment shader");
     }
+    f_frag.close();
 
     if (!Finalise()) {
         throw std::runtime_error("OpenGL: Failed to finalise shaders");

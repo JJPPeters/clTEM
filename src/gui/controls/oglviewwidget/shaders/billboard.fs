@@ -1,4 +1,4 @@
-#version 330
+#version 150
 
 in vec2 Vertex_UV;
 in vec4 Vertex_Color;

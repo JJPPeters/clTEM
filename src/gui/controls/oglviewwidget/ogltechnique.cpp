@@ -34,9 +34,7 @@ bool OGLTechnique::Init()
 
     _shaderProg = glFuncs->glCreateProgram();
 
-    if (_shaderProg == 0)
-        return false;
-    return true;
+    return _shaderProg != 0;
 }
 
 bool OGLTechnique::AddShader(GLenum ShaderType, std::string shdr)
