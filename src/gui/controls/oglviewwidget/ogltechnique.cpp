@@ -19,8 +19,7 @@ OGLTechnique::~OGLTechnique()
     for (ShaderObjectList::iterator it = _shaderObjectList.begin(); it != _shaderObjectList.end(); ++it)
         glFuncs->glDeleteShader(*it);
 
-    if (_shaderProg != 0)
-    {
+    if (_shaderProg != 0) {
         glFuncs->glDeleteProgram(_shaderProg);
         _shaderProg = 0;
     }
@@ -36,43 +35,6 @@ bool OGLTechnique::Init()
     return _shaderProg != 0;
 }
 
-bool OGLTechnique::AddShader(GLenum ShaderType, std::string shdr)
-{
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-    glFuncs->initializeOpenGLFunctions();
-
-    GLuint ShaderObject = glFuncs->glCreateShader(ShaderType);
-
-    if (ShaderObject == 0)
-        return false;
-
-    _shaderObjectList.push_back(ShaderObject);
-
-    const GLchar* p[1];
-    p[0] = shdr.c_str();
-
-    GLint Lengths[1] = { (GLint)shdr.size() };
-
-    glFuncs->glShaderSource(ShaderObject, 1, p, Lengths);
-
-    glFuncs->glCompileShader(ShaderObject);
-
-    GLint success;
-    glFuncs->glGetShaderiv(ShaderObject, GL_COMPILE_STATUS, &success);
-
-    if (!success)
-    {
-        GLchar InfoLog[1024];
-        glFuncs->glGetShaderInfoLog(ShaderObject, 1024, nullptr, InfoLog);
-        std::cout << InfoLog << std::endl;
-        return false;
-    }
-
-    glFuncs->glAttachShader(_shaderProg, ShaderObject);
-
-    return true;
-}
-
 bool OGLTechnique::Finalise()
 {
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
@@ -85,8 +47,7 @@ bool OGLTechnique::Finalise()
 
     glFuncs->glGetProgramiv(_shaderProg, GL_LINK_STATUS, &Success);
 
-    if (Success == 0)
-    {
+    if (Success == 0) {
         glFuncs->glGetProgramInfoLog(_shaderProg, sizeof(ErrorLog), NULL, ErrorLog);
         std::cout << ErrorLog << std::endl;
         return false;
@@ -94,18 +55,15 @@ bool OGLTechnique::Finalise()
 
     glFuncs->glValidateProgram(_shaderProg);
     glFuncs->glGetProgramiv(_shaderProg, GL_VALIDATE_STATUS, &Success);
-    if (!Success)
-    {
+    if (!Success) {
         glFuncs->glGetProgramInfoLog(_shaderProg, sizeof(ErrorLog), NULL, ErrorLog);
         std::cout << ErrorLog << std::endl;
-        //   return false;
+        return false;
     }
 
     // Delete the intermediate shader objects that have been added to the program
     for (ShaderObjectList::iterator it = _shaderObjectList.begin(); it != _shaderObjectList.end(); ++it)
-    {
         glFuncs->glDeleteShader(*it);
-    }
 
     _shaderObjectList.clear();
 
@@ -174,4 +132,37 @@ void OGLTechnique::SetProj(const Matrix4f& P)
     glFuncs->initializeOpenGLFunctions();
 
     glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_TRUE, (const GLfloat*)P.m);
+}
+
+bool OGLTechnique::CompileShader(GLenum ShaderType, std::string shdr) {
+    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+    glFuncs->initializeOpenGLFunctions();
+
+    auto _shaderObj = glFuncs->glCreateShader(ShaderType);
+
+    if (_shaderObj == 0)
+        return false;
+
+    const GLchar* p[1];
+    p[0] = shdr.c_str();
+
+    GLint Lengths[1] = { (GLint)shdr.size() };
+
+    glFuncs->glShaderSource(_shaderObj, 1, p, Lengths);
+
+    glFuncs->glCompileShader(_shaderObj);
+
+    GLint success;
+    glFuncs->glGetShaderiv(_shaderObj, GL_COMPILE_STATUS, &success);
+
+    if (!success) {
+        GLchar InfoLog[1024];
+        glFuncs->glGetShaderInfoLog(_shaderObj, 1024, nullptr, InfoLog);
+        std::cout << InfoLog << std::endl;
+        return false;
+    }
+
+    glFuncs->glAttachShader(_shaderProg, _shaderObj);
+
+    return true;
 }

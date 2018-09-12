@@ -8,8 +8,9 @@
 
 #include "ogltechnique.h"
 #include "oglmaths.h"
-#include "oglvertexbuffer.h"
+#include "oglarraybuffer.h"
 #include "ogltexture.h"
+#include "oglattributebuffer.h"
 
 #include <memory>
 
@@ -34,7 +35,7 @@ public:
     bool Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize);
 
 private:
-    std::shared_ptr<OGLVertexBuffer> _positionBuffer, _colourBuffer;
+    std::shared_ptr<OGLAttributeBuffer> _positionBuffer, _colourBuffer;
 
     bool _haveBuffers;
 

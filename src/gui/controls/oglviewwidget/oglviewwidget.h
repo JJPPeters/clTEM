@@ -12,7 +12,7 @@
 
 #include "GL/glu.h"
 
-#include "oglvertexbuffer.h"
+#include "oglarraybuffer.h"
 #include "oglbillboardtechnique.h"
 #include "oglcamera.h"
 #include "oglrectangletechnique.h"
@@ -47,24 +47,23 @@ public:
 
         MakeScatterBuffers(pos, cols);
 
-        std::vector<Vector3f> pos_1 = {Vector3f(0.0, 0.0, 1.0),
-                                       Vector3f(10, 0.0, 1.0),
-                                       Vector3f(10, 10, 1.0),
-                                       Vector3f(0, 10, 1.0)};
-        std::vector<Vector4f> col_1 = {Vector4f(1.0, 0.0, 0.0, 0.5f),
-                                       Vector4f(0.0, 1.0, 0.0, 0.1f),
-                                       Vector4f(0.0, 0.0, 1.0, 0.9f),
-                                       Vector4f(0.0, 1.0, 1.0, 0.9f)};
+        Vector4f col_1 = Vector4f(0.0, 0.5, 1., 0.2f);
+        Vector4f col_2 = Vector4f(1.0, 0.4, 0.0, 0.2f);
 
-        AddRectBuffer(pos_1, col_1);
+        makeCurrent();
+        _recSimArea->MakeRect(0, 0, 10, 10, 1, col_1);
+        _recImArea->MakeRect(2, 2, 8, 8, 2, col_2);
+        doneCurrent();
+
+//        AddRectBuffer(0., 0., 10., 10., 1., col_1);
 
         SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
 
         // TODO: might need to sort these vectors out
         auto v_d = directionEnumToVector(view_dir);
-        Vector3f n_d = directionEnumToVector(View::Direction::Top);
+        Vector3f n_d = directionEnumToVector(View::Direction::Bottom);
         if (view_dir == View::Direction::Top || view_dir == View::Direction::Bottom)
-            n_d = directionEnumToVector(View::Direction::Front);
+            n_d = directionEnumToVector(View::Direction::Right);
         SetCamera(v_d*-1, v_d, n_d, ViewMode::Orthographic);
 
         // TODO: cube coords need to be defined for this to work
@@ -87,7 +86,7 @@ private:
     Vector3f directionEnumToVector(View::Direction d);
 
     std::shared_ptr<OGLBillBoardTechnique> _technique;
-    std::shared_ptr<OGLRectangleTechnique> _recTech;
+    std::shared_ptr<OGLRectangleTechnique> _recSimArea, _recImArea;
 
     std::shared_ptr<OGLCamera> _camera;
 
@@ -109,14 +108,11 @@ private:
         doneCurrent();
     }
 
-    void AddRectBuffer(std::vector<Vector3f> &positions, std::vector<Vector4f> &colours) {
-        if(positions.size() != colours.size())
-            throw std::runtime_error("OpenGL: Rectangle position vector size does not match scatter colour vector size");
-
-        makeCurrent();
-        _recTech->MakeBuffers(positions, colours);
-        doneCurrent();
-    }
+//    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour) {
+//        makeCurrent();
+//        _recSimArea->MakeRect(t, l, b, r, z, colour);
+//        doneCurrent();
+//    }
 
     void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
 

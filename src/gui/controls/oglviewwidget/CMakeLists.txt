@@ -61,7 +61,7 @@ set ( glViewWidget_HDRS
         oglrectangletechnique.h
         ogltechnique.h
         ogltexture.h
-        oglvertexbuffer.h
+        oglarraybuffer.h
         oglviewwidget.h
         )
 
@@ -74,9 +74,9 @@ set ( glViewWidget_SRCS
         oglrectangletechnique.cpp
         ogltechnique.cpp
         ogltexture.cpp
-        oglvertexbuffer.cpp
+        oglarraybuffer.cpp
         oglviewwidget.cpp
-        )
+        oglattributebuffer.cpp oglattributebuffer.h)
 
 add_library ( glViewWidget STATIC ${glViewWidget_HDRS} ${glViewWidget_SRCS} ${RSCS})
 target_include_directories(glViewWidget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR})

@@ -20,7 +20,8 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 
     _technique = std::make_shared<OGLBillBoardTechnique>();
-    _recTech = std::make_shared<OGLRectangleTechnique>();
+    _recSimArea = std::make_shared<OGLRectangleTechnique>();
+    _recImArea = std::make_shared<OGLRectangleTechnique>();
 }
 
 OGLViewWidget::~OGLViewWidget()
@@ -220,7 +221,14 @@ void OGLViewWidget::initializeGL()
     }
 
     try {
-        _recTech->Init();
+        _recSimArea->Init();
+    } catch (std::runtime_error& err) {
+        QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
+        return;
+    }
+
+    try {
+        _recImArea->Init();
     } catch (std::runtime_error& err) {
         QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
         return;
@@ -238,10 +246,14 @@ void OGLViewWidget::paintGL()
     Matrix4f MV = _camera->getMV();
     Matrix4f P = _camera->getP();
 
-    _technique->Render(MV, P, _camera->GetScreenSize());
+    if (_technique)
+        _technique->Render(MV, P, _camera->GetScreenSize());
 
-    _recTech->Render(MV, P, _camera->GetScreenSize());
+    if (_recSimArea)
+        _recSimArea->Render(MV, P, _camera->GetScreenSize());
 
+    if (_recImArea)
+        _recImArea->Render(MV, P, _camera->GetScreenSize());
 //    for(auto &rt : _recTechs)
 //        rt->Render(MV, P, _camera->GetScreenSize());
 
@@ -358,11 +370,11 @@ Vector3f OGLViewWidget::directionEnumToVector(View::Direction d) {
     } else if (d == View::Direction::Left) {
         return Vector3f(0.0f, 100.0f, 0.0f);
     } else if (d == View::Direction::Right) {
-        return Vector3f(100.0f, -100.0f, 0.0f);
+        return Vector3f(0.0f, -100.0f, 0.0f);
     } else if (d == View::Direction::Top) {
-        return Vector3f(0.0f, 0.0f, 100.0f);
-    } else {
         return Vector3f(0.0f, 0.0f, -100.0f);
+    } else {
+        return Vector3f(0.0f, 0.0f, 100.0f);
     }
 }
 
