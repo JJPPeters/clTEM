@@ -47,16 +47,8 @@ public:
 
         MakeScatterBuffers(pos, cols);
 
-        Vector4f col_1 = Vector4f(0.0, 0.5, 1., 0.2f);
-        Vector4f col_2 = Vector4f(1.0, 0.4, 0.0, 0.2f);
-
-        makeCurrent();
-        _recSimArea->MakeRect(0, 0, 10, 10, 1, col_1);
-        _recImArea->MakeRect(2, 2, 8, 8, 2, col_2);
-        doneCurrent();
-
-//        AddRectBuffer(0., 0., 10., 10., 1., col_1);
-
+        _x_offset = x_min;
+        _y_offset = y_min;
         SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
 
         // TODO: might need to sort these vectors out
@@ -68,6 +60,16 @@ public:
 
         // TODO: cube coords need to be defined for this to work
         fitView(1.0);
+    }
+
+    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour) {
+        makeCurrent();
+        auto rec = std::make_shared<OGLRectangleTechnique>();
+        rec->Init();
+        // Correct limits as we have shifted them in the displayed structure
+        rec->MakeRect(t + _y_offset, l + _x_offset, b + _y_offset, r + _x_offset, z, colour);
+        _recSlices.push_back(rec);
+        doneCurrent();
     }
 
     std::shared_ptr<OGLCamera> GetCamera() { return _camera;}
@@ -86,13 +88,17 @@ private:
     Vector3f directionEnumToVector(View::Direction d);
 
     std::shared_ptr<OGLBillBoardTechnique> _technique;
-    std::shared_ptr<OGLRectangleTechnique> _recSimArea, _recImArea;
+    std::vector<std::shared_ptr<OGLRectangleTechnique>> _recSlices;
 
     std::shared_ptr<OGLCamera> _camera;
 
     std::vector<Vector3f> _cubeCoords;
 
+    // width of the openGL window
     float _width, _height;
+
+    // Structure limits
+    float _x_offset, _y_offset;
 
     Vector3f _background;
 
@@ -107,12 +113,6 @@ private:
         _technique->MakeBuffers(positions, colours);
         doneCurrent();
     }
-
-//    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour) {
-//        makeCurrent();
-//        _recSimArea->MakeRect(t, l, b, r, z, colour);
-//        doneCurrent();
-//    }
 
     void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
 

@@ -358,6 +358,20 @@ void AreaLayoutFrame::plotStructure() {
 
     pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
 
+    // Add in the rectangles showing the simulation area
+    // first the sim area
+    auto sxr = SimManager->getPaddedSimLimitsX();
+    auto syr = SimManager->getPaddedSimLimitsY();
+    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.2f);
+
+    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], -10.0f, col_1);
+
+    auto ixr = SimManager->getSimLimitsX();
+    auto iyr = SimManager->getSimLimitsY();
+    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.2f);
+
+    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], -11.0f, col_2);
+
     // TODO: make OGL background update with everything else
 }
 

@@ -103,13 +103,12 @@ void OGLRectangleTechnique::SetCol(const Vector4f &col) {
 }
 
 void OGLRectangleTechnique::MakeRect(float t, float l, float b, float r, float z, Vector4f col) {
-
     std::vector<Vector3f> pos = {Vector3f(l, t, z),
                                    Vector3f(l, b, z),
                                    Vector3f(r, b, z),
                                    Vector3f(r, t, z)};
 
-    auto lim = Vector4f(t,l,b,r);
+    auto lim = Vector4f(l,t,r,b);
 
     MakeBuffers(pos, col, lim);
 }

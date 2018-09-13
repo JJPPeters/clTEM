@@ -20,8 +20,6 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 
     _technique = std::make_shared<OGLBillBoardTechnique>();
-    _recSimArea = std::make_shared<OGLRectangleTechnique>();
-    _recImArea = std::make_shared<OGLRectangleTechnique>();
 }
 
 OGLViewWidget::~OGLViewWidget()
@@ -219,20 +217,6 @@ void OGLViewWidget::initializeGL()
         QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
         return;
     }
-
-    try {
-        _recSimArea->Init();
-    } catch (std::runtime_error& err) {
-        QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
-        return;
-    }
-
-    try {
-        _recImArea->Init();
-    } catch (std::runtime_error& err) {
-        QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
-        return;
-    }
 }
 
 void OGLViewWidget::paintGL()
@@ -249,27 +233,10 @@ void OGLViewWidget::paintGL()
     if (_technique)
         _technique->Render(MV, P, _camera->GetScreenSize());
 
-    if (_recSimArea)
-        _recSimArea->Render(MV, P, _camera->GetScreenSize());
-
-    if (_recImArea)
-        _recImArea->Render(MV, P, _camera->GetScreenSize());
-//    for(auto &rt : _recTechs)
-//        rt->Render(MV, P, _camera->GetScreenSize());
-
-    // add this back in to draw the cube
-//    if (_cubeCoords.size() == 8)
-//        CubeFrame(_cubeCoords, P, MV);
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-//    Rectangle(-50, -50, 10, 10, 0, P, MV);
-
-    _camera->SetViewPortFraction(0, 0, 0.15, 70);
-
-    // Add this back in the get that little RGB axis indicator
-    //XyzDirection(_camera->getMV());//_camera->GetRotation(), _camera->GetUp(), _camera->GetTarget(), _camera->GetRight());
-
+    for (auto &re : _recSlices) {
+        glClear(GL_DEPTH_BUFFER_BIT);
+        re->Render(MV, P, _camera->GetScreenSize());
+    }
     _camera->ResetViewPort();
 }
 
