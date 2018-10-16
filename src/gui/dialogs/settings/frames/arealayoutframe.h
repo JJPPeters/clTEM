@@ -36,6 +36,8 @@ private slots:
 
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
 
+    void on_cmbViewDirection_currentIndexChanged(const QString &arg1);
+
     void dlgOk_clicked();
 
     void dlgApply_clicked();

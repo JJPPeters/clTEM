@@ -356,6 +356,7 @@ void AreaLayoutFrame::plotStructure() {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
+    // TODO: get view direction from combo?
     pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
 
     // Add in the rectangles showing the simulation area
@@ -386,4 +387,16 @@ void AreaLayoutFrame::showEvent(QShowEvent *event) {
     // show it in some static labels for testing
 //    ui->label_17->setText( QString::number(vh) );
 //    ui->label_16->setText( QString::number(vw) );
+}
+
+void AreaLayoutFrame::on_cmbViewDirection_currentIndexChanged(const QString &arg1) {
+    // set the view direcion of the plot
+    if (arg1 == "Top")
+        pltStructure->SetViewDirection(View::Direction::Top);
+    else if (arg1 == "Front")
+        pltStructure->SetViewDirection(View::Direction::Front);
+    else if (arg1 == "Side")
+        pltStructure->SetViewDirection(View::Direction::Left);
+
+    pltStructure->repaint();
 }
