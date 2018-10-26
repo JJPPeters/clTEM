@@ -370,8 +370,15 @@ void AreaLayoutFrame::plotStructure() {
     pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, OGL::Plane::z);
     pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, OGL::Plane::z);
 
+    // add the sides of the sim area
+    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], sxr[0], col_2, OGL::Plane::x);
+    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], sxr[1], col_2, OGL::Plane::x);
 
-    // now add the sides
+    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], syr[0], col_2, OGL::Plane::y);
+    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], syr[1], col_2, OGL::Plane::y);
+
+
+    // now add the sides for slices
     auto dz = SimManager->getSliceThickness();
     auto nz = SimManager->getNumberofSlices();
     std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.2f), Vector4f(0.3f, 0.7f, 0.4f, 0.2f)};
@@ -380,11 +387,11 @@ void AreaLayoutFrame::plotStructure() {
     for (int i = 0; i < nz; ++i) {
         auto current_col = cols_slice[i % 2];
 
-        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, OGL::Plane::y);
-        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, OGL::Plane::y);
-
         pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, OGL::Plane::x);
         pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, OGL::Plane::x);
+
+        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, OGL::Plane::y);
+        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, OGL::Plane::y);
 
         current_z += dz;
     }
