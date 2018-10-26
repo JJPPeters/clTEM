@@ -28,6 +28,14 @@ namespace View {
     };
 }
 
+namespace OGL {
+    enum Plane {
+        x,
+        y,
+        z
+    };
+}
+
 class OGLViewWidget : public QOpenGLWidget
 {
     Q_OBJECT
@@ -47,19 +55,48 @@ public:
 
         MakeScatterBuffers(pos, cols);
 
-        _x_offset = x_min;
-        _y_offset = y_min;
+        auto x_offset = -(x_max + x_min) / 2;
+        auto y_offset = -(y_max + y_min) / 2;
+        auto z_offset = -(z_max + z_min) / 2;
+        _rotation_offset = Vector3f(x_offset, y_offset, z_offset);
+
         SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
 
         SetViewDirection(view_dir);
     }
 
-    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour) {
+    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour, OGL::Plane pl) {
         makeCurrent();
         auto rec = std::make_shared<OGLRectangleTechnique>();
         rec->Init();
+
+        std::vector<Vector3f> pos;
+//        Vector3f mins, maxs;
+
+        if (pl == OGL::Plane::x) {
+            pos = {Vector3f(z, l, t), Vector3f(z, l, b), Vector3f(z, r, b), Vector3f(z, r, t)};
+//            mins = Vector3f();
+//            maxs = Vector3f();
+        } else if (pl == OGL::Plane::y){
+            pos = {Vector3f(l, z, t), Vector3f(l, z, b), Vector3f(r, z, b), Vector3f(r, z, t)};
+//            mins = Vector3f(l, z, t);
+//            maxs = Vector3f();
+        } else if (pl == OGL::Plane::z) {
+            pos = {Vector3f(l, t, z), Vector3f(l, b, z), Vector3f(r, b, z), Vector3f(r, t, z)};
+//            mins = Vector3f(l, t, z);
+//            maxs = Vector3f(r, b, z);
+        }
+
         // Correct limits as we have shifted them in the displayed structure
-        rec->MakeRect(t + _y_offset, l + _x_offset, b + _y_offset, r + _x_offset, z, colour);
+        //auto offsets = Vector3f(_x_offset, _y_offset, _z_offset);
+        //for (auto &p : pos)
+        //    p += offsets;
+
+//        mins += offsets;
+//        maxs += offsets;
+
+        rec->MakeBuffers(pos, colour, pos[0], pos[2]);
+
         _recSlices.push_back(rec);
         doneCurrent();
     }
@@ -102,7 +139,8 @@ private:
     float _width, _height;
 
     // Structure limits
-    float _x_offset, _y_offset;
+    //float _x_offset, _y_offset, _z_offset;
+    Vector3f _rotation_offset;
 
     Vector3f _background;
 
@@ -127,7 +165,7 @@ private:
         doneCurrent();
     }
 
-    void SetCamera(Vector3f position, Vector3f target, Vector3f up, float rx, float ry, float rz, ViewMode mode);
+    void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
     void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
 
     void fitView(float extend = 1.0);

@@ -9,7 +9,8 @@
 const static float SCROLL_STEP_SCALE = 0.05f;
 const static float STEP_SCALE = 1.0f;
 
-OGLCamera::OGLCamera(const Vector3f& Pos, const Vector3f& Target, const Vector3f& Up, const Vector3f& Origin, float rx, float ry, float rz, ViewMode Mode)
+OGLCamera::OGLCamera(const Vector3f &Pos, const Vector3f &Target, const Vector3f &Up, const Vector3f &Origin,
+                     const Vector3f &rot, const Vector3f &rot_cent, ViewMode Mode)
 {
     _camPos = Pos;
 
@@ -25,8 +26,9 @@ OGLCamera::OGLCamera(const Vector3f& Pos, const Vector3f& Target, const Vector3f
     _projMode = Mode;
 
     _worldScale = Vector3f(1.0, 1.0, 1.0);
-    _worldRot = Vector3f(rx, ry, rz);
-    _worldTrans = Vector3f(0.0, 0.0, 0.0);
+    _worldRot = Vector3f(rot.x, rot.y, rot.z);
+    _worldTrans = rot_cent; // this defaults the camera to looking at the rotation centre
+    _rotateCentre = Vector3f(rot_cent.x, rot_cent.y, rot_cent.z);
 }
 
 void OGLCamera::OnMouseLeft(float dx, float dy)

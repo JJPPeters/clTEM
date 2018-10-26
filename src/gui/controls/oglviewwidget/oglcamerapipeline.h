@@ -85,6 +85,7 @@ protected:
     Vector3f _worldScale;
     Vector3f _worldTrans;
     Vector3f _worldRot;
+    Vector3f _rotateCentre;
 };
 
 

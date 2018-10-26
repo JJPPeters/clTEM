@@ -10,6 +10,7 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     setFocusPolicy(Qt::StrongFocus);
 
     _camera = nullptr;
+    _rotation_offset = Vector3f(0.f, 0.f, 0.f);
 
     _width = width();
     _height = height();
@@ -26,11 +27,11 @@ OGLViewWidget::~OGLViewWidget()
 {
 }
 
-void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, float rx, float ry, float rz, ViewMode mode)
+void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode)
 {
     Vector3f origin(10.0f, 10.0f, 10.0f);
 
-    _camera = std::make_shared<OGLCamera>(OGLCamera(position, target, up, origin, rx, ry, rz, mode));
+    _camera = std::make_shared<OGLCamera>(OGLCamera(position, target, up, origin, rot, _rotation_offset, mode));
 
     _camera->initPerspProjection(60, 1, 1, 1, 1000);
     _camera->initOrthoProjection(10, -10, -10, 10, -50, 1000);
@@ -41,7 +42,7 @@ void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, f
 
 void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode)
 {
-    SetCamera(position, target, up, 0, 0, 0, mode);
+    SetCamera(position, target, up, Vector3f(0.f, 0.f, 0.f), mode);
 }
 
 void OGLViewWidget::fitView(float extend)

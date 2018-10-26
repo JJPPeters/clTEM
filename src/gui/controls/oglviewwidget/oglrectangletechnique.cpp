@@ -41,10 +41,11 @@ bool OGLRectangleTechnique::Init() {
 
     _MVLocation = GetUniformLocation("ModelView");
     _PLocation = GetUniformLocation("Proj");
-    _limsLocation = GetUniformLocation("RectLims");
+    _minsLocation = GetUniformLocation("RectMins");
+    _maxsLocation = GetUniformLocation("RectMaxs");
     _colLocation = GetUniformLocation("RectCol");
 
-    if (_MVLocation == 0xffffffff || _PLocation == 0xffffffff || _limsLocation == 0xffffffff || _colLocation == 0xffffffff)
+    if (_MVLocation == 0xffffffff || _PLocation == 0xffffffff || _minsLocation == 0xffffffff || _maxsLocation == 0xffffffff || _colLocation == 0xffffffff)
         throw std::runtime_error("OpenGL: Rectangle: Failed to initialise uniform locations");
 
     _posBufLocation = GetAttribLocation("PosBuf");
@@ -55,7 +56,7 @@ bool OGLRectangleTechnique::Init() {
     return true;
 }
 
-void OGLRectangleTechnique::MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col, Vector4f &lims)
+void OGLRectangleTechnique::MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col, Vector3f &mins, Vector3f &maxs)
 {
     _haveBuffers = false;
     _positionBuffer = std::make_shared<OGLAttributeBuffer>(OGLAttributeBuffer(positions, static_cast<GLuint>(_posBufLocation)));
@@ -63,7 +64,8 @@ void OGLRectangleTechnique::MakeBuffers(std::vector<Vector3f> &positions, Vector
     _indexBuffer = std::make_shared<OGLArrayBuffer>(OGLArrayBuffer(els, GL_ELEMENT_ARRAY_BUFFER));
 
     // TODO: this should be set when the square is defined
-    _lims = lims;
+    _mins = mins;
+    _maxs = maxs;
     _col = col;
 
     _haveBuffers = true;
@@ -77,7 +79,7 @@ bool OGLRectangleTechnique::Render(const Matrix4f &MV, const Matrix4f &P, const 
     Enable();
     SetModelView(MV);
     SetProj(P);
-    SetLims(_lims);
+    SetLims(_mins, _maxs);
     SetCol(_col);
 
     _positionBuffer->DrawArrays(false);
@@ -88,11 +90,12 @@ bool OGLRectangleTechnique::Render(const Matrix4f &MV, const Matrix4f &P, const 
     return true;
 }
 
-void OGLRectangleTechnique::SetLims(const Vector4f &lims) {
+void OGLRectangleTechnique::SetLims(const Vector3f &mins, const Vector3f & maxs) {
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
 
-    glFuncs->glUniform4f(_limsLocation, lims.x, lims.y, lims.z, lims.w);
+    glFuncs->glUniform3f(_minsLocation, mins.x, mins.y, mins.z);
+    glFuncs->glUniform3f(_maxsLocation, maxs.x, maxs.y, maxs.z);
 }
 
 void OGLRectangleTechnique::SetCol(const Vector4f &col) {
@@ -100,15 +103,4 @@ void OGLRectangleTechnique::SetCol(const Vector4f &col) {
     glFuncs->initializeOpenGLFunctions();
 
     glFuncs->glUniform4f(_colLocation, col.x, col.y, col.z, col.w);
-}
-
-void OGLRectangleTechnique::MakeRect(float t, float l, float b, float r, float z, Vector4f col) {
-    std::vector<Vector3f> pos = {Vector3f(l, t, z),
-                                   Vector3f(l, b, z),
-                                   Vector3f(r, b, z),
-                                   Vector3f(r, t, z)};
-
-    auto lim = Vector4f(l,t,r,b);
-
-    MakeBuffers(pos, col, lim);
 }

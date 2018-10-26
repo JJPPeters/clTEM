@@ -19,7 +19,7 @@ const Matrix4f OGLCameraPipeline::getM()
     Matrix4f ScaleTrans, RotateTrans, TranslationTrans;
 
     ScaleTrans.InitScaleTransform(_worldScale.x, _worldScale.y, _worldScale.z);
-    RotateTrans.InitRotateTransform(_worldRot.x, _worldRot.y, _worldRot.z);
+    RotateTrans.InitRotateTransform(_worldRot.x, _worldRot.y, _worldRot.z, _rotateCentre.x, _rotateCentre.y, _rotateCentre.z);
     TranslationTrans.InitTranslationTransform(_worldTrans.x, _worldTrans.y, _worldTrans.z);
 
     return TranslationTrans * RotateTrans * ScaleTrans;

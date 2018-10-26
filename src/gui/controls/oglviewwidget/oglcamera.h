@@ -20,7 +20,8 @@ enum KeyPress
 class OGLCamera : public OGLCameraPipeline
 {
 public:
-    OGLCamera(const Vector3f& Pos, const Vector3f& Target, const Vector3f& Up, const Vector3f& Origin, float rx, float ry, float rz, ViewMode Mode);
+    OGLCamera(const Vector3f &Pos, const Vector3f &Target, const Vector3f &Up, const Vector3f &Origin,
+                  const Vector3f &rot, const Vector3f &rot_cent, ViewMode Mode);
 
     void OnMouseLeft(float dx, float dy);
 

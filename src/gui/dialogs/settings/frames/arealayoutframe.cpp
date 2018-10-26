@@ -328,21 +328,10 @@ void AreaLayoutFrame::plotStructure() {
     if (!SimManager->getStructure())
         return;
 
-    // get ranges
+    // get ranges (needed to define out 'cube'
     auto xr = SimManager->getStructure()->getLimitsX();
     auto yr = SimManager->getStructure()->getLimitsY();
     auto zr = SimManager->getStructure()->getLimitsZ();
-
-    // need to center structure, so create a vector to do that
-    auto pos_corr = Vector3f(xr[1] + xr[0], yr[1] + yr[0], zr[1] + zr[0]) / 2.0f;
-
-    // now 'correct' the ranges too
-    xr[0] -= pos_corr.x;
-    xr[1] -= pos_corr.x;
-    yr[0] -= pos_corr.y;
-    yr[1] -= pos_corr.y;
-    zr[0] -= pos_corr.z;
-    zr[1] -= pos_corr.z;
 
     auto atms = SimManager->getStructure()->getAtoms();
 
@@ -350,7 +339,7 @@ void AreaLayoutFrame::plotStructure() {
     std::vector<Vector3f> col(atms.size());
 
     for (int i = 0; i < atms.size(); ++i) {
-        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z) - pos_corr;
+        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
@@ -359,21 +348,48 @@ void AreaLayoutFrame::plotStructure() {
     // TODO: get view direction from combo?
     pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
 
+
     // Add in the rectangles showing the simulation area
-    // first the sim area
+    // TODO: move this to it's own function
+
+    auto szr = SimManager->getPaddedStructLimitsZ();
+
+    // first the padded sim area
     auto sxr = SimManager->getPaddedSimLimitsX();
     auto syr = SimManager->getPaddedSimLimitsY();
     Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.2f);
 
-    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], -10.0f, col_1);
+    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, OGL::Plane::z);
+    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, OGL::Plane::z);
 
+    // now just the sim area
     auto ixr = SimManager->getSimLimitsX();
     auto iyr = SimManager->getSimLimitsY();
     Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.2f);
 
-    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], -11.0f, col_2);
+    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, OGL::Plane::z);
+    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, OGL::Plane::z);
 
-    // TODO: make OGL background update with everything else
+
+    // now add the sides
+    auto dz = SimManager->getSliceThickness();
+    auto nz = SimManager->getNumberofSlices();
+    std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.2f), Vector4f(0.3f, 0.7f, 0.4f, 0.2f)};
+
+    auto current_z = szr[0];
+    for (int i = 0; i < nz; ++i) {
+        auto current_col = cols_slice[i % 2];
+
+        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, OGL::Plane::y);
+        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, OGL::Plane::y);
+
+        pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, OGL::Plane::x);
+        pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, OGL::Plane::x);
+
+        current_z += dz;
+    }
+
+    // TODO: make OGL background colour update with everything else (or just have it black?)
 }
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {

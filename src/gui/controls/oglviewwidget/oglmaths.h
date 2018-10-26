@@ -407,7 +407,7 @@ public:
     Matrix4f& Inverse();
 
     void InitScaleTransform(float ScaleX, float ScaleY, float ScaleZ);
-    void InitRotateTransform(float RotateX, float RotateY, float RotateZ);
+    void InitRotateTransform(float RotateX, float RotateY, float RotateZ, float centreX, float centreY, float centreZ);
     void InitRotateTransform(const Quaternion& quat);
     void InitTranslationTransform(float x, float y, float z);
     void InitCameraTransform(const Vector3f& Target, const Vector3f& Up);
