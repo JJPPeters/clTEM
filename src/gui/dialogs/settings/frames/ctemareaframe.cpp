@@ -7,43 +7,46 @@
 //TODO: Hover over should give original values?
 
 CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa) :
-    QWidget(parent), simArea(sa),
-    ui(new Ui::CtemAreaFrame)
+    QWidget(parent), ui(new Ui::CtemAreaFrame), simArea(sa)
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtStartX->setValidator(pmValidator);
     ui->edtStartY->setValidator(pmValidator);
     ui->edtFinishX->setValidator(pmValidator);
     ui->edtFinishY->setValidator(pmValidator);
 
-    ui->edtRangeXY->setValidator(pValidator);
+    ui->edtRangeX->setValidator(pValidator);
+    ui->edtRangeY->setValidator(pValidator);
 
     ui->edtStartX->setUnits("Å");
     ui->edtStartY->setUnits("Å");
     ui->edtFinishX->setUnits("Å");
     ui->edtFinishY->setUnits("Å");
-    ui->edtRangeXY->setUnits("Å");
+    ui->edtRangeX->setUnits("Å");
+    ui->edtRangeY->setUnits("Å");
 
     // set teh default values
     on_btnReset_clicked();
 
-    connect(ui->edtStartX, &QLineEdit::textChanged, this, &CtemAreaFrame::rangeChanged);
-    connect(ui->edtStartY, &QLineEdit::textChanged, this, &CtemAreaFrame::rangeChanged);
+    connect(ui->edtStartX, &QLineEdit::textChanged, this, &CtemAreaFrame::xRangeChanged);
+    connect(ui->edtStartY, &QLineEdit::textChanged, this, &CtemAreaFrame::yRangeChanged);
 
     connect(ui->edtFinishX, &QLineEdit::textChanged, this, &CtemAreaFrame::xFinishChanged);
     connect(ui->edtFinishY, &QLineEdit::textChanged, this, &CtemAreaFrame::yFinishChanged);
 
-    connect(ui->edtRangeXY, &QLineEdit::textChanged, this, &CtemAreaFrame::rangeChanged);
+    connect(ui->edtRangeX, &QLineEdit::textChanged, this, &CtemAreaFrame::xRangeChanged);
+    connect(ui->edtRangeY, &QLineEdit::textChanged, this, &CtemAreaFrame::yRangeChanged);
 
     connect(ui->edtStartX, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
     connect(ui->edtStartY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
     connect(ui->edtFinishX, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
     connect(ui->edtFinishY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
-    connect(ui->edtRangeXY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
+    connect(ui->edtRangeX, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
+    connect(ui->edtRangeY, &QLineEdit::editingFinished, this, &CtemAreaFrame::editing_finished);
 }
 
 CtemAreaFrame::~CtemAreaFrame()
@@ -53,70 +56,84 @@ CtemAreaFrame::~CtemAreaFrame()
 
 void CtemAreaFrame::xFinishChanged(QString dud) {
     auto range =  ui->edtFinishX->text().toFloat() - ui->edtStartX->text().toFloat();
-    if (!ui->edtRangeXY->hasFocus())
-        ui->edtRangeXY->setText(Utils_Qt::numToQString( range ));
-
-    auto finish = ui->edtStartY->text().toFloat() + range;
-    if (!ui->edtFinishY->hasFocus())
-        ui->edtFinishY->setText(Utils_Qt::numToQString( finish ));
+    if (!ui->edtRangeX->hasFocus())
+        ui->edtRangeX->setText(Utils_Qt::numToQString( range ));
 
     // check that values are correct
-    setInvalidWarning(checkValidValues());
+    setXInvalidWarning(checkXValid());
     emit areaChanged();
 }
 
 void CtemAreaFrame::yFinishChanged(QString dud) {
     auto range =  ui->edtFinishY->text().toFloat() - ui->edtStartY->text().toFloat();
-    if (!ui->edtRangeXY->hasFocus())
-        ui->edtRangeXY->setText(Utils_Qt::numToQString( range ));
-    auto finish = ui->edtStartX->text().toFloat() + range;
-    if (!ui->edtFinishX->hasFocus())
-        ui->edtFinishX->setText(Utils_Qt::numToQString( finish ));
+    if (!ui->edtRangeY->hasFocus())
+        ui->edtRangeY->setText(Utils_Qt::numToQString( range ));
 
     // check that values are correct
-    setInvalidWarning(checkValidValues());
+    setYInvalidWarning(checkYValid());
     emit areaChanged();
 }
 
-void CtemAreaFrame::rangeChanged(QString dud) {
-    auto range = ui->edtRangeXY->text().toFloat();
-    auto finish_x = ui->edtStartX->text().toFloat() + range;
-    auto finish_y = ui->edtStartY->text().toFloat() + range;
+void CtemAreaFrame::xRangeChanged(QString dud) {
+    auto range_x = ui->edtRangeX->text().toFloat();
+    auto finish_x = ui->edtStartX->text().toFloat() + range_x;
 
     if (!ui->edtFinishX->hasFocus())
         ui->edtFinishX->setText(Utils_Qt::numToQString( finish_x ));
+
+    // check that values are correct
+    setXInvalidWarning(checkXValid());
+    emit areaChanged();
+}
+
+void CtemAreaFrame::yRangeChanged(QString dud) {
+    auto range_y = ui->edtRangeY->text().toFloat();
+    auto finish_y = ui->edtStartY->text().toFloat() + range_y;
+
     if (!ui->edtFinishY->hasFocus())
         ui->edtFinishY->setText(Utils_Qt::numToQString( finish_y ));
 
     // check that values are correct
-    setInvalidWarning(checkValidValues());
+    setYInvalidWarning(checkYValid());
     emit areaChanged();
 }
 
-bool CtemAreaFrame::checkValidValues()
-{
+bool CtemAreaFrame::checkXValid() {
     // check range
-    return ui->edtRangeXY->text().toFloat() > 0.0f;
+    return ui->edtRangeX->text().toFloat() > 0.0f;
 }
 
-void CtemAreaFrame::setInvalidWarning(bool valid) {
+bool CtemAreaFrame::checkYValid() {
+    // check range
+    return ui->edtRangeY->text().toFloat() > 0.0f;
+}
+
+void CtemAreaFrame::setXInvalidWarning(bool valid) {
     if (valid) {
         ui->edtStartX->setStyleSheet("");
-        ui->edtStartY->setStyleSheet("");
         ui->edtFinishX->setStyleSheet("");
-        ui->edtFinishY->setStyleSheet("");
-        ui->edtRangeXY->setStyleSheet("");
+        ui->edtRangeX->setStyleSheet("");
     } else {
         ui->edtStartX->setStyleSheet("color: #FF8C00");
-        ui->edtStartY->setStyleSheet("color: #FF8C00");
         ui->edtFinishX->setStyleSheet("color: #FF8C00");
+        ui->edtRangeX->setStyleSheet("color: #FF8C00");
+    }
+}
+
+void CtemAreaFrame::setYInvalidWarning(bool valid) {
+    if (valid) {
+        ui->edtStartY->setStyleSheet("");
+        ui->edtFinishY->setStyleSheet("");
+        ui->edtRangeY->setStyleSheet("");
+    } else {
+        ui->edtStartY->setStyleSheet("color: #FF8C00");
         ui->edtFinishY->setStyleSheet("color: #FF8C00");
-        ui->edtRangeXY->setStyleSheet("color: #FF8C00");
+        ui->edtRangeY->setStyleSheet("color: #FF8C00");
     }
 }
 
 SimulationArea CtemAreaFrame::getSimArea() {
-    if (!checkValidValues())
+    if (!checkXValid() || !checkYValid())
         return simArea;
 
     auto xs = ui->edtStartX->text().toFloat();
@@ -137,15 +154,14 @@ void CtemAreaFrame::on_btnReset_clicked() {
     ui->edtStartY->setText(Utils_Qt::numToQString( yRangeTup[0] ));
     ui->edtFinishY->setText(Utils_Qt::numToQString( yRangeTup[1] ));
 
-    auto range = xRangeTup[1] - xRangeTup[0]; // this will be the same as the y one
-
-    ui->edtRangeXY->setText(Utils_Qt::numToQString( range ));
+    ui->edtRangeX->setText(Utils_Qt::numToQString( xRangeTup[1] - xRangeTup[0] ));
+    ui->edtRangeY->setText(Utils_Qt::numToQString( yRangeTup[1] - yRangeTup[0] ));
 
     emit areaChanged();
 }
 
 void CtemAreaFrame::editing_finished() {
-    QLineEdit* sndr = (QLineEdit*) sender();
+    auto sndr = (QLineEdit*) sender();
 
     auto val = sndr->text().toFloat();
     sndr->setText(Utils_Qt::numToQString( val ));

@@ -31,7 +31,8 @@ private slots:
     void xFinishChanged(QString dud);
     void yFinishChanged(QString dud);
 
-    void rangeChanged(QString dud);
+    void xRangeChanged(QString dud);
+    void yRangeChanged(QString dud);
 
     void on_btnReset_clicked();
 
@@ -44,9 +45,11 @@ private:
 
     SimulationArea simArea;
 
-    bool checkValidValues();
+    bool checkXValid();
+    bool checkYValid();
 
-    void setInvalidWarning(bool valid);
+    void setXInvalidWarning(bool valid);
+    void setYInvalidWarning(bool valid);
 };
 
 #endif // SIMAREAFRAME_H
