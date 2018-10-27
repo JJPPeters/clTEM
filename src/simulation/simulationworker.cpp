@@ -211,9 +211,6 @@ void SimulationWorker::sortAtoms(bool doTds)
 
 void SimulationWorker::doCtem(bool simImage)
 {
-    // increase the paddingso the structure starts at an integer number of pixels
-    job->simManager->round_padding();
-
     // sort structure, TDS is always false so leave blank
     sortAtoms();
 
@@ -237,32 +234,19 @@ void SimulationWorker::doCtem(bool simImage)
 
     float real_scale = job->simManager->getRealScale();
 
-    // this is easy as we have set it
-    int crop_l = (int) (std::abs(job->simManager->getPaddingX()[0]) / real_scale);
-    int crop_b = (int) (std::abs(job->simManager->getPaddingY()[0]) / real_scale);
+    auto x_im_range = job->simManager->getRawSimLimitsX()[1] - job->simManager->getRawSimLimitsX()[0];
+    auto x_sim_range = job->simManager->getPaddedSimLimitsX()[1] - job->simManager->getPaddedSimLimitsX()[0];
+    auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
 
-    // the other sides are a bit harder as they may be padded to match the other dimension
-    //find larger dimension
-    int crop_t = 0;
-    int crop_r = 0;
+    auto y_im_range = job->simManager->getRawSimLimitsY()[1] - job->simManager->getRawSimLimitsY()[0];
+    auto y_sim_range = job->simManager->getPaddedSimLimitsY()[1] - job->simManager->getPaddedSimLimitsY()[0];
+    auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
 
-    // this is slightly useless as we have limited the simulation to be square, but this will be useful if that changes
-    auto ranges = job->simManager->getSimRanges();
-    if (std::get<0>(ranges) == std::get<1>(ranges))
-    {
-        crop_t = crop_b;
-        crop_r = crop_l;
-    }
-    else if (std::get<0>(ranges) > std::get<1>(ranges))
-    {
-        crop_r = crop_l;
-        crop_t = (int) std::floor((std::get<0>(ranges) - std::get<1>(ranges)) / real_scale) + crop_b;
-    }
-    else
-    {
-        crop_t = crop_b;
-        crop_r = (int) std::floor((std::get<1>(ranges) - std::get<0>(ranges)) / real_scale) + crop_l;
-    }
+    auto crop_l = (int) std::floor(crop_lr_total / 2.0);
+    auto crop_b = (int) std::floor(crop_tb_total / 2.0);
+
+    int crop_r = (int)crop_lr_total - crop_l;
+    int crop_t = (int)crop_tb_total - crop_b;
 
     auto ew = Image<float>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
     auto diff = Image<float>(resolution, resolution, getDiffractionImage());
@@ -300,9 +284,6 @@ void SimulationWorker::doCtem(bool simImage)
 
 void SimulationWorker::doCbed()
 {
-    // reset the padding in case it has been changed before
-    job->simManager->round_padding();
-
     sortAtoms(job->simManager->getTdsRuns() > 1);
 
     initialiseCbed();
@@ -334,9 +315,6 @@ void SimulationWorker::doCbed()
 
 void SimulationWorker::doStem()
 {
-    // reset the padding in case it has been changed before
-    job->simManager->round_padding();
-
     sortAtoms(job->simManager->getTdsRuns() > 1);
 
     initialiseStem();

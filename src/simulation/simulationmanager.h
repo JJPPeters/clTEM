@@ -113,22 +113,22 @@ public:
 
     std::valarray<float> getPaddingX() {return padding_x;}
     std::valarray<float> getPaddingY() {return padding_y;}
-    std::valarray<float> getPaddingZ() {return padding_z;}
+    std::valarray<float> getPaddingZ() {round_Z_padding(); return padding_z;}
 
     std::valarray<float> getStructLimitsX() {return Structure->getLimitsX();}
     std::valarray<float> getStructLimitsY() {return Structure->getLimitsY();}
     std::valarray<float> getStructLimitsZ() {return Structure->getLimitsZ();}
 
-    std::valarray<float> getPaddedStructLimitsX() {return getStructLimitsX() + padding_x;}
-    std::valarray<float> getPaddedStructLimitsY() {return getStructLimitsY() + padding_y;}
-    std::valarray<float> getPaddedStructLimitsZ() {return getStructLimitsZ() + padding_z;}
+    std::valarray<float> getPaddedStructLimitsX() {return getStructLimitsX() + getPaddingX();}
+    std::valarray<float> getPaddedStructLimitsY() {return getStructLimitsY() + getPaddingY();}
+    std::valarray<float> getPaddedStructLimitsZ() {return getStructLimitsZ() + getPaddingZ();}
 
     // should have corrected the shift issue so this more intuitive version works!!
     std::valarray<float> getPaddedSimLimitsX() {
-        return getCurrentAreaBase().getCorrectedLimitsX() + padding_x;
+        return getCurrentAreaBase().getCorrectedLimitsX() + getPaddingX();
     }
     std::valarray<float> getPaddedSimLimitsY() {
-        return getCurrentAreaBase().getCorrectedLimitsY() + padding_x;
+        return getCurrentAreaBase().getCorrectedLimitsY() + getPaddingY();
     }
     std::valarray<float> getPaddedSimLimitsZ() {
         return getPaddedStructLimitsZ();
@@ -140,8 +140,6 @@ public:
     std::valarray<float> getRawSimLimitsY() {
         return getCurrentAreaBase().getRawLimitsY();
     }
-
-    float calculatePaddedRealScale(float range, int resolution, bool round_padding = false);
 
     int getBlocksX();
     int getBlocksY();
@@ -217,8 +215,7 @@ public:
     void reportTotalProgress(float prog);
     void reportSliceProgress(float prog);
 
-    void round_padding();
-    float calculateRoundedPadding(float range, int resolution);
+    void round_Z_padding();
 
     bool getSimulateCtemImage() {return simulateCtemImage;}
     void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
