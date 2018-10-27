@@ -106,17 +106,20 @@ void AreaLayoutFrame::areasChanged() {
 
     float realScale = 0.0f;
 
+    auto pd = SimManager->getPaddingX();
+    auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
+
     if (mode == 0) { // CTEM
         auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
         auto xlims = sa.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0];
-        realScale = range / SimManager->getResolution();
+        realScale = (range + pd_range) / SimManager->getResolution();
     }
     else if (mode == 1) { // STEM
         auto stema = StemFrame->getStemArea();
         auto xlims = stema.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
-        realScale = range / SimManager->getResolution();
+        realScale = (range + pd_range) / SimManager->getResolution();
 
         ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
         ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
@@ -126,7 +129,7 @@ void AreaLayoutFrame::areasChanged() {
         auto sa = pos.getSimArea();
         auto xlims = sa.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
-        realScale = range / SimManager->getResolution();
+        realScale = (range + pd_range) / SimManager->getResolution();
     }
 
     if (mode == 1) {
