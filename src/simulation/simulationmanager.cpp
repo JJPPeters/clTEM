@@ -50,11 +50,11 @@ void SimulationManager::setStructure(std::string filePath)
         auto x_lims = getStructLimitsX();
         auto y_lims = getStructLimitsY();
 
-        SimArea->setRangeX(x_lims[0], x_lims[1]);
-        SimArea->setRangeY(y_lims[0], y_lims[1]);
+        SimArea->setRawLimitsX(x_lims[0], x_lims[1]);
+        SimArea->setRawLimitsY(y_lims[0], y_lims[1]);
 
-        getStemArea()->setRangeX(x_lims[0], x_lims[1]);
-        getStemArea()->setRangeY(y_lims[0], y_lims[1]);
+        getStemArea()->setRawLimitsX(x_lims[0], x_lims[1]);
+        getStemArea()->setRawLimitsY(y_lims[0], y_lims[1]);
     }
 }
 
@@ -243,8 +243,11 @@ void SimulationManager::round_padding()
         return;
     }
 
-    float xw = getSimLimitsX()[1] - getSimLimitsX()[0];
-    float yw = getSimLimitsY()[1] - getSimLimitsY()[0];
+    auto xr = getCurrentAreaBase().getCorrectedLimitsX();
+    auto yr = getCurrentAreaBase().getCorrectedLimitsY();
+
+    float xw = xr[1] - xr[0];
+    float yw = yr[1] - yr[0];
 
     float dim = std::max(xw, yw);
     int res = getResolution();
@@ -273,33 +276,33 @@ void SimulationManager::round_padding()
     padding_z = {-post_pad, pre_pad};
 }
 
-std::valarray<float> SimulationManager::getSimLimitsX()
-{
-    SimulationArea sa;
+//std::valarray<float> SimulationManager::getSimLimitsX()
+//{
+//    SimulationArea sa;
+//
+//    if (Mode == SimulationMode::STEM)
+//        sa = StemSimArea->getSimArea();
+//    else if (Mode == SimulationMode::CBED)
+//        sa = CbedPos->getSimArea();
+//    else
+//        sa = SimArea->getSimArea();
+//
+//    return sa.getLimitsX();
+//}
 
-    if (Mode == SimulationMode::STEM)
-        sa = StemSimArea->getSimArea();
-    else if (Mode == SimulationMode::CBED)
-        sa = CbedPos->getSimArea();
-    else
-        sa = *SimArea;
-
-    return sa.getLimitsX();
-}
-
-std::valarray<float> SimulationManager::getSimLimitsY()
-{
-    SimulationArea sa;
-
-    if (Mode == SimulationMode::STEM)
-        sa = StemSimArea->getSimArea();
-    else if (Mode == SimulationMode::CBED)
-        sa = CbedPos->getSimArea();
-    else
-        sa = *SimArea;
-
-    return sa.getLimitsY();
-}
+//std::valarray<float> SimulationManager::getSimLimitsY()
+//{
+//    SimulationArea sa;
+//
+//    if (Mode == SimulationMode::STEM)
+//        sa = StemSimArea->getSimArea();
+//    else if (Mode == SimulationMode::CBED)
+//        sa = CbedPos->getSimArea();
+//    else
+//        sa = SimArea->getSimArea();
+//
+//    return sa.getLimitsY();
+//}
 
 float SimulationManager::calculatePaddedRealScale(float range, int resolution, bool round_padding) {
 

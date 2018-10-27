@@ -128,8 +128,8 @@ SimulationArea CtemAreaFrame::getSimArea() {
 }
 
 void CtemAreaFrame::on_btnReset_clicked() {
-    auto xRangeTup = simArea.getLimitsX();
-    auto yRangeTup = simArea.getLimitsY();
+    auto xRangeTup = simArea.getRawLimitsX();
+    auto yRangeTup = simArea.getRawLimitsY();
 
     ui->edtStartX->setText(Utils_Qt::numToQString( xRangeTup[0] ));
     ui->edtFinishX->setText(Utils_Qt::numToQString( xRangeTup[1] ));

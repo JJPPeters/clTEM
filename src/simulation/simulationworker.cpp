@@ -345,8 +345,9 @@ void SimulationWorker::doStem()
     auto stemPixels = job->simManager->getStemArea();
 
     // get start position and the pixel step
-    float start_x = stemPixels->getLimitsX()[0];
-    float start_y = stemPixels->getLimitsY()[0];
+    // Raw values here as this is used to calculate the beam positions
+    float start_x = stemPixels->getRawLimitsX()[0];
+    float start_y = stemPixels->getRawLimitsY()[0];
 
     int num_x = stemPixels->getPixelsX();
 

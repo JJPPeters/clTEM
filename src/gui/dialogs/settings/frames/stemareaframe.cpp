@@ -12,8 +12,8 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
     QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
     ui->edtStartX->setValidator(pmValidator);
@@ -178,8 +178,8 @@ StemArea StemAreaFrame::getStemArea() {
 }
 
 void StemAreaFrame::on_btnReset_clicked() {
-    auto xLims = Area.getLimitsX();
-    auto yLims = Area.getLimitsY();
+    auto xLims = Area.getRawLimitsX();
+    auto yLims = Area.getRawLimitsY();
     int px = Area.getPixelsX();
     int py = Area.getPixelsY();
     float padding = Area.getPadding();

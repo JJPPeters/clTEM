@@ -141,27 +141,25 @@ struct MicroscopeParameters
 
 struct SimulationArea
 {
-    SimulationArea() : xStart(0.0f), xFinish(10.0f), yStart(0.0f), yFinish(10.0f), isFixed(false) {}
+    SimulationArea() : xStart(0.0f), xFinish(10.0f), yStart(0.0f), yFinish(10.0f), padding(0.f) {}
 
-    SimulationArea(float xs, float xf, float ys, float yf) : xStart(xs), xFinish(xf),
-                                                             yStart(ys), yFinish(yf), isFixed(false) {}
+    SimulationArea(float xs, float xf, float ys, float yf, float pd = 0.f) : xStart(xs), xFinish(xf),
+                                                                             yStart(ys), yFinish(yf),
+                                                                             padding(pd) {}
 
-    std::valarray<float> getLimitsX();
-    std::valarray<float> getLimitsY();
+    std::valarray<float> getRawLimitsX();
+    std::valarray<float> getRawLimitsY();
 
+    void setRawLimitsX(float start, float finish);
+    void setRawLimitsY(float start, float finish);
 
-    bool setRangeX(float start, float finish);
-    bool setRangeY(float start, float finish);
+    std::valarray<float> getCorrectedLimitsX();
+    std::valarray<float> getCorrectedLimitsY();
 
-    void forceRangeX(float start, float finish);
-    void forceRangeY(float start, float finish);
-
-    void setFixed(bool f) {isFixed = f;}
-    bool getIsFixed() {return isFixed;}
+    void setPadding(float pd) {padding = pd;}
 
 protected:
-    float xStart, xFinish, yStart, yFinish;
-    bool isFixed;
+    float xStart, xFinish, yStart, yFinish, padding;
 };
 
 struct StemDetector
@@ -175,6 +173,7 @@ struct StemDetector
     float inner, outer, xcentre, ycentre;
 };
 
+// TODO: is this class necessary, can we not just use the sim area one with the start and end points the same?
 struct CbedPosition
 {
     CbedPosition() : xPos(0.0f), yPos(0.0f), padding(0.0f) {}
@@ -196,11 +195,8 @@ struct CbedPosition
 
     SimulationArea getSimArea()
     {
-        // in cbed the sim area is just the position with the padding
-        float pad = padding / 2.0f;
-
         // pad equally on both sides
-        return SimulationArea(xPos - pad, xPos + pad, yPos - pad, yPos + pad);
+        return SimulationArea(xPos, xPos, yPos, yPos, padding);
     }
 
 private:
@@ -211,9 +207,9 @@ struct StemArea : public SimulationArea
 {
     static const float DefaultScale;
 
-    StemArea() : SimulationArea(), xPixels(50), yPixels(50), padding(0.0f) {}
-    StemArea(float xs, float xf, float ys, float yf, int xp, int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf),
-                                                                                 xPixels(xp), yPixels(yp), padding(pd) {}
+    StemArea() : SimulationArea(), xPixels(50), yPixels(50) {}
+    StemArea(float xs, float xf, float ys, float yf, int xp, int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf, pd),
+                                                                                 xPixels(xp), yPixels(yp) {}
 
 
 //    bool setRangeX(float start, float finish);
@@ -227,7 +223,6 @@ struct StemArea : public SimulationArea
 
     void setPixelsX(int px) {xPixels = px;}
     void setPixelsY(int px) {yPixels = px;}
-    bool setPadding(float pd) {padding = pd;}
 
     float getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
     float getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}
@@ -241,25 +236,8 @@ struct StemArea : public SimulationArea
 
     int getNumPixels() {return xPixels * yPixels;}
 
-    SimulationArea getSimArea()
-    {
-         // get the maximum range of the two axes and include the padding
-        float range_x = xFinish - xStart;
-        float range_y = yFinish - yStart;
-
-        float range_max = std::max(range_x, range_y);
-        float range_total = range_max + padding;
-
-        // not get the difference to calculate how much needs to be added to either side
-        float x_diff = (range_total - range_x) / 2.0f;
-        float y_diff = (range_total - range_y) / 2.0f;
-
-        // pad equally on both sides
-        return SimulationArea(xStart - x_diff, xFinish + x_diff, yStart - y_diff, yFinish + y_diff);
-    }
-
 private:
-    float padding;
+//    float padding;
     int xPixels, yPixels;
 //    bool isFixed;
 };

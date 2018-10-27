@@ -425,8 +425,8 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
 
-                    double lx = sm.getStemArea()->getLimitsX()[0];
-                    double ly = sm.getStemArea()->getLimitsY()[0];
+                    double lx = sm.getStemArea()->getRawLimitsX()[0];
+                    double ly = sm.getStemArea()->getRawLimitsY()[0];
                     double scx = sm.getStemArea()->getScaleX();
                     double scy = sm.getStemArea()->getScaleY();
 

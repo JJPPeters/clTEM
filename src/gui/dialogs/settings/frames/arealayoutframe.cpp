@@ -108,14 +108,13 @@ void AreaLayoutFrame::areasChanged() {
 
     if (mode == 0) { // CTEM
         auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
-        auto xlims = sa.getLimitsX();
+        auto xlims = sa.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0];
         realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution(), true);
     }
     else if (mode == 1) { // STEM
         auto stema = StemFrame->getStemArea();
-        auto sa = stema.getSimArea();
-        auto xlims = sa.getLimitsX();
+        auto xlims = stema.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
         realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution() );
 
@@ -125,7 +124,7 @@ void AreaLayoutFrame::areasChanged() {
     else if (mode == 2) { // CBED
         auto pos = CbedFrame->getCbedPos();
         auto sa = pos.getSimArea();
-        auto xlims = sa.getLimitsX();
+        auto xlims = sa.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
         realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution() );
     }
@@ -398,9 +397,11 @@ void AreaLayoutFrame::updatePlotRects() {
     // clear the old stuff first
     pltStructure->clearRectBuffers();
 
+    auto test = SimManager->getSimulationArea();
+
     auto szr = SimManager->getPaddedStructLimitsZ();
-    auto ixr = SimManager->getSimLimitsX();
-    auto iyr = SimManager->getSimLimitsY();
+    auto ixr = SimManager->getRawSimLimitsX();
+    auto iyr = SimManager->getRawSimLimitsY();
     auto sxr = SimManager->getPaddedSimLimitsX();
     auto syr = SimManager->getPaddedSimLimitsY();
 

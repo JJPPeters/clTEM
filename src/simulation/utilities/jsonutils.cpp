@@ -392,23 +392,23 @@ namespace JSONUtils {
                 j["ctem"]["ccd"] = "Perfect";
             }
 
-            j["ctem"]["area"]["x"]["start"] = man.getCtemArea().getLimitsX()[0];
-            j["ctem"]["area"]["x"]["finish"] = man.getCtemArea().getLimitsX()[1];
+            j["ctem"]["area"]["x"]["start"] = man.getCtemArea().getRawLimitsX()[0];
+            j["ctem"]["area"]["x"]["finish"] = man.getCtemArea().getRawLimitsX()[1];
 
-            j["ctem"]["area"]["y"]["start"] = man.getCtemArea().getLimitsY()[0];
-            j["ctem"]["area"]["y"]["finish"] = man.getCtemArea().getLimitsY()[1];
+            j["ctem"]["area"]["y"]["start"] = man.getCtemArea().getRawLimitsY()[0];
+            j["ctem"]["area"]["y"]["finish"] = man.getCtemArea().getRawLimitsY()[1];
         }
 
         // If STEM, get scan info, TDS info detector info will be added later if needed
         if (mode == SimulationMode::STEM || force_all)
         {
             auto sa = man.getStemArea();
-            j["stem"]["area"]["x"]["start"] = sa->getLimitsX()[0];
-            j["stem"]["area"]["x"]["finish"] = sa->getLimitsX()[1];
+            j["stem"]["area"]["x"]["start"] = sa->getRawLimitsX()[0];
+            j["stem"]["area"]["x"]["finish"] = sa->getRawLimitsX()[1];
             j["stem"]["scan"]["x"]["pixels"] = sa->getPixelsX();;
             j["stem"]["area"]["x"]["units"] = "Å";
-            j["stem"]["area"]["y"]["start"] = sa->getLimitsY()[0];
-            j["stem"]["area"]["y"]["finish"] = sa->getLimitsY()[1];
+            j["stem"]["area"]["y"]["start"] = sa->getRawLimitsY()[0];
+            j["stem"]["area"]["y"]["finish"] = sa->getRawLimitsY()[1];
             j["stem"]["scan"]["y"]["pixels"] = sa->getPixelsY();
             j["stem"]["area"]["y"]["units"] = "Å";
             j["stem"]["area"]["padding"]["val"] = sa->getPadding();
