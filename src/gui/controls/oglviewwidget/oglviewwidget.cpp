@@ -11,6 +11,7 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 
     _camera = nullptr;
     _rotation_offset = Vector3f(0.f, 0.f, 0.f);
+    _drawRects = true;
 
     _width = width();
     _height = height();
@@ -234,9 +235,11 @@ void OGLViewWidget::paintGL()
     if (_technique)
         _technique->Render(MV, P, _camera->GetScreenSize());
 
-    for (auto &re : _recSlices) {
-        glClear(GL_DEPTH_BUFFER_BIT);
-        re->Render(MV, P, _camera->GetScreenSize());
+    if (_drawRects) {
+        for (auto &re : _recSlices) {
+            glClear(GL_DEPTH_BUFFER_BIT);
+            re->Render(MV, P, _camera->GetScreenSize());
+        }
     }
     _camera->ResetViewPort();
 }
@@ -332,17 +335,17 @@ void OGLViewWidget::wheelEvent(QWheelEvent *event)
 
 Vector3f OGLViewWidget::directionEnumToVector(View::Direction d) {
     if (d == View::Direction::Front) {
-        return Vector3f(100.0f, 0.0f, 0.0f);
-    } else if (d == View::Direction::Back) {
-        return Vector3f(-100.0f, 0.0f, 0.0f);
-    } else if (d == View::Direction::Left) {
-        return Vector3f(0.0f, 100.0f, 0.0f);
-    } else if (d == View::Direction::Right) {
         return Vector3f(0.0f, -100.0f, 0.0f);
+    } else if (d == View::Direction::Back) {
+        return Vector3f(0.0f, 100.0f, 0.0f);
+    } else if (d == View::Direction::Left) {
+        return Vector3f(-100.0f, 0.0f, 0.0f);
+    } else if (d == View::Direction::Right) {
+        return Vector3f(100.0f, 0.0f, 0.0f);
     } else if (d == View::Direction::Top) {
-        return Vector3f(0.0f, 0.0f, -100.0f);
-    } else {
         return Vector3f(0.0f, 0.0f, 100.0f);
+    } else {
+        return Vector3f(0.0f, 0.0f, -100.0f);
     }
 }
 

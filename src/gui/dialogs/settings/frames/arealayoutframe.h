@@ -36,7 +36,9 @@ private slots:
 
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
 
-    void on_cmbViewDirection_currentIndexChanged(const QString &arg1);
+    void on_cmbViewDirection_activated(const QString &arg1);
+
+    void showRectChanged(int arg1);
 
     void dlgOk_clicked();
 
@@ -47,6 +49,8 @@ private slots:
     void slicesChanged();
 
     void showEvent(QShowEvent* event) override;
+
+    void updatePlotRects();
 
 private:
     Ui::AreaLayoutFrame *ui;

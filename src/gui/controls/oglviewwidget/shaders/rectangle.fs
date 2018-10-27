@@ -20,5 +20,5 @@ void main() {
     float line_z = line_w / (RectMaxs.z - RectMins.z);
 
     if(norm_x > 1-line_x || norm_x < line_x || norm_y > 1-line_y || norm_y < line_y || norm_z > 1-line_z || norm_z < line_z )
-        gl_FragColor.w = 1.0f;
+        gl_FragColor.w = 0.5f;
 }

@@ -24,8 +24,6 @@ public:
         if (_positionBuffer)
             _positionBuffer->Delete();
 
-//        glDeleteShader();
-
         Q_CLEANUP_RESOURCE(shaders);
     }
 

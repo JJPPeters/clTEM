@@ -396,7 +396,8 @@ unsigned int SimulationManager::getNumberofSlices() {
     auto z_lims = getPaddedStructLimitsZ();
     float z_range = z_lims[1] - z_lims[0];
 
-    unsigned int n_slices = (unsigned int) std::ceil(z_range / getSliceThickness());
+    // the 0.000001 is for errors in the float
+    auto n_slices = (unsigned int) std::ceil((z_range / getSliceThickness()) - 0.000001);
     n_slices += (n_slices == 0);
     return n_slices;
 }

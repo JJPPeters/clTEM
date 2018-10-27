@@ -43,6 +43,11 @@ public:
     explicit OGLViewWidget(QWidget *parent);
     ~OGLViewWidget() override;
 
+    void setDrawRects(bool v) {_drawRects = v;}
+    bool getDrawRects() {return _drawRects;}
+
+    void clearRectBuffers() {_recSlices.clear();}
+
     void PlotAtoms(std::vector<Vector3f> pos, std::vector<Vector3f> cols, View::Direction view_dir,
             float x_min,
             float x_max,
@@ -71,29 +76,13 @@ public:
         rec->Init();
 
         std::vector<Vector3f> pos;
-//        Vector3f mins, maxs;
 
-        if (pl == OGL::Plane::x) {
+        if (pl == OGL::Plane::x)
             pos = {Vector3f(z, l, t), Vector3f(z, l, b), Vector3f(z, r, b), Vector3f(z, r, t)};
-//            mins = Vector3f();
-//            maxs = Vector3f();
-        } else if (pl == OGL::Plane::y){
+        else if (pl == OGL::Plane::y)
             pos = {Vector3f(l, z, t), Vector3f(l, z, b), Vector3f(r, z, b), Vector3f(r, z, t)};
-//            mins = Vector3f(l, z, t);
-//            maxs = Vector3f();
-        } else if (pl == OGL::Plane::z) {
+        else if (pl == OGL::Plane::z)
             pos = {Vector3f(l, t, z), Vector3f(l, b, z), Vector3f(r, b, z), Vector3f(r, t, z)};
-//            mins = Vector3f(l, t, z);
-//            maxs = Vector3f(r, b, z);
-        }
-
-        // Correct limits as we have shifted them in the displayed structure
-        //auto offsets = Vector3f(_x_offset, _y_offset, _z_offset);
-        //for (auto &p : pos)
-        //    p += offsets;
-
-//        mins += offsets;
-//        maxs += offsets;
 
         rec->MakeBuffers(pos, colour, pos[0], pos[2]);
 
@@ -105,8 +94,11 @@ public:
         // TODO: might need to sort these vectors out
         auto v_d = directionEnumToVector(view_dir);
         Vector3f n_d = directionEnumToVector(View::Direction::Bottom);
-        if (view_dir == View::Direction::Top || view_dir == View::Direction::Bottom)
+        if (view_dir == View::Direction::Top)
+            n_d = directionEnumToVector(View::Direction::Back);
+        else if (view_dir == View::Direction::Bottom)
             n_d = directionEnumToVector(View::Direction::Right);
+
         SetCamera(v_d*-1, v_d, n_d, ViewMode::Orthographic);
 
         // cube coords need to be defined for this to work
@@ -114,6 +106,15 @@ public:
     }
 
     std::shared_ptr<OGLCamera> GetCamera() { return _camera;}
+
+    void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
+    void SetCube(std::vector<Vector3f> Cube) {
+        makeCurrent();
+        _cubeCoords = std::move(Cube);
+        doneCurrent();
+    }
+
+    void fitView(float extend = 1.0);
 
 protected:
     void initializeGL() override;
@@ -135,11 +136,12 @@ private:
 
     std::vector<Vector3f> _cubeCoords;
 
+    bool _drawRects;
+
     // width of the openGL window
     float _width, _height;
 
     // Structure limits
-    //float _x_offset, _y_offset, _z_offset;
     Vector3f _rotation_offset;
 
     Vector3f _background;
@@ -156,19 +158,9 @@ private:
         doneCurrent();
     }
 
-    void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
-
-    void SetCube(std::vector<Vector3f> Cube)
-    {
-        makeCurrent();
-        _cubeCoords = std::move(Cube);
-        doneCurrent();
-    }
-
     void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
     void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
 
-    void fitView(float extend = 1.0);
     void fitPerspView(float extend = 1.0);
     void fitOrthoView(float extend = 1.0);
 };

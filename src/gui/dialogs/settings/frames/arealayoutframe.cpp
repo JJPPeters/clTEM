@@ -65,6 +65,9 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(CbedFrame, &CbedAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
 
     connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
+
+    connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
 
     // set current tab to view
     auto mode = SimManager->getMode();
@@ -254,6 +257,11 @@ bool AreaLayoutFrame::apply_pressed() {
 
     emit areaChanged();
 
+    ////
+    ////
+    ////
+    updatePlotRects();
+
     return valid;
 }
 
@@ -346,42 +354,82 @@ void AreaLayoutFrame::plotStructure() {
     }
 
     // TODO: get view direction from combo?
+    // TODO: make combo box update even if the value doesnt changed
     pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
 
+    // TODO: make OGL background colour update with everything else (or just have it black?)
+}
 
-    // Add in the rectangles showing the simulation area
-    // TODO: move this to it's own function
+void AreaLayoutFrame::showEvent(QShowEvent *event) {
+    QWidget::showEvent(event);
+    plotStructure();
+    updatePlotRects();
+    pltStructure->fitView();
+
+    // TODO: turn this into code to get the scale of the window
+    // currently just gets the view width/height of the window in the structures coordinates
+//    auto vw = pltStructure->GetCamera()->GetOrthoViewWidth();
+//    auto vh = pltStructure->GetCamera()->GetOrthoViewHeight();
+    // show it in some static labels for testing
+//    ui->label_17->setText( QString::number(vh) );
+//    ui->label_16->setText( QString::number(vw) );
+}
+
+void AreaLayoutFrame::on_cmbViewDirection_activated(const QString &arg1) {
+    // set the view direcion of the plot
+    if (arg1 == "Top")
+        pltStructure->SetViewDirection(View::Direction::Top);
+    else if (arg1 == "Front")
+        pltStructure->SetViewDirection(View::Direction::Front);
+    else if (arg1 == "Side")
+        pltStructure->SetViewDirection(View::Direction::Left);
+
+    pltStructure->repaint();
+}
+
+void AreaLayoutFrame::showRectChanged(int arg1) {
+    pltStructure->setDrawRects(arg1 != 0);
+    pltStructure->repaint();
+}
+
+void AreaLayoutFrame::updatePlotRects() {
+    // Add in the rectangles showing the simulation areas and slices
+
+    // clear the old stuff first
+    pltStructure->clearRectBuffers();
 
     auto szr = SimManager->getPaddedStructLimitsZ();
-
-    // first the padded sim area
+    auto ixr = SimManager->getSimLimitsX();
+    auto iyr = SimManager->getSimLimitsY();
     auto sxr = SimManager->getPaddedSimLimitsX();
     auto syr = SimManager->getPaddedSimLimitsY();
-    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.2f);
+
+    pltStructure->SetCube(sxr[0], sxr[1], syr[0], syr[1], szr[0], szr[1]);
+
+    // first the sim area + padding
+    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
 
     pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, OGL::Plane::z);
     pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, OGL::Plane::z);
 
-    // now just the sim area
-    auto ixr = SimManager->getSimLimitsX();
-    auto iyr = SimManager->getSimLimitsY();
-    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.2f);
+    // now the sim area
+    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
 
     pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, OGL::Plane::z);
     pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, OGL::Plane::z);
 
     // add the sides of the sim area
-    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], sxr[0], col_2, OGL::Plane::x);
-    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], sxr[1], col_2, OGL::Plane::x);
+    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[0], col_2, OGL::Plane::x);
+    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[1], col_2, OGL::Plane::x);
 
-    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], syr[0], col_2, OGL::Plane::y);
-    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], syr[1], col_2, OGL::Plane::y);
+    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], iyr[0], col_2, OGL::Plane::y);
+    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], iyr[1], col_2, OGL::Plane::y);
 
 
     // now add the sides for slices
     auto dz = SimManager->getSliceThickness();
     auto nz = SimManager->getNumberofSlices();
-    std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.2f), Vector4f(0.3f, 0.7f, 0.4f, 0.2f)};
+    std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
 
     auto current_z = szr[0];
     for (int i = 0; i < nz; ++i) {
@@ -395,31 +443,6 @@ void AreaLayoutFrame::plotStructure() {
 
         current_z += dz;
     }
-
-    // TODO: make OGL background colour update with everything else (or just have it black?)
-}
-
-void AreaLayoutFrame::showEvent(QShowEvent *event) {
-    QWidget::showEvent(event);
-    plotStructure();
-
-    // TODO: turn this into code to get the scale of the window
-    // currently just gets the view width/height of the window in the structures coordinates
-//    auto vw = pltStructure->GetCamera()->GetOrthoViewWidth();
-//    auto vh = pltStructure->GetCamera()->GetOrthoViewHeight();
-    // show it in some static labels for testing
-//    ui->label_17->setText( QString::number(vh) );
-//    ui->label_16->setText( QString::number(vw) );
-}
-
-void AreaLayoutFrame::on_cmbViewDirection_currentIndexChanged(const QString &arg1) {
-    // set the view direcion of the plot
-    if (arg1 == "Top")
-        pltStructure->SetViewDirection(View::Direction::Top);
-    else if (arg1 == "Front")
-        pltStructure->SetViewDirection(View::Direction::Front);
-    else if (arg1 == "Side")
-        pltStructure->SetViewDirection(View::Direction::Left);
 
     pltStructure->repaint();
 }

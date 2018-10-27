@@ -6,7 +6,11 @@
 
 void OGLArrayBuffer::Delete()
 {
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+    auto con = QOpenGLContext::currentContext();
+    if (!con)
+        return;
+
+    QOpenGLFunctions *glFuncs = con->functions();
     glFuncs->initializeOpenGLFunctions();
     if (Exists())
         glFuncs->glDeleteBuffers(1, &_BufferPtr);
