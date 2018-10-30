@@ -13,85 +13,49 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0" columnstretch="1,1">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,1,0,0" columnstretch="1,1">
    <item row="2" column="1">
-    <widget class="tabPanel" name="tabZWidget">
+    <widget class="QTabWidget" name="tabAreaWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="tabPosition">
-      <enum>QTabWidget::South</enum>
-     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tZ">
+     <widget class="QWidget" name="tbCtem">
       <attribute name="title">
-       <string>Tab 1</string>
+       <string>CTEM</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="2">
-        <widget class="EditUnitsBox" name="edtSliceThickness">
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>26</height>
-          </size>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <layout class="QVBoxLayout" name="vCtemLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
          </property>
-        </widget>
+        </layout>
        </item>
-       <item row="0" column="6">
-        <spacer name="horizontalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>43</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tbStem">
+      <attribute name="title">
+       <string>STEM</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QVBoxLayout" name="vStemLayout"/>
        </item>
-       <item row="0" column="0">
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>44</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Slice thickness</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="EditUnitsBox" name="edtSliceOffset">
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>26</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Slice offset</string>
-         </property>
-        </widget>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tbCbed">
+      <attribute name="title">
+       <string>CBED</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QVBoxLayout" name="vCbedLayout"/>
        </item>
       </layout>
      </widget>
@@ -197,6 +161,89 @@
      </widget>
     </widget>
    </item>
+   <item row="1" column="1">
+    <widget class="tabPanel" name="tabZWidget">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::South</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tZ">
+      <attribute name="title">
+       <string>Tab 1</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="2">
+        <widget class="EditUnitsBox" name="edtSliceThickness">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>26</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="6">
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>43</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>44</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Slice thickness</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="EditUnitsBox" name="edtSliceOffset">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>26</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Slice offset</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
    <item row="3" column="1">
     <widget class="tabPanel" name="tabScaleWidget">
      <property name="sizePolicy">
@@ -253,7 +300,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>0</width>
            <height>20</height>
           </size>
          </property>
@@ -350,7 +397,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>0</width>
            <height>20</height>
           </size>
          </property>
@@ -453,6 +500,48 @@
         <layout class="QVBoxLayout" name="vPlotLayout">
          <item>
           <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="2">
+            <widget class="QLabel" name="lblStructStartX">
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>--</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>x range: </string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QLabel" name="lblStructFinishX">
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>--</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <spacer name="horizontalSpacer_10">
              <property name="orientation">
@@ -492,8 +581,8 @@
              </property>
             </spacer>
            </item>
-           <item row="0" column="2">
-            <widget class="QLabel" name="lblStructStartX">
+           <item row="1" column="2">
+            <widget class="QLabel" name="lblStructStartY">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -502,6 +591,16 @@
              </property>
              <property name="text">
               <string>--</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string> to </string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -534,164 +633,97 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="lblStructStartY">
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,1,0">
+           <item>
+            <spacer name="horizontalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="chkShowRect">
+             <property name="layoutDirection">
+              <enum>Qt::RightToLeft</enum>
+             </property>
+             <property name="text">
+              <string>Show boxes</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>View: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cmbViewDirection">
              <property name="minimumSize">
               <size>
                <width>100</width>
-               <height>0</height>
+               <height>26</height>
               </size>
              </property>
-             <property name="text">
-              <string>--</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
+             <item>
+              <property name="text">
+               <string>Top</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Front</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Side</string>
+              </property>
+             </item>
             </widget>
            </item>
-           <item row="0" column="4">
-            <widget class="QLabel" name="lblStructFinishX">
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnApplyUpdate">
              <property name="minimumSize">
               <size>
                <width>100</width>
-               <height>0</height>
+               <height>26</height>
               </size>
              </property>
              <property name="text">
-              <string>--</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <string>Apply &amp;&amp; Update</string>
              </property>
             </widget>
-           </item>
-           <item row="1" column="3">
-            <widget class="QLabel" name="label_19">
-             <property name="text">
-              <string> to </string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="label_17">
-             <property name="text">
-              <string>x range: </string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1" colspan="4">
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <item>
-              <spacer name="horizontalSpacer_6">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="chkShowRect">
-               <property name="layoutDirection">
-                <enum>Qt::RightToLeft</enum>
-               </property>
-               <property name="text">
-                <string>Show boxes</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>View: </string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="cmbViewDirection">
-               <item>
-                <property name="text">
-                 <string>Top</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Front</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Side</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
            </item>
           </layout>
          </item>
         </layout>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QTabWidget" name="tabAreaWidget">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="tbCtem">
-      <attribute name="title">
-       <string>CTEM</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <layout class="QVBoxLayout" name="vCtemLayout">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
-         </property>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tbStem">
-      <attribute name="title">
-       <string>STEM</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <layout class="QVBoxLayout" name="vStemLayout"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tbCbed">
-      <attribute name="title">
-       <string>CBED</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <layout class="QVBoxLayout" name="vCbedLayout"/>
        </item>
       </layout>
      </widget>

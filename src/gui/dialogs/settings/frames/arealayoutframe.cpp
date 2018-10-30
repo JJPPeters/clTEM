@@ -14,11 +14,11 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     // this is just from theQt website, Not really sure what it does,
     // but it mkes OpenGL work on my linux laptop (intel 4th gen)
     QSurfaceFormat format;
-//    format.setDepthBufferSize(24);
-//    format.setStencilBufferSize(8);
-//    format.setProfile(QSurfaceFormat::CoreProfile);
-    // sets MSAA samples
-//    format.setSamples(4);
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+//     sets MSAA samples
+    format.setSamples(4);
     // sets opengl version
     format.setVersion(3, 3);
     pltStructure->setFormat(format);
@@ -48,8 +48,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     StemArea stemArea = *SimManager->getStemArea();
     CbedPosition cbedPos = *SimManager->getCBedPosition();
 
-    CtemFrame = new CtemAreaFrame(this, ctemArea);
-    StemFrame = new StemAreaFrame(this, stemArea);
+    CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->getStructure());
+    StemFrame = new StemAreaFrame(this, stemArea, SimManager->getStructure());
     CbedFrame = new CbedAreaFrame(this, cbedPos);
 
     ui->vCtemLayout->insertWidget(0, CtemFrame);
@@ -60,14 +60,12 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
     connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
 
-    connect(CtemFrame, &CtemAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
-    connect(StemFrame, &StemAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
-    connect(CbedFrame, &CbedAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
-
     connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
     connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
 
     connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
+
+    connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
 
     // set current tab to view
     auto mode = SimManager->getMode();
@@ -364,27 +362,31 @@ void AreaLayoutFrame::plotStructure() {
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
+
+    // test if we have a structure to plot...
+    // This is mostly for the fitView method (the others protect themselves)
+    if (!SimManager->getStructure())
+        return;
+
     plotStructure();
     updatePlotRects();
     pltStructure->fitView();
-
-    // TODO: turn this into code to get the scale of the window
-    // currently just gets the view width/height of the window in the structures coordinates
-//    auto vw = pltStructure->GetCamera()->GetOrthoViewWidth();
-//    auto vh = pltStructure->GetCamera()->GetOrthoViewHeight();
-    // show it in some static labels for testing
-//    ui->label_17->setText( QString::number(vh) );
-//    ui->label_16->setText( QString::number(vw) );
 }
 
 void AreaLayoutFrame::on_cmbViewDirection_activated(const QString &arg1) {
+    viewDirectionChanged();
+}
+
+void AreaLayoutFrame::viewDirectionChanged() {
+    QString view_text = ui->cmbViewDirection->currentText();
+
     // set the view direcion of the plot
-    if (arg1 == "Top")
+    if (view_text == "Top")
         pltStructure->SetViewDirection(View::Direction::Top);
-    else if (arg1 == "Front")
+    else if (view_text == "Front")
         pltStructure->SetViewDirection(View::Direction::Front);
-    else if (arg1 == "Side")
-        pltStructure->SetViewDirection(View::Direction::Left);
+    else if (view_text == "Side")
+        pltStructure->SetViewDirection(View::Direction::Right);
 
     pltStructure->repaint();
 }
@@ -396,6 +398,10 @@ void AreaLayoutFrame::showRectChanged(int arg1) {
 
 void AreaLayoutFrame::updatePlotRects() {
     // Add in the rectangles showing the simulation areas and slices
+
+    // test if we have a structure to plot...
+    if (!SimManager->getStructure())
+        return;
 
     // clear the old stuff first
     pltStructure->clearRectBuffers();
@@ -449,4 +455,8 @@ void AreaLayoutFrame::updatePlotRects() {
     }
 
     pltStructure->repaint();
+}
+
+void AreaLayoutFrame::on_btnApplyUpdate_clicked() {
+    apply_pressed();
 }

@@ -6,8 +6,8 @@
 
 //TODO: Hover over should give original values?
 
-CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa) :
-    QWidget(parent), ui(new Ui::CtemAreaFrame), simArea(sa)
+CtemAreaFrame::CtemAreaFrame(QWidget *parent, SimulationArea sa, std::shared_ptr<CrystalStructure> struc) :
+    QWidget(parent), ui(new Ui::CtemAreaFrame), simArea(sa), Structure(struc)
 {
     ui->setupUi(this);
 
@@ -147,6 +147,22 @@ SimulationArea CtemAreaFrame::getSimArea() {
 void CtemAreaFrame::on_btnReset_clicked() {
     auto xRangeTup = simArea.getRawLimitsX();
     auto yRangeTup = simArea.getRawLimitsY();
+
+    ui->edtStartX->setText(Utils_Qt::numToQString( xRangeTup[0] ));
+    ui->edtFinishX->setText(Utils_Qt::numToQString( xRangeTup[1] ));
+
+    ui->edtStartY->setText(Utils_Qt::numToQString( yRangeTup[0] ));
+    ui->edtFinishY->setText(Utils_Qt::numToQString( yRangeTup[1] ));
+
+    ui->edtRangeX->setText(Utils_Qt::numToQString( xRangeTup[1] - xRangeTup[0] ));
+    ui->edtRangeY->setText(Utils_Qt::numToQString( yRangeTup[1] - yRangeTup[0] ));
+
+    emit areaChanged();
+}
+
+void CtemAreaFrame::on_btnDefault_clicked() {
+    auto xRangeTup = Structure->getLimitsX();
+    auto yRangeTup = Structure->getLimitsY();
 
     ui->edtStartX->setText(Utils_Qt::numToQString( xRangeTup[0] ));
     ui->edtFinishX->setText(Utils_Qt::numToQString( xRangeTup[1] ));

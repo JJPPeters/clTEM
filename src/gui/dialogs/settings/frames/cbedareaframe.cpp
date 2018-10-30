@@ -55,6 +55,14 @@ void CbedAreaFrame::on_btnReset_clicked()
     emit areaChanged();
 }
 
+void CbedAreaFrame::on_btnDefault_clicked() {
+    //TODO: this default is set in the json file -> get it here somehow?
+    ui->edtPosX->setText(Utils_Qt::numToQString( 0.f));
+    ui->edtPosY->setText(Utils_Qt::numToQString( 0.f));
+    ui->edtPadding->setText(Utils_Qt::numToQString( 0.f));
+    emit areaChanged();
+}
+
 void CbedAreaFrame::editing_finished() {
     QLineEdit* sndr = (QLineEdit*) sender();
 

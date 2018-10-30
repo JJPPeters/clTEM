@@ -15,11 +15,10 @@ class StemAreaFrame : public QWidget
 
 signals:
     void areaChanged();
-    void applyChanges();
 
 public:
 //    explicit StemAreaFrame(QWidget *parent, std::shared_ptr<StemArea> stem, std::shared_ptr<SimulationArea> sim);
-    explicit StemAreaFrame(QWidget *parent, StemArea sa);
+    explicit StemAreaFrame(QWidget *parent, StemArea sa, std::shared_ptr<CrystalStructure> struc);
 
     ~StemAreaFrame();
 
@@ -38,7 +37,7 @@ private slots:
 
     void on_btnReset_clicked();
 
-    void on_btnApply_clicked() {emit applyChanges();}
+    void on_btnDefault_clicked();
 
     void editing_finished();
 
@@ -46,6 +45,8 @@ private:
     Ui::StemAreaFrame *ui;
 
     StemArea Area;
+
+    std::shared_ptr<CrystalStructure> Structure;
 
     bool checkValidXValues();
     bool checkValidYValues();

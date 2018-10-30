@@ -6,8 +6,8 @@
 #include "stemareaframe.h"
 #include "ui_stemareaframe.h"
 
-StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa) :
-    QWidget(parent), Area(sa),
+StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa, std::shared_ptr<CrystalStructure> struc) :
+    QWidget(parent), Area(sa), Structure(struc),
     ui(new Ui::StemAreaFrame)
 {
     ui->setupUi(this);
@@ -192,6 +192,30 @@ void StemAreaFrame::on_btnReset_clicked() {
     ui->edtStartY->setText(Utils_Qt::numToQString( yLims[0] ));
     ui->edtFinishY->setText(Utils_Qt::numToQString( yLims[1] ));
     ui->edtPixelsY->setText(Utils_Qt::numToQString( py ));
+    ui->edtRangeY->setText(Utils_Qt::numToQString( yLims[1] - yLims[0] ));
+
+    ui->edtPadding->setText(Utils_Qt::numToQString(padding));
+
+    emit areaChanged();
+}
+
+void StemAreaFrame::on_btnDefault_clicked() {
+    // TODO: set to structure limits
+
+    auto xLims = Structure->getLimitsX();
+    auto yLims = Structure->getLimitsY();
+//    int px = 64; // TODO: These are defined in the json file -> get them here somehow?
+//    int py = 64;
+    float padding = 0.f;
+
+    ui->edtStartX->setText(Utils_Qt::numToQString( xLims[0] ));
+    ui->edtFinishX->setText(Utils_Qt::numToQString( xLims[1] ));
+//    ui->edtPixelsX->setText(Utils_Qt::numToQString( px ));
+    ui->edtRangeX->setText(Utils_Qt::numToQString( xLims[1] - xLims[0] ));
+
+    ui->edtStartY->setText(Utils_Qt::numToQString( yLims[0] ));
+    ui->edtFinishY->setText(Utils_Qt::numToQString( yLims[1] ));
+//    ui->edtPixelsY->setText(Utils_Qt::numToQString( py ));
     ui->edtRangeY->setText(Utils_Qt::numToQString( yLims[1] - yLims[0] ));
 
     ui->edtPadding->setText(Utils_Qt::numToQString(padding));

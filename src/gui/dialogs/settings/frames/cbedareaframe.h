@@ -14,7 +14,6 @@ class CbedAreaFrame : public QWidget
 
 signals:
     void areaChanged();
-    void applyChanges();
 
 public:
     explicit CbedAreaFrame(QWidget *parent, CbedPosition pos);
@@ -29,7 +28,7 @@ private slots:
 
     void on_btnReset_clicked();
 
-    void on_btnApply_clicked() {emit applyChanges();}
+    void on_btnDefault_clicked();
 
     void editing_finished();
 

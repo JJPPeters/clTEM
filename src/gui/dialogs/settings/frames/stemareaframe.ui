@@ -343,7 +343,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnApply">
+      <widget class="QPushButton" name="btnDefault">
        <property name="minimumSize">
         <size>
          <width>100</width>
@@ -351,7 +351,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Apply</string>
+        <string>Default</string>
        </property>
       </widget>
      </item>
@@ -377,7 +377,7 @@
   <tabstop>edtPixelsY</tabstop>
   <tabstop>edtPadding</tabstop>
   <tabstop>btnReset</tabstop>
-  <tabstop>btnApply</tabstop>
+  <tabstop>btnDefault</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -36,7 +36,11 @@ private slots:
 
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
 
-    void on_cmbViewDirection_activated(const QString &arg1);
+    void on_cmbViewDirection_activated(const QString &arg1="");
+
+    void viewDirectionChanged();
+
+    void on_btnApplyUpdate_clicked();
 
     void showRectChanged(int arg1);
 

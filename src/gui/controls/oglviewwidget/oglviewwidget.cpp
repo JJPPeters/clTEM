@@ -8,6 +8,7 @@
 OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
+    setContextMenuPolicy(Qt::CustomContextMenu);
 
     _camera = nullptr;
     _rotation_offset = Vector3f(0.f, 0.f, 0.f);
@@ -22,6 +23,8 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 
     _technique = std::make_shared<OGLBillBoardTechnique>();
+
+    connect(this, &OGLViewWidget::customContextMenuRequested, this, &OGLViewWidget::contextMenuRequest);
 }
 
 OGLViewWidget::~OGLViewWidget()
@@ -30,7 +33,7 @@ OGLViewWidget::~OGLViewWidget()
 
 void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode)
 {
-    Vector3f origin(10.0f, 10.0f, 10.0f);
+    Vector3f origin(0.0f, 0.0f, 0.0f);
 
     _camera = std::make_shared<OGLCamera>(OGLCamera(position, target, up, origin, rot, _rotation_offset, mode));
 
@@ -201,13 +204,14 @@ void OGLViewWidget::initializeGL()
 
     // this is the background colour...
     glClearColor(_background.x, _background.y, _background.z, 1.0f);
+    glClearDepth(0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    glDepthFunc(GL_GREATER);
 
-    //glEnable(GL_MULTISAMPLE);
-    //glEnable(GL_SAMPLE_SHADING);
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_SAMPLE_SHADING);
 
     // this is for alpha stuff
     glEnable(GL_BLEND);
@@ -226,8 +230,10 @@ void OGLViewWidget::paintGL()
     if (!_camera)
         return;
 
+    // see for depth stuff
+    // https://stackoverflow.com/questions/4189831/depth-test-inverted-by-default-in-opengl-or-did-i-get-it-wrong
+    glClearDepth(0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
 
     Matrix4f MV = _camera->getMV();
     Matrix4f P = _camera->getP();
@@ -273,13 +279,11 @@ void OGLViewWidget::mouseMoveEvent(QMouseEvent *event)
     int dy = event->y() - _lastPos.y();
 
     // mouse right is pan, mouse left is rotate
-    if (event->buttons() & Qt::LeftButton)
-    {
+    if (event->buttons() & Qt::LeftButton) {
         _camera->OnMouseRight(dx, dy);
         update();
     }
-    else if (event->buttons() & Qt::RightButton)
-    {
+    else if (event->buttons() & Qt::RightButton) {
         _camera->OnMouseLeft(dx, dy);
         update();
     }

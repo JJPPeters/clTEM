@@ -207,7 +207,7 @@ struct StemArea : public SimulationArea
 {
     static const float DefaultScale;
 
-    StemArea() : SimulationArea(), xPixels(50), yPixels(50) {}
+    StemArea() : SimulationArea(), xPixels(64), yPixels(64) {}
     StemArea(float xs, float xf, float ys, float yf, int xp, int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf, pd),
                                                                                  xPixels(xp), yPixels(yp) {}
 

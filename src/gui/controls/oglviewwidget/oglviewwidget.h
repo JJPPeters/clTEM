@@ -39,6 +39,10 @@ namespace OGL {
 class OGLViewWidget : public QOpenGLWidget
 {
     Q_OBJECT
+
+signals:
+    void resetView();
+
 public:
     explicit OGLViewWidget(QWidget *parent);
     ~OGLViewWidget() override;
@@ -93,11 +97,13 @@ public:
     void SetViewDirection(View::Direction view_dir) {
         // TODO: might need to sort these vectors out
         auto v_d = directionEnumToVector(view_dir);
-        Vector3f n_d = directionEnumToVector(View::Direction::Bottom);
+        auto n_d = Vector3f(0.f, 0.f, 0.f);
         if (view_dir == View::Direction::Top)
             n_d = directionEnumToVector(View::Direction::Back);
-        else if (view_dir == View::Direction::Bottom)
-            n_d = directionEnumToVector(View::Direction::Right);
+        else if (view_dir == View::Direction::Front)
+            n_d = directionEnumToVector(View::Direction::Top);
+        else if (view_dir == View::Direction::Right)
+            n_d = directionEnumToVector(View::Direction::Top);
 
         SetCamera(v_d*-1, v_d, n_d, ViewMode::Orthographic);
 
@@ -163,6 +169,17 @@ private:
 
     void fitPerspView(float extend = 1.0);
     void fitOrthoView(float extend = 1.0);
+
+    void contextMenuRequest(QPoint pos) {
+        QMenu* menu = new QMenu(this);
+
+        menu->addAction("Reset view", this, &OGLViewWidget::resetPressed);
+
+        menu->popup(mapToGlobal(pos));
+    }
+
+private slots:
+    void resetPressed(){ emit resetView(); }
 };
 
 #endif // MYGLWIDGET_H

@@ -59,9 +59,9 @@ void Matrix4f::InitRotateTransform(float RotateX, float RotateY, float RotateZ, 
 {
     Matrix4f rx, ry, rz;
 
-    const float x = ToRadian(RotateX);
-    const float y = ToRadian(RotateY);
-    const float z = ToRadian(RotateZ);
+    const auto x = ToRadian(RotateX);
+    const auto y = ToRadian(RotateY);
+    const auto z = ToRadian(RotateZ);
 
     rx.m[0][0] = 1.0f; rx.m[0][1] = 0.0f   ; rx.m[0][2] = 0.0f    ; rx.m[0][3] = 0.0f;
     rx.m[1][0] = 0.0f; rx.m[1][1] = cosf(x); rx.m[1][2] = -sinf(x); rx.m[1][3] = 0.0f;
@@ -82,7 +82,8 @@ void Matrix4f::InitRotateTransform(float RotateX, float RotateY, float RotateZ, 
     shift.InitTranslationTransform(centreX, centreY, centreZ);
     unshift.InitTranslationTransform(-centreX, -centreY, -centreZ);
 
-    *this = unshift * (rx * ry * rz) * shift;
+    // Brackets here are very important to force the correct order of multiplication
+    *this = unshift * ((rx * ry * rz) * shift);
 }
 
 
