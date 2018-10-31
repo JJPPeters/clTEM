@@ -111,6 +111,7 @@ void OGLViewWidget::initializeGL() {
     glDepthFunc(GL_GREATER); // this is odd, see reference in paintGL()
 
 //    glEnable(GL_MULTISAMPLE);
+//    glEnable(GL_SAMPLE_COVERAGE);
 //    glEnable(GL_SAMPLE_SHADING);
 //    glFuncsExtra->glMinSampleShading(1.0);
 

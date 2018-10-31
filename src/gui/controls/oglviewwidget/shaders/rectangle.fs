@@ -9,7 +9,8 @@ void main() {
     // set the colour of the rect
     gl_FragColor = RectCol;
 
-    //
+
+    if (gl_FragColor.w != 0.1f) {
     float norm_x = (PosPass.x - RectMins.x) / (RectMaxs.x - RectMins.x);
     float norm_y = (PosPass.y - RectMins.y) / (RectMaxs.y - RectMins.y);
     float norm_z = (PosPass.z - RectMins.z) / (RectMaxs.z - RectMins.z);
@@ -20,5 +21,6 @@ void main() {
     float line_z = line_w / (RectMaxs.z - RectMins.z);
 
     if(norm_x > 1-line_x || norm_x < line_x || norm_y > 1-line_y || norm_y < line_y || norm_z > 1-line_z || norm_z < line_z )
-        gl_FragColor.w = 0.5f;
+        gl_FragColor.w = 0.1f;
+    }
 }

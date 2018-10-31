@@ -5,8 +5,7 @@ in vec4 Vertex_Color;
 
 out vec4 FragColor;
 
-void main()
-{
+void main() {
 	vec2 uv = Vertex_UV.xy - vec2(0.5, 0.5);
 	float rsq = dot(uv, uv);
 
