@@ -9,19 +9,29 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 {
     ui->setupUi(this);
 
-    pltStructure = new OGLViewWidget(this);
-
     // this is just from theQt website, Not really sure what it does,
-    // but it mkes OpenGL work on my linux laptop (intel 4th gen)
-    QSurfaceFormat format;
-    format.setDepthBufferSize(24);
-    format.setStencilBufferSize(8);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-//     sets MSAA samples
-    format.setSamples(4);
-    // sets opengl version
-    format.setVersion(3, 3);
-    pltStructure->setFormat(format);
+    // but it makes OpenGL work on my linux laptop (intel 4th gen)
+    try {
+        QSurfaceFormat format;
+//        format.setDepthBufferSize(24);
+//        format.setStencilBufferSize(8);
+        format.setRenderableType(QSurfaceFormat::OpenGL);
+        format.setProfile(QSurfaceFormat::CoreProfile);
+//        format.setSamples(32); // sets MSAA samples
+        format.setVersion(4, 0); // sets opengl version
+
+        pltStructure = new OGLViewWidget(this);
+        pltStructure->setFormat(format);
+    } catch (const std::exception& e) {
+        QMessageBox msgBox(this);
+        msgBox.setText("Error:");
+        msgBox.setInformativeText(e.what());
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
+        msgBox.exec();
+        return;
+    }
 
     ui->vPlotLayout->addWidget(pltStructure, 1);
     pltStructure->setMinimumWidth(400);

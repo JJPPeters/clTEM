@@ -83,8 +83,6 @@ void OGLViewWidget::fitOrthoView(float extend) {
         view_width = w * extend;
         view_height = view_width / aspect;
     } else {
-//        view_width = w * extend;
-//        view_height = view_width / aspect;
         view_height = h * extend;
         view_width = view_height * aspect;
     }
@@ -101,20 +99,25 @@ void OGLViewWidget::initializeGL() {
     QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
     glFuncs->initializeOpenGLFunctions();
 
+    QOpenGLExtraFunctions *glFuncsExtra = QOpenGLContext::currentContext()->extraFunctions();
+    glFuncsExtra->initializeOpenGLFunctions();
+
     // this is the background colour...
     glClearColor(_background.x, _background.y, _background.z, 1.0f);
     glClearDepth(0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_GREATER);
+    glDepthFunc(GL_GREATER); // this is odd, see reference in paintGL()
 
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_SAMPLE_SHADING);
+//    glEnable(GL_MULTISAMPLE);
+//    glEnable(GL_SAMPLE_SHADING);
+//    glFuncsExtra->glMinSampleShading(1.0);
 
     // this is for alpha stuff
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     try {
         _technique->Init();
