@@ -5,8 +5,7 @@
 
 #include <iostream>
 
-OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
-{
+OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -18,7 +17,6 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     _height = height();
 
     // use system colours
-    // TODO: make this customisable
     auto bk_col = qApp->palette().brush(QPalette::Background).color();
     _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 
@@ -27,62 +25,51 @@ OGLViewWidget::OGLViewWidget(QWidget *parent) : QOpenGLWidget(parent)
     connect(this, &OGLViewWidget::customContextMenuRequested, this, &OGLViewWidget::contextMenuRequest);
 }
 
-OGLViewWidget::~OGLViewWidget()
-{
+bool OGLViewWidget::event(QEvent *event) {
+    // this might get spammed a bit, not sure if it is supposed to
+    if (event->type() == QEvent::PaletteChange) {
+        auto bk_col = qApp->palette().brush(QPalette::Background).color();
+        _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
+        repaint();
+    }
+
+    // very important or no other events will get through
+    return QOpenGLWidget::event(event);
 }
 
-void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode)
-{
+void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode) {
     Vector3f origin(0.0f, 0.0f, 0.0f);
 
     _camera = std::make_shared<OGLCamera>(OGLCamera(position, target, up, origin, rot, _rotation_offset, mode));
 
-    _camera->initPerspProjection(60, 1, 1, 1, 1000);
     _camera->initOrthoProjection(10, -10, -10, 10, -50, 1000);
 
     _camera->SetWidthHeight(_width, _height);
     _camera->SetPixelRatio(devicePixelRatio());
 }
 
-void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode)
-{
+void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode) {
     SetCamera(position, target, up, Vector3f(0.f, 0.f, 0.f), mode);
 }
 
-void OGLViewWidget::fitView(float extend)
-{
-    if (_camera->getProjectionMode() == ViewMode::Perspective)
-    {
-        // this might want to be iterative as the angles change as the distance is changed
-        // if this starts acting up, I would manually set the view to be in front of the cube here,
-        // then run the function twice (make is use _camera->getCameraPosition()
-        fitPerspView(extend);
-    }
-    else
-    {
-        fitOrthoView(extend);
-    }
-
+void OGLViewWidget::fitView(float extend) {
+    fitOrthoView(extend);
     update();
 }
 
-void OGLViewWidget::fitOrthoView(float extend)
-{
+void OGLViewWidget::fitOrthoView(float extend) {
     float w = std::numeric_limits<float>::min();
     float h = std::numeric_limits<float>::min();
 
     // start by looping through our coords
-    for (auto coord : _cubeCoords)
-    {
+    for (auto coord : _cubeCoords) {
         Vector4f coord4(coord, 1.0f);
         Vector4f MV_coord = _camera->getMV() * coord4;
 
-        if (std::abs(MV_coord.x) > w)
-        {
+        if (std::abs(MV_coord.x) > w) {
             w = std::abs(MV_coord.x);
         }
-        if (std::abs(MV_coord.y) > h)
-        {
+        if (std::abs(MV_coord.y) > h) {
             h = std::abs(MV_coord.y);
         }
     }
@@ -91,13 +78,11 @@ void OGLViewWidget::fitOrthoView(float extend)
 
     float aspect = _width / _height;
 
-    if (w/h > aspect) // cube is wider than view
+    if (w / h > aspect) // cube is wider than view
     {
         view_width = w * extend;
         view_height = view_width / aspect;
-    }
-    else
-    {
+    } else {
 //        view_width = w * extend;
 //        view_height = view_width / aspect;
         view_height = h * extend;
@@ -107,95 +92,9 @@ void OGLViewWidget::fitOrthoView(float extend)
     _camera->initOrthoProjection(view_height, -view_width, -view_height, view_width, -50, 1000);
 }
 
-void OGLViewWidget::fitPerspView(float extend)
-{
-    // WARNING:
-    // This is all slow and shit, but remeber the bounding cube is only 8 coordinates
-    // and this function is not called often. Therefore there is not much performace to
-    // be gained.
-
-    float max_ang = 0.0f;
-    float max_z = 0.0f;
-    float max_xy = 0.0f;
-
-    float d = 1.0f;
-    float fov = 60.0f;
-
-    bool max_is_x = true;
-
-    // should be OK setting to 0 as we are always centered
-    float front = 0.0;
-
-    std::vector<Vector4f> cube4(_cubeCoords.size());
-
-    // loop through to get the front z position
-    // might as well apply the model transform here too
-    for (int i = 0; i < _cubeCoords.size(); ++i)
-    {
-        Vector4f coord4(_cubeCoords[i], 1.0f);
-        cube4[i] = _camera->getM() * coord4;
-
-        // less than as negatice is 'out of the screen' or close to us
-        if (cube4[i].z < front)
-            front = cube4[i].z;
-    }
-
-    // reposition the front so it is in front (not on same z plane to)
-    front *= 2;
-
-    // start by looping through our coords
-    for (auto coord : cube4)
-    {
-        // here we get the distances from the camera to the corner coord
-        // the camera x is the distance normal to the screen, which is z in opengl terms (hence the mismatch)
-        float dz = coord.z - front;
-        float dx = std::abs(coord.x);
-        float dy = std::abs(coord.y);
-
-        // angle can be negative or positive so we abs them
-        float angle_x = std::abs(std::atan(dx / dz));
-        float angle_y = std::abs(std::atan(dy / dz));
-
-        // get the max angles
-        // this should probably be more efficiently coded, but fuck it
-        if (angle_y > max_ang)
-        {
-            max_ang = angle_y;
-            max_z = coord.z;
-            max_xy = std::abs(coord.y);
-        }
-        if (angle_x > max_ang)
-        {
-            max_ang = angle_x;
-            max_z = coord.z;
-            max_xy = std::abs(coord.x);
-        }
-    }
-
-    float aspect = _width / _height;
-
-    // TODO: check this isn't bullshit
-    if (!max_is_x)
-        fov = fov / aspect;
-
-    // calculate the distance we need from the point with the highest angle
-    // the max_z correction is because we calculate an offset from the corner, which is offset from the origin
-    d = extend * max_xy / std::tan(ToRadian(fov / 2)) - max_z;
-
-    // apply new position
-    Vector3f position = _camera->getCameraPos();
-    position.Normalize();
-    position *= d;
-    _camera->setCameraPos(position);
-
-    // why init this?
-    _camera->initPerspProjection(fov, _width, _height, 0.1, 1000.0f);
-}
-
-void OGLViewWidget::initializeGL()
-{
+void OGLViewWidget::initializeGL() {
     // without this get errors with "glVertexAttribPointer"
-    auto _vao = new QOpenGLVertexArrayObject( this );
+    auto _vao = new QOpenGLVertexArrayObject(this);
     _vao->create();
     _vao->bind(); // TODO: release this somewhere?
 
@@ -219,14 +118,13 @@ void OGLViewWidget::initializeGL()
 
     try {
         _technique->Init();
-    } catch (std::runtime_error& err) {
+    } catch (std::runtime_error &err) {
         QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
         return;
     }
 }
 
-void OGLViewWidget::paintGL()
-{
+void OGLViewWidget::paintGL() {
     if (!_camera)
         return;
 
@@ -250,8 +148,7 @@ void OGLViewWidget::paintGL()
     _camera->ResetViewPort();
 }
 
-void OGLViewWidget::resizeGL(int width, int height)
-{
+void OGLViewWidget::resizeGL(int width, int height) {
     _width = width;
     _height = height;
 
@@ -259,18 +156,15 @@ void OGLViewWidget::resizeGL(int width, int height)
         return;
 
     _camera->SetWidthHeight(width, height);
-//    _camera->SetPixelRatio(devicePixelRatio());
 
     update();
 }
 
-void OGLViewWidget::mousePressEvent(QMouseEvent *event)
-{
+void OGLViewWidget::mousePressEvent(QMouseEvent *event) {
     _lastPos = event->pos();
 }
 
-void OGLViewWidget::mouseMoveEvent(QMouseEvent *event)
-{
+void OGLViewWidget::mouseMoveEvent(QMouseEvent *event) {
     if (!_camera)
         return;
 
@@ -282,8 +176,7 @@ void OGLViewWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton) {
         _camera->OnMouseRight(dx, dy);
         update();
-    }
-    else if (event->buttons() & Qt::RightButton) {
+    } else if (event->buttons() & Qt::RightButton) {
         _camera->OnMouseLeft(dx, dy);
         update();
     }
@@ -291,47 +184,40 @@ void OGLViewWidget::mouseMoveEvent(QMouseEvent *event)
     _lastPos = event->pos();
 }
 
-void OGLViewWidget::keyPressEvent(QKeyEvent *event)
-{
+void OGLViewWidget::keyPressEvent(QKeyEvent *event) {
     if (!_camera)
         return;
 
-    switch (event->key())
-    {
-    case Qt::Key_Up :
-    {
-        _camera->OnKeyboard(KeyPress::Up);
-        update();
-    }
-    break;
-    case Qt::Key_Down :
-    {
-       _camera->OnKeyboard(KeyPress::Down);
-        update();
-    }
-    break;
-    case Qt::Key_Left :
-    {
-        _camera->OnKeyboard(KeyPress::Left);
-        update();
-    }
-    break;
-    case Qt::Key_Right :
-    {
-        _camera->OnKeyboard(KeyPress::Right);
-        update();
-    }
-    break;
+    switch (event->key()) {
+        case Qt::Key_Up : {
+            _camera->OnKeyboard(KeyPress::Up);
+            update();
+        }
+            break;
+        case Qt::Key_Down : {
+            _camera->OnKeyboard(KeyPress::Down);
+            update();
+        }
+            break;
+        case Qt::Key_Left : {
+            _camera->OnKeyboard(KeyPress::Left);
+            update();
+        }
+            break;
+        case Qt::Key_Right : {
+            _camera->OnKeyboard(KeyPress::Right);
+            update();
+        }
+            break;
+        default:break;
     }
 }
 
-void OGLViewWidget::wheelEvent(QWheelEvent *event)
-{
+void OGLViewWidget::wheelEvent(QWheelEvent *event) {
     if (!_camera)
         return;
 
-    if (event->delta() != 0)
-    {
+    if (event->delta() != 0) {
         _camera->OnScroll(event->delta());
         update();
     }
@@ -365,4 +251,83 @@ void OGLViewWidget::SetCube(float x_min, float x_max, float y_min, float y_max, 
                                 Vector3f(x_max, y_max, z_max)};
 
     SetCube(cc);
+}
+
+void OGLViewWidget::SetCube(std::vector<Vector3f> Cube) {
+    makeCurrent();
+    _cubeCoords = std::move(Cube);
+    doneCurrent();
+}
+
+
+void OGLViewWidget::PlotAtoms(std::vector<Vector3f> pos, std::vector<Vector3f> cols, View::Direction view_dir,
+               float x_min,
+               float x_max,
+               float y_min,
+               float y_max,
+               float z_min,
+               float z_max) {
+    MakeScatterBuffers(pos, cols);
+
+    auto x_offset = -(x_max + x_min) / 2;
+    auto y_offset = -(y_max + y_min) / 2;
+    auto z_offset = -(z_max + z_min) / 2;
+    _rotation_offset = Vector3f(x_offset, y_offset, z_offset);
+
+    SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
+
+    SetViewDirection(view_dir);
+}
+
+void OGLViewWidget::AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour, OGL::Plane pl) {
+    makeCurrent();
+    auto rec = std::make_shared<OGLRectangleTechnique>();
+    rec->Init();
+
+    std::vector<Vector3f> pos;
+
+    if (pl == OGL::Plane::x)
+        pos = {Vector3f(z, l, t), Vector3f(z, l, b), Vector3f(z, r, b), Vector3f(z, r, t)};
+    else if (pl == OGL::Plane::y)
+        pos = {Vector3f(l, z, t), Vector3f(l, z, b), Vector3f(r, z, b), Vector3f(r, z, t)};
+    else if (pl == OGL::Plane::z)
+        pos = {Vector3f(l, t, z), Vector3f(l, b, z), Vector3f(r, b, z), Vector3f(r, t, z)};
+
+    rec->MakeBuffers(pos, colour, pos[0], pos[2]);
+
+    _recSlices.push_back(rec);
+    doneCurrent();
+}
+
+void OGLViewWidget::SetViewDirection(View::Direction view_dir) {
+    auto v_d = directionEnumToVector(view_dir);
+    auto n_d = Vector3f(0.f, 0.f, 0.f);
+    if (view_dir == View::Direction::Top)
+        n_d = directionEnumToVector(View::Direction::Back);
+    else if (view_dir == View::Direction::Front)
+        n_d = directionEnumToVector(View::Direction::Top);
+    else if (view_dir == View::Direction::Right)
+        n_d = directionEnumToVector(View::Direction::Top);
+
+    SetCamera(v_d * -1, v_d, n_d, ViewMode::Orthographic);
+
+    // cube coords need to be defined for this to work
+    fitView(1.0);
+}
+
+void OGLViewWidget::MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours) {
+    if (positions.size() != colours.size())
+        throw std::runtime_error("OpenGL: Scatter position vector size does not match scatter colour vector size");
+
+    makeCurrent();
+    _technique->MakeBuffers(positions, colours);
+    doneCurrent();
+}
+
+void OGLViewWidget::contextMenuRequest(QPoint pos) {
+    auto menu = new QMenu(this);
+
+    menu->addAction("Reset view", this, &OGLViewWidget::resetPressed);
+
+    menu->popup(mapToGlobal(pos));
 }

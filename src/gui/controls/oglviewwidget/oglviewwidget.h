@@ -36,100 +36,59 @@ namespace OGL {
     };
 }
 
-class OGLViewWidget : public QOpenGLWidget
-{
-    Q_OBJECT
+class OGLViewWidget : public QOpenGLWidget {
+Q_OBJECT
 
 signals:
+
     void resetView();
 
 public:
     explicit OGLViewWidget(QWidget *parent);
-    ~OGLViewWidget() override;
 
-    void setDrawRects(bool v) {_drawRects = v;}
-    bool getDrawRects() {return _drawRects;}
+    ~OGLViewWidget() override = default;
 
-    void clearRectBuffers() {_recSlices.clear();}
+    bool event(QEvent *event) override;
+
+    void setDrawRects(bool v) { _drawRects = v; }
+
+    bool getDrawRects() { return _drawRects; }
+
+    void clearRectBuffers() { _recSlices.clear(); }
 
     void PlotAtoms(std::vector<Vector3f> pos, std::vector<Vector3f> cols, View::Direction view_dir,
-            float x_min,
-            float x_max,
-            float y_min,
-            float y_max,
-            float z_min,
-            float z_max) {
-        // TODO: centre on structure
-        // TODO: get limits of view and show them
+                   float x_min,
+                   float x_max,
+                   float y_min,
+                   float y_max,
+                   float z_min,
+                   float z_max);
 
-        MakeScatterBuffers(pos, cols);
+    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour, OGL::Plane pl);
 
-        auto x_offset = -(x_max + x_min) / 2;
-        auto y_offset = -(y_max + y_min) / 2;
-        auto z_offset = -(z_max + z_min) / 2;
-        _rotation_offset = Vector3f(x_offset, y_offset, z_offset);
+    void SetViewDirection(View::Direction view_dir);
 
-        SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
-
-        SetViewDirection(view_dir);
-    }
-
-    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour, OGL::Plane pl) {
-        makeCurrent();
-        auto rec = std::make_shared<OGLRectangleTechnique>();
-        rec->Init();
-
-        std::vector<Vector3f> pos;
-
-        if (pl == OGL::Plane::x)
-            pos = {Vector3f(z, l, t), Vector3f(z, l, b), Vector3f(z, r, b), Vector3f(z, r, t)};
-        else if (pl == OGL::Plane::y)
-            pos = {Vector3f(l, z, t), Vector3f(l, z, b), Vector3f(r, z, b), Vector3f(r, z, t)};
-        else if (pl == OGL::Plane::z)
-            pos = {Vector3f(l, t, z), Vector3f(l, b, z), Vector3f(r, b, z), Vector3f(r, t, z)};
-
-        rec->MakeBuffers(pos, colour, pos[0], pos[2]);
-
-        _recSlices.push_back(rec);
-        doneCurrent();
-    }
-
-    void SetViewDirection(View::Direction view_dir) {
-        // TODO: might need to sort these vectors out
-        auto v_d = directionEnumToVector(view_dir);
-        auto n_d = Vector3f(0.f, 0.f, 0.f);
-        if (view_dir == View::Direction::Top)
-            n_d = directionEnumToVector(View::Direction::Back);
-        else if (view_dir == View::Direction::Front)
-            n_d = directionEnumToVector(View::Direction::Top);
-        else if (view_dir == View::Direction::Right)
-            n_d = directionEnumToVector(View::Direction::Top);
-
-        SetCamera(v_d*-1, v_d, n_d, ViewMode::Orthographic);
-
-        // cube coords need to be defined for this to work
-        fitView(1.0);
-    }
-
-    std::shared_ptr<OGLCamera> GetCamera() { return _camera;}
+    std::shared_ptr<OGLCamera> GetCamera() { return _camera; }
 
     void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
-    void SetCube(std::vector<Vector3f> Cube) {
-        makeCurrent();
-        _cubeCoords = std::move(Cube);
-        doneCurrent();
-    }
+
+    void SetCube(std::vector<Vector3f> Cube);
 
     void fitView(float extend = 1.0);
 
 protected:
     void initializeGL() override;
+
     void paintGL() override;
+
     void resizeGL(int width, int height) override;
 
     void mousePressEvent(QMouseEvent *event) override;
+
     void mouseMoveEvent(QMouseEvent *event) override;
+
     void wheelEvent(QWheelEvent *event) override;
+
     void keyPressEvent(QKeyEvent *event) override;
 
 private:
@@ -154,32 +113,19 @@ private:
 
     QPoint _lastPos;
 
-    void MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours)
-    {
-        if(positions.size() != colours.size())
-            throw std::runtime_error("OpenGL: Scatter position vector size does not match scatter colour vector size");
-
-        makeCurrent();
-        _technique->MakeBuffers(positions, colours);
-        doneCurrent();
-    }
+    void MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
 
     void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
+
     void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
 
-    void fitPerspView(float extend = 1.0);
     void fitOrthoView(float extend = 1.0);
 
-    void contextMenuRequest(QPoint pos) {
-        QMenu* menu = new QMenu(this);
-
-        menu->addAction("Reset view", this, &OGLViewWidget::resetPressed);
-
-        menu->popup(mapToGlobal(pos));
-    }
+    void contextMenuRequest(QPoint pos);
 
 private slots:
-    void resetPressed(){ emit resetView(); }
+
+    void resetPressed() { emit resetView(); }
 };
 
 #endif // MYGLWIDGET_H
