@@ -136,8 +136,18 @@ void MainWindow::on_actionOpen_triggered()
 
     if (temp_file.suffix() != "xyz")
         return;
-    Manager->setStructure(fileName.toStdString());
-
+    try {
+        Manager->setStructure(fileName.toStdString());
+    } catch (const std::exception &e) {
+        QMessageBox msgBox(nullptr);
+        msgBox.setText("Error:");
+        msgBox.setInformativeText(e.what());
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
+        msgBox.exec();
+        return;
+    }
     // update frames to show limits
     updateRanges();
 

@@ -29,7 +29,11 @@ void CrystalStructure::openXyz(std::string fPath)
 
     // get the first line and set it as the number of atoms
     Utils::safeGetline(inputStream, line);
-    AtomCount = std::stoi(line);
+    try {
+        AtomCount = std::stoi(line);
+    } catch (const std::exception &e) {
+        throw std::runtime_error("Could not parse number of atoms (line 1, " + std::string(e.what()) + ").");
+    }
     Atoms.reserve(AtomCount);
 
     // get the next line, in my format, this contains the column info
