@@ -30,7 +30,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setMinimumSize(160, 125);
         msgBox.exec();
-        return;
     }
 
     ui->vPlotLayout->addWidget(pltStructure, 1);

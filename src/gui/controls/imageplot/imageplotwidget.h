@@ -95,8 +95,8 @@ public:
         out = std::vector<T>(sx*sy);
 
         int cnt = 0;
-        for (int j = c_b; j < size_y-c_t; ++j)
-            for (int i = c_l; i < size_x-c_r; ++i)
+        for (int j = c_b; j < full_size_y-c_t; ++j)
+            for (int i = c_l; i < full_size_x-c_r; ++i)
             {
                 out[cnt] = static_cast<T>(ImageObject->data()->cell(i, j));
                 ++cnt;
@@ -118,7 +118,7 @@ private:
 
     bool crop_image = false;
 
-    int size_x, size_y;
+    int full_size_x, full_size_y, crop_size_x, crop_size_y;
     int crop_t, crop_l, crop_b, crop_r;
 
     double scale_x, scale_y;
@@ -205,7 +205,7 @@ public:
         complex_type = show_c;
 
         auto im_d = calculateComplexData();
-        SetImageGeneric(im_d, size_x, size_y,
+        SetImageGeneric(im_d, full_size_x, full_size_y,
                         crop_t, crop_l, crop_b, crop_r,
                         zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, redraw, reset);
     }
