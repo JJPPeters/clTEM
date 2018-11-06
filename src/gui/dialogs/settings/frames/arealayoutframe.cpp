@@ -4,8 +4,7 @@
 #include "ui_arealayoutframe.h"
 
 AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan) :
-    QWidget(parent), SimManager(simMan),
-    ui(new Ui::AreaLayoutFrame)
+    QWidget(parent), ui(new Ui::AreaLayoutFrame), SimManager(simMan)
 {
     ui->setupUi(this);
 
@@ -174,7 +173,7 @@ void AreaLayoutFrame::areasChanged() {
 
 void AreaLayoutFrame::on_cmbResolution_currentIndexChanged(const QString &arg1) {
     int res = arg1.toInt();
-    SimManager->setResolution(res);
+    SimManager->setResolution(static_cast<unsigned int>(res));
     areasChanged();
     // this will set the resolution again, but is easiest way of updating the other combo box
     emit resolutionChanged(arg1);
@@ -266,9 +265,6 @@ bool AreaLayoutFrame::apply_pressed() {
 
     emit areaChanged();
 
-    ////
-    ////
-    ////
     updatePlotRects();
 
     return valid;
@@ -332,7 +328,7 @@ void AreaLayoutFrame::slicesChanged() {
     auto z_lims = SimManager->getPaddedStructLimitsZ();
     float z_range = z_lims[1] - z_lims[0];
 
-    unsigned int n_slices = (unsigned int) std::ceil(z_range / dz);
+    auto n_slices = (unsigned int) std::ceil(z_range / dz);
     n_slices += (n_slices == 0);
 
     ui->lblSlices->setText(Utils_Qt::numToQString(n_slices));
@@ -362,11 +358,7 @@ void AreaLayoutFrame::plotStructure() {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
-    // TODO: get view direction from combo?
-    // TODO: make combo box update even if the value doesnt changed
     pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
-
-    // TODO: make OGL background colour update with everything else (or just have it black?)
 }
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
@@ -394,8 +386,14 @@ void AreaLayoutFrame::viewDirectionChanged() {
         pltStructure->SetViewDirection(View::Direction::Top);
     else if (view_text == "Front")
         pltStructure->SetViewDirection(View::Direction::Front);
-    else if (view_text == "Side")
+    else if (view_text == "Right")
         pltStructure->SetViewDirection(View::Direction::Right);
+    else if (view_text == "Bottom")
+        pltStructure->SetViewDirection(View::Direction::Bottom);
+    else if (view_text == "Back")
+        pltStructure->SetViewDirection(View::Direction::Back);
+    else if (view_text == "Left")
+        pltStructure->SetViewDirection(View::Direction::Left);
 
     pltStructure->repaint();
 }

@@ -23,13 +23,13 @@ public:
     OGLCamera(const Vector3f &Pos, const Vector3f &Target, const Vector3f &Up, const Vector3f &Origin,
                   const Vector3f &rot, const Vector3f &rot_cent, ViewMode Mode);
 
-    void OnMouseLeft(float dx, float dy);
+    void OnMouseRotate(float dx, float dy);
 
-    void OnMouseRight(float dx, float dy);
+    void OnMousePan(float dx, float dy);
 
     void OnScroll(float delta);
 
-    bool OnKeyboard(KeyPress pressed);
+    bool OnKeyboardNudge(KeyPress pressed);
 
     void InitPerspProjection(float fov, float n, float f);
 

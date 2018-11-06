@@ -42,7 +42,7 @@ void OGLViewWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, V
 
     _camera = std::make_shared<OGLCamera>(OGLCamera(position, target, up, origin, rot, _rotation_offset, mode));
 
-    _camera->initOrthoProjection(10, -10, -10, 10, -50, 1000);
+    _camera->initOrthoProjection(10, -10, -10, 10, -100, 10000);
 
     _camera->SetWidthHeight(_width, _height);
     _camera->SetPixelRatio(devicePixelRatio());
@@ -87,7 +87,7 @@ void OGLViewWidget::fitOrthoView(float extend) {
         view_width = view_height * aspect;
     }
 
-    _camera->initOrthoProjection(view_height, -view_width, -view_height, view_width, -50, 1000);
+    _camera->initOrthoProjection(view_height, -view_width, -view_height, view_width, -100, 10000);
 }
 
 void OGLViewWidget::initializeGL() {
@@ -176,12 +176,14 @@ void OGLViewWidget::mouseMoveEvent(QMouseEvent *event) {
     int dx = event->x() - _lastPos.x();
     int dy = event->y() - _lastPos.y();
 
+    auto test = QGuiApplication::queryKeyboardModifiers();
+
     // mouse right is pan, mouse left is rotate
     if (event->buttons() & Qt::LeftButton) {
-        _camera->OnMouseRight(dx, dy);
+        _camera->OnMousePan(dx, dy);
         update();
-    } else if (event->buttons() & Qt::RightButton) {
-        _camera->OnMouseLeft(dx, dy);
+    } else if (event->buttons() & Qt::RightButton && QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier) {
+        _camera->OnMouseRotate(dx, dy);
         update();
     }
 
@@ -194,22 +196,22 @@ void OGLViewWidget::keyPressEvent(QKeyEvent *event) {
 
     switch (event->key()) {
         case Qt::Key_Up : {
-            _camera->OnKeyboard(KeyPress::Up);
+            _camera->OnKeyboardNudge(KeyPress::Up);
             update();
         }
             break;
         case Qt::Key_Down : {
-            _camera->OnKeyboard(KeyPress::Down);
+            _camera->OnKeyboardNudge(KeyPress::Down);
             update();
         }
             break;
         case Qt::Key_Left : {
-            _camera->OnKeyboard(KeyPress::Left);
+            _camera->OnKeyboardNudge(KeyPress::Left);
             update();
         }
             break;
         case Qt::Key_Right : {
-            _camera->OnKeyboard(KeyPress::Right);
+            _camera->OnKeyboardNudge(KeyPress::Right);
             update();
         }
             break;
@@ -229,17 +231,17 @@ void OGLViewWidget::wheelEvent(QWheelEvent *event) {
 
 Vector3f OGLViewWidget::directionEnumToVector(View::Direction d) {
     if (d == View::Direction::Front) {
-        return Vector3f(0.0f, -100.0f, 0.0f);
+        return Vector3f(0.0f, -1000.0f, 0.0f);
     } else if (d == View::Direction::Back) {
-        return Vector3f(0.0f, 100.0f, 0.0f);
+        return Vector3f(0.0f, 1000.0f, 0.0f);
     } else if (d == View::Direction::Left) {
-        return Vector3f(-100.0f, 0.0f, 0.0f);
+        return Vector3f(-1000.0f, 0.0f, 0.0f);
     } else if (d == View::Direction::Right) {
-        return Vector3f(100.0f, 0.0f, 0.0f);
+        return Vector3f(1000.0f, 0.0f, 0.0f);
     } else if (d == View::Direction::Top) {
-        return Vector3f(0.0f, 0.0f, 100.0f);
+        return Vector3f(0.0f, 0.0f, 1000.0f);
     } else {
-        return Vector3f(0.0f, 0.0f, -100.0f);
+        return Vector3f(0.0f, 0.0f, -1000.0f);
     }
 }
 
@@ -305,13 +307,9 @@ void OGLViewWidget::AddRectBuffer(float t, float l, float b, float r, float z, V
 
 void OGLViewWidget::SetViewDirection(View::Direction view_dir) {
     auto v_d = directionEnumToVector(view_dir);
-    auto n_d = Vector3f(0.f, 0.f, 0.f);
-    if (view_dir == View::Direction::Top)
+    auto n_d = directionEnumToVector(View::Direction::Top);
+    if (view_dir == View::Direction::Top || view_dir == View::Direction::Bottom)
         n_d = directionEnumToVector(View::Direction::Back);
-    else if (view_dir == View::Direction::Front)
-        n_d = directionEnumToVector(View::Direction::Top);
-    else if (view_dir == View::Direction::Right)
-        n_d = directionEnumToVector(View::Direction::Top);
 
     SetCamera(v_d * -1, v_d, n_d, ViewMode::Orthographic);
 
@@ -329,9 +327,10 @@ void OGLViewWidget::MakeScatterBuffers(std::vector<Vector3f> &positions, std::ve
 }
 
 void OGLViewWidget::contextMenuRequest(QPoint pos) {
+    if(QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier)
+        return;
+
     auto menu = new QMenu(this);
-
     menu->addAction("Reset view", this, &OGLViewWidget::resetPressed);
-
     menu->popup(mapToGlobal(pos));
 }

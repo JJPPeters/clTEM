@@ -31,7 +31,7 @@ OGLCamera::OGLCamera(const Vector3f &Pos, const Vector3f &Target, const Vector3f
     _rotateCentre = Vector3f(rot_cent.x, rot_cent.y, rot_cent.z);
 }
 
-void OGLCamera::OnMouseLeft(float dx, float dy)
+void OGLCamera::OnMouseRotate(float dx, float dy)
 {
     // TODO: I need to clip these vales to avoid precision problems
     _worldRot.z -= dx;
@@ -39,7 +39,7 @@ void OGLCamera::OnMouseLeft(float dx, float dy)
     _worldRot += _camRight * dy;
 }
 
-void OGLCamera::OnMouseRight(float dx, float dy)
+void OGLCamera::OnMousePan(float dx, float dy)
 {
     float scaling;
 
@@ -118,7 +118,7 @@ void OGLCamera::OnScroll(float delta)
         _worldTrans.x -= (delta * SCROLL_STEP_SCALE);
 }
 
-bool OGLCamera::OnKeyboard(KeyPress pressed)
+bool OGLCamera::OnKeyboardNudge(KeyPress pressed)
 {
     bool Ret = false;
 
@@ -126,25 +126,25 @@ bool OGLCamera::OnKeyboard(KeyPress pressed)
     {
         case KeyPress::Up:
         {
-            _camPos += (_camUp * STEP_SCALE);
+            _camPos -= (_camUp * STEP_SCALE);
             Ret = true;
         }
             break;
         case KeyPress::Down:
         {
-            _camPos -= (_camUp * STEP_SCALE);
+            _camPos += (_camUp * STEP_SCALE);
             Ret = true;
         }
             break;
         case KeyPress::Left:
         {
-            _camPos -= _camRight * STEP_SCALE;
+            _camPos += _camRight * STEP_SCALE;
             Ret = true;
         }
             break;
         case KeyPress::Right:
         {
-            _camPos += _camRight * STEP_SCALE;
+            _camPos -= _camRight * STEP_SCALE;
             Ret = true;
         }
             break;
