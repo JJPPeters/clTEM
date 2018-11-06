@@ -11,6 +11,7 @@
 #include "oglarraybuffer.h"
 #include "ogltexture.h"
 #include "oglattributebuffer.h"
+#include "oglstatic.h"
 
 #include <memory>
 

@@ -15,15 +15,19 @@ bool OGLRectangleTechnique::Init() {
     if (!OGLTechnique::Init())
         throw std::runtime_error("OpenGL: Rectangle: Failed to initialise technique base");
 
+    OGLCheckErrors("OpenGL: Rectangle: Initialising technique");
+
     QFile f_vert(":/OGL/Shaders/rectangle.vs");
-    if (!f_vert.open(QFile::ReadOnly | QFile::Text)) {
+    if (!f_vert.open(QFile::ReadOnly | QFile::Text))
         throw std::runtime_error("OpenGL: Rectangle: Failed to read vertex shader");
-    }
+
     auto s_vert = QTextStream(&f_vert).readAll().toStdString();
     if (!CompileShader(GL_VERTEX_SHADER, s_vert)) {
         throw std::runtime_error("OpenGL: Rectangle: Failed to initialise vertex shader");
     }
     f_vert.close();
+
+    OGLCheckErrors("OpenGL: Rectangle: Creating vertex shader");
 
     QFile f_frag(":/OGL/Shaders/rectangle.fs");
     if (!f_frag.open(QFile::ReadOnly | QFile::Text)) {
@@ -35,9 +39,13 @@ bool OGLRectangleTechnique::Init() {
     }
     f_frag.close();
 
+    OGLCheckErrors("OpenGL: Rectangle: Creating fragment shader");
+
     if (!Finalise()) {
         throw std::runtime_error("OpenGL: Rectangle: Failed to finalise shaders");
     }
+
+    OGLCheckErrors("OpenGL: Rectangle: Finalising technique");
 
     _MVLocation = GetUniformLocation("ModelView");
     _PLocation = GetUniformLocation("Proj");

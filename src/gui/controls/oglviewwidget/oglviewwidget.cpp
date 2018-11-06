@@ -119,7 +119,6 @@ void OGLViewWidget::initializeGL() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
     try {
         _technique->Init();
     } catch (std::runtime_error &err) {

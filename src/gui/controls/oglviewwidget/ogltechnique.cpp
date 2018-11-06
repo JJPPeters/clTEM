@@ -71,7 +71,7 @@ bool OGLTechnique::Finalise()
 
     _shaderObjectList.clear();
 
-    return OGLCheckError();
+    return true;
 }
 
 void OGLTechnique::Enable()

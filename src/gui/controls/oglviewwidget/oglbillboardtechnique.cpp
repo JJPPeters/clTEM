@@ -14,20 +14,22 @@ OGLBillBoardTechnique::OGLBillBoardTechnique()
 bool OGLBillBoardTechnique::Init()
 {
     if (!OGLTechnique::Init()) {
-        throw std::runtime_error("OpenGL: Failed to initialise technique base");
+        throw std::runtime_error("OpenGL: BillBoard: Failed to initialise technique base");
     }
 
-    auto v = glGetError();
+    OGLCheckErrors("OpenGL: BillBoard: Initialising technique");
 
     QFile f_vert(":/OGL/Shaders/billboard.vs");
     if (!f_vert.open(QFile::ReadOnly | QFile::Text)) {
-        throw std::runtime_error("OpenGL: Billboard: Failed to read vertex shader");
+        throw std::runtime_error("OpenGL: BillBoard: Billboard: Failed to read vertex shader");
     }
     auto s_vert = QTextStream(&f_vert).readAll().toStdString();
     if (!CompileShader(GL_VERTEX_SHADER, s_vert)) {
         throw std::runtime_error("OpenGL: Billboard: Failed to initialise vertex shader");
     }
     f_vert.close();
+
+    OGLCheckErrors("OpenGL: BillBoard: Creating vertex shader");
 
     QFile f_geo(":/OGL/Shaders/billboard.gs");
     if (!f_geo.open(QFile::ReadOnly | QFile::Text)) {
@@ -39,7 +41,7 @@ bool OGLBillBoardTechnique::Init()
     }
     f_geo.close();
 
-    auto v3 = glGetError();
+    OGLCheckErrors("OpenGL: BillBoard: Creating geometry shader");
 
     QFile f_frag(":/OGL/Shaders/billboard.fs");
     if (!f_frag.open(QFile::ReadOnly | QFile::Text)) {
@@ -51,9 +53,13 @@ bool OGLBillBoardTechnique::Init()
     }
     f_frag.close();
 
+    OGLCheckErrors("OpenGL: BillBoard: Creating fragment shader");
+
     if (!Finalise()) {
         throw std::runtime_error("OpenGL: Billboard: Failed to finalise shaders");
     }
+
+    OGLCheckErrors("OpenGL: BillBoard: Finalising technique");
 
     _MVLocation = GetUniformLocation("ModelView");
     _PLocation = GetUniformLocation("Proj");

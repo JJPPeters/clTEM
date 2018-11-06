@@ -21,6 +21,9 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
         pltStructure = new OGLViewWidget(this);
         pltStructure->setFormat(format);
+        ui->vPlotLayout->addWidget(pltStructure, 1);
+        pltStructure->setMinimumWidth(400);
+        connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
     } catch (const std::exception& e) {
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
@@ -30,9 +33,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         msgBox.setMinimumSize(160, 125);
         msgBox.exec();
     }
-
-    ui->vPlotLayout->addWidget(pltStructure, 1);
-    pltStructure->setMinimumWidth(400);
 
     QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
@@ -72,8 +72,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
 
     connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
-
-    connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
 
     // set current tab to view
     auto mode = SimManager->getMode();
@@ -338,7 +336,7 @@ void AreaLayoutFrame::slicesChanged() {
 void AreaLayoutFrame::plotStructure() {
 
     // test if we have a structure to plot...
-    if (!SimManager->getStructure())
+    if (!SimManager->getStructure() || !pltStructure)
         return;
 
     // get ranges (needed to define out 'cube'
@@ -371,7 +369,8 @@ void AreaLayoutFrame::showEvent(QShowEvent *event) {
 
     plotStructure();
     updatePlotRects();
-    pltStructure->fitView();
+    if (!pltStructure)
+        pltStructure->fitView();
 }
 
 void AreaLayoutFrame::on_cmbViewDirection_activated(const QString &arg1) {
@@ -379,6 +378,9 @@ void AreaLayoutFrame::on_cmbViewDirection_activated(const QString &arg1) {
 }
 
 void AreaLayoutFrame::viewDirectionChanged() {
+    if (!pltStructure)
+        return;
+
     QString view_text = ui->cmbViewDirection->currentText();
 
     // set the view direcion of the plot
@@ -399,6 +401,9 @@ void AreaLayoutFrame::viewDirectionChanged() {
 }
 
 void AreaLayoutFrame::showRectChanged(int arg1) {
+    if (!pltStructure)
+        return;
+
     pltStructure->setDrawRects(arg1 != 0);
     pltStructure->repaint();
 }
@@ -407,7 +412,7 @@ void AreaLayoutFrame::updatePlotRects() {
     // Add in the rectangles showing the simulation areas and slices
 
     // test if we have a structure to plot...
-    if (!SimManager->getStructure())
+    if (!SimManager->getStructure() || !pltStructure)
         return;
 
     // clear the old stuff first

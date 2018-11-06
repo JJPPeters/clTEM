@@ -56,7 +56,7 @@ set ( glViewWidget_HDRS
         oglbillboardtechnique.h
         oglcamera.h
         oglcamerapipeline.h
-        ogldefines.h
+        oglstatic.h
         oglmaths.h
         oglrectangletechnique.h
         ogltechnique.h
@@ -69,7 +69,7 @@ set ( glViewWidget_SRCS
         oglbillboardtechnique.cpp
         oglcamera.cpp
         oglcamerapipeline.cpp
-        ogldefines.cpp
+        oglstatic.cpp
         oglmaths.cpp
         oglrectangletechnique.cpp
         ogltechnique.cpp

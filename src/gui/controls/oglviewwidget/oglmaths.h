@@ -14,7 +14,7 @@
 #include <math.h>
 #endif
 
-#include "ogldefines.h"
+#include "oglstatic.h"
 #include <Eigen/Dense>
 
 #define ToRadian(x) (float)(((x) * M_PI / 180.0f))
