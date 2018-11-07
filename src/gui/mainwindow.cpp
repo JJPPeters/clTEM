@@ -136,8 +136,18 @@ void MainWindow::on_actionOpen_triggered()
 
     if (temp_file.suffix() != "xyz")
         return;
-    Manager->setStructure(fileName.toStdString());
-
+    try {
+        Manager->setStructure(fileName.toStdString());
+    } catch (const std::exception &e) {
+        QMessageBox msgBox(nullptr);
+        msgBox.setText("Error:");
+        msgBox.setInformativeText(e.what());
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
+        msgBox.exec();
+        return;
+    }
     // update frames to show limits
     updateRanges();
 
@@ -425,8 +435,8 @@ void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, Simulati
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
 
-                    double lx = sm.getStemArea()->getLimitsX()[0];
-                    double ly = sm.getStemArea()->getLimitsY()[0];
+                    double lx = sm.getStemArea()->getRawLimitsX()[0];
+                    double ly = sm.getStemArea()->getRawLimitsY()[0];
                     double scx = sm.getStemArea()->getScaleX();
                     double scy = sm.getStemArea()->getScaleY();
 

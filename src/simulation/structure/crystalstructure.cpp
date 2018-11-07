@@ -24,14 +24,16 @@ void CrystalStructure::openXyz(std::string fPath)
     if(!inputStream)
         throw std::runtime_error("Error opening .xyz file.");
 
-    filePath = fPath;
-
     // this is our buffer, contains the current line only
     std::string line;
 
     // get the first line and set it as the number of atoms
     Utils::safeGetline(inputStream, line);
-    AtomCount = std::stoi(line);
+    try {
+        AtomCount = std::stoi(line);
+    } catch (const std::exception &e) {
+        throw std::runtime_error("Could not parse number of atoms (line 1, " + std::string(e.what()) + ").");
+    }
     Atoms.reserve(AtomCount);
 
     // get the next line, in my format, this contains the column info
@@ -151,8 +153,7 @@ void CrystalStructure::openXyz(std::string fPath)
             ++count;
         } else {
             // for TDS this all happens in processOccupancyList
-            Atoms.emplace_back(thisAtom * ScaleFactor);
-            updateLimits(thisAtom * ScaleFactor);
+            addAtom(thisAtom);
             ++count;
         }
     }
@@ -182,8 +183,7 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
 
     if (aList.size() == 1 and aList[0].occ == 1.0) // small try at optimising
     {
-        Atoms.emplace_back(aList[0] * ScaleFactor);
-        updateLimits(aList[0] * ScaleFactor);
+        addAtom(aList[0]);
     }
     else
     {
@@ -194,8 +194,7 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
         {
             if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0))
             {
-                Atoms.emplace_back(a * ScaleFactor);
-                updateLimits(a * ScaleFactor);
+                addAtom(a);
             }
 
             totalOcc += a.occ;
@@ -257,6 +256,16 @@ int CrystalStructure::getAtomCountInRange(float xs, float xf, float ys, float yf
 std::tuple<float, float> CrystalStructure::getStructRanges()
 {
     return std::make_tuple( MaxX-MinX, MaxY-MinY);
+}
+
+void CrystalStructure::addAtom(AtomSite a) {
+    // add the atom
+    Atoms.emplace_back(a * ScaleFactor);
+    // update limits
+    updateLimits(a * ScaleFactor);
+    // update our list of atoms
+    if(std::find(AtomTypes.begin(), AtomTypes.end(), a.A) == AtomTypes.end())
+        AtomTypes.push_back(a.A);
 }
 
 

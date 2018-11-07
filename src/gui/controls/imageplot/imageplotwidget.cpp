@@ -201,17 +201,18 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
 void ImagePlotWidget::cropImage(bool doReplot) {
     ImageObject->data()->clearAlpha();
 
-    if (crop_image) {
-        // do the cropping if we get haven't returned yet
-        for (int ind = 0; ind < size_x * size_y; ++ind) {
-            int i = ind % size_x;
-            int j = ind / size_x;
+    if (crop_image) { // do the cropping if we get haven't returned yet
+        for (int ind = 0; ind < full_size_x * full_size_y; ++ind) {
+            int i = ind % full_size_x;
+            int j = ind / full_size_x;
 
-            if (j < crop_b || j >= (size_y - crop_t) || i < crop_l || i >= (size_x - crop_r)) {
+            if (j < crop_b || j >= (full_size_y - crop_t) || i < crop_l || i >= (full_size_x - crop_r)) {
                 ImageObject->data()->setAlpha(i, j, 0);
             }
         }
-    }
+        AspectRatio = (double)crop_size_x/(double)crop_size_y;
+    } else
+        AspectRatio = (double)full_size_x/(double)full_size_y;
 
     if (doReplot)
         replot();
@@ -236,9 +237,6 @@ ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, 
         SetImagePlot(image, sx, sy, intensity_scale, redraw); // this function creates what is needed, then calls this function
         return;
     }
-
-    // calculate the aspect ration (so we can maintain it)
-    AspectRatio = (double)sx/(double)sy;
 
     ImageObject->data()->setSize(sx, sy);
 
@@ -268,8 +266,17 @@ ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, 
         for (int yIndex=0; yIndex<sy; ++yIndex)
             ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
 
-    size_x = sx;
-    size_y = sy;
+    full_size_x = sx;
+    full_size_y = sy;
+
+    crop_size_x = sx - crop_l - crop_r;
+    crop_size_y = sy - crop_t - crop_b;
+
+    // calculate the aspect ration (so we can maintain it)
+    if (crop_image) {
+        AspectRatio = (double)crop_size_x/(double)crop_size_y;
+    } else
+        AspectRatio = (double)full_size_x/(double)full_size_y;
 
     haveImage = true;
 

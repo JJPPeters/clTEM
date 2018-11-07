@@ -16,10 +16,9 @@ class CtemAreaFrame : public QWidget
 
 signals:
     void areaChanged();
-    void applyChanges();
 
 public:
-    explicit CtemAreaFrame(QWidget *parent, SimulationArea sa);//, std::shared_ptr<SimulationArea> sa, std::shared_ptr<CrystalStructure> struc);
+    explicit CtemAreaFrame(QWidget *parent, SimulationArea sa, std::shared_ptr<CrystalStructure> struc);
 
     ~CtemAreaFrame();
 
@@ -31,11 +30,12 @@ private slots:
     void xFinishChanged(QString dud);
     void yFinishChanged(QString dud);
 
-    void rangeChanged(QString dud);
+    void xRangeChanged(QString dud);
+    void yRangeChanged(QString dud);
 
     void on_btnReset_clicked();
 
-    void on_btnApply_clicked() {emit applyChanges();}
+    void on_btnDefault_clicked();
 
     void editing_finished();
 
@@ -44,9 +44,13 @@ private:
 
     SimulationArea simArea;
 
-    bool checkValidValues();
+    std::shared_ptr<CrystalStructure> Structure;
 
-    void setInvalidWarning(bool valid);
+    bool checkXValid();
+    bool checkYValid();
+
+    void setXInvalidWarning(bool valid);
+    void setYInvalidWarning(bool valid);
 };
 
 #endif // SIMAREAFRAME_H

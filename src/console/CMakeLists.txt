@@ -2,6 +2,7 @@ project( clTEM_cmd )
 cmake_minimum_required( VERSION 3.5 )
 
 cmake_policy(SET CMP0071 NEW)
+cmake_policy(SET CMP0074 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -22,7 +23,7 @@ set ( clTEM_SRCS
         main.cpp
         parseopencl.h)
 
-find_package(Boost COMPONENTS filesystem system)
+find_package(Boost COMPONENTS filesystem system REQUIRED)
 
 if(Boost_FOUND)
     message(STATUS "Boost include directories: " ${Boost_INCLUDE_DIRS})

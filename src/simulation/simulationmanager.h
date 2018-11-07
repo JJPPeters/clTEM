@@ -113,32 +113,36 @@ public:
 
     std::valarray<float> getPaddingX() {return padding_x;}
     std::valarray<float> getPaddingY() {return padding_y;}
-    std::valarray<float> getPaddingZ() {return padding_z;}
+    std::valarray<float> getPaddingZ() {round_Z_padding(); return padding_z;}
 
     std::valarray<float> getStructLimitsX() {return Structure->getLimitsX();}
     std::valarray<float> getStructLimitsY() {return Structure->getLimitsY();}
     std::valarray<float> getStructLimitsZ() {return Structure->getLimitsZ();}
 
-    std::valarray<float> getSimLimitsX();
-    std::valarray<float> getSimLimitsY();
+    std::valarray<float> getPaddedStructLimitsX() {return getStructLimitsX() + getPaddingX();}
+    std::valarray<float> getPaddedStructLimitsY() {return getStructLimitsY() + getPaddingY();}
+    std::valarray<float> getPaddedStructLimitsZ() {return getStructLimitsZ() + getPaddingZ();}
 
-    std::valarray<float> getPaddedStructLimitsX() {return getStructLimitsX() + padding_x;}
-    std::valarray<float> getPaddedStructLimitsY() {return getStructLimitsY() + padding_y;}
-    std::valarray<float> getPaddedStructLimitsZ() {return getStructLimitsZ() + padding_z;}
+    // should have corrected the shift issue so this more intuitive version works!!
+    std::valarray<float> getPaddedSimLimitsX() {
+        return getCurrentAreaBase().getCorrectedLimitsX() + getPaddingX();
+    }
+    std::valarray<float> getPaddedSimLimitsY() {
+        return getCurrentAreaBase().getCorrectedLimitsY() + getPaddingY();
+    }
+    std::valarray<float> getPaddedSimLimitsZ() {
+        return getPaddedStructLimitsZ();
+    }
 
-    // the odd padding here is because I want the SimArea to be in the structure coordinates (i.e. without padding)
-    // so this shifts to the 'padded frame' then adds the padding
-//    std::valarray<float> getPaddedSimLimitsX() { return getSimLimitsX() - padding_x[0] + padding_x; }
-//    std::valarray<float> getPaddedSimLimitsY() { return getSimLimitsY() - padding_y[0] + padding_y; }
+    std::valarray<float> getRawSimLimitsX() {
+        return getCurrentAreaBase().getRawLimitsX();
+    }
+    std::valarray<float> getRawSimLimitsY() {
+        return getCurrentAreaBase().getRawLimitsY();
+    }
 
-    // should have corrected the shift issue so this more intuitive versino works!!
-    std::valarray<float> getPaddedSimLimitsX() {return getSimLimitsX() + padding_x;}
-    std::valarray<float> getPaddedSimLimitsY() {return getSimLimitsY() + padding_y;}
-
-    float calculatePaddedRealScale(float range, int resolution, bool round_padding = false);
-
-    int getBlocksX();// {return blocks_x;}
-    int getBlocksY();// {return blocks_y;}
+    int getBlocksX();
+    int getBlocksY();
 
     float getBlockScaleX();
     float getBlockScaleY();
@@ -211,8 +215,7 @@ public:
     void reportTotalProgress(float prog);
     void reportSliceProgress(float prog);
 
-    void round_padding();
-    float calculateRoundedPadding(float range, int resolution);
+    void round_Z_padding();
 
     bool getSimulateCtemImage() {return simulateCtemImage;}
     void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
@@ -253,6 +256,21 @@ public:
 private:
     static std::valarray<float> const default_xy_padding;
     static std::valarray<float> const default_z_padding;
+
+    SimulationArea getCurrentAreaBase() {
+        // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
+        // limits
+        SimulationArea sa;
+
+        if (Mode == SimulationMode::STEM)
+            sa = static_cast<SimulationArea>(*StemSimArea);
+        else if (Mode == SimulationMode::CBED)
+            sa = CbedPos->getSimArea();
+        else
+            sa = *SimArea;
+
+        return sa;
+    }
 
     std::vector<float> structure_parameters;
     std::string structure_parameters_name;

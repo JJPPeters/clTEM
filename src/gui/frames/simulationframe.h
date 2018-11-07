@@ -44,7 +44,7 @@ private slots:
 
     void on_btnSimArea_clicked();
 
-    void updateLimits();
+//    void updateLimits();
 
 private:
     Ui::SimulationFrame *ui;

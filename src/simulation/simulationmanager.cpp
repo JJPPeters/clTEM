@@ -50,17 +50,16 @@ void SimulationManager::setStructure(std::string filePath)
         auto x_lims = getStructLimitsX();
         auto y_lims = getStructLimitsY();
 
-        SimArea->setRangeX(x_lims[0], x_lims[1]);
-        SimArea->setRangeY(y_lims[0], y_lims[1]);
+        SimArea->setRawLimitsX(x_lims[0], x_lims[1]);
+        SimArea->setRawLimitsY(y_lims[0], y_lims[1]);
 
-        getStemArea()->setRangeX(x_lims[0], x_lims[1]);
-        getStemArea()->setRangeY(y_lims[0], y_lims[1]);
+        getStemArea()->setRawLimitsX(x_lims[0], x_lims[1]);
+        getStemArea()->setRawLimitsY(y_lims[0], y_lims[1]);
     }
 }
 
 std::tuple<float, float, float, int> SimulationManager::getSimRanges()
 {
-    round_padding();
     float xRange = getPaddedSimLimitsX()[1] - getPaddedSimLimitsX()[0];
     float yRange = getPaddedSimLimitsY()[1] - getPaddedSimLimitsY()[0];
     float zRange = getPaddedStructLimitsZ()[1] - getPaddedStructLimitsZ()[0];
@@ -70,22 +69,11 @@ std::tuple<float, float, float, int> SimulationManager::getSimRanges()
     return std::make_tuple(xRange, yRange, zRange, numAtoms);
 }
 
-//float SimulationManager::getSimSideLength()
-//{
-//    if(!Structure || !haveResolution())
-//        throw std::runtime_error("Can't calculate scales without resolution and structure");
-//
-//    return SimArea->getLargestSimXyRange();
-//}
-
 float SimulationManager::getRealScale()
 {
     if(!Structure || !haveResolution())
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
-    round_padding(); // TODO: do I need a fallback for e.g. no atoms in range?
-
-//    return SimArea->getLargestSimXyRange() / Resolution;
     auto x_r = getPaddedSimLimitsX()[1] - getPaddedSimLimitsX()[0];
     auto y_r = getPaddedSimLimitsY()[1] - getPaddedSimLimitsY()[0];
     return std::max(x_r, y_r) / Resolution;
@@ -230,31 +218,9 @@ void SimulationManager::calculate_blocks()
     blocks_y = n_blocks;
 }
 
-void SimulationManager::round_padding()
+void SimulationManager::round_Z_padding()
 {
-    // Do the XY padding
-    if (!haveResolution())
-        return;
-
-    if (Mode != SimulationMode::CTEM)
-    {
-        padding_x = SimulationManager::default_xy_padding;
-        padding_y = SimulationManager::default_xy_padding;
-        return;
-    }
-
-    float xw = getSimLimitsX()[1] - getSimLimitsX()[0];
-    float yw = getSimLimitsY()[1] - getSimLimitsY()[0];
-
-    float dim = std::max(xw, yw);
-    int res = getResolution();
-
-    float padding = calculateRoundedPadding(dim, res);
-
-    padding_x = {-padding, padding};
-    padding_y = {-padding, padding};
-
-    // Do the Z padding
+    // Do the Z padding so that our slice thickness/shift works (and produces AT LEAST the desired padding)
     auto p_z = SimulationManager::default_z_padding;
 
     auto pad_slices_pre = (int) std::ceil((std::abs(p_z[1]) - slice_offset) / slice_dz);
@@ -271,57 +237,6 @@ void SimulationManager::round_padding()
 
     // The simulation works from LARGEST z to SMALLEST. So the pre padding is actually on top of the z structure.
     padding_z = {-post_pad, pre_pad};
-}
-
-std::valarray<float> SimulationManager::getSimLimitsX()
-{
-    SimulationArea sa;
-
-    if (Mode == SimulationMode::STEM)
-        sa = StemSimArea->getSimArea();
-    else if (Mode == SimulationMode::CBED)
-        sa = CbedPos->getSimArea();
-    else
-        sa = *SimArea;
-
-    return sa.getLimitsX();
-}
-
-std::valarray<float> SimulationManager::getSimLimitsY()
-{
-    SimulationArea sa;
-
-    if (Mode == SimulationMode::STEM)
-        sa = StemSimArea->getSimArea();
-    else if (Mode == SimulationMode::CBED)
-        sa = CbedPos->getSimArea();
-    else
-        sa = *SimArea;
-
-    return sa.getLimitsY();
-}
-
-float SimulationManager::calculatePaddedRealScale(float range, int resolution, bool round_padding) {
-
-    float padding = 0.0f;
-    if (round_padding)
-        padding = 2 * calculateRoundedPadding(range, resolution);
-    else
-        padding = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
-
-    return (range + padding) / (float) resolution;
-}
-
-float SimulationManager::calculateRoundedPadding(float range, int resolution)
-{
-    float pd = SimulationManager::default_xy_padding[1] - SimulationManager::default_xy_padding[0];
-
-    float n_f = (pd * resolution) / (range + pd);
-    float n = (int) std::ceil(n_f);
-
-    // had some integer rouding errors so made everything a float...
-    float padding = range / ( ((float) resolution / (float) n) - 1 ); // this is total padding
-    return padding / 2;
 }
 
 bool SimulationManager::calculateFiniteDiffSliceThickness(float &dz_out) {
@@ -396,7 +311,8 @@ unsigned int SimulationManager::getNumberofSlices() {
     auto z_lims = getPaddedStructLimitsZ();
     float z_range = z_lims[1] - z_lims[0];
 
-    unsigned int n_slices = (unsigned int) std::ceil(z_range / getSliceThickness());
+    // the 0.000001 is for errors in the float
+    auto n_slices = (unsigned int) std::ceil((z_range / getSliceThickness()) - 0.000001);
     n_slices += (n_slices == 0);
     return n_slices;
 }

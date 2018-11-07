@@ -11,74 +11,59 @@ const float Constants::a0 = 52.9177e-012f;
 const float Constants::a0A = 52.9177e-002f;
 
 
-std::valarray<float> SimulationArea::getLimitsX()
-{
+std::valarray<float> SimulationArea::getRawLimitsX() {
     return {xStart, xFinish};
 }
 
-std::valarray<float> SimulationArea::getLimitsY()
-{
+std::valarray<float> SimulationArea::getRawLimitsY() {
     return {yStart, yFinish};
 }
 
-//std::tuple<float, float> SimulationArea::getSimLimitsX()
-//{
-//    return std::tuple<float, float>(xStart - padding_x, xFinish + padding_x); //TODO: non hard coded
-//}
-//
-//std::tuple<float, float> SimulationArea::getSimLimitsY()
-//{
-//    return std::tuple<float, float>(yStart - padding_y, yFinish + padding_y); //TODO: non hard coded
-//}
-
-bool SimulationArea::setRangeX(float start, float finish)
-{
-    if (isFixed)
-        return false;
-
-    xStart = start;
-    xFinish = finish;
-
-    return true;
-}
-
-bool SimulationArea::setRangeY(float start, float finish)
-{
-    if (isFixed)
-        return false;
-
-    yStart = start;
-    yFinish = finish;
-
-    return true;
-}
-
-void SimulationArea::forceRangeX(float start, float finish)
-{
+void SimulationArea::setRawLimitsX(float start, float finish) {
     xStart = start;
     xFinish = finish;
 }
 
-void SimulationArea::forceRangeY(float start, float finish)
-{
+void SimulationArea::setRawLimitsY(float start, float finish){
     yStart = start;
     yFinish = finish;
 }
 
-//float SimulationArea::getLargestSimXyRange()
-//{
-//    float xr = xFinish - xStart + 2*padding_x;
-//    float yr = yFinish - yStart + 2*padding_y;
-//
-//    return std::max(xr, yr);
-//}
+std::valarray<float> SimulationArea::getCorrectedLimitsX() {
+    float range_x = xFinish - xStart;
+    float range_y = yFinish - yStart;
+
+    float range_max = std::max(range_x, range_y);
+    float range_total = range_max + padding;
+
+    // not get the difference to calculate how much needs to be added to either side
+    float x_diff = (range_total - range_x) / 2.0f;
+
+    // pad equally on both sides
+    return {xStart - x_diff, xFinish + x_diff};
+}
+
+std::valarray<float> SimulationArea::getCorrectedLimitsY() {
+    float range_x = xFinish - xStart;
+    float range_y = yFinish - yStart;
+
+    float range_max = std::max(range_x, range_y);
+    float range_total = range_max + padding;
+
+    // not get the difference to calculate how much needs to be added to either side
+    float y_diff = (range_total - range_y) / 2.0f;
+
+    // pad equally on both sides
+    return {yStart - y_diff, yFinish + y_diff};
+}
+
 
 const float StemArea::DefaultScale = 0.2f;
 
 bool StemArea::setPxRangeX(float start, float finish, int px)
 {
-    if (isFixed)
-        return false;
+//    if (isFixed)
+//        return false;
 
     xStart = start;
     xFinish = finish;
@@ -89,8 +74,8 @@ bool StemArea::setPxRangeX(float start, float finish, int px)
 
 bool StemArea::setPxRangeY(float start, float finish, int px)
 {
-    if (isFixed)
-        return false;
+//    if (isFixed)
+//        return false;
 
     yStart = start;
     yFinish = finish;

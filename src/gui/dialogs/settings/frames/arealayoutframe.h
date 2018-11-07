@@ -6,6 +6,7 @@
 #include "ctemareaframe.h"
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
+#include "controls/oglviewwidget/oglviewwidget.h"
 
 namespace Ui {
 class AreaLayoutFrame;
@@ -35,6 +36,14 @@ private slots:
 
     void on_cmbResolution_currentIndexChanged(const QString &arg1);
 
+    void on_cmbViewDirection_activated(const QString &arg1="");
+
+    void viewDirectionChanged();
+
+    void on_btnApplyUpdate_clicked();
+
+    void showRectChanged(int arg1);
+
     void dlgOk_clicked();
 
     void dlgApply_clicked();
@@ -42,6 +51,10 @@ private slots:
     void dlgCancel_clicked();
 
     void slicesChanged();
+
+    void showEvent(QShowEvent* event) override;
+
+    void updatePlotRects();
 
 private:
     Ui::AreaLayoutFrame *ui;
@@ -52,11 +65,15 @@ private:
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
 
+    OGLViewWidget *pltStructure;
+
     bool getErrorStringCtem();
     bool getErrorStringStem();
     bool getErrorStringCbed();
 
     void setStructLimits();
+
+    void plotStructure();
 };
 
 #endif // AREALAYOUTFRAME_H

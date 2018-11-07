@@ -87,22 +87,20 @@ void SimulationFrame::on_btnSimArea_clicked()
     myDialog->exec();
 }
 
-void SimulationFrame::updateLimits()
-{
-    // I could just send the signal one deeper, but I really cba. lets just get out mainwindow pointer instead...
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting simulation frame to main window.");
-
-    auto r = Main->getSimulationArea();
-
-//    Main->getStemArea()->setRangeXInsideSim(r);
-//    Main->getStemArea()->setRangeYInsideSim(r);
-    Main->getStemArea()->setRangeX(r->getLimitsX()[0], r->getLimitsX()[1]);
-    Main->getStemArea()->setRangeY(r->getLimitsY()[0], r->getLimitsY()[1]);
-
-    Main->updateScales();
-    Main->updateRanges();
-}
+//void SimulationFrame::updateLimits()
+//{
+//    // I could just send the signal one deeper, but I really cba. lets just get out mainwindow pointer instead...
+//    if (Main == nullptr)
+//        throw std::runtime_error("Error connecting simulation frame to main window.");
+//
+//    auto r = Main->getSimulationArea();
+//
+//    Main->getStemArea()->setRangeX(r->getLimitsX()[0], r->getLimitsX()[1]);
+//    Main->getStemArea()->setRangeY(r->getLimitsY()[0], r->getLimitsY()[1]);
+//
+//    Main->updateScales();
+//    Main->updateRanges();
+//}
 
 void SimulationFrame::assignMainWindow(MainWindow *m)
 {

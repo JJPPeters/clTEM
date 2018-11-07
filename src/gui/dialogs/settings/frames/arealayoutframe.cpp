@@ -4,10 +4,35 @@
 #include "ui_arealayoutframe.h"
 
 AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan) :
-    QWidget(parent), SimManager(simMan),
-    ui(new Ui::AreaLayoutFrame)
+    QWidget(parent), ui(new Ui::AreaLayoutFrame), SimManager(simMan)
 {
     ui->setupUi(this);
+
+    // this is just from theQt website, Not really sure what it does,
+    // but it makes OpenGL work on my linux laptop (intel 4th gen)
+    try {
+        QSurfaceFormat format;
+//        format.setDepthBufferSize(24);
+//        format.setStencilBufferSize(8);
+        format.setRenderableType(QSurfaceFormat::OpenGL);
+        format.setProfile(QSurfaceFormat::CoreProfile);
+//        format.setSamples(32); // sets MSAA samples
+        format.setVersion(4, 0); // sets opengl version
+
+        pltStructure = new OGLViewWidget(this);
+        pltStructure->setFormat(format);
+        ui->vPlotLayout->addWidget(pltStructure, 1);
+        pltStructure->setMinimumWidth(400);
+        connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
+    } catch (const std::exception& e) {
+        QMessageBox msgBox(this);
+        msgBox.setText("Error:");
+        msgBox.setInformativeText(e.what());
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
+        msgBox.exec();
+    }
 
     QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
@@ -31,8 +56,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     StemArea stemArea = *SimManager->getStemArea();
     CbedPosition cbedPos = *SimManager->getCBedPosition();
 
-    CtemFrame = new CtemAreaFrame(this, ctemArea);
-    StemFrame = new StemAreaFrame(this, stemArea);
+    CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->getStructure());
+    StemFrame = new StemAreaFrame(this, stemArea, SimManager->getStructure());
     CbedFrame = new CbedAreaFrame(this, cbedPos);
 
     ui->vCtemLayout->insertWidget(0, CtemFrame);
@@ -43,11 +68,10 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
     connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
 
-    connect(CtemFrame, &CtemAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
-    connect(StemFrame, &StemAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
-    connect(CbedFrame, &CbedAreaFrame::applyChanges, this, &AreaLayoutFrame::apply_pressed);
-
     connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
+
+    connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
 
     // set current tab to view
     auto mode = SimManager->getMode();
@@ -68,6 +92,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     areasChanged();
 }
 
+
+
 AreaLayoutFrame::~AreaLayoutFrame()
 {
     delete ui;
@@ -84,18 +110,20 @@ void AreaLayoutFrame::areasChanged() {
 
     float realScale = 0.0f;
 
+    auto pd = SimManager->getPaddingX();
+    auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
+
     if (mode == 0) { // CTEM
         auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
-        auto xlims = sa.getLimitsX();
+        auto xlims = sa.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0];
-        realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution(), true);
+        realScale = (range + pd_range) / SimManager->getResolution();
     }
     else if (mode == 1) { // STEM
         auto stema = StemFrame->getStemArea();
-        auto sa = stema.getSimArea();
-        auto xlims = sa.getLimitsX();
+        auto xlims = stema.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
-        realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution() );
+        realScale = (range + pd_range) / SimManager->getResolution();
 
         ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
         ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
@@ -103,9 +131,9 @@ void AreaLayoutFrame::areasChanged() {
     else if (mode == 2) { // CBED
         auto pos = CbedFrame->getCbedPos();
         auto sa = pos.getSimArea();
-        auto xlims = sa.getLimitsX();
+        auto xlims = sa.getCorrectedLimitsX();
         auto range = xlims[1] - xlims[0]; // x lims should be the same as y
-        realScale = SimManager->calculatePaddedRealScale(range, SimManager->getResolution() );
+        realScale = (range + pd_range) / SimManager->getResolution();
     }
 
     if (mode == 1) {
@@ -143,7 +171,7 @@ void AreaLayoutFrame::areasChanged() {
 
 void AreaLayoutFrame::on_cmbResolution_currentIndexChanged(const QString &arg1) {
     int res = arg1.toInt();
-    SimManager->setResolution(res);
+    SimManager->setResolution(static_cast<unsigned int>(res));
     areasChanged();
     // this will set the resolution again, but is easiest way of updating the other combo box
     emit resolutionChanged(arg1);
@@ -178,12 +206,12 @@ bool AreaLayoutFrame::apply_pressed() {
 
     if (dz <= 0)
     {
-        errors.push_back("Slice thickness must be greater than 0");
+        errors.emplace_back("Slice thickness must be greater than 0");
         valid = false;
     }
     if (oz < 0)
     {
-        errors.push_back("Slice offset must be positive");
+        errors.emplace_back("Slice offset must be positive");
         valid = false;
     }
 
@@ -234,6 +262,8 @@ bool AreaLayoutFrame::apply_pressed() {
     }
 
     emit areaChanged();
+
+    updatePlotRects();
 
     return valid;
 }
@@ -296,9 +326,149 @@ void AreaLayoutFrame::slicesChanged() {
     auto z_lims = SimManager->getPaddedStructLimitsZ();
     float z_range = z_lims[1] - z_lims[0];
 
-    unsigned int n_slices = (unsigned int) std::ceil(z_range / dz);
+    auto n_slices = (unsigned int) std::ceil(z_range / dz);
     n_slices += (n_slices == 0);
 
     ui->lblSlices->setText(Utils_Qt::numToQString(n_slices));
 
+}
+
+void AreaLayoutFrame::plotStructure() {
+
+    // test if we have a structure to plot...
+    if (!SimManager->getStructure() || !pltStructure)
+        return;
+
+    // get ranges (needed to define out 'cube'
+    auto xr = SimManager->getStructure()->getLimitsX();
+    auto yr = SimManager->getStructure()->getLimitsY();
+    auto zr = SimManager->getStructure()->getLimitsZ();
+
+    auto atms = SimManager->getStructure()->getAtoms();
+
+    std::vector<Vector3f> pos(atms.size());
+    std::vector<Vector3f> col(atms.size());
+
+    for (int i = 0; i < atms.size(); ++i) {
+        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
+
+        auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
+        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
+    }
+
+    pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
+}
+
+void AreaLayoutFrame::showEvent(QShowEvent *event) {
+    QWidget::showEvent(event);
+
+    // test if we have a structure to plot...
+    // This is mostly for the fitView method (the others protect themselves)
+    if (!SimManager->getStructure())
+        return;
+
+    plotStructure();
+    updatePlotRects();
+    if (!pltStructure)
+        pltStructure->fitView();
+}
+
+void AreaLayoutFrame::on_cmbViewDirection_activated(const QString &arg1) {
+    viewDirectionChanged();
+}
+
+void AreaLayoutFrame::viewDirectionChanged() {
+    if (!pltStructure)
+        return;
+
+    QString view_text = ui->cmbViewDirection->currentText();
+
+    // set the view direcion of the plot
+    if (view_text == "Top")
+        pltStructure->SetViewDirection(View::Direction::Top);
+    else if (view_text == "Front")
+        pltStructure->SetViewDirection(View::Direction::Front);
+    else if (view_text == "Right")
+        pltStructure->SetViewDirection(View::Direction::Right);
+    else if (view_text == "Bottom")
+        pltStructure->SetViewDirection(View::Direction::Bottom);
+    else if (view_text == "Back")
+        pltStructure->SetViewDirection(View::Direction::Back);
+    else if (view_text == "Left")
+        pltStructure->SetViewDirection(View::Direction::Left);
+
+    pltStructure->repaint();
+}
+
+void AreaLayoutFrame::showRectChanged(int arg1) {
+    if (!pltStructure)
+        return;
+
+    pltStructure->setDrawRects(arg1 != 0);
+    pltStructure->repaint();
+}
+
+void AreaLayoutFrame::updatePlotRects() {
+    // Add in the rectangles showing the simulation areas and slices
+
+    // test if we have a structure to plot...
+    if (!SimManager->getStructure() || !pltStructure)
+        return;
+
+    // clear the old stuff first
+    pltStructure->clearRectBuffers();
+
+    auto test = SimManager->getSimulationArea();
+
+    auto szr = SimManager->getPaddedStructLimitsZ();
+    auto ixr = SimManager->getRawSimLimitsX();
+    auto iyr = SimManager->getRawSimLimitsY();
+    auto sxr = SimManager->getPaddedSimLimitsX();
+    auto syr = SimManager->getPaddedSimLimitsY();
+
+    pltStructure->SetCube(sxr[0], sxr[1], syr[0], syr[1], szr[0], szr[1]);
+
+    // first the sim area + padding
+    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
+
+    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, OGL::Plane::z);
+    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, OGL::Plane::z);
+
+    // now the sim area
+    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
+
+    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, OGL::Plane::z);
+    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, OGL::Plane::z);
+
+    // add the sides of the sim area
+    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[0], col_2, OGL::Plane::x);
+    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[1], col_2, OGL::Plane::x);
+
+    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], iyr[0], col_2, OGL::Plane::y);
+    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], iyr[1], col_2, OGL::Plane::y);
+
+
+    // now add the sides for slices
+    auto dz = SimManager->getSliceThickness();
+    auto nz = SimManager->getNumberofSlices();
+    std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
+
+    auto current_z = szr[0];
+    for (int i = 0; i < nz; ++i) {
+        auto current_col = cols_slice[i % 2];
+
+        pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, OGL::Plane::x);
+        pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, OGL::Plane::x);
+
+        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, OGL::Plane::y);
+        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, OGL::Plane::y);
+
+        current_z += dz;
+    }
+
+    pltStructure->repaint();
+}
+
+void AreaLayoutFrame::on_btnApplyUpdate_clicked() {
+    apply_pressed();
 }

@@ -16,6 +16,8 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 add_definitions ( -Wall )
 
+add_subdirectory(controls/oglviewwidget)
+
 include_directories(simulation)
 
 find_package(Qt5Widgets REQUIRED)
@@ -30,6 +32,8 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 
 include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
 add_definitions(${Qt5PrintSupport_DEFINITIONS})
+
+# add_compile_definitions(QCUSTOMPLOT_USE_OPENGL)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
@@ -101,7 +105,7 @@ IF(WIN32)
     # add the ui stuff for themes, if we can set them (aka on windows)
     set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/themeframe.ui )
     set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
-    # add the theme resources if they are needed
+    #    # add the theme resources if they are needed
     set ( clTEM_RSCS theme/theme.qrc )
     QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})
 ENDIF()
@@ -119,9 +123,16 @@ if(MINGW)
 endif(MINGW)
 
 add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
-target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation)
-target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation)
+target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation glViewWidget)
+target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation glViewWidget)
 
-IF(WIN32)
-    target_link_libraries( clTEM_gui "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64/dwmapi.lib")
-ENDIF()
+# This is for the theming. I need to get a better way of doing it instead of hard coding it.
+if(WIN32)
+    if(EXISTS "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x64/dwmapi.lib")
+        target_link_libraries( clTEM_gui "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x64/dwmapi.lib")
+    elseif(EXISTS "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64/dwmapi.lib")
+        target_link_libraries( clTEM_gui "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64/dwmapi.lib")
+    else()
+        message( SEND_ERROR "Cannot find dwmapi.lib from Windows SDK v6.0A." )
+    endif()
+endif()
