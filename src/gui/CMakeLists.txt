@@ -2,6 +2,9 @@ project( clTEM_gui )
 cmake_minimum_required( VERSION 3.5 )
 
 cmake_policy(SET CMP0071 NEW)
+cmake_policy(SET CMP0074 NEW)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -33,7 +36,12 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
 add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
-# add_compile_definitions(QCUSTOMPLOT_USE_OPENGL)
+find_package(EASYLOGGINGPP REQUIRED)
+
+if(EASYLOGGINGPP_FOUND)
+    message(STATUS "Found EasyLogging++: " ${EASYLOGGINGPP_INCLUDE_DIR})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE")
+endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
@@ -122,8 +130,8 @@ if(MINGW)
             "<CMAKE_RC_COMPILER> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
-add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
-target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation glViewWidget)
+add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} ${EASYLOGGINGPP_INCLUDE_DIR}/easylogging++.cc cltem.rc)
+target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} simulation glViewWidget)
 target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation glViewWidget)
 
 # This is for the theming. I need to get a better way of doing it instead of hard coding it.

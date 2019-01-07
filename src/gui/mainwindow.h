@@ -12,6 +12,7 @@
 #include "simulationmanager.h"
 #include "simulationthread.h"
 
+#include "easylogging++.h"
 
 class CbedFrame;
 class SimulationFrame;

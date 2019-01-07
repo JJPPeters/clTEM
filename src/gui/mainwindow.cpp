@@ -114,6 +114,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
+
+    CLOG(INFO, "gui") << "Created MainWindow";
 }
 
 MainWindow::~MainWindow()
