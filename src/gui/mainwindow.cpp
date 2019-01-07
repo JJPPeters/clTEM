@@ -139,8 +139,10 @@ void MainWindow::on_actionOpen_triggered()
     if (temp_file.suffix() != "xyz")
         return;
     try {
+        CLOG(INFO, "gui") << "Attempting to open " + fileName.toStdString() << ".";
         Manager->setStructure(fileName.toStdString());
     } catch (const std::exception &e) {
+        CLOG(FATAL, "gui") << "Could not open file: " << e.what() << ".";
         QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
@@ -294,17 +296,18 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
 
+    CLOG(INFO, "gui") << "Starting simulation";
+
     // Set some variables that aren't auto updates
 
     updateManagerFromGui();
 
     // test we have everything we need
-    try
-    {
+    try {
         checkSimulationPrerequisites();
     }
-    catch (const std::runtime_error& e)
-    {
+    catch (const std::runtime_error& e) {
+        CLOG(WARNING, "gui") << "Simulation prerequisites not met: " << e.what();
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());

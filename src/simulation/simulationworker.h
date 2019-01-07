@@ -8,6 +8,7 @@
 
 #include "threadworker.h"
 #include "clwrapper.h"
+#include "easylogging++.h"
 
 class SimulationWorker : public ThreadWorker
 {

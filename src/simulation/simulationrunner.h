@@ -10,6 +10,8 @@
 #include "simulationjob.h"
 #include "threadpool.h"
 
+#include "easylogging++.h"
+
 class SimulationRunner
 {
 public:

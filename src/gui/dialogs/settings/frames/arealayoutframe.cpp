@@ -6,6 +6,7 @@
 AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan) :
     QWidget(parent), ui(new Ui::AreaLayoutFrame), SimManager(simMan)
 {
+    CLOG(DEBUG, "gui") << "Creating AreaLayoutFrame";
     ui->setupUi(this);
 
     // this is just from theQt website, Not really sure what it does,
@@ -19,12 +20,15 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 //        format.setSamples(32); // sets MSAA samples
         format.setVersion(4, 0); // sets opengl version
 
+        CLOG(DEBUG, "gui") << "Creating OpenGL view";
+
         pltStructure = new OGLViewWidget(this);
         pltStructure->setFormat(format);
         ui->vPlotLayout->addWidget(pltStructure, 1);
         pltStructure->setMinimumWidth(400);
         connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
     } catch (const std::exception& e) {
+        CLOG(FATAL, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());

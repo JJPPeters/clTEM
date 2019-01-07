@@ -15,10 +15,11 @@
     #include <theme/thememanager.h>
 #endif
 
-INITIALIZE_EASYLOGGINGPP
+//INITIALIZE_EASYLOGGINGPP // this is done in the simulation lib atm
 
 int main(int argc, char *argv[])
 {
+    START_EASYLOGGINGPP(argc, argv);
     // Create our application
     QApplication a(argc, argv);
 
@@ -31,8 +32,9 @@ int main(int argc, char *argv[])
     // Get a writable location to save the log file
     auto log_dir = QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + QDir::separator() + QString("logs")) + QDir::separator() + "log.log";
 
-    // create a logger for our gui
+    // create a logger for our gui and simulation
     el::Loggers::getLogger("gui");
+    el::Loggers::getLogger("sim");
 
     // create the conf to actually use of config
     el::Configurations defaultConf;
@@ -44,6 +46,7 @@ int main(int argc, char *argv[])
     // set teh config for the loggers
     el::Loggers::reconfigureLogger("default", defaultConf);
     el::Loggers::reconfigureLogger("gui", defaultConf);
+    el::Loggers::reconfigureLogger("sim", defaultConf);
 
     // this makes '%thread' show this string instead of a largely useless number
     el::Helpers::setThreadName("main-gui");
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
         ClManager::getDeviceList();
     } catch (const std::exception& e) {
         // TODO: later, this shouldn't exit but should just disable everything relevant
-        CLOG(FATAL, "gui") << "Could not find OpenCL.";
+        CLOG(FATAL, "gui") << "Could not find OpenCL: " << e.what();
         QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText("Failed to find OpenCl");

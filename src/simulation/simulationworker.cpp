@@ -9,36 +9,50 @@
 #include "kernels.h"
 #include "ccdparams.h"
 
-void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job)
-{
+INITIALIZE_EASYLOGGINGPP
+
+void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
+    int p_num = ctx.GetContextDevice().GetPlatformNumber();
+    int d_num = ctx.GetContextDevice().GetDeviceNumber();
+
+    el::Helpers::setThreadName("p" + std::to_string(p_num) + ":d" + std::to_string(d_num));
 
     job = _job;
 
     if (!job->simManager)
         throw std::runtime_error("Cannot access simulation parameters");
 
-    if(pool.stop) {
+    if (pool.stop) {
         job->promise.set_value();
         return;
     }
+
+    CLOG(INFO, "sim") << "Starting simulation";
+    CLOG(DEBUG, "sim") << "Uploading parameters";
 
     uploadParameters(job->simManager->getStructureParameters());
 
     // now what we do depends on the simulation type (I think...)
     auto mode = job->simManager->getMode();
 
-    if (mode == SimulationMode::CTEM)
+    CLOG(DEBUG, "sim") << "";
+    if (mode == SimulationMode::CTEM) {
+        CLOG(DEBUG, "sim") << "Doing CTEM simulation";
         doCtem();
-    else if (mode == SimulationMode::CBED)
+    } else if (mode == SimulationMode::CBED) {
+        CLOG(DEBUG, "sim") << "Doing CBED simulation";
         doCbed();
-    else if (mode == SimulationMode::STEM)
+    } else if (mode == SimulationMode::STEM) {
+        CLOG(DEBUG, "sim") << "Doing STEM simulation";
         doStem();
+    }
 
     // TODO: need to look at the old simulation to see what needs to be done now.
     // TODO: look into how/why I used my inheritance tree thing before...
 
+    CLOG(DEBUG, "sim") << "Completed simulation";
     // finally, end this thread ?
     job->promise.set_value();
 }
