@@ -6,7 +6,7 @@
 #include <QMutex>
 #include <simulationrunner.h>
 #include "simulationmanager.h"
-#include "easylogging++.h"
+#include "utilities/logging.h"
 
 class SimulationThread : public QThread
 {

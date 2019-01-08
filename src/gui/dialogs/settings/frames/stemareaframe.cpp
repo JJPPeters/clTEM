@@ -6,10 +6,13 @@
 #include "stemareaframe.h"
 #include "ui_stemareaframe.h"
 
+#include "utilities/logging.h"
+
 StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa, std::shared_ptr<CrystalStructure> struc) :
     QWidget(parent), Area(sa), Structure(struc),
     ui(new Ui::StemAreaFrame)
 {
+    CLOG(DEBUG, "gui") << "Creating STEM area frame";
     ui->setupUi(this);
 
     QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
@@ -62,7 +65,8 @@ StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa, std::shared_ptr<Cryst
     connect(ui->edtRangeY, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
     connect(ui->edtPadding, &QLineEdit::editingFinished, this, &StemAreaFrame::editing_finished);
 
-    // set teh default values
+    CLOG(DEBUG, "gui") << "Setting values";
+    // set the default values
     on_btnReset_clicked();
 }
 

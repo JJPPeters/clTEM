@@ -9,17 +9,13 @@
 #include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
-#include "easylogging++.h"
+#include "utilities/logging.h"
 
 #ifdef _WIN32
     #include <theme/thememanager.h>
 #endif
 
-//INITIALIZE_EASYLOGGINGPP // this is done in the simulation lib atm
-
-int main(int argc, char *argv[])
-{
-    START_EASYLOGGINGPP(argc, argv);
+int main(int argc, char *argv[]) {
     // Create our application
     QApplication a(argc, argv);
 
@@ -41,7 +37,7 @@ int main(int argc, char *argv[])
     defaultConf.setToDefault();
 
     defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir.toStdString());
-    defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (Thread:%thread) %level - %msg");
+    defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
 
     // set teh config for the loggers
     el::Loggers::reconfigureLogger("default", defaultConf);
@@ -51,7 +47,7 @@ int main(int argc, char *argv[])
     // this makes '%thread' show this string instead of a largely useless number
     el::Helpers::setThreadName("main-gui");
 
-    CLOG(INFO, "gui") << "Logging set up and ready to go!";
+    CLOG(DEBUG, "gui") << "Logging set up and ready to go!";
 
     // this tests for opencl, if we dont have it, then there is no point in loading the program
     try {

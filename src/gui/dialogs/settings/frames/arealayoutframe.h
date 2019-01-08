@@ -7,7 +7,7 @@
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
 #include "controls/oglviewwidget/oglviewwidget.h"
-#include "easylogging++.h"
+#include "utilities/logging.h"
 
 namespace Ui {
 class AreaLayoutFrame;

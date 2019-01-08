@@ -115,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
 
-    CLOG(INFO, "gui") << "Created MainWindow";
+    CLOG(DEBUG, "gui") << "Created MainWindow";
 }
 
 MainWindow::~MainWindow()
@@ -139,7 +139,7 @@ void MainWindow::on_actionOpen_triggered()
     if (temp_file.suffix() != "xyz")
         return;
     try {
-        CLOG(INFO, "gui") << "Attempting to open " + fileName.toStdString() << ".";
+        CLOG(DEBUG, "gui") << "Opening " + fileName.toStdString() << ".";
         Manager->setStructure(fileName.toStdString());
     } catch (const std::exception &e) {
         CLOG(FATAL, "gui") << "Could not open file: " << e.what() << ".";
@@ -296,7 +296,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
 
-    CLOG(INFO, "gui") << "Starting simulation";
+    CLOG(DEBUG, "gui") << "Starting simulation";
 
     // Set some variables that aren't auto updates
 

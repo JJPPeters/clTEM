@@ -6,7 +6,7 @@
 AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan) :
     QWidget(parent), ui(new Ui::AreaLayoutFrame), SimManager(simMan)
 {
-    CLOG(DEBUG, "gui") << "Creating AreaLayoutFrame";
+    CLOG(DEBUG, "gui") << "Constructing AreaLayoutFrame";
     ui->setupUi(this);
 
     // this is just from theQt website, Not really sure what it does,
@@ -56,9 +56,13 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(parent_dlg, &SimAreaDialog::cancelSignal, this, &AreaLayoutFrame::dlgCancel_clicked);
     connect(parent_dlg, &SimAreaDialog::applySignal, this, &AreaLayoutFrame::dlgApply_clicked);
 
+    CLOG(DEBUG, "gui") << "Getting areas";
+
     SimulationArea ctemArea = *SimManager->getSimulationArea();
     StemArea stemArea = *SimManager->getStemArea();
     CbedPosition cbedPos = *SimManager->getCBedPosition();
+
+    CLOG(DEBUG, "gui") << "Creating sub frames";
 
     CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->getStructure());
     StemFrame = new StemAreaFrame(this, stemArea, SimManager->getStructure());
@@ -67,15 +71,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->vCtemLayout->insertWidget(0, CtemFrame);
     ui->vStemLayout->insertWidget(0, StemFrame);
     ui->vCbedLayout->insertWidget(0, CbedFrame);
-
-    connect(CtemFrame, &CtemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
-    connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
-    connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
-
-    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
-    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
-
-    connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
 
     // set current tab to view
     auto mode = SimManager->getMode();
@@ -86,10 +81,22 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     else
         ui->tabAreaWidget->setCurrentIndex(0);
 
+    // These must be called so they don't try to update the OGL plot before it is shown (which is baaaad)
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
+
+    connect(CtemFrame, &CtemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+
+    connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
+
     // set resolution combo box
     // this has to be called here as changingit will call its slot when other values havent been initialised
     int ind = ui->cmbResolution->findText( QString::number(SimManager->getResolution()) );
     ui->cmbResolution->setCurrentIndex(ind);
+
+    CLOG(DEBUG, "gui") << "Update limits";
 
     setStructLimits();
 
