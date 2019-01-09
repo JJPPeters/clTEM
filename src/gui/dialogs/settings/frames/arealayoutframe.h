@@ -57,6 +57,8 @@ private slots:
 
     void updatePlotRects();
 
+    void processOpenGLError(std::string message);
+
 private:
     Ui::AreaLayoutFrame *ui;
 

@@ -43,6 +43,8 @@ signals:
 
     void resetView();
 
+    void initError(std::string);
+
 public:
     explicit OGLViewWidget(QWidget *parent);
 

@@ -27,8 +27,9 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         ui->vPlotLayout->addWidget(pltStructure, 1);
         pltStructure->setMinimumWidth(400);
         connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
+        connect(pltStructure, &OGLViewWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
     } catch (const std::exception& e) {
-        CLOG(FATAL, "gui") << "Failed to make OpenGL view: " << e.what();
+        CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
@@ -482,4 +483,15 @@ void AreaLayoutFrame::updatePlotRects() {
 
 void AreaLayoutFrame::on_btnApplyUpdate_clicked() {
     apply_pressed();
+}
+
+void AreaLayoutFrame::processOpenGLError(std::string message) {
+    CLOG(WARNING, "gui") << "OpenGL initialisation: " << message;
+    QMessageBox msgBox(this);
+    msgBox.setText("Error:");
+    msgBox.setInformativeText(QString::fromStdString(message));
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setMinimumSize(160, 125);
+    msgBox.exec();
 }
