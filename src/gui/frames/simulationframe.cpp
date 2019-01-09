@@ -53,19 +53,6 @@ void SimulationFrame::on_chkFull3D_toggled(bool checked)
         ui->chkFiniteDiff->setChecked(false);
 
     Main->Manager->setFull3d(ui->chkFull3D->isChecked());
-    Main->Manager->setFiniteDifference(ui->chkFiniteDiff->isChecked());
-}
-
-void SimulationFrame::on_chkFiniteDiff_toggled(bool checked)
-{
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting simulation frame to main window.");
-
-    if(checked && ui->chkFull3D->isChecked())
-        ui->chkFull3D->setChecked(false);
-
-    Main->Manager->setFull3d(ui->chkFull3D->isChecked());
-    Main->Manager->setFiniteDifference(ui->chkFiniteDiff->isChecked());
 }
 
 void SimulationFrame::on_btnSimArea_clicked()
@@ -105,7 +92,6 @@ void SimulationFrame::on_btnSimArea_clicked()
 void SimulationFrame::assignMainWindow(MainWindow *m)
 {
     Main = m;
-    ui->chkFiniteDiff->setChecked(Main->Manager->isFiniteDifference());
     ui->chkFull3D->setChecked(Main->Manager->isFull3d());
 }
 

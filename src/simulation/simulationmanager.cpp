@@ -24,7 +24,6 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
 
     Mode = SimulationMode::CTEM;
     full3dInts = 20;
-    isFD = false;
     isF3D = false;
 
     // I'm really assuming the rest of the aberrations are default 0
@@ -293,18 +292,6 @@ bool SimulationManager::calculateFiniteDiffSliceThickness(float &dz_out) {
     dz_out = (float) maxStableDz;
 
     return true;
-}
-
-float SimulationManager::getSliceThickness() {
-    if (isFD) {
-        float dz;
-        bool valid = calculateFiniteDiffSliceThickness(dz);
-        if (!valid)
-            throw std::runtime_error("No stable finite difference solution exists");
-        return dz;
-    }
-    else
-        return slice_dz;
 }
 
 unsigned int SimulationManager::getNumberofSlices() {

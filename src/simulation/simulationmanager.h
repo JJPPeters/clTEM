@@ -19,7 +19,7 @@ public:
 
     SimulationManager(const SimulationManager& sm)
             : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRunsStem(sm.TdsRunsStem), TdsRunsCbed(sm.TdsRunsCbed),
-              numParallelPixels(sm.numParallelPixels), isFD(sm.isFD), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
+              numParallelPixels(sm.numParallelPixels), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabledStem(sm.TdsEnabledStem), TdsEnabledCbed(sm.TdsEnabledCbed),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
@@ -47,7 +47,6 @@ public:
         TdsRunsStem = sm.TdsRunsStem;
         TdsRunsCbed = sm.TdsRunsCbed;
         numParallelPixels = sm.numParallelPixels;
-        isFD = sm.isFD;
         isF3D = sm.isF3D;
         full3dInts = sm.full3dInts;
         completeJobs = sm.completeJobs;
@@ -173,11 +172,9 @@ public:
     float getVoltage() {return MicroParams->Voltage * 1000;}
     float getWavelength() {return MicroParams->Wavelength();}
     float getSigma() {return MicroParams->Sigma();}
-    bool isFiniteDifference(){return isFD;}
     bool isFull3d(){return isF3D;}
 
     void setFull3d(bool use) {isF3D = use;}
-    void setFiniteDifference(bool use) {isFD = use;}
 
     unsigned int getFull3dInts(){return full3dInts;}
     unsigned int getStoredTdsRuns();
@@ -229,7 +226,7 @@ public:
     float getCcdDose() {return ccd_dose;}
     void setCcdDose(float dose) {ccd_dose = dose;}
 
-    float getSliceThickness();
+    float getSliceThickness() {return slice_dz;}
     float getSliceOffset() {return slice_offset;}
 
     unsigned int getNumberofSlices();
@@ -307,8 +304,6 @@ private:
 
     bool calculateFiniteDiffSliceThickness(float &dz_out);
 
-    //TODO: variables for full3D etc??
-    bool isFD;
     bool isF3D;
 
     unsigned int full3dInts;

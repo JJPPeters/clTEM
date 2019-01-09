@@ -563,12 +563,9 @@ void MainWindow::loadExternalSources()
     Kernels::BandLimitSource = Utils_Qt::kernelToChar("low_pass.cl");
     Kernels::fftShiftSource = Utils_Qt::kernelToChar("post_fft_shift.cl");
     Kernels::opt2source = Utils_Qt::kernelToChar("potential_full_3d.cl");
-    Kernels::fd2source = Utils_Qt::kernelToChar("potential_finite_difference.cl");
     Kernels::conv2source = Utils_Qt::kernelToChar("potential_conventional.cl");
     Kernels::propsource = Utils_Qt::kernelToChar("generate_propagator.cl");
     Kernels::multisource = Utils_Qt::kernelToChar("complex_multiply.cl");
-    Kernels::gradsource = Utils_Qt::kernelToChar("grad.cl");
-    Kernels::fdsource = Utils_Qt::kernelToChar("finite_difference.cl");
     Kernels::InitialiseWavefunctionSource = Utils_Qt::kernelToChar("initialise_plane.cl");
     Kernels::imagingKernelSource = Utils_Qt::kernelToChar("generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils_Qt::kernelToChar("initialise_probe.cl");

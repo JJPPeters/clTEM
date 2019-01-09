@@ -301,15 +301,12 @@ namespace JSONUtils {
         // TODO: could put some pixel scale things here for convenience? (would have to distinguish between diff maybe?)
 
         bool f3d = man.isFull3d();
-        bool fd = man.isFiniteDifference();
 
         if(f3d || force_all) {
             j["full 3d"]["state"] = f3d;
             j["full 3d"]["integrals"] = man.getFull3dInts();
         } else
             j["full 3d"]["state"] = f3d;
-
-//        j["finite difference"]["state"] = fd;
 
         auto mp = man.getMicroscopeParams();
 

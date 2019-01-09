@@ -7,11 +7,10 @@
 class MainWindow;
 
 namespace Ui {
-class SimulationFrame;
+    class SimulationFrame;
 }
 
-class SimulationFrame : public QWidget
-{
+class SimulationFrame : public QWidget {
     Q_OBJECT
 
 signals:
@@ -40,11 +39,7 @@ private slots:
 
     void on_chkFull3D_toggled(bool checked);
 
-    void on_chkFiniteDiff_toggled(bool checked);
-
     void on_btnSimArea_clicked();
-
-//    void updateLimits();
 
 private:
     Ui::SimulationFrame *ui;

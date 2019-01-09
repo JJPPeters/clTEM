@@ -413,7 +413,6 @@ void SimulationWorker::initialiseSimulation()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Get local copies of variables (for convenience)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    bool isFD = job->simManager->isFiniteDifference();
     bool isFull3D = job->simManager->isFull3d();
     int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
@@ -428,13 +427,6 @@ void SimulationWorker::initialiseSimulation()
     float SimSizeY = SimSizeX;
 
     float sigma = mParams->Sigma();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Set up Finite Difference specific stuff
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // some things later will depend on member variables that are set in this method
-    if(isFD)
-        initialiseFiniteDifferenceSimulation();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up our frequency calibrations
@@ -543,8 +535,6 @@ void SimulationWorker::initialiseSimulation()
     // have various options depending on the user preferences
     if (isFull3D)
         BinnedAtomicPotential = clKernel(ctx, Kernels::opt2source.c_str(), 27, "clBinnedAtomicPotentialOpt");
-    else if (isFD)
-        BinnedAtomicPotential = clKernel(ctx, Kernels::fd2source.c_str(), 26, "clBinnedAtomicPotentialOptFD");
     else
         BinnedAtomicPotential = clKernel(ctx, Kernels::conv2source.c_str(), 26, "clBinnedAtomicPotentialConventional");
 
@@ -616,7 +606,6 @@ void SimulationWorker::initialiseCtem()
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int resolution = job->simManager->getResolution();
-    bool isFD = job->simManager->isFiniteDifference();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create buffers for the main simulation
@@ -631,11 +620,6 @@ void SimulationWorker::initialiseCtem()
     clWaveFunction3 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
     clWaveFunction4.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
 
-    if (isFD) {
-        clWaveFunction1Minus.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-        clWaveFunction1Plus.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create plane wave function
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -646,11 +630,6 @@ void SimulationWorker::initialiseCtem()
     InitPlaneWavefunction.SetArg(1, resolution);
     InitPlaneWavefunction.SetArg(2, resolution);
     InitPlaneWavefunction.SetArg(3, InitialValue);
-    if (isFD) // TODO: in Adam's code, this get's reset later anyway? (Does it?)
-    {
-        InitPlaneWavefunction.SetArg(0, clWaveFunction1Minus[0], ArgumentType::Output);
-        InitPlaneWavefunction(WorkSize);
-    }
     InitPlaneWavefunction.SetArg(0, clWaveFunction1[0], ArgumentType::Output);
     InitPlaneWavefunction(WorkSize);
 
@@ -682,12 +661,6 @@ void SimulationWorker::initialiseCbed()
         clWaveFunction1.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
         clWaveFunction2.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
         clWaveFunction4.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-
-        if (job->simManager->isFiniteDifference())
-        {
-            clWaveFunction1Minus.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-            clWaveFunction1Plus.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-        }
     }
     clWaveFunction3 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
 
@@ -778,23 +751,11 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     CLOG(DEBUG, "sim") << "IFFT probe wavefunction";
     FourierTrans.Do(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
     ctx.WaitForQueueFinish();
-    // copy to second wave function used for finite difference
-    if (job->simManager->isFiniteDifference())
-        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[n_parallel]->GetBuffer(), clWaveFunction1Minus[n_parallel]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, 0, 0);
 }
 
 void SimulationWorker::doMultiSliceStep(int slice)
 {
-    CLOG(DEBUG, "sim") << "Start multislice step";
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// do finite difference method (if selected)
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (job->simManager->isFiniteDifference())
-    {
-        doMultiSliceStepFiniteDiff(slice);
-        return;
-    }
-
+    CLOG(DEBUG, "sim") << "Start multislice step " << slice;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -825,6 +786,8 @@ void SimulationWorker::doMultiSliceStep(int slice)
     BinnedAtomicPotential.SetArg(10, numberOfSlices);
     BinnedAtomicPotential.SetArg(11, currentz);
 
+    CLOG(DEBUG, "sim") << "Calculating potentials";
+
     BinnedAtomicPotential(Work, LocalWork);
 
     ctx.WaitForQueueFinish();
@@ -832,10 +795,13 @@ void SimulationWorker::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CLOG(DEBUG, "sim") << "FFT potentials";
     FourierTrans.Do(clPotential, clWaveFunction3, Direction::Forwards);
     ctx.WaitForQueueFinish();
+    CLOG(DEBUG, "sim") << "Band limit potentials";
     BandLimit(Work);
     ctx.WaitForQueueFinish();
+    CLOG(DEBUG, "sim") << "IFFT band limited potentials";
     FourierTrans.Do(clWaveFunction3, clPotential, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
@@ -844,11 +810,15 @@ void SimulationWorker::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     for (int i = 1; i <= n_parallel; i++)
     {
+        CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
         // Apply low pass filter to wavefunction
+        CLOG(DEBUG, "sim") << "FFT incoming wavefunction";
         FourierTrans.Do(clWaveFunction1[i - 1], clWaveFunction3, Direction::Forwards);
         ctx.WaitForQueueFinish();
+        CLOG(DEBUG, "sim") << "Band limit incoming wavefunction";
         BandLimit(Work);
         ctx.WaitForQueueFinish();
+        CLOG(DEBUG, "sim") << "IFFT band limited incoming wavefunction";
         FourierTrans.Do(clWaveFunction3, clWaveFunction1[i - 1], Direction::Inverse);
         ctx.WaitForQueueFinish();
         
@@ -856,10 +826,12 @@ void SimulationWorker::doMultiSliceStep(int slice)
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
+        CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
         ComplexMultiply(Work);
         ctx.WaitForQueueFinish();
 
         // go to reciprocal space
+        CLOG(DEBUG, "sim") << "FFT to reciprocal space";
         FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction3, Direction::Forwards);
         ctx.WaitForQueueFinish();
 
@@ -867,131 +839,15 @@ void SimulationWorker::doMultiSliceStep(int slice)
         ComplexMultiply.SetArg(0, clWaveFunction3, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clPropagator, ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
+        CLOG(DEBUG, "sim") << "Convolve with propogator";
         ComplexMultiply(Work);
         ctx.WaitForQueueFinish();
 
         // IFFT back to real space
+        CLOG(DEBUG, "sim") << "IFFT to real space";
         FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
         ctx.WaitForQueueFinish();
     }
-}
-
-void SimulationWorker::doMultiSliceStepFiniteDiff(int slice)
-{
-    // TODO: get fdDz properly
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Create local variables for convenience
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    float dz = job->simManager->getSliceThickness();
-    auto z_lim = job->simManager->getPaddedStructLimitsZ();
-    int resolution = job->simManager->getResolution();
-    int n_parallel = job->simManager->getParallelPixels(); // total number of parallel pixels
-    float wavelength = job->simManager->getWavelength();
-    float sigma = job->simManager->getMicroscopeParams()->Sigma();
-
-    float currentz = z_lim[1] - slice * dz;
-
-    clWorkGroup Work(resolution, resolution, 1);
-    clWorkGroup LocalWork(16, 16, 1);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Get our potentials for the current sim
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    BinnedAtomicPotential.SetArg(1, ClAtomX, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(2, ClAtomY, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(3, ClAtomZ, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(4, ClAtomA, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(6, ClBlockStartPositions, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(9, slice);
-    BinnedAtomicPotential.SetArg(10, numberOfSlices);
-    BinnedAtomicPotential.SetArg(11, currentz);
-
-    BinnedAtomicPotential(Work, LocalWork);
-
-    ctx.WaitForQueueFinish();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Apply low pass filter to potentials
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    FourierTrans(clPotential, clWaveFunction3, Direction::Forwards);
-    ctx.WaitForQueueFinish();
-    BandLimit(Work);
-    ctx.WaitForQueueFinish();
-    FourierTrans(clWaveFunction3, clPotential, Direction::Inverse);
-
-    ctx.WaitForQueueFinish();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Propogate slice
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for (int i = 0; i < n_parallel; i++)
-    {
-
-        //FFT Psi into Grad2.
-        FourierTrans(clWaveFunction1[i], clWaveFunction3, Direction::Forwards);
-
-        ctx.WaitForQueueFinish();
-
-        //Grad Kernel on Grad2.
-        GradKernel.SetArg(0, clWaveFunction3, ArgumentType::Input);
-        GradKernel.SetArg(1, clXFrequencies, ArgumentType::Input);
-        GradKernel.SetArg(2, clYFrequencies, ArgumentType::Input);
-        GradKernel.SetArg(3, resolution);
-        GradKernel.SetArg(4, resolution);
-        GradKernel(Work);
-
-        ctx.WaitForQueueFinish();
-
-        //IFT Grad2 into Grad.
-        FourierTrans(clWaveFunction3, clWaveFunction4[i], Direction::Inverse);
-
-        ctx.WaitForQueueFinish();
-
-        //FD Kernel
-        FiniteDifference.SetArg(0, clPotential, ArgumentType::Input);
-        FiniteDifference.SetArg(1, clWaveFunction4[i], ArgumentType::Input);
-        FiniteDifference.SetArg(2, clWaveFunction1Minus[i], ArgumentType::Input);
-        FiniteDifference.SetArg(3, clWaveFunction1[i], ArgumentType::Input);
-        FiniteDifference.SetArg(4, clWaveFunction1Plus[i], ArgumentType::Output);
-        FiniteDifference.SetArg(5, dz);
-        FiniteDifference.SetArg(6, wavelength);
-        FiniteDifference.SetArg(7, sigma);
-        FiniteDifference.SetArg(8, resolution);
-        FiniteDifference.SetArg(9, resolution);
-        FiniteDifference(Work);
-
-        ctx.WaitForQueueFinish();
-
-        //Bandlimit PsiPlus
-        FourierTrans(clWaveFunction1Plus[i], clWaveFunction3, Direction::Forwards);
-        ctx.WaitForQueueFinish();
-        BandLimit(Work);
-        ctx.WaitForQueueFinish();
-        FourierTrans(clWaveFunction3, clWaveFunction1Plus[i], Direction::Inverse);
-
-        ctx.WaitForQueueFinish();
-
-        // Psi becomes PsiMinus
-        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1[i]->GetBuffer(), clWaveFunction1Minus[i]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, nullptr, nullptr);
-
-        ctx.WaitForQueueFinish();
-
-        // PsiPlus becomes Psi.
-        clEnqueueCopyBuffer(ctx.GetIOQueue(), clWaveFunction1Plus[i]->GetBuffer(), clWaveFunction1[i]->GetBuffer(), 0, 0, resolution*resolution*sizeof(cl_float2), 0, nullptr, nullptr);
-
-        // To maintain status with other versions resulting end arrays should still be as follows.
-        // Finished wavefunction in real space in clWaveFunction1.
-        // Finished wavefunction in reciprocal space in clWaveFunction2.
-        // 3 and 4 were previously temporary.
-        ctx.WaitForQueueFinish();
-
-        FourierTrans(clWaveFunction1[i], clWaveFunction2[i], Direction::Forwards);
-
-        ctx.WaitForQueueFinish();
-    }
-
-    ctx.WaitForQueueFinish();
 }
 
 void SimulationWorker::simulateCtemImage()
@@ -1371,10 +1227,4 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
     clWorkGroup localSizeSum(256, 1, 1);
 
     return doSumReduction(clTDSMaskDiff, globalSizeSum, localSizeSum, nGroups, totalSize);
-}
-
-void SimulationWorker::initialiseFiniteDifferenceSimulation()
-{
-    GradKernel = clKernel(ctx, Kernels::gradsource.c_str(), 5, "clGrad");
-    FiniteDifference = clKernel(ctx, Kernels::fdsource.c_str(), 10, "clFiniteDifference");
 }

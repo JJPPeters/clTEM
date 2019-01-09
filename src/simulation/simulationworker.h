@@ -37,8 +37,6 @@ private:
 
     void initialiseSimulation();
 
-    void initialiseFiniteDifferenceSimulation();
-
     void initialiseCtem();
 
     void initialiseCbed();
@@ -48,8 +46,6 @@ private:
     void initialiseProbeWave(float posx, float posy, int n_parallel = 0);
 
     void doMultiSliceStep(int slice);
-
-    void doMultiSliceStepFiniteDiff(int slice);
 
     void simulateCtemImage();
 
@@ -102,10 +98,6 @@ private:
     clKernel BinnedAtomicPotential;
     clKernel GeneratePropagator;
     clKernel ComplexMultiply;
-
-    // FD Only
-    clKernel GradKernel;
-    clKernel FiniteDifference;
 
     // CTEM
     clKernel InitPlaneWavefunction;

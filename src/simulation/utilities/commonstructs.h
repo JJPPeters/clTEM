@@ -56,8 +56,7 @@ struct Image
 
     int getCroppedWidth() {return width - pad_l - pad_r;}
     int getCroppedHeight() {return height - pad_t - pad_b;}
-    std::vector<T> getCropped()
-    {
+    std::vector<T> getCropped() {
         std::vector<T> data_out(getCroppedWidth()*getCroppedHeight());
         int cnt = 0;
         for (int j = 0; j < height; ++j)
@@ -73,8 +72,7 @@ struct Image
     }
 };
 
-struct ComplexAberration
-{
+struct ComplexAberration {
     ComplexAberration() : Mag(0.0f), Ang(0.0f) {}
     ComplexAberration(float m, float a) : Mag(m), Ang(a) {}
 
@@ -83,8 +81,7 @@ struct ComplexAberration
     std::complex<float> getComplex() {return std::polar(Mag, Ang);}
 };
 
-struct MicroscopeParameters
-{
+struct MicroscopeParameters {
     MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), Alpha(1.0f), Delta(1.0f) {}
 
     // Defocus
@@ -127,20 +124,17 @@ struct MicroscopeParameters
     float Delta;
 
     //Calculate wavelength (Angstroms)
-    float Wavelength()
-    {
+    float Wavelength() {
         return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000.0f) * (2.0f * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000.0f ) ) ) * 1e+10f;
     }
 
     // Interaction parameter (see Kirkland Eq. 5.6) (s^2 C m^-2 kg^-1 Angstrom^-1])
-    float Sigma()
-    {
+    float Sigma() {
         return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000.0f))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000.0f)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000.0f));
     }
 };
 
-struct SimulationArea
-{
+struct SimulationArea {
     SimulationArea() : xStart(0.0f), xFinish(10.0f), yStart(0.0f), yFinish(10.0f), padding(0.f) {}
 
     SimulationArea(float xs, float xf, float ys, float yf, float pd = 0.f) : xStart(xs), xFinish(xf),
@@ -162,8 +156,7 @@ protected:
     float xStart, xFinish, yStart, yFinish, padding;
 };
 
-struct StemDetector
-{
+struct StemDetector {
     StemDetector() : name("--"), inner(0.0f), outer(1.0f), xcentre(0.0f), ycentre(0.0f) {}
     StemDetector(std::string nm, float in, float out, float xc, float yc) : name(nm),
             inner(in), outer(out), xcentre(xc), ycentre(yc) {}
@@ -174,8 +167,7 @@ struct StemDetector
 };
 
 // TODO: is this class necessary, can we not just use the sim area one with the start and end points the same?
-struct CbedPosition
-{
+struct CbedPosition {
     CbedPosition() : xPos(0.0f), yPos(0.0f), padding(0.0f) {}
     CbedPosition(float _x, float _y, float _pd = 0.0f) : xPos(_x), yPos(_y), padding(_pd) {}
 
@@ -187,14 +179,12 @@ struct CbedPosition
     void setYPos(float yp) {yPos = yp;}
     void setPaddding(float pd) {padding = pd;}
 
-    void setPos(float xp, float yp)
-    {
+    void setPos(float xp, float yp) {
         xPos = xp;
         yPos = yp;
     }
 
-    SimulationArea getSimArea()
-    {
+    SimulationArea getSimArea() {
         // pad equally on both sides
         return SimulationArea(xPos, xPos, yPos, yPos, padding);
     }
@@ -203,17 +193,12 @@ private:
     float xPos, yPos, padding;
 };
 
-struct StemArea : public SimulationArea
-{
+struct StemArea : public SimulationArea {
     static const float DefaultScale;
 
     StemArea() : SimulationArea(), xPixels(64), yPixels(64) {}
     StemArea(float xs, float xf, float ys, float yf, int xp, int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf, pd),
                                                                                  xPixels(xp), yPixels(yp) {}
-
-
-//    bool setRangeX(float start, float finish);
-//    bool setRangeY(float start, float finish);
 
     bool setPxRangeX(float start, float finish, int px);
     bool setPxRangeY(float start, float finish, int px);
@@ -237,8 +222,7 @@ struct StemArea : public SimulationArea
     int getNumPixels() {return xPixels * yPixels;}
 
 private:
-//    float padding;
     int xPixels, yPixels;
-//    bool isFixed;
+
 };
 #endif //COMMONSTRUCTS_H

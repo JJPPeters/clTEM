@@ -18,12 +18,9 @@ struct Kernels
     static std::string BandLimitSource;
     static std::string fftShiftSource;
     static std::string opt2source;
-    static std::string fd2source;
     static std::string conv2source;
     static std::string propsource;
     static std::string multisource;
-    static std::string gradsource;
-    static std::string fdsource;
     static std::string InitialiseWavefunctionSource;
     static std::string imagingKernelSource;
     static std::string InitialiseSTEMWavefunctionSourceTest;

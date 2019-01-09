@@ -378,12 +378,9 @@ int main(int argc, char *argv[])
     Kernels::BandLimitSource = Utils::resourceToChar(kernel_path, "low_pass.cl");
     Kernels::fftShiftSource = Utils::resourceToChar(kernel_path, "post_fft_shift.cl");
     Kernels::opt2source = Utils::resourceToChar(kernel_path, "potential_full_3d.cl");
-    Kernels::fd2source = Utils::resourceToChar(kernel_path, "potential_finite_difference.cl");
     Kernels::conv2source = Utils::resourceToChar(kernel_path, "potential_conventional.cl");
     Kernels::propsource = Utils::resourceToChar(kernel_path, "generate_propagator.cl");
     Kernels::multisource = Utils::resourceToChar(kernel_path, "complex_multiply.cl");
-    Kernels::gradsource = Utils::resourceToChar(kernel_path, "grad.cl");
-    Kernels::fdsource = Utils::resourceToChar(kernel_path, "finite_difference.cl");
     Kernels::InitialiseWavefunctionSource = Utils::resourceToChar(kernel_path, "initialise_plane.cl");
     Kernels::imagingKernelSource = Utils::resourceToChar(kernel_path, "generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::resourceToChar(kernel_path, "initialise_probe.cl");
