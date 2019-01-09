@@ -97,6 +97,7 @@ private:
     // CTEM
     clKernel InitPlaneWavefunction;
     clKernel ImagingKernel;
+    clKernel ABS2;
     
     // CBED
     clKernel InitProbeWavefunction;
@@ -105,12 +106,6 @@ private:
     // STEM
     clKernel TDSMaskingAbsKernel;
     clKernel SumReduction;
-
-    // Finite difference variables
-    // --Seem to get set no matter what?
-//    float FDdz; // slice thickness?
-//    unsigned int NumberOfFDSlices; // number of slices?
-    unsigned int numberOfSlices;
 };
 
 

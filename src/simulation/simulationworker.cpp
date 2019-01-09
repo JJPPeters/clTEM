@@ -23,6 +23,7 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
         throw std::runtime_error("Cannot access simulation parameters");
 
     if (pool.stop) {
+        CLOG(DEBUG, "sim") << "Threadpool stopping";
         job->promise.set_value();
         return;
     }
@@ -71,11 +72,9 @@ void SimulationWorker::sortAtoms(bool doTds) {
     if (doTds)
         CLOG(DEBUG, "sim") << "Using TDS";
 
-    for(int i = 0; i < atom_count; i++)
-    {
-        float dx = 0, dy = 0, dz = 0;
-        if (doTds)
-        {
+    for(int i = 0; i < atom_count; i++) {
+        float dx = 0.0f, dy = 0.0f, dz = 0.0f;
+        if (doTds) {
             // TODO: need a log guard here or in the structure file...
             dx = job->simManager->generateTdsFactor(atoms[i], 0);
             dy = job->simManager->generateTdsFactor(atoms[i], 1);
@@ -112,7 +111,6 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     // NOTE: DONT CHANGE UNLESS CHANGE ELSEWHERE ASWELL!
     // Or fix it so they are all referencing same variable.
-    // TODO: check if the blocks ever get changed, they always seem to just be 80???
     // TODO: get these from the structure class to keep them centralised
     int BlocksX = job->simManager->getBlocksX();
     int BlocksY = job->simManager->getBlocksY();
@@ -121,7 +119,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
 
     float dz = job->simManager->getSliceThickness();
-    numberOfSlices = job->simManager->getNumberofSlices();
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
 
     clAtomSort.SetArg(0, ClAtomX, ArgumentType::Input);
     clAtomSort.SetArg(1, ClAtomY, ArgumentType::Input);
@@ -163,8 +161,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
     // TODO: speed could be improved by either reserving space for full count of atoms? OR  calculting number we have in the rangewe want (so we don't dynamically create everything
 
     int count_in_range = 0;
-    for(int i = 0; i < atom_count; i++)
-    {
+    for(int i = 0; i < atom_count; i++) {
         if (HostZIDs[i] > 0 && HostBlockIDs[i] > 0) {
             Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
             Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
@@ -196,18 +193,13 @@ void SimulationWorker::sortAtoms(bool doTds) {
     // Put all bins into a linear block of memory ordered by z then y then x and record start positions for every block.
     CLOG(DEBUG, "sim") << "Putting binned atoms into continuous array";
 
-    for(int slicei = 0; slicei < numberOfSlices; slicei++)
-    {
-        for(int j = 0; j < BlocksY; j++)
-        {
-            for(int k = 0; k < BlocksX; k++)
-            {
+    for(int slicei = 0; slicei < numberOfSlices; slicei++) {
+        for(int j = 0; j < BlocksY; j++) {
+            for(int k = 0; k < BlocksX; k++) {
                 blockStartPositions[slicei*BlocksX*BlocksY+ j*BlocksX + k] = atomIterator;
 
-                if(!Binnedx[j * BlocksX + k][slicei].empty())
-                {
-                    for(int l = 0; l < Binnedx[j*BlocksX+k][slicei].size(); l++)
-                    {
+                if(!Binnedx[j * BlocksX + k][slicei].empty()) {
+                    for(int l = 0; l < Binnedx[j*BlocksX+k][slicei].size(); l++) {
                         AtomXPos[atomIterator] = Binnedx[j*BlocksX+k][slicei][l];
                         AtomYPos[atomIterator] = Binnedy[j*BlocksX+k][slicei][l];
                         AtomZPos[atomIterator] = Binnedz[j*BlocksX+k][slicei][l];
@@ -247,8 +239,8 @@ void SimulationWorker::doCtem(bool simImage)
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
-    for (int i = 0; i < numberOfSlices; ++i)
-    {
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
         if (pool.stop)
             return;
@@ -257,6 +249,8 @@ void SimulationWorker::doCtem(bool simImage)
 
     if (simImage)
         simulateCtemImage();
+
+    CLOG(DEBUG, "sim") << "Getting return images";
 
     int resolution = job->simManager->getResolution();
     typedef std::map<std::string, Image<float>> return_map;
@@ -324,14 +318,17 @@ void SimulationWorker::doCbed()
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
-    for (int i = 0; i < numberOfSlices; ++i)
-    {
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
-        if (pool.stop)
+        if (pool.stop) {
+            CLOG(DEBUG, "sim") << "Thread pool stopping";
             return;
+        }
         job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
+    CLOG(DEBUG, "sim") << "Getting return images";
     // get images and return them...
     int resolution = job->simManager->getResolution();
     typedef std::map<std::string, Image<float>> return_map;
@@ -346,6 +343,7 @@ void SimulationWorker::doCbed()
 
 void SimulationWorker::doStem()
 {
+    CLOG(DEBUG, "sim") << "Parallel pixels: " << job->pixels.size();
     sortAtoms(job->simManager->getTdsRuns() > 1);
 
     initialiseStem();
@@ -363,6 +361,7 @@ void SimulationWorker::doStem()
     float step_x = stemPixels->getScaleX();
     float step_y = stemPixels->getScaleY();
 
+    CLOG(DEBUG, "sim") << "Initialising probe(s)";
     for (int i = 0; i < job->pixels.size(); ++i) {
         int p = job->pixels[i];
         // index to x and y index
@@ -377,13 +376,17 @@ void SimulationWorker::doStem()
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
     for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
-        if (pool.stop)
+        if (pool.stop) {
+            CLOG(DEBUG, "sim") << "Thread pool stopping";
             return;
+        }
         job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
     }
 
+    CLOG(DEBUG, "sim") << "Getting return images";
     typedef std::map<std::string, Image<float>> return_map;
     return_map Images;
     int px_x = job->simManager->getStemArea()->getPixelsX();
@@ -572,9 +575,6 @@ void SimulationWorker::initialiseSimulation()
     GeneratePropagator.SetArg(2, clYFrequencies, ArgumentType::Input);
     GeneratePropagator.SetArg(3, resolution);
     GeneratePropagator.SetArg(4, resolution);
-//    if (isFD)
-//        GeneratePropagator.SetArg(5, FDdz); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
-//    else
     GeneratePropagator.SetArg(5, dz); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
     GeneratePropagator.SetArg(6, wavelength);
     GeneratePropagator.SetArg(7, bandwidthkmax);
@@ -627,12 +627,17 @@ void SimulationWorker::initialiseCtem()
     InitPlaneWavefunction(WorkSize);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Build imaging kernel
+    /// Build imaging kernels
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    CLOG(DEBUG, "sim") << "set up image kernel";
-    // this is only needed if the imaging part is used, but build it here (with it's buffer) to save time later
-    clImageWaveFunction = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
-    ImagingKernel = clKernel(ctx, Kernels::imagingKernelSource.c_str(), 24, "clImagingKernel");
+    if (job->simManager->getSimulateCtemImage()) {
+        CLOG(DEBUG, "sim") << "Set up image kernel";
+        // this is only needed if the imaging part is used, but build it here (with it's buffer) to save time later
+        clImageWaveFunction = ctx.CreateBuffer<cl_float2, Manual>(resolution * resolution);
+        ImagingKernel = clKernel(ctx, Kernels::imagingKernelSource.c_str(), 24, "clImagingKernel");
+
+        CLOG(DEBUG, "sim") << "Set up absolute squared kernel";
+        ABS2 = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// initialise everyting else
@@ -640,17 +645,15 @@ void SimulationWorker::initialiseCtem()
     initialiseSimulation();
 }
 
-void SimulationWorker::initialiseCbed()
-{
-    CLOG(DEBUG, "sim") << "Starting CBED initialisation";
+void SimulationWorker::initialiseCbed() {
+    CLOG(DEBUG, "sim") << "Starting probe (CBED) initialisation";
     unsigned int resolution = job->simManager->getResolution();
     int n_parallel = job->simManager->getParallelPixels(); // this is the number of parallel pixels
 
     CLOG(DEBUG, "sim") << "Create buffers";
     // Initialise Wavefunctions and Create other buffers...
     // Even though CBED only eer has 1 parallel simulation (per device), this set up is also used for STEM
-    for (int i = 1; i <= n_parallel; i++)
-    {
+    for (int i = 1; i <= n_parallel; i++) {
         clWaveFunction1.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
         clWaveFunction2.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
         clWaveFunction4.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
@@ -665,8 +668,7 @@ void SimulationWorker::initialiseCbed()
     initialiseSimulation();
 }
 
-void SimulationWorker::initialiseStem()
-{
+void SimulationWorker::initialiseStem() {
     CLOG(DEBUG, "sim") << "Starting STEM initialisation";
     CLOG(DEBUG, "sim") << "Set up sum reduction kernel";
     SumReduction = clKernel(ctx, Kernels::floatSumReductionsource2.c_str(), 4, "clSumReduction");
@@ -677,8 +679,7 @@ void SimulationWorker::initialiseStem()
 }
 
 // n_parallel is the index (from 0) of the current parallel pixel
-void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_parallel)
-{
+void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_parallel) {
     CLOG(DEBUG, "sim") << "Initialising probe wavefunction";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
@@ -767,8 +768,7 @@ void SimulationWorker::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Get our potentials for the current sim
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ctx.WaitForQueueFinish();
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
 
     BinnedAtomicPotential.SetArg(1, ClAtomX, ArgumentType::Input);
     BinnedAtomicPotential.SetArg(2, ClAtomY, ArgumentType::Input);
@@ -845,12 +845,12 @@ void SimulationWorker::doMultiSliceStep(int slice)
 
 void SimulationWorker::simulateCtemImage()
 {
+    CLOG(DEBUG, "sim") << "Start CTEM image simulation (no dose calculation)";
     unsigned int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
     auto mParams = job->simManager->getMicroscopeParams();
 
-    clKernel ABS2 = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
-
+    CLOG(DEBUG, "sim") << "Calculating CTEM image from wavefunction";
     // Set arguments for imaging kernel
     ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
     ImagingKernel.SetArg(1, clImageWaveFunction, ArgumentType::Output);
@@ -880,15 +880,20 @@ void SimulationWorker::simulateCtemImage()
     clWorkGroup Work(resolution, resolution, 1);
 
     ImagingKernel(Work);
+    ctx.WaitForQueueFinish();
 
     // Now get and display absolute value
+    CLOG(DEBUG, "sim") << "IFFT to real space";
     FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+    ctx.WaitForQueueFinish();
 
+    CLOG(DEBUG, "sim") << "Calculate absolute squared";
     ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
     ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
     ABS2(Work);
+    ctx.WaitForQueueFinish();
 };
 
 // TODO: what should be done with the conversion factor?
@@ -898,81 +903,42 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
                                          float conversionfactor)
 {
     // all the NTF, DQE stuff can be found here: 10.1016/j.jsb.2013.05.008
+    CLOG(DEBUG, "sim") << "Start CTEM image simulation (with calculation)";
 
     unsigned int resolution = job->simManager->getResolution();
-    float wavelength = job->simManager->getWavelength();
     auto mParams = job->simManager->getMicroscopeParams();
 
     // Set up some temporary memory objects for the image simulation
     auto Temp1 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
     auto dqe_ntf_buffer = ctx.CreateBuffer<cl_float, Manual>(725);
 
-    // build additional kernels required
-    clKernel NTF = clKernel(ctx, Kernels::NtfSource.c_str(), 5, "clNTF");
-    clKernel DQE = clKernel(ctx, Kernels::DqeSource.c_str(), 5, "clDQE");
-    clKernel ABS = clKernel(ctx, Kernels::AbsSource.c_str(), 3, "clAbs");
-    clKernel ABS2 = clKernel(ctx, Kernels::SqAbsSource.c_str(), 4, "clSqAbs");
-
-    // simulate image
-    ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
-    ImagingKernel.SetArg(1, clImageWaveFunction, ArgumentType::Output);
-    ImagingKernel.SetArg(2, resolution);
-    ImagingKernel.SetArg(3, resolution);
-    ImagingKernel.SetArg(4, clXFrequencies, ArgumentType::Input);
-    ImagingKernel.SetArg(5, clYFrequencies, ArgumentType::Input);
-    ImagingKernel.SetArg(6, wavelength);
-    ImagingKernel.SetArg(7, mParams->C10);
-    ImagingKernel.SetArg(8, mParams->C12.getComplex());
-    ImagingKernel.SetArg(9, mParams->C21.getComplex());
-    ImagingKernel.SetArg(10, mParams->C23.getComplex());
-    ImagingKernel.SetArg(11, mParams->C30);
-    ImagingKernel.SetArg(12, mParams->C32.getComplex());
-    ImagingKernel.SetArg(13, mParams->C34.getComplex());
-    ImagingKernel.SetArg(14, mParams->C41.getComplex());
-    ImagingKernel.SetArg(15, mParams->C43.getComplex());
-    ImagingKernel.SetArg(16, mParams->C45.getComplex());
-    ImagingKernel.SetArg(17, mParams->C50);
-    ImagingKernel.SetArg(18, mParams->C52.getComplex());
-    ImagingKernel.SetArg(19, mParams->C54.getComplex());
-    ImagingKernel.SetArg(20, mParams->C56.getComplex());
-    ImagingKernel.SetArg(21, mParams->Aperture);
-    ImagingKernel.SetArg(22, mParams->Alpha);
-    ImagingKernel.SetArg(23, mParams->Delta);
-
     clWorkGroup Work(resolution, resolution, 1);
 
-    ImagingKernel(Work);
+    //
+    // Do the 'normal' image calculation
+    //
 
-    ctx.WaitForQueueFinish();
-
-    // ifft to real space
-    FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
-
-    ctx.WaitForQueueFinish();
-
-    //abs for detected image
-    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
-    ABS2.SetArg(1, Temp1, ArgumentType::Output);
-    ABS2.SetArg(2, resolution);
-    ABS2.SetArg(3, resolution);
-
-    ABS2(Work);
-
-    ctx.WaitForQueueFinish();
+    simulateCtemImage();
 
     //
     // Dose stuff starts here!
     //
 
-    // FFT
-    FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
+    CLOG(DEBUG, "sim") << "Create CTEM dose specific kernels";
+    clKernel NTF = clKernel(ctx, Kernels::NtfSource.c_str(), 5, "clNTF");
+    clKernel DQE = clKernel(ctx, Kernels::DqeSource.c_str(), 5, "clDQE");
 
+    // FFT
+    CLOG(DEBUG, "sim") << "FFT back to reciprocal space";
+    FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
     ctx.WaitForQueueFinish();
 
     // write DQE to opencl
+    CLOG(DEBUG, "sim") << "Upload DQE buffer";
     dqe_ntf_buffer->Write(dqe_data);
     ctx.WaitForQueueFinish();
 
+    CLOG(DEBUG, "sim") << "Apply DQE";
     // apply DQE
     DQE.SetArg(0, clImageWaveFunction, ArgumentType::InputOutput);
     DQE.SetArg(1, dqe_ntf_buffer, ArgumentType::Input);
@@ -981,29 +947,18 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     DQE.SetArg(4, binning);
 
     DQE(Work);
-
     ctx.WaitForQueueFinish();
 
     // IFFT back
+    CLOG(DEBUG, "sim") << "IFFT to real space";
     FourierTrans(clImageWaveFunction, Temp1, Direction::Inverse);
-
     ctx.WaitForQueueFinish();
 
-    // TODO: what is this abs for? (or should it be abs squared?)
-//    ABS2.SetArg(0, Temp1, ArgumentType::Input);
-//    ABS2.SetArg(1, clWaveFunction1[0], ArgumentType::Output);
-//    ABS2.SetArg(2, resolution);
-//    ABS2.SetArg(3, resolution);
-//
-//    ABS2(Work);
-//
-//    ctx.WaitForQueueFinish();
-
+    CLOG(DEBUG, "sim") << "Read from buffer";
     float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
-
-    ctx.WaitForQueueFinish();
     std::vector<cl_float2> compdata = Temp1->CreateLocalCopy();
-    ctx.WaitForQueueFinish();
+
+    CLOG(DEBUG, "sim") << "Add noise";
 
     std::random_device rd;
     std::mt19937 rng(rd());
@@ -1013,24 +968,26 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
         // see: https://stackoverflow.com/questions/19944111/creating-a-gaussian-random-generator-with-a-mean-and-standard-deviation
 
         // use the built in stuff for ease
-        std::poisson_distribution<int> dist(N_tot * compdata[i].x); // TODO: here we are assuming this funtion is only real?
+        std::poisson_distribution<int> dist(N_tot * compdata[i].x); // TODO: here we are assuming this function is only real?
         auto poiss = (float) dist(rng);
 
         compdata[i].x = conversionfactor * poiss;
         compdata[i].y = 0;
     }
 
+    CLOG(DEBUG, "sim") << "Write back to buffer";
     clImageWaveFunction->Write(compdata);
     ctx.WaitForQueueFinish();
 
+    CLOG(DEBUG, "sim") << "FFT to reciprocal space";
     FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
-
     ctx.WaitForQueueFinish();
 
+    CLOG(DEBUG, "sim") << "Upload NTF buffer";
     dqe_ntf_buffer->Write(ntf_data);
-
     ctx.WaitForQueueFinish();
 
+    CLOG(DEBUG, "sim") << "Apply NTF";
     NTF.SetArg(0, Temp1, ArgumentType::InputOutput);
     NTF.SetArg(1, dqe_ntf_buffer, ArgumentType::Input);
     NTF.SetArg(2, resolution);
@@ -1038,22 +995,11 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     NTF.SetArg(4, binning);
 
     NTF(Work);
-
     ctx.WaitForQueueFinish();
 
+    CLOG(DEBUG, "sim") << "FFT to real space";
     FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
-
     ctx.WaitForQueueFinish();
-
-//    // might want to be sqrt (aka normal abs)
-//    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
-//    ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
-//    ABS2.SetArg(2, resolution);
-//    ABS2.SetArg(3, resolution);
-//
-//    ABS2(Work);
-//
-//    ctx.WaitForQueueFinish();
 }
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
