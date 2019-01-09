@@ -11,11 +11,12 @@
 INITIALIZE_EASYLOGGINGPP
 
 std::string getMethodName(const std::string& prettyFunction) {
-    size_t begin = prettyFunction.find(' ') + 1;
-    if (begin > prettyFunction.find("::"))
-        begin = 0;
-    size_t len = prettyFunction.rfind('(') - begin;
+    // find our '(' as we want to find the spaces not in the function list
+    size_t l_bracket = prettyFunction.rfind('(');
 
-    return prettyFunction.substr(begin, len);
+    // find the last space before the bracket
+    size_t begin = prettyFunction.substr(0, l_bracket).rfind(' ') + 1;
+
+    return prettyFunction.substr(begin, l_bracket - begin);
 }
 #endif
