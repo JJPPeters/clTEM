@@ -7,16 +7,14 @@
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
-CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false)
-{
+CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false) {
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
     openXyz(fPath);
 }
 
-void CrystalStructure::openXyz(std::string fPath)
-{
+void CrystalStructure::openXyz(std::string fPath) {
     filePath = fPath;
     // open the file
     std::ifstream inputStream;

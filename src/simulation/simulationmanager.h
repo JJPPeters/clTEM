@@ -11,6 +11,7 @@
 #include "utilities/commonstructs.h"
 #include "utilities/enums.h"
 #include "utilities/stringutils.h"
+#include "utilities/logging.h"
 
 class SimulationManager
 {

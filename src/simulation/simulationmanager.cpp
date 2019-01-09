@@ -126,22 +126,29 @@ unsigned long SimulationManager::getTotalParts()
 
 void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, int jobCount)
 {
+    CLOG(DEBUG, "sim") << "Updating images";
     std::lock_guard<std::mutex> lck(image_update_mtx);
-
+    CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
     auto average_factor = (float) getTdsRuns();
 
     for (auto const& i : ims)
     {
+        CLOG(DEBUG, "sim") << "Processing image " << i.first;
         if (Images.find(i.first) != Images.end()) {
+            CLOG(DEBUG, "sim") << "First time so creating image";
             auto current = Images[i.first];
             auto im = i.second;
-            if (im.data.size() != current.data.size())
+            if (im.data.size() != current.data.size()) {
+                CLOG(ERROR, "sim") << "Tried to merge simulation jobs with different output size";
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
+            }
+            CLOG(DEBUG, "sim") << "Copying data";
             for (int j = 0; j < current.data.size(); ++j)
                 current.data[j] += im.data[j] / average_factor;
             Images[i.first] = current;
         } else {
+            CLOG(DEBUG, "sim") << "Adding to existing image";
             auto new_averaged = i.second;
             for (float &d : new_averaged.data)
                 d /= average_factor; // need to average this as the image is created (if TDS)
@@ -154,14 +161,22 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
 
     auto v = getTotalParts();
 
-    if (completeJobs > v)
+    if (completeJobs > v) {
+        CLOG(ERROR, "sim") << "Simulation received more parts than it expected";
         throw std::runtime_error("Simulation received more parts than it expected");
+    }
 
-    reportTotalProgress((float) completeJobs / (float) getTotalParts());
+    auto prgrss = (float) completeJobs / (float) getTotalParts();
+
+    CLOG(DEBUG, "sim") << "Report progress: " << prgrss*100 << "%";
+
+    reportTotalProgress(prgrss);
 
     // this means this simulation is finished
-    if (completeJobs == getTotalParts() && imageReturn)
+    if (completeJobs == getTotalParts() && imageReturn) {
+        CLOG(DEBUG, "sim") << "All parts of this job finished";
         imageReturn(Images, *this);
+    }
 }
 
 void SimulationManager::reportTotalProgress(float prog)
@@ -251,7 +266,7 @@ bool SimulationManager::calculateFiniteDiffSliceThickness(float &dz_out) {
     double ke2 = ke * ke;
 
     // local copy of pi for convenience
-    // using a double version as this calulation needs to be accurate
+    // using a double version as this calculation needs to be accurate
     double Pi = 3.141592653589793238462643383279502884;
 
     // This is just rearranging Eq 6.122 in Kirkland's book to a get a quadratic in (dz)^2 which we then solve. Could also adjust the band limiting.

@@ -1001,19 +1001,22 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
 {
+    CLOG(DEBUG, "sim") << "Getting diffraction image";
     unsigned int resolution = job->simManager->getResolution();
     std::vector<float> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
     clWorkGroup Work(resolution, resolution, 1);
 
+    CLOG(DEBUG, "sim") << "FFT shifting diffraction pattern";
     fftShift.SetArg(0, clWaveFunction2[parallel_ind], ArgumentType::Input);
     fftShift(Work);
 
-//    ctx.WaitForQueueFinish();
-
+    CLOG(DEBUG, "sim") << "Copy from buffer";
     std::vector<cl_float2> compdata = clWaveFunction3->CreateLocalCopy();
 
+    // TODO: this could be done on GPU?
+    CLOG(DEBUG, "sim") << "Calculating absolute squared value";
     for (int i = 0; i < resolution * resolution; i++)
         // Get absolute value for display...
         data_out[i] += (compdata[i].s[0] * compdata[i].s[0] + compdata[i].s[1] * compdata[i].s[1]);
@@ -1022,17 +1025,19 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
 }
 
 std::vector<float> SimulationWorker::getExitWaveImage(unsigned int t, unsigned int l, unsigned int b, unsigned int r) {
+    CLOG(DEBUG, "sim") << "Getting exit wave image";
     unsigned int resolution = job->simManager->getResolution();
     std::vector<float> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
+    CLOG(DEBUG, "sim") << "Copy from buffer";
     std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
 
+    CLOG(DEBUG, "sim") << "Process complex data";
     int cnt = 0;
     for (int j = 0; j < resolution; ++j)
         if (j >= b && j < (resolution - t))
             for (int i = 0; i < resolution; ++i)
-                if (i >= l && i < (resolution - r))
-                {
+                if (i >= l && i < (resolution - r)) {
                     int k = i + j * resolution;
                     data_out[cnt] = compdata[k].x;
                     data_out[cnt + 1] = compdata[k].y;
@@ -1044,14 +1049,15 @@ std::vector<float> SimulationWorker::getExitWaveImage(unsigned int t, unsigned i
 
 std::vector<float> SimulationWorker::getCtemImage()
 {
+    CLOG(DEBUG, "sim") << "Getting CTEM image image";
     unsigned int resolution = job->simManager->getResolution();
     std::vector<float> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
+    CLOG(DEBUG, "sim") << "Copy from buffer";
     std::vector<cl_float2> compdata = clImageWaveFunction->CreateLocalCopy();
 
-    ctx.WaitForQueueFinish();
-
+    CLOG(DEBUG, "sim") << "Getting only real part";
     for (int i = 0; i < resolution * resolution; i++)
         data_out[i] = compdata[i].x; // already abs in simulateCTEM function (but is still 'complex' type?)
 
@@ -1061,8 +1067,11 @@ std::vector<float> SimulationWorker::getCtemImage()
 float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum,
                                        clWorkGroup localSizeSum, unsigned int nGroups, int totalSize)
 {
+    CLOG(DEBUG, "sim") << "Starting sum reduction";
+    CLOG(DEBUG, "sim") << "Create local buffer";
     auto outArray = ctx.CreateBuffer<float, Manual>(nGroups);
 
+    CLOG(DEBUG, "sim") << "Doing sum reduction";
     SumReduction.SetArg(0, data, ArgumentType::Input);
 
     // Only really need to do these 3 once... (but we make a local 'outArray' so can't do that)
@@ -1073,24 +1082,26 @@ float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> 
     SumReduction(globalSizeSum, localSizeSum);
 
     // Now copy back
+    CLOG(DEBUG, "sim") << "Copy from buffer";
     std::vector<float> sums = outArray->CreateLocalCopy();
 
+    CLOG(DEBUG, "sim") << "Doing final sum on CPU (" << nGroups << " parts)";
     // Find out which numbers to read back
     float sum = 0;
     for (int i = 0; i < nGroups; i++)
-    {
         sum += sums[i];
-    }
     return sum;
 }
 
 float SimulationWorker::getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind)
 {
+    CLOG(DEBUG, "sim") << "Getting STEM pixel";
     unsigned int resolution = job->simManager->getResolution();
     float angle_scale = job->simManager->getInverseScaleAngle();
 
     clWorkGroup WorkSize(resolution, resolution, 1);
 
+    CLOG(DEBUG, "sim") << "FFT shifting diffraction pattern";
     fftShift.SetArg(0, clWaveFunction2[parallel_ind], ArgumentType::Input);
     fftShift(WorkSize);
 
@@ -1100,6 +1111,7 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
     float xcPx = xc / angle_scale;
     float ycPx = yc / angle_scale;
 
+    CLOG(DEBUG, "sim") << "Masking diffraction pattern";
     TDSMaskingAbsKernel.SetArg(0, clWaveFunction3, ArgumentType::Input);
     TDSMaskingAbsKernel.SetArg(1, clTDSMaskDiff, ArgumentType::Output);
     TDSMaskingAbsKernel.SetArg(2, resolution);
