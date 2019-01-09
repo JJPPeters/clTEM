@@ -927,7 +927,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     // FFT
     CLOG(DEBUG, "sim") << "FFT back to reciprocal space";
-    FourierTrans(Temp1, clImageWaveFunction, Direction::Forwards);
+    FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
     ctx.WaitForQueueFinish();
 
     // write DQE to opencl
@@ -937,7 +937,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     CLOG(DEBUG, "sim") << "Apply DQE";
     // apply DQE
-    DQE.SetArg(0, clImageWaveFunction, ArgumentType::InputOutput);
+    DQE.SetArg(0, Temp1, ArgumentType::InputOutput);
     DQE.SetArg(1, dqe_ntf_buffer, ArgumentType::Input);
     DQE.SetArg(2, resolution);
     DQE.SetArg(3, resolution);
@@ -948,12 +948,12 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     // IFFT back
     CLOG(DEBUG, "sim") << "IFFT to real space";
-    FourierTrans(clImageWaveFunction, Temp1, Direction::Inverse);
+    FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Read from buffer";
     float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
-    std::vector<cl_float2> compdata = Temp1->CreateLocalCopy();
+    std::vector<cl_float2> compdata = clImageWaveFunction->CreateLocalCopy();
 
     CLOG(DEBUG, "sim") << "Add noise";
 
