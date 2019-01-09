@@ -571,7 +571,6 @@ void MainWindow::loadExternalSources()
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils_Qt::kernelToChar("initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils_Qt::kernelToChar("band_pass.cl");
     Kernels::SqAbsSource = Utils_Qt::kernelToChar("square_absolute.cl");
-    Kernels::AbsSource = Utils_Qt::kernelToChar("absolute.cl");
     Kernels::DqeSource = Utils_Qt::kernelToChar("dqe.cl");
     Kernels::NtfSource = Utils_Qt::kernelToChar("ntf.cl");
 

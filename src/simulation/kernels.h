@@ -26,7 +26,6 @@ struct Kernels
     static std::string InitialiseSTEMWavefunctionSourceTest;
     static std::string floatabsbandPassSource;
     static std::string SqAbsSource;
-    static std::string AbsSource;
     static std::string NtfSource;
     static std::string DqeSource;
 

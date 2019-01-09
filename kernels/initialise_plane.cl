@@ -10,8 +10,8 @@
 /// value - value for the real part of the generate wave function
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 __kernel void clInitialiseWavefunction( global float2* output,
-										int width,
-										int height,
+										unsigned int width,
+										unsigned int height,
 										float value)
 {
 	int xid = get_global_id(0);

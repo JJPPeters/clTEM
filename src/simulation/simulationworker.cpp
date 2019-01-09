@@ -443,7 +443,7 @@ void SimulationWorker::initialiseSimulation()
 
     for (int i = 0; i < resolution; i++) {
         if (i >= imidx)
-            temp = (i - resolution) / SimSizeX;
+            temp = signed(i - resolution) / SimSizeX;
         else
             temp = i / SimSizeX;
         k0x[i] = temp;
@@ -451,7 +451,7 @@ void SimulationWorker::initialiseSimulation()
 
     for (int i = 0; i < resolution; i++) {
         if (i >= imidy)
-            temp = (i - resolution) / SimSizeY;
+            temp = signed(i - resolution) / SimSizeY;
         else
             temp = i / SimSizeY;
         k0y[i] = temp;
@@ -467,10 +467,7 @@ void SimulationWorker::initialiseSimulation()
     // we are only dealing with squares so far, so this accounts for that
     // I don't think it is really necessary, as the resolution is always the same and the pixelscale already
     // accounts for the image padding (?)
-    if (kmaxy < kmaxx)
-        bandwidthkmax = kmaxy;
-    else
-        bandwidthkmax = kmaxx;
+    bandwidthkmax = std::min(kmaxy, kmaxx);
 
     // k not k^2.
     // previously had limited to 1/2, but Kirkland pg 159 says 2/3

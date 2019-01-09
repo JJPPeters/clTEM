@@ -47,8 +47,8 @@ float2 cPow(float2 a, int n)
 	return temp;
 }
 __kernel void clInitialiseSTEMWavefunction( __global float2* output,
-											int width,
-											int height,
+											unsigned int width,
+											unsigned int height,
 											__global const float* k_x,
 											__global const float* k_y,
 											float pos_x,

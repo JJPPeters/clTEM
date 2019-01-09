@@ -37,12 +37,12 @@ class clFourier
     std::shared_ptr<clMemory<char,Manual>> clMedBuffer;
 //    cl_int medstatus;
     size_t buffersize;
-    void Setup(int width, int height);
-    int width,height;
+    void Setup(unsigned int _width, unsigned int _height);
+    unsigned int width,height;
 
 public:
 
-    clFourier(clContext &Context, int _width, int _height);
+    clFourier(clContext &Context, unsigned int _width, unsigned int _height);
 
     clFourier(const clFourier &RHS): Context(RHS.Context), width(RHS.width), height(RHS.height), buffersize(0)
     {
@@ -62,7 +62,7 @@ public:
         return *this;
     };
 
-    ~clFourier(void);
+    ~clFourier();
 
     template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
     clEvent Do(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
@@ -84,10 +84,12 @@ public:
         clEvent finished;
 
         if(buffersize)
-            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(), eventwaitlist.size() ? &eventwaitlist[0] : NULL, &finished.event,
+            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(),
+                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event,
                                                &input->GetBuffer(), &output->GetBuffer(), clMedBuffer->GetBuffer() );
         else
-            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(), eventwaitlist.size() ? &eventwaitlist[0] : NULL, &finished.event,
+            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(),
+                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event,
                                                &input->GetBuffer(), &output->GetBuffer(), NULL );
 
         finished.Set();
@@ -102,7 +104,7 @@ public:
     template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
     clEvent operator()(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
     {
-        Do(input, output, Direction);
+        return Do(input, output, Direction);
     }
 };
 
@@ -110,10 +112,11 @@ public:
 class AutoTeardownFFT
 {
 private:
-    AutoTeardownFFT(){};
-    AutoTeardownFFT(AutoTeardownFFT const& copy);
-    AutoTeardownFFT &operator=(AutoTeardownFFT const&rhs);
+    AutoTeardownFFT() = default;;
+    AutoTeardownFFT &operator=(AutoTeardownFFT const&rhs) = delete;
 public:
+    AutoTeardownFFT(AutoTeardownFFT const& copy) = delete;
+
     ~AutoTeardownFFT()
     {
         clfftStatus status = clfftTeardown();

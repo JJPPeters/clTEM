@@ -18,8 +18,8 @@
 __kernel void clGeneratePropagator( __global float2* propagator,
 									__global float* k_x,
 									__global float* k_y,
-									int width,
-									int height,
+									unsigned int width,
+									unsigned int height,
 									float dz,
 									float wavelength,
 									float k_max)

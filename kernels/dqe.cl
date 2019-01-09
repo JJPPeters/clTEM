@@ -12,8 +12,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 __kernel void clDQE(__global const float2* input,
 					__global float* dqe_data,
-					int width,
-					int height,
+					unsigned int width,
+					unsigned int height,
 					int binning)
 {
 	//Get the work items ID

@@ -386,7 +386,6 @@ int main(int argc, char *argv[])
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::resourceToChar(kernel_path, "initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils::resourceToChar(kernel_path, "band_pass.cl");
     Kernels::SqAbsSource = Utils::resourceToChar(kernel_path, "square_absolute.cl");
-    Kernels::AbsSource = Utils::resourceToChar(kernel_path, "absolute.cl");
     Kernels::DqeSource = Utils::resourceToChar(kernel_path, "dqe.cl");
     Kernels::NtfSource = Utils::resourceToChar(kernel_path, "ntf.cl");
 
