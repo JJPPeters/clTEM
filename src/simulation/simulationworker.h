@@ -54,15 +54,12 @@ private:
 
     std::vector<float> getDiffractionImage(int parallel_ind = 0);
 
-    std::vector<float> getExitWaveImage(int t = 0, int l = 0, int b = 0, int r = 0);
-
-    std::vector<float> getExitWaveAmplitudeImage(int t = 0, int l = 0, int b = 0, int r = 0);
-
-    std::vector<float> getExitWavePhaseImage(int t = 0, int l = 0, int b = 0, int r = 0);
+    std::vector<float> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
 
     std::vector<float> getCtemImage();
 
-    float doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum, clWorkGroup localSizeSum, int nGroups, int totalSize);
+    float doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum,
+                         clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
     float getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind);
 
@@ -82,8 +79,6 @@ private:
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction2;
     std::shared_ptr<clMemory<cl_float2, Manual>> clWaveFunction3;
     std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction4;
-    std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction1Minus; //for finite difference?
-    std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction1Plus; //for finite difference?
 
     std::shared_ptr<clMemory<float, Manual>> clXFrequencies;
     std::shared_ptr<clMemory<float, Manual>> clYFrequencies;

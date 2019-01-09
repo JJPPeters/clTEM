@@ -219,10 +219,10 @@ struct StemArea : public SimulationArea {
     float getScaleX();
     float getScaleY();
 
-    int getNumPixels() {return xPixels * yPixels;}
+    unsigned int getNumPixels() {return xPixels * yPixels;}
 
 private:
-    int xPixels, yPixels;
+    unsigned int xPixels, yPixels;
 
 };
 #endif //COMMONSTRUCTS_H

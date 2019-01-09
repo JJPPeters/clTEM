@@ -45,9 +45,6 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
         doStem();
     }
 
-    // TODO: need to look at the old simulation to see what needs to be done now.
-    // TODO: look into how/why I used my inheritance tree thing before...
-
     CLOG(DEBUG, "sim") << "Completed simulation";
     // finally, end this thread ?
     job->promise.set_value();
@@ -180,14 +177,16 @@ void SimulationWorker::sortAtoms(bool doTds) {
     unsigned long long max_bin_xy = 0;
     unsigned long long max_bin_z = 0;
 
-    for (int i = 0; i < Binnedx.size(); ++i)
-    {
-        if (Binnedx[i].size() > max_bin_xy)
-            max_bin_xy = Binnedx[i].size();
+    //
+    // This only works because x and y have the same number of blocks (so I only need to look at one of x or y)
+    //
+    for (auto &bx_1 : Binnedx) {
+        if (bx_1.size() > max_bin_xy)
+            max_bin_xy = bx_1.size();
 
-        for (int j = 0; j < Binnedx[i].size(); ++j)
-            if (Binnedx[i][j].size() > max_bin_z)
-                max_bin_z = Binnedx[i][j].size();
+        for (auto &bx_2 : bx_1)
+            if (bx_2.size() > max_bin_z)
+                max_bin_z = bx_2.size();
     }
 
     int atomIterator = 0;
@@ -205,7 +204,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
             {
                 blockStartPositions[slicei*BlocksX*BlocksY+ j*BlocksX + k] = atomIterator;
 
-                if(Binnedx[j*BlocksX+k][slicei].size() > 0)
+                if(!Binnedx[j * BlocksX + k][slicei].empty())
                 {
                     for(int l = 0; l < Binnedx[j*BlocksX+k][slicei].size(); l++)
                     {
@@ -364,8 +363,7 @@ void SimulationWorker::doStem()
     float step_x = stemPixels->getScaleX();
     float step_y = stemPixels->getScaleY();
 
-    for (int i = 0; i < job->pixels.size(); ++i)
-    {
+    for (int i = 0; i < job->pixels.size(); ++i) {
         int p = job->pixels[i];
         // index to x and y index
         int x_i = p % num_x;
@@ -379,8 +377,7 @@ void SimulationWorker::doStem()
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
-    for (int i = 0; i < numberOfSlices; ++i)
-    {
+    for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
         if (pool.stop)
             return;
@@ -392,12 +389,10 @@ void SimulationWorker::doStem()
     int px_x = job->simManager->getStemArea()->getPixelsX();
     int px_y = job->simManager->getStemArea()->getPixelsY();
 
-    for (auto det : job->simManager->getDetectors())
-    {
+    for (const auto &det : job->simManager->getDetectors()) {
         std::vector<float> im(stemPixels->getNumPixels(), 0.0f);
 
-        for (int i = 0; i < job->pixels.size(); ++i)
-        {
+        for (int i = 0; i < job->pixels.size(); ++i) {
             im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
         }
 
@@ -414,7 +409,7 @@ void SimulationWorker::initialiseSimulation()
     /// Get local copies of variables (for convenience)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     bool isFull3D = job->simManager->isFull3d();
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
     float pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
@@ -438,13 +433,12 @@ void SimulationWorker::initialiseSimulation()
     std::vector<float> k0x(resolution);
     std::vector<float> k0y(resolution);
 
-    int imidx = (int) std::floor(resolution / 2 + 0.5);
-    int imidy = (int) std::floor(resolution / 2 + 0.5);
+    auto imidx = (unsigned int) std::floor((float) resolution / 2.0 + 0.5);
+    auto imidy = (unsigned int) std::floor((float) resolution / 2.0 + 0.5);
 
-    float temp = 0.0f;
+    float temp;
 
-    for (int i = 0; i < resolution; i++)
-    {
+    for (int i = 0; i < resolution; i++) {
         if (i >= imidx)
             temp = (i - resolution) / SimSizeX;
         else
@@ -452,8 +446,7 @@ void SimulationWorker::initialiseSimulation()
         k0x[i] = temp;
     }
 
-    for (int i = 0; i < resolution; i++)
-    {
+    for (int i = 0; i < resolution; i++) {
         if (i >= imidy)
             temp = (i - resolution) / SimSizeY;
         else
@@ -462,11 +455,11 @@ void SimulationWorker::initialiseSimulation()
     }
 
     // Find maximum frequency for bandwidth limiting rule
-    float bandwidthkmax = 0.0f;
+    float bandwidthkmax;
 
     // TODO: not sure I want the -1 here
-    float kmaxx = (float) std::pow((k0x[imidx - 1]), 2);
-    float kmaxy = (float) std::pow((k0y[imidy - 1]), 2);
+    auto kmaxx = (float) std::pow((k0x[imidx - 1]), 2);
+    auto kmaxy = (float) std::pow((k0y[imidy - 1]), 2);
 
     // we are only dealing with squares so far, so this accounts for that
     // I don't think it is really necessary, as the resolution is always the same and the pixelscale already
@@ -605,7 +598,7 @@ void SimulationWorker::initialiseCtem()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create buffers for the main simulation
@@ -650,7 +643,7 @@ void SimulationWorker::initialiseCtem()
 void SimulationWorker::initialiseCbed()
 {
     CLOG(DEBUG, "sim") << "Starting CBED initialisation";
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     int n_parallel = job->simManager->getParallelPixels(); // this is the number of parallel pixels
 
     CLOG(DEBUG, "sim") << "Create buffers";
@@ -690,7 +683,7 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
     float pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
@@ -852,7 +845,7 @@ void SimulationWorker::doMultiSliceStep(int slice)
 
 void SimulationWorker::simulateCtemImage()
 {
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
     auto mParams = job->simManager->getMicroscopeParams();
 
@@ -906,7 +899,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 {
     // all the NTF, DQE stuff can be found here: 10.1016/j.jsb.2013.05.008
 
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     float wavelength = job->simManager->getWavelength();
     auto mParams = job->simManager->getMicroscopeParams();
 
@@ -1012,20 +1005,16 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     std::vector<cl_float2> compdata = Temp1->CreateLocalCopy();
     ctx.WaitForQueueFinish();
 
-    float fmin = std::numeric_limits<float>::min();
-
     std::random_device rd;
     std::mt19937 rng(rd());
-//    std::normal_distribution<> dist(0, 1); // random dist with (mean, stddev)
 
-    for (int i = 0; i < resolution * resolution; i++)
-    {
+    for (int i = 0; i < resolution * resolution; i++) {
         // previously was using a Box-Muller transform to get a normal dist and assuming it would approximate a poisson distribution
         // see: https://stackoverflow.com/questions/19944111/creating-a-gaussian-random-generator-with-a-mean-and-standard-deviation
 
         // use the built in stuff for ease
         std::poisson_distribution<int> dist(N_tot * compdata[i].x); // TODO: here we are assuming this funtion is only real?
-        float poiss = (float) dist(rng);
+        auto poiss = (float) dist(rng);
 
         compdata[i].x = conversionfactor * poiss;
         compdata[i].y = 0;
@@ -1069,7 +1058,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
 {
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     std::vector<float> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
@@ -1089,8 +1078,8 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
     return data_out;
 }
 
-std::vector<float> SimulationWorker::getExitWaveImage(int t, int l, int b, int r) {
-    int resolution = job->simManager->getResolution();
+std::vector<float> SimulationWorker::getExitWaveImage(unsigned int t, unsigned int l, unsigned int b, unsigned int r) {
+    unsigned int resolution = job->simManager->getResolution();
     std::vector<float> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
     std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
@@ -1110,51 +1099,9 @@ std::vector<float> SimulationWorker::getExitWaveImage(int t, int l, int b, int r
     return data_out;
 }
 
-std::vector<float> SimulationWorker::getExitWaveAmplitudeImage(int t, int l, int b, int r)
-{
-    int resolution = job->simManager->getResolution();
-    std::vector<float> data_out((resolution - t - b) * (resolution - l - r));
-
-    std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
-
-    int cnt = 0;
-    for (int j = 0; j < resolution; ++j)
-        if (j >= b && j < (resolution - t))
-            for (int i = 0; i < resolution; ++i)
-                if (i >= l && i < (resolution - r))
-                {
-                    int k = i + j * resolution;
-                    data_out[cnt] = std::sqrt(compdata[k].x * compdata[k].x + compdata[k].y * compdata[k].y);
-                    ++cnt;
-                }
-
-    return data_out;
-}
-
-std::vector<float> SimulationWorker::getExitWavePhaseImage(int t, int l, int b, int r)
-{
-    int resolution = job->simManager->getResolution();
-    std::vector<float> data_out((resolution - t - b) * (resolution - l - r));
-
-    std::vector<cl_float2> compdata = clWaveFunction1[0]->CreateLocalCopy();
-
-    int cnt = 0;
-    for (int j = 0; j < resolution; ++j)
-        if (j >= b && j < (resolution - t))
-            for (int i = 0; i < resolution; ++i)
-                if (i >= l && i < (resolution - r))
-                {
-                    int k = i + j * resolution;
-                    data_out[cnt] = std::atan2(compdata[k].y, compdata[k].x);
-                    ++cnt;
-                }
-
-    return data_out;
-}
-
 std::vector<float> SimulationWorker::getCtemImage()
 {
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     std::vector<float> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
@@ -1168,7 +1115,8 @@ std::vector<float> SimulationWorker::getCtemImage()
     return data_out;
 }
 
-float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum, clWorkGroup localSizeSum, int nGroups, int totalSize)
+float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum,
+                                       clWorkGroup localSizeSum, unsigned int nGroups, int totalSize)
 {
     auto outArray = ctx.CreateBuffer<float, Manual>(nGroups);
 
@@ -1195,7 +1143,7 @@ float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> 
 
 float SimulationWorker::getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind)
 {
-    int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->getResolution();
     float angle_scale = job->simManager->getInverseScaleAngle();
 
     clWorkGroup WorkSize(resolution, resolution, 1);
@@ -1220,8 +1168,8 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
 
     TDSMaskingAbsKernel(WorkSize);
 
-    int totalSize = resolution*resolution;
-    int nGroups = totalSize / 256;
+    unsigned int totalSize = resolution*resolution;
+    unsigned int nGroups = totalSize / 256;
 
     clWorkGroup globalSizeSum(totalSize, 1, 1);
     clWorkGroup localSizeSum(256, 1, 1);
