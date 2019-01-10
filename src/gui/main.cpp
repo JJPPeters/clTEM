@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         ClManager::getDeviceList();
     } catch (const std::exception& e) {
         // TODO: later, this shouldn't exit but should just disable everything relevant
-        CLOG(FATAL, "gui") << "Could not find OpenCL: " << e.what();
+        CLOG(ERROR, "gui") << "Could not find OpenCL: " << e.what();
         QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText("Failed to find OpenCl");

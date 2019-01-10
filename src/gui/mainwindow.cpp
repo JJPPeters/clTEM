@@ -96,16 +96,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::imagesReturned, this, &MainWindow::imagesChanged);
 
     int n = ui->twReal->count();
-    for (int j = 0; j < n; ++j)
-    {
-        ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+    for (int j = 0; j < n; ++j) {
+        auto *tab = (ImageTab *) ui->twReal->widget(j);
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
     n = ui->twRecip->count();
-    for (int j = 0; j < n; ++j)
-    {
-        ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
+    for (int j = 0; j < n; ++j) {
+        auto *tab = (ImageTab *) ui->twRecip->widget(j);
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
@@ -114,8 +112,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
-
-    CLOG(DEBUG, "gui") << "Created MainWindow";
 }
 
 MainWindow::~MainWindow()
@@ -139,10 +135,9 @@ void MainWindow::on_actionOpen_triggered()
     if (temp_file.suffix() != "xyz")
         return;
     try {
-        CLOG(DEBUG, "gui") << "Opening " + fileName.toStdString() << ".";
         Manager->setStructure(fileName.toStdString());
     } catch (const std::exception &e) {
-        CLOG(FATAL, "gui") << "Could not open file: " << e.what() << ".";
+        CLOG(ERROR, "gui") << "Could not open file: " << e.what() << ".";
         QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
@@ -295,8 +290,6 @@ void MainWindow::on_actionSimulate_EW_triggered()
 {
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
-
-    CLOG(DEBUG, "gui") << "Starting simulation";
 
     // Set some variables that aren't auto updates
 
@@ -860,6 +853,7 @@ void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {
         nlohmann::json j = fileio::OpenSettingsJson(config_location.toStdString() + "/microscopes/" + param_name + ".json");
         *Manager = JSONUtils::JsonToManager(j);
     } catch (const std::runtime_error& e) {
+        CLOG(ERROR, "gui") << "Problem importing json settings: " << e.what();
         // don't worry, we'll just use the default settings
         Manager = std::make_shared<SimulationManager>();
     }

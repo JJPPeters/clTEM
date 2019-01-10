@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef SIMULATIONMANAGER_H
 #define SIMULATIONMANAGER_H
 
@@ -26,7 +28,8 @@ public:
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
-              slice_offset(sm.slice_offset), structure_parameters(sm.structure_parameters), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area)
+              slice_offset(sm.slice_offset), structure_parameters(sm.structure_parameters), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
+              rng(std::mt19937(std::random_device()())), dist(std::normal_distribution<>(0, 1))
     {
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
@@ -36,10 +39,6 @@ public:
 
         if (sm.Structure)// structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
-
-        std::random_device rd;
-        rng = std::mt19937(rd());
-        dist = std::normal_distribution<>(0, 1);
     }
 
     SimulationManager& operator=(const SimulationManager& sm)
@@ -74,6 +73,8 @@ public:
         structure_parameters = sm.structure_parameters;
         structure_parameters_name = sm.structure_parameters_name;
         maintain_area = sm.maintain_area;
+        rng = std::mt19937(std::random_device()());
+        dist = std::normal_distribution<>(0, 1);
 
         if (sm.Structure) // structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -130,9 +131,6 @@ public:
     std::valarray<float> getPaddedSimLimitsY() {
         return getCurrentAreaBase().getCorrectedLimitsY() + getPaddingY();
     }
-    std::valarray<float> getPaddedSimLimitsZ() {
-        return getPaddedStructLimitsZ();
-    }
 
     std::valarray<float> getRawSimLimitsX() {
         return getCurrentAreaBase().getRawLimitsX();
@@ -163,16 +161,11 @@ public:
     float getInverseScale();
     /// Get the simulation inverse scale in mrad per pixel
     float getInverseScaleAngle();
-    /// Get the max band limited simulation inverse in inverse Angstroms
-    float getInverseMax();
     /// Get the max band limited simulation inverse in mrad
     float getInverseMaxAngle();
     float getInverseLimitFactor() {return maxReciprocalFactor;}
 
-    float getKiloVoltage() {return MicroParams->Voltage;}
-    float getVoltage() {return MicroParams->Voltage * 1000;}
     float getWavelength() {return MicroParams->Wavelength();}
-    float getSigma() {return MicroParams->Sigma();}
     bool isFull3d(){return isF3D;}
 
     void setFull3d(bool use) {isF3D = use;}
@@ -184,19 +177,9 @@ public:
     unsigned int getStoredTdsRunsStem() { return TdsRunsStem; }
     unsigned int getTdsRunsCbed() { return (!TdsEnabledCbed) ? 1 : TdsRunsCbed; }
     unsigned int getTdsRunsStem() { return (!TdsEnabledStem) ? 1 : TdsRunsStem; }
-    unsigned int getStoredParallelPixels() {return numParallelPixels;}
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
     bool getTdsEnabledStem() { return TdsEnabledStem; }
     bool getTdsEnabledCbed() { return TdsEnabledCbed; }
-    bool getTdsEnabled()
-    {
-        if (Mode == SimulationMode::CBED)
-            return TdsEnabledCbed;
-        else if (Mode == SimulationMode::STEM)
-            return TdsEnabledStem;
-        else
-            return false;
-    }
 
     void setTdsEnabledStem(bool use){TdsEnabledStem = use;}
     void setTdsEnabledCbed(bool use){TdsEnabledCbed = use;}
@@ -205,9 +188,9 @@ public:
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
     void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
 
-    void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>, SimulationManager)> f) {imageReturn = f;}
-    void setProgressTotalReporterFunc(std::function<void(float)> f) {progressTotalReporter = f;}
-    void setProgressSliceReporterFunc(std::function<void(float)> f) {progressSliceReporter = f;}
+    void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>, SimulationManager)> f) {imageReturn = std::move(f);}
+    void setProgressTotalReporterFunc(std::function<void(float)> f) {progressTotalReporter = std::move(f);}
+    void setProgressSliceReporterFunc(std::function<void(float)> f) {progressSliceReporter = std::move(f);}
 
     void updateImages(std::map<std::string, Image<float>> ims, int jobCount);
     void reportTotalProgress(float prog);
@@ -219,7 +202,7 @@ public:
     void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
 
     std::string getCcdName() {return ccd_name;}
-    void setCcdName(std::string nm) {ccd_name = nm;}
+    void setCcdName(std::string nm) {ccd_name = std::move(nm);}
 
     int getCcdBinning() {return ccd_binning;}
     void setCcdBinning(int bin) {ccd_binning = bin;}
@@ -236,15 +219,14 @@ public:
     void setSliceOffset(float off) { slice_offset = off; }
 
     void setStructureParameters(std::string name, std::vector<float> params) {
-        structure_parameters = params;
-        structure_parameters_name = name;
+        structure_parameters = std::move(params);
+        structure_parameters_name = std::move(name);
     }
 
     std::vector<float> getStructureParameters() {return structure_parameters;}
     std::string getStructureParametersName() {return structure_parameters_name;}
 
     std::shared_ptr<ThermalVibrations> getThermalVibrations() {return thermal_vibrations;}
-    void setThermalVibrations(ThermalVibrations tv) {thermal_vibrations = std::make_shared<ThermalVibrations>(tv);}
 
     float generateTdsFactor(AtomSite& at, int direction);
 
@@ -302,8 +284,6 @@ private:
 
     void calculate_blocks();
     int blocks_x, blocks_y;
-
-    bool calculateFiniteDiffSliceThickness(float &dz_out);
 
     bool isF3D;
 

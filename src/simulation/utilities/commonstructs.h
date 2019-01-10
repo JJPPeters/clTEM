@@ -1,8 +1,9 @@
+#include <utility>
+
 #ifndef COMMONSTRUCTS_H
 #define COMMONSTRUCTS_H
 
 #include <complex>
-//#include <controls/imagetab.h>
 #include "clwrapper.h"
 #include <valarray>
 
@@ -29,7 +30,7 @@ template<class T>
 struct Image
 {
     Image() : width(0), height(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
-    Image(int w, int h, std::vector<T> d, int pt = 0, int pl = 0, int pb = 0, int pr = 0) : width(w), height(h),
+    Image(unsigned int w, unsigned int h, std::vector<T> d, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : width(w), height(h),
                                                                                             data(d),
                                                                                             pad_t(pt), pad_l(pl),
                                                                                             pad_b(pb), pad_r(pr) {}
@@ -46,16 +47,18 @@ struct Image
         pad_l = rhs.pad_l;
         pad_b = rhs.pad_b;
         pad_r = rhs.pad_r;
+
+        return *this;
     }
 
 
-    int width;
-    int height;
-    int pad_t, pad_l, pad_b, pad_r;
+    unsigned int width;
+    unsigned int height;
+    unsigned int pad_t, pad_l, pad_b, pad_r;
     std::vector<T> data;
 
-    int getCroppedWidth() {return width - pad_l - pad_r;}
-    int getCroppedHeight() {return height - pad_t - pad_b;}
+    unsigned int getCroppedWidth() {return width - pad_l - pad_r;}
+    unsigned int getCroppedHeight() {return height - pad_t - pad_b;}
     std::vector<T> getCropped() {
         std::vector<T> data_out(getCroppedWidth()*getCroppedHeight());
         int cnt = 0;
@@ -158,7 +161,7 @@ protected:
 
 struct StemDetector {
     StemDetector() : name("--"), inner(0.0f), outer(1.0f), xcentre(0.0f), ycentre(0.0f) {}
-    StemDetector(std::string nm, float in, float out, float xc, float yc) : name(nm),
+    StemDetector(std::string nm, float in, float out, float xc, float yc) : name(std::move(nm)),
             inner(in), outer(out), xcentre(xc), ycentre(yc) {}
 
     std::string name;
@@ -197,7 +200,7 @@ struct StemArea : public SimulationArea {
     static const float DefaultScale;
 
     StemArea() : SimulationArea(), xPixels(64), yPixels(64) {}
-    StemArea(float xs, float xf, float ys, float yf, int xp, int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf, pd),
+    StemArea(float xs, float xf, float ys, float yf, unsigned int xp, unsigned int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf, pd),
                                                                                  xPixels(xp), yPixels(yp) {}
 
     bool setPxRangeX(float start, float finish, int px);
@@ -206,8 +209,8 @@ struct StemArea : public SimulationArea {
     void forcePxRangeX(float start, float finish, int px);
     void forcePxRangeY(float start, float finish, int px);
 
-    void setPixelsX(int px) {xPixels = px;}
-    void setPixelsY(int px) {yPixels = px;}
+    void setPixelsX(unsigned int px) {xPixels = px;}
+    void setPixelsY(unsigned int px) {yPixels = px;}
 
     float getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
     float getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}

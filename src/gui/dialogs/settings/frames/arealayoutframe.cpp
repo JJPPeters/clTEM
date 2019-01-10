@@ -6,7 +6,6 @@
 AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan) :
     QWidget(parent), ui(new Ui::AreaLayoutFrame), SimManager(simMan)
 {
-    CLOG(DEBUG, "gui") << "Constructing AreaLayoutFrame";
     ui->setupUi(this);
 
     // this is just from theQt website, Not really sure what it does,
@@ -19,8 +18,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         format.setProfile(QSurfaceFormat::CoreProfile);
 //        format.setSamples(32); // sets MSAA samples
         format.setVersion(4, 0); // sets opengl version
-
-        CLOG(DEBUG, "gui") << "Creating OpenGL view";
 
         pltStructure = new OGLViewWidget(this);
         pltStructure->setFormat(format);
@@ -57,13 +54,9 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(parent_dlg, &SimAreaDialog::cancelSignal, this, &AreaLayoutFrame::dlgCancel_clicked);
     connect(parent_dlg, &SimAreaDialog::applySignal, this, &AreaLayoutFrame::dlgApply_clicked);
 
-    CLOG(DEBUG, "gui") << "Getting areas";
-
     SimulationArea ctemArea = *SimManager->getSimulationArea();
     StemArea stemArea = *SimManager->getStemArea();
     CbedPosition cbedPos = *SimManager->getCBedPosition();
-
-    CLOG(DEBUG, "gui") << "Creating sub frames";
 
     CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->getStructure());
     StemFrame = new StemAreaFrame(this, stemArea, SimManager->getStructure());
@@ -96,8 +89,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     // this has to be called here as changingit will call its slot when other values havent been initialised
     int ind = ui->cmbResolution->findText( QString::number(SimManager->getResolution()) );
     ui->cmbResolution->setCurrentIndex(ind);
-
-    CLOG(DEBUG, "gui") << "Update limits";
 
     setStructLimits();
 

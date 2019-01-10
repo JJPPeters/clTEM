@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "crystalstructure.h"
 
 #include <fstream>
@@ -7,7 +9,9 @@
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
-CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false) {
+CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
+                                                         dist(std::uniform_real_distribution<>(0, 1))
+{
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
@@ -15,7 +19,7 @@ CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomC
 }
 
 void CrystalStructure::openXyz(std::string fPath) {
-    filePath = fPath;
+    filePath = std::move(fPath);
     // open the file
     std::ifstream inputStream;
     inputStream.open(filePath);
@@ -28,7 +32,7 @@ void CrystalStructure::openXyz(std::string fPath) {
     // get the first line and set it as the number of atoms
     Utils::safeGetline(inputStream, line);
     try {
-        AtomCount = std::stoi(line);
+        AtomCount = std::stoul(line);
     } catch (const std::exception &e) {
         throw std::runtime_error("Could not parse number of atoms (line 1, " + std::string(e.what()) + ").");
     }
@@ -167,13 +171,6 @@ void CrystalStructure::openXyz(std::string fPath) {
     inputStream.close();
 }
 
-void CrystalStructure::clearStructure()
-{
-    resetLimits();
-//    Sorted = false;
-    Atoms.clear();
-}
-
 void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
 {
     if (aList.empty())
@@ -185,13 +182,11 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
     }
     else
     {
-        double r = ((double) rand() / (RAND_MAX));
+        double r = dist(rng);
         float totalOcc = 0.0;
 
-        for(auto a : aList)
-        {
-            if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0))
-            {
+        for(auto a : aList) {
+            if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0)) {
                 addAtom(a);
             }
 
@@ -233,15 +228,10 @@ void CrystalStructure::resetLimits()
     MaxZ = std::numeric_limits<float>::min();
 }
 
-float CrystalStructure::getZRange()
-{
-    return MaxZ - MinZ;
-}
-
 int CrystalStructure::getAtomCountInRange(float xs, float xf, float ys, float yf)
 {
     // this might be stupidly slow, but it's nice to know how many atoms you are actually simulating through
-    // TODO: could subtact the min values when first opening the structure somehow???
+    // TODO: could subtract the min values when first opening the structure somehow???
 
     int count = 0;
     for (auto a : Atoms)
@@ -249,11 +239,6 @@ int CrystalStructure::getAtomCountInRange(float xs, float xf, float ys, float yf
             ++count;
 
     return count;
-}
-
-std::tuple<float, float> CrystalStructure::getStructRanges()
-{
-    return std::make_tuple( MaxX-MinX, MaxY-MinY);
 }
 
 void CrystalStructure::addAtom(AtomSite a) {
