@@ -3,6 +3,8 @@
 #include "globalsettingsframe.h"
 #include "ui_globalsettingsframe.h"
 
+#include "utilities/logging.h"
+
 GlobalSettingsFrame::GlobalSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
     QWidget(parent), Manager(simManager),
     ui(new Ui::GlobalSettingsFrame)
@@ -77,4 +79,14 @@ void GlobalSettingsFrame::on_cmbParams_currentIndexChanged(int index) {
     std::string text = ui->cmbParams->currentText().toStdString();
 
 
+}
+
+void GlobalSettingsFrame::on_chkLogging_toggled(bool state) {
+
+    std::string state_str = "false";
+    if (state)
+        state_str = "true";
+
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, state_str);
+    el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToFile, "true");// ensure this is always logged
 }

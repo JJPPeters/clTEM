@@ -40,10 +40,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} $
 
 find_package(EASYLOGGINGPP REQUIRED)
 
-if(EASYLOGGINGPP_FOUND)
-    message(STATUS "Found EasyLogging++: " ${EASYLOGGINGPP_INCLUDE_DIR})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE")
-endif()
+# so easy logging stuff works
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE")
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
     if(WIN32)
@@ -130,8 +128,8 @@ if(MINGW)
             "<CMAKE_RC_COMPILER> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
-add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} ${EASYLOGGINGPP_INCLUDE_DIR}/easylogging++.cc cltem.rc)
-target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} simulation glViewWidget)
+add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
+target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation glViewWidget)
 target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation glViewWidget)
 
 # This is for the theming. I need to get a better way of doing it instead of hard coding it.

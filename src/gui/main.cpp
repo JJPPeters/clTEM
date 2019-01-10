@@ -38,16 +38,15 @@ int main(int argc, char *argv[]) {
 
     defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir.toStdString());
     defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
+    defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
+    defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+    defaultConf.set(el::Level::Error, el::ConfigurationType::ToFile, "true");
 
-    // set teh config for the loggers
-    el::Loggers::reconfigureLogger("default", defaultConf);
-    el::Loggers::reconfigureLogger("gui", defaultConf);
-    el::Loggers::reconfigureLogger("sim", defaultConf);
+    // set the config for the loggers
+    el::Loggers::reconfigureAllLoggers(defaultConf);
 
     // this makes '%thread' show this string instead of a largely useless number
     el::Helpers::setThreadName("main-gui");
-
-    CLOG(DEBUG, "gui") << "Logging set up and ready to go!";
 
     // this tests for opencl, if we dont have it, then there is no point in loading the program
     try {

@@ -23,6 +23,8 @@ private slots:
 
     void on_cmbParams_currentIndexChanged(int index);
 
+    void on_chkLogging_toggled(bool state);
+
 public:
     explicit GlobalSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
     ~GlobalSettingsFrame();
