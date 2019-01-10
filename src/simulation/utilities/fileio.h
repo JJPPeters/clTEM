@@ -43,7 +43,7 @@ namespace fileio //D:
         TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, sizeof(T_out)*8);
         TIFFSetField(out, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
         TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, size_y);
-//       TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_BOTLEFT);
+        TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_BOTLEFT);
         TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
         TIFFSetField(out, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
         TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
@@ -98,13 +98,21 @@ namespace fileio //D:
             }
         }
 
-        // 54 is the header stuff
-        unsigned long filesize = 54 + padded_x*size_y + 1024;
-
         // info can be found here https://web.archive.org/web/20080912171714/http://www.fortunecity.com/skyscraper/windows/364/bmpffrmt.html
-        std::array<unsigned char, 14> bmpfileheader = {'B','M', 0,0,0,0, 0,0, 0,0, 0,0,0,0};
+        std::array<unsigned char, 14> bmpfileheader{};//= {'B','M', 0,0,0,0, 0,0, 0,0, 0,0,0,0};
         std::array<unsigned char, 40> bmpinfoheader{};//= {40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 8,0};
+        std::fill(bmpfileheader.begin(), bmpfileheader.end(), 0); // make doubly sure everything else is 0
         std::fill(bmpinfoheader.begin(), bmpinfoheader.end(), 0); // make doubly sure everything else is 0
+
+        bmpfileheader[0] = 'B';
+        bmpfileheader[1] = 'M';
+
+        // 54 is the header stuff, 1024 is the rgb-quad
+        unsigned long filesize = 54 + padded_x*size_y + 1024;
+        bmpfileheader[2] = (unsigned char)(filesize & 0xFF);
+        bmpfileheader[3] = (unsigned char)((filesize >> 8) & 0xFF);
+        bmpfileheader[4] = (unsigned char)((filesize >> 16) & 0xFF);
+        bmpfileheader[5] = (unsigned char)((filesize >> 24) & 0xFF);
 
         unsigned int offset = 54+1024; // should always be the same, but just in case we change something
         bmpfileheader[10] = (unsigned char)(offset & 0xFF);
@@ -116,11 +124,6 @@ namespace fileio //D:
         bmpinfoheader[0] = 40;
         bmpinfoheader[12] = 1;
         bmpinfoheader[14] = 8;
-
-        bmpfileheader[2] = (unsigned char)(filesize & 0xFF);
-        bmpfileheader[3] = (unsigned char)((filesize >> 8) & 0xFF);
-        bmpfileheader[4] = (unsigned char)((filesize >> 16) & 0xFF);
-        bmpfileheader[5] = (unsigned char)((filesize >> 24) & 0xFF);
 
         bmpinfoheader[4] = (unsigned char)(size_x & 0xFF);
         bmpinfoheader[5] = (unsigned char)((size_x >> 8) & 0xFF);
@@ -142,14 +145,13 @@ namespace fileio //D:
         file_out.write((char*)&bmpfileheader[0], 14);
         file_out.write((char*)&bmpinfoheader[0], 40);
 
-        auto a = (unsigned char) 255;
-        for (unsigned int i = 0; i < 256; ++i)
-        {
+        auto a = (unsigned char) 0;
+        for (unsigned int i = 0; i < 256; ++i) {
             auto rgb = (unsigned char) i;
             file_out << rgb << rgb << rgb << a;
         }
 
-        file_out.write((char*)&data_out[0], size_x*size_y);
+        file_out.write((char*)&data_out[0], padded_x*size_y);
 
         file_out.close();
     }

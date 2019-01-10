@@ -105,6 +105,9 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
+    std::wstring w_sep(&fs::path::preferred_separator);
+    std::string sep(w_sep.begin(), w_sep.end());
+
     // save the images....
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -129,18 +132,20 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
             settings["microscope"].erase("delta");
         }
 
-        std::wstring w_sep(&fs::path::preferred_separator);
-        std::string sep(w_sep.begin(), w_sep.end());
         std::string out_name = out_path + sep + name;
 
         try {
             if (name == "EW") { // save amplitude and phase
-                std::vector<float> abs(im.data.size());
-                std::vector<float> arg(im.data.size());
+                if (im.data.size() % 2 != 0)
+                    throw std::runtime_error("Attempting to save complex image with non equal real and imaginary parts.");
 
-                for (int j = 0; j < im.data.size(); ++j) {
-                    abs[j] = std::abs(im.data[j]);
-                    arg[j] = std::arg(im.data[j]);
+                std::vector<float> abs(im.data.size() / 2);
+                std::vector<float> arg(im.data.size() / 2);
+
+                for (int j = 0; j < im.data.size(); j+=2) {
+                    auto cval = std::complex<float>(im.data[j], im.data[j+1]);
+                    abs[j / 2] = std::abs(cval);
+                    arg[j / 2] = std::arg(cval);
                 }
 
                 fileio::SaveTiff<float>(out_name + "_amplitude.tif", abs, im.width, im.height);
@@ -283,10 +288,10 @@ int main(int argc, char *argv[])
     defaultConf.setToDefault();
     defaultConf.setGlobally(el::ConfigurationType::Enabled, "false"); // default to no logging
 
-    if (verbose_flag) {
-        std::wstring w_sep(&fs::path::preferred_separator);
-        std::string sep(w_sep.begin(), w_sep.end());
+    std::wstring w_sep(&fs::path::preferred_separator);
+    std::string sep(w_sep.begin(), w_sep.end());
 
+    if (verbose_flag) {
 #ifdef _WIN32 // windows
         std::string appdata_loc = std::string(std::getenv("LOCALAPPDATA")) + sep + "PetersSoft" + sep + "clTEM";
 #else // I only support linux (no apple stuff)
@@ -411,9 +416,8 @@ int main(int argc, char *argv[])
     HMODULE hModule = GetModuleHandle(nullptr);
     if (hModule != nullptr) {
         // Use GetModuleFileName() with module handle to get the path
-        GetModuleFileName(hModule, exe_path, MAX_PATH);
-
-        exe_path_string = std::string(exe_path);
+        GetModuleFileName(nullptr, exe_path, MAX_PATH);
+        exe_path_string = std::string(dirname(exe_path));
     }
     else {
         std::cerr << "Cannot get executable path - Module handle is NULL" << std::endl ;
@@ -433,7 +437,7 @@ int main(int argc, char *argv[])
 #endif
     // need to load potentials from external sources, then our manager is complete
     // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
-    std::string params_path = exe_path_string + "/params";
+    std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
     std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
     man_ptr->setStructureParameters(p_name, params);
@@ -441,7 +445,7 @@ int main(int argc, char *argv[])
     man_list.emplace_back(man_ptr);
 
     // open the kernels
-    std::string kernel_path = exe_path_string + "/kernels";
+    std::string kernel_path = exe_path_string + sep + "kernels";
     Kernels::atom_sort = Utils::resourceToChar(kernel_path, "atom_sort.cl");
     Kernels::floatSumReductionsource2 = Utils::resourceToChar(kernel_path, "sum_reduction.cl");
     Kernels::BandLimitSource = Utils::resourceToChar(kernel_path, "low_pass.cl");
@@ -458,7 +462,7 @@ int main(int argc, char *argv[])
     Kernels::DqeSource = Utils::resourceToChar(kernel_path, "dqe.cl");
     Kernels::NtfSource = Utils::resourceToChar(kernel_path, "ntf.cl");
 
-    std::string ccds_path = exe_path_string + "/ccds";
+    std::string ccds_path = exe_path_string + sep + "ccds";
 
     auto ccd_name = JSONUtils::readJsonEntry<std::string>(j, "ctem", "ccd", "name");
 
