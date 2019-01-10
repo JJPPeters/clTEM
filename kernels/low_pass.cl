@@ -11,8 +11,8 @@
 /// k_y - k values for y axis of input_output (size needs to equal height)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 __kernel void clBandLimit( __global float2* input_output, 
-						   int width,
-						   int height,
+						   unsigned int width,
+						   unsigned int height,
 						   float k_max,
 						   __global float* k_x,
 						   __global float* k_y)

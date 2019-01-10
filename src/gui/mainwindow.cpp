@@ -96,16 +96,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::imagesReturned, this, &MainWindow::imagesChanged);
 
     int n = ui->twReal->count();
-    for (int j = 0; j < n; ++j)
-    {
-        ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+    for (int j = 0; j < n; ++j) {
+        auto *tab = (ImageTab *) ui->twReal->widget(j);
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
     n = ui->twRecip->count();
-    for (int j = 0; j < n; ++j)
-    {
-        ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
+    for (int j = 0; j < n; ++j) {
+        auto *tab = (ImageTab *) ui->twRecip->widget(j);
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
@@ -139,6 +137,7 @@ void MainWindow::on_actionOpen_triggered()
     try {
         Manager->setStructure(fileName.toStdString());
     } catch (const std::exception &e) {
+        CLOG(ERROR, "gui") << "Could not open file: " << e.what() << ".";
         QMessageBox msgBox(nullptr);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
@@ -297,12 +296,11 @@ void MainWindow::on_actionSimulate_EW_triggered()
     updateManagerFromGui();
 
     // test we have everything we need
-    try
-    {
+    try {
         checkSimulationPrerequisites();
     }
-    catch (const std::runtime_error& e)
-    {
+    catch (const std::runtime_error& e) {
+        CLOG(WARNING, "gui") << "Simulation prerequisites not met: " << e.what();
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
@@ -558,18 +556,14 @@ void MainWindow::loadExternalSources()
     Kernels::BandLimitSource = Utils_Qt::kernelToChar("low_pass.cl");
     Kernels::fftShiftSource = Utils_Qt::kernelToChar("post_fft_shift.cl");
     Kernels::opt2source = Utils_Qt::kernelToChar("potential_full_3d.cl");
-    Kernels::fd2source = Utils_Qt::kernelToChar("potential_finite_difference.cl");
     Kernels::conv2source = Utils_Qt::kernelToChar("potential_conventional.cl");
     Kernels::propsource = Utils_Qt::kernelToChar("generate_propagator.cl");
     Kernels::multisource = Utils_Qt::kernelToChar("complex_multiply.cl");
-    Kernels::gradsource = Utils_Qt::kernelToChar("grad.cl");
-    Kernels::fdsource = Utils_Qt::kernelToChar("finite_difference.cl");
     Kernels::InitialiseWavefunctionSource = Utils_Qt::kernelToChar("initialise_plane.cl");
     Kernels::imagingKernelSource = Utils_Qt::kernelToChar("generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils_Qt::kernelToChar("initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils_Qt::kernelToChar("band_pass.cl");
     Kernels::SqAbsSource = Utils_Qt::kernelToChar("square_absolute.cl");
-    Kernels::AbsSource = Utils_Qt::kernelToChar("absolute.cl");
     Kernels::DqeSource = Utils_Qt::kernelToChar("dqe.cl");
     Kernels::NtfSource = Utils_Qt::kernelToChar("ntf.cl");
 
@@ -859,6 +853,7 @@ void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {
         nlohmann::json j = fileio::OpenSettingsJson(config_location.toStdString() + "/microscopes/" + param_name + ".json");
         *Manager = JSONUtils::JsonToManager(j);
     } catch (const std::runtime_error& e) {
+        CLOG(ERROR, "gui") << "Problem importing json settings: " << e.what();
         // don't worry, we'll just use the default settings
         Manager = std::make_shared<SimulationManager>();
     }

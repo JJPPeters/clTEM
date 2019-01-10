@@ -57,7 +57,7 @@ std::tuple<std::vector<clDevice>, std::vector<float>> OpenClDialog::getChosenDev
 GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
         SettingsDialog(parent)
 {
-    GeneralFrame = new GlobalSettingsFrame(this, simManager);
+    GeneralFrame = new GlobalSimSettingsFrame(this, simManager);
     ui->vLayout->insertWidget(0, GeneralFrame);
 
     this->setWindowTitle("General settings");
@@ -147,7 +147,7 @@ StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, 
 
 ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
 #ifdef _WIN32
-    tFrame = new ThemeFrame(this);
+    tFrame = new GeneralSettingsFrame(this);
     ui->vLayout->insertWidget(0, tFrame);
 
     this->setWindowTitle("Theme");

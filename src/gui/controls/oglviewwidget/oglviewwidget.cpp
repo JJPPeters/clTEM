@@ -121,9 +121,8 @@ void OGLViewWidget::initializeGL() {
 
     try {
         _technique->Init();
-    } catch (std::runtime_error &err) {
-        QMessageBox::critical(this, "OpenGL error", err.what(), QMessageBox::Ok);
-        return;
+    } catch (std::runtime_error &e) {
+        emit initError(e.what());
     }
 }
 

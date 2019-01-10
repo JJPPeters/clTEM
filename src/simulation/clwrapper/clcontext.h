@@ -46,20 +46,6 @@ public:
     clContext(clDevice _ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_command_queue _IOQueue, cl_int _Status)
             : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), Status(_Status){}
 
-//    clContext(const clContext& cpy)
-//            : ContextDevice(cpy.ContextDevice), Context(cpy.Context), Queue(cpy.Queue), IOQueue(cpy.Queue), Status(cpy.Status), MemList(cpy.MemList.begin(), cpy.MemList.end())
-//    { }
-//
-//    clContext& operator=(const clContext& RHS)
-//    {
-//        ContextDevice = RHS.ContextDevice;
-//        Context = RHS.Context;
-//        Queue = RHS.Queue;
-//        IOQueue = RHS.IOQueue;
-//        Status = RHS.Status;
-//        MemList = std::vector<MemoryRecord*>(RHS.MemList.begin(), RHS.MemList.end());
-//    }
-
     void WaitForQueueFinish() {
         int status = clFinish(Queue);
         clError::Throw(status);

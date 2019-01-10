@@ -104,7 +104,7 @@ public:
     };
 
 private:
-    clMemory<T,AutoPolicy>& operator= (const clMemory<T,AutoPolicy>& other){};
+
     void Release()
     {
         if(Buffer) // Does this work?

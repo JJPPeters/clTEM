@@ -12,7 +12,8 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
                                          padding_y(SimulationManager::default_xy_padding), padding_z(SimulationManager::default_z_padding), slice_dz(1.0f),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(true),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
-                                         slice_offset(0.0f), structure_parameters_name(""), structure_parameters(), maintain_area(false)
+                                         slice_offset(0.0f), structure_parameters_name(""), structure_parameters(), maintain_area(false), rng(std::mt19937(std::random_device()())),
+                                         dist(std::normal_distribution<>(0, 1))
 {
     // Here is where the default values are set!
     MicroParams = std::make_shared<MicroscopeParameters>();
@@ -24,7 +25,6 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
 
     Mode = SimulationMode::CTEM;
     full3dInts = 20;
-    isFD = false;
     isF3D = false;
 
     // I'm really assuming the rest of the aberrations are default 0
@@ -33,10 +33,6 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), padding
     MicroParams->Delta = 30;
     MicroParams->Alpha = 0.3;
     MicroParams->C30 = 10000;
-
-    std::random_device rd;
-    rng = std::mt19937(rd());
-    dist = std::normal_distribution<>(0, 1);
 }
 
 void SimulationManager::setStructure(std::string filePath)
@@ -84,19 +80,11 @@ float SimulationManager::getInverseScale()
     if(!Structure || !haveResolution())
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
-        return 1.0f / (getRealScale() * Resolution);
-}
-
-float SimulationManager::getInverseMax()
-{
-    if(!Structure || !haveResolution())
-        throw std::runtime_error("Can't calculate scales without resolution and structure");
-
-    return 0.5f * getInverseScale() * Resolution * getInverseLimitFactor();
+    return 1.0f / (getRealScale() * Resolution);
 }
 
 float SimulationManager::getInverseScaleAngle() {
-    if(!Structure || !haveResolution() && MicroParams && MicroParams->Voltage > 0)
+    if(!Structure || !haveResolution() || !(MicroParams && MicroParams->Voltage > 0))
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     float inv_scale = getInverseScale();
@@ -106,7 +94,7 @@ float SimulationManager::getInverseScaleAngle() {
 float SimulationManager::getInverseMaxAngle()
 {
     // need to do this in mrad, eventually should also pass inverse Angstrom for hover text?
-    if(!Structure || !haveResolution() && MicroParams && MicroParams->Voltage > 0)
+    if(!Structure || !haveResolution() || !(MicroParams && MicroParams->Voltage > 0))
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     // this is the max reciprocal space scale for the entire image
@@ -127,22 +115,29 @@ unsigned long SimulationManager::getTotalParts()
 
 void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, int jobCount)
 {
+    CLOG(DEBUG, "sim") << "Updating images";
     std::lock_guard<std::mutex> lck(image_update_mtx);
-
+    CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
     auto average_factor = (float) getTdsRuns();
 
     for (auto const& i : ims)
     {
+        CLOG(DEBUG, "sim") << "Processing image " << i.first;
         if (Images.find(i.first) != Images.end()) {
+            CLOG(DEBUG, "sim") << "First time so creating image";
             auto current = Images[i.first];
             auto im = i.second;
-            if (im.data.size() != current.data.size())
+            if (im.data.size() != current.data.size()) {
+                CLOG(ERROR, "sim") << "Tried to merge simulation jobs with different output size";
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
+            }
+            CLOG(DEBUG, "sim") << "Copying data";
             for (int j = 0; j < current.data.size(); ++j)
                 current.data[j] += im.data[j] / average_factor;
             Images[i.first] = current;
         } else {
+            CLOG(DEBUG, "sim") << "Adding to existing image";
             auto new_averaged = i.second;
             for (float &d : new_averaged.data)
                 d /= average_factor; // need to average this as the image is created (if TDS)
@@ -155,14 +150,22 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
 
     auto v = getTotalParts();
 
-    if (completeJobs > v)
+    if (completeJobs > v) {
+        CLOG(ERROR, "sim") << "Simulation received more parts than it expected";
         throw std::runtime_error("Simulation received more parts than it expected");
+    }
 
-    reportTotalProgress((float) completeJobs / (float) getTotalParts());
+    auto prgrss = (float) completeJobs / (float) getTotalParts();
+
+    CLOG(DEBUG, "sim") << "Report progress: " << prgrss*100 << "%";
+
+    reportTotalProgress(prgrss);
 
     // this means this simulation is finished
-    if (completeJobs == getTotalParts() && imageReturn)
+    if (completeJobs == getTotalParts() && imageReturn) {
+        CLOG(DEBUG, "sim") << "All parts of this job finished";
         imageReturn(Images, *this);
+    }
 }
 
 void SimulationManager::reportTotalProgress(float prog)
@@ -237,74 +240,6 @@ void SimulationManager::round_Z_padding()
 
     // The simulation works from LARGEST z to SMALLEST. So the pre padding is actually on top of the z structure.
     padding_z = {-post_pad, pre_pad};
-}
-
-bool SimulationManager::calculateFiniteDiffSliceThickness(float &dz_out) {
-    auto x_lims = getPaddedSimLimitsX();
-    auto sim_size = x_lims[1] - x_lims[0];
-    // can check these are the same as Y
-
-    double lambda = getWavelength();
-    double sigma = MicroParams->Sigma();
-    double V = MicroParams->Voltage * 1000.0;
-
-    double ke = getInverseMax();
-    double ke2 = ke * ke;
-
-    // local copy of pi for convenience
-    // using a double version as this calulation needs to be accurate
-    double Pi = 3.141592653589793238462643383279502884;
-
-    // This is just rearranging Eq 6.122 in Kirkland's book to a get a quadratic in (dz)^2 which we then solve. Could also adjust the band limiting.
-
-    // start from kirklands equation, but group constants together
-    double aa = 4 * Pi * Pi;
-    double bb = 4 * Pi * Pi / (lambda * lambda);
-    double cc = sigma * V / (lambda * Pi);
-
-    // now rearrange and group again
-    double A = (ke2 - cc) * aa;
-    A = A * A;
-    double B = 2 * (ke2 - cc) * aa - bb;
-    double C = 3.0;
-
-    double B24AC = B * B - 4 * A * C;
-
-    // Now use these to determine acceptable resolution or enforce extra band limiting beyond 2/3
-    if (B24AC < 0) {
-//        throw std::runtime_error("No stable finite difference solution exists");
-        return false;
-    }
-
-    double b24ac = std::sqrt(B24AC);
-    double maxStableDz = (-B + b24ac) / (2 * A);
-
-    if (maxStableDz < 0)
-    {
-        return false;
-    }
-
-    maxStableDz = 0.99f * std::sqrt(maxStableDz); // because we need it to be less than and we have (dz)^2, not dz
-
-    // this was set in Adam's code, no idea why this is an upper limit?
-    if (maxStableDz > 0.06f)
-        maxStableDz = 0.06f;
-
-    dz_out = (float) maxStableDz;
-
-    return true;
-}
-
-float SimulationManager::getSliceThickness() {
-    if (isFD) {
-        float dz;
-        bool valid = calculateFiniteDiffSliceThickness(dz);
-        if (!valid)
-            throw std::runtime_error("No stable finite difference solution exists");
-        return dz;
-    }
-    else
-        return slice_dz;
 }
 
 unsigned int SimulationManager::getNumberofSlices() {

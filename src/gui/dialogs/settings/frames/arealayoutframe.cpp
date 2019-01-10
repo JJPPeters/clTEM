@@ -24,7 +24,9 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         ui->vPlotLayout->addWidget(pltStructure, 1);
         pltStructure->setMinimumWidth(400);
         connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
+        connect(pltStructure, &OGLViewWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
     } catch (const std::exception& e) {
+        CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
@@ -64,15 +66,6 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->vStemLayout->insertWidget(0, StemFrame);
     ui->vCbedLayout->insertWidget(0, CbedFrame);
 
-    connect(CtemFrame, &CtemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
-    connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
-    connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
-
-    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
-    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
-
-    connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
-
     // set current tab to view
     auto mode = SimManager->getMode();
     if (mode == SimulationMode::STEM)
@@ -81,6 +74,16 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         ui->tabAreaWidget->setCurrentIndex(2);
     else
         ui->tabAreaWidget->setCurrentIndex(0);
+
+    // These must be called so they don't try to update the OGL plot before it is shown (which is baaaad)
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(ui->tabAreaWidget, &QTabWidget::currentChanged, this, &AreaLayoutFrame::updatePlotRects);
+
+    connect(CtemFrame, &CtemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(StemFrame, &StemAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+    connect(CbedFrame, &CbedAreaFrame::areaChanged, this, &AreaLayoutFrame::areasChanged);
+
+    connect(ui->chkShowRect, &QCheckBox::stateChanged, this, &AreaLayoutFrame::showRectChanged);
 
     // set resolution combo box
     // this has to be called here as changingit will call its slot when other values havent been initialised
@@ -471,4 +474,15 @@ void AreaLayoutFrame::updatePlotRects() {
 
 void AreaLayoutFrame::on_btnApplyUpdate_clicked() {
     apply_pressed();
+}
+
+void AreaLayoutFrame::processOpenGLError(std::string message) {
+    CLOG(WARNING, "gui") << "OpenGL initialisation: " << message;
+    QMessageBox msgBox(this);
+    msgBox.setText("Error:");
+    msgBox.setInformativeText(QString::fromStdString(message));
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setMinimumSize(160, 125);
+    msgBox.exec();
 }

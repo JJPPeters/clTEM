@@ -49,8 +49,8 @@ float2 cPow(float2 a, int n)
 }
 __kernel void clImagingKernel( __global const float2* input,
 							   __global float2* output,
-							   int width,
-							   int height,
+							   unsigned int width,
+							   unsigned int height,
 							   __global float* k_x,
 							   __global float* k_y,
 						   	   float wavelength,

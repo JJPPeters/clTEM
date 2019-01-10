@@ -35,7 +35,10 @@ private:
     float MaxZ;
     float MinZ;
 
-    int AtomCount;
+    unsigned int AtomCount;
+
+    std::mt19937 rng;
+    std::uniform_real_distribution<> dist;
 
     void resetLimits();
     void updateLimits(const Atom &a);
@@ -59,13 +62,6 @@ public:
 
     std::vector<AtomSite> getAtoms() {return Atoms;}
 
-    void clearStructure();
-
-    float getZRange();
-
-    std::tuple<float, float> getStructRanges();
-
-    int getTotalAtomCount() {return AtomCount;}
     int getAtomCountInRange(float xs, float xf, float ys, float yf);
 
     std::valarray<float> getLimitsX() {return {MinX, MaxX};}

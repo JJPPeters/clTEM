@@ -7,6 +7,7 @@
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
 #include "controls/oglviewwidget/oglviewwidget.h"
+#include "utilities/logging.h"
 
 namespace Ui {
 class AreaLayoutFrame;
@@ -55,6 +56,8 @@ private slots:
     void showEvent(QShowEvent* event) override;
 
     void updatePlotRects();
+
+    void processOpenGLError(std::string message);
 
 private:
     Ui::AreaLayoutFrame *ui;

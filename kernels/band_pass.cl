@@ -14,8 +14,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 __kernel void clFloatBandPass( __global const float2* restrict input,
                                __global float* restrict output,
-							   int width,
-							   int height,
+							   unsigned int width,
+							   unsigned int height,
 							   float inner,
 							   float outer,
 							   float x_centre,

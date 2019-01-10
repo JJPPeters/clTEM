@@ -26,6 +26,7 @@
 
 #endif
 
+#include "utilities/logging.h"
 
 namespace fs = boost::filesystem;
 
@@ -53,7 +54,7 @@ void printHelp()
                  "             gpu     : use the first gpu available\n"
                  "             cpu     : use the first cpu available\n"
                  "             #:#     : comma separated list in for format platform:device (ids)\n"
-                 "    --verbose : show full output" << std::endl;
+                 "    --debug : show full debug output" << std::endl;
 }
 
 void printVersion()
@@ -104,6 +105,9 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
+    std::wstring w_sep(&fs::path::preferred_separator);
+    std::string sep(w_sep.begin(), w_sep.end());
+
     // save the images....
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -121,31 +125,41 @@ void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm
         else
         {
             // add the specific detector info here!
-            for (auto d : sm.getDetectors())
+            for (const auto &d : sm.getDetectors())
                 if (d.name == name)
                     settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
             settings["microscope"].erase("alpha");
             settings["microscope"].erase("delta");
         }
 
+        std::string out_name = out_path + sep + name;
 
-        if (name == "EW") { // save amplitude and phase
-            std::vector<float> abs(im.data.size());
-            std::vector<float> arg(im.data.size());
+        try {
+            if (name == "EW") { // save amplitude and phase
+                if (im.data.size() % 2 != 0)
+                    throw std::runtime_error("Attempting to save complex image with non equal real and imaginary parts.");
 
-            for (int j = 0; j < im.data.size(); ++j) {
-                abs[j] = std::abs(im.data[j]);
-                arg[j] = std::arg(im.data[j]);
+                std::vector<float> abs(im.data.size() / 2);
+                std::vector<float> arg(im.data.size() / 2);
+
+                for (int j = 0; j < im.data.size(); j+=2) {
+                    auto cval = std::complex<float>(im.data[j], im.data[j+1]);
+                    abs[j / 2] = std::abs(cval);
+                    arg[j / 2] = std::arg(cval);
+                }
+
+                fileio::SaveTiff<float>(out_name + "_amplitude.tif", abs, im.width, im.height);
+                fileio::SaveSettingsJson(out_name + "_amplitude.json", settings);
+
+                fileio::SaveTiff<float>(out_name + "_phase.tif", arg, im.width, im.height);
+                fileio::SaveSettingsJson(out_name + "_phase.json", settings);
+            } else {
+                fileio::SaveTiff<float>(out_name + ".tif", im.data, im.width, im.height);
+                fileio::SaveSettingsJson(out_name + ".json", settings);
             }
-
-            fileio::SaveTiff<float>(out_path + "/" + name + "_amplitude.tif", abs, im.width, im.height);
-            fileio::SaveSettingsJson(out_path + "/" + name + "_amplitude.json", settings);
-
-            fileio::SaveTiff<float>(out_path + "/" + name + "_phase.tif", arg, im.width, im.height);
-            fileio::SaveSettingsJson(out_path + "/" + name + "_phase.json", settings);
-        } else {
-            fileio::SaveTiff<float>(out_path + "/" + name + ".tif", im.data, im.width, im.height);
-            fileio::SaveSettingsJson(out_path + "/" + name + ".json", settings);
+        } catch (std::runtime_error &e) {
+            std::cout << "Error saving image: " << e.what() << std::endl;
+            CLOG(ERROR, "cmd") << "Could not save images: " << e.what();
         }
     }
 }
@@ -157,11 +171,11 @@ int main(int argc, char *argv[])
     slice_pcnt = 0;
     int c;
 
-    std::string output_dir = "";
-    std::string input_struct = "";
-    std::string input_params = "";
+    std::string output_dir;
+    std::string input_struct;
+    std::string input_params;
 
-    std::string device_options = "";
+    std::string device_options;
 
     std::vector<std::string> non_option_args;
 
@@ -175,12 +189,12 @@ int main(int argc, char *argv[])
                         {"output",   required_argument, nullptr,       'o'},
                         {"config",   required_argument, nullptr,       'c'},
                         {"device",   required_argument, nullptr,       'd'},
-                        {"verbose",  no_argument,       &verbose_flag, 1},
+                        {"debug",  no_argument,       &verbose_flag, 1},
                         {nullptr, 0, nullptr, 0}
                 };
         // getopt_long stores the option index here.
         int option_index = 0;
-        c = getopt_long (argc, argv, "hvlo:c:d:V", long_options, &option_index);
+        c = getopt_long (argc, argv, "hvlo:c:d:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1)
@@ -218,7 +232,7 @@ int main(int argc, char *argv[])
     }
 
     if (verbose_flag) {
-        std::cout << "Verbose flag is set" << std::endl << std::endl;
+        std::cout << "Debug flag is set" << std::endl << std::endl;
     }
 
     // get the non option args
@@ -262,12 +276,66 @@ int main(int argc, char *argv[])
     // this is where the input is actually set
     input_struct = non_option_args[0];
 
+    //
+    // Set up the logging
+    //
+    // create a logger for our gui and simulation
+    el::Loggers::getLogger("gui");
+    el::Loggers::getLogger("sim");
+
+    // create the conf to actually use of config
+    el::Configurations defaultConf;
+    defaultConf.setToDefault();
+    defaultConf.setGlobally(el::ConfigurationType::Enabled, "false"); // default to no logging
+
+    std::wstring w_sep(&fs::path::preferred_separator);
+    std::string sep(w_sep.begin(), w_sep.end());
+
+    if (verbose_flag) {
+#ifdef _WIN32 // windows
+        std::string appdata_loc = std::string(std::getenv("LOCALAPPDATA")) + sep + "PetersSoft" + sep + "clTEM";
+#else // I only support linux (no apple stuff)
+        // I think I am fine 'hard coding' the .config location
+        std::string appdata_loc = std::string(std::getenv("HOME")) + sep + ".local" + sep + "share" + sep + "PetersSoft" + sep + "clTEM";
+#endif
+
+        // Get a writable location to save the log file
+        std::string log_dir = appdata_loc + sep + "log.log";
+
+        defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir);
+        defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
+        defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
+        defaultConf.setGlobally(el::ConfigurationType::ToFile, "true");
+        defaultConf.setGlobally(el::ConfigurationType::Enabled, "true");
+    }
+
+    // set the config for the loggers
+    el::Loggers::reconfigureAllLoggers(defaultConf);
+
+    // this makes '%thread' show this string instead of a largely useless number
+    el::Helpers::setThreadName("main-cmd");
+
+    CLOG(INFO, "cmd") << "Logging set up and read to go!";
+
+    //
+    // On to setting up the simulation
+    //
+
     std::cout << "Getting OpenCL devices:" << std::endl;
 
-    std::vector<clDevice> device_list = getDevices(device_options);
+    std::vector<clDevice> device_list;
 
-    if (device_list.size() < 1) {
+    try {
+        device_list = getDevices(device_options);
+    } catch (std::runtime_error &e) {
+        std::cout << "Error finding OpenCL devices" << e.what() << std::endl;
+        CLOG(ERROR, "cmd") << "Could not get OpenCL devices: " << e.what();
+        return 1;
+    }
+
+    if (device_list.empty()) {
         std::cout << "No valid OpenCL device selected. Exiting..." << std::endl;
+        CLOG(ERROR, "cmd") << "No valid OpenCL device selected";
         return 1;
     }
 
@@ -286,6 +354,7 @@ int main(int argc, char *argv[])
         j = fileio::OpenSettingsJson(input_params);
     } catch (...) {
         std::cout << "Error opening config file. Exiting..." << std::endl;
+        CLOG(ERROR, "cmd") << "Error opening config file";
         return 1;
     }
 
@@ -298,6 +367,7 @@ int main(int argc, char *argv[])
         man_ptr->setStructure(input_struct);
     } catch (...) {
         std::cout << "Error opening structure file. Exiting..." << std::endl;
+        CLOG(ERROR, "cmd") << "Error opening structure file";
         return 1;
     }
 
@@ -311,22 +381,27 @@ int main(int argc, char *argv[])
     man_ptr->setImageReturnFunc(imageRet);
 
     std::cout << "Output directory: " << output_dir << std::endl;
+
     fs::path dir(output_dir);
     if (!fs::is_directory(dir)) {
         std::cout << "Directory does not exist. Attempting to create..." << std::endl;
-        bool good = true;
+        bool good;
         try {
             good = fs::create_directory(dir);
         } catch (fs::filesystem_error& e) {
             std::cout << "Error making directory. Exiting..." << std::endl;
+            CLOG(ERROR, "cmd") << "Error making output directory: " << e.what();
             std::cout << e.what() << std::endl;
             return 1;
         }
 
         if (!good) {
             std::cout << "Error making directory. Exiting..." << std::endl;
+            CLOG(ERROR, "cmd") << "Error making output directory";
             return 1;
         }
+
+        std::cout << "Successfully created folder" << std::endl;
     }
 
     // load external sources
@@ -334,21 +409,19 @@ int main(int argc, char *argv[])
     std::string exe_path_string;
 
 #ifdef _WIN32
-    https://stackoverflow.com/a/13310600
+    // https://stackoverflow.com/a/13310600
     char exe_path[MAX_PATH];
 
     // When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
-    HMODULE hModule = GetModuleHandle(NULL);
-    if (hModule != NULL) {
+    HMODULE hModule = GetModuleHandle(nullptr);
+    if (hModule != nullptr) {
         // Use GetModuleFileName() with module handle to get the path
-        GetModuleFileName(hModule, exe_path, MAX_PATH);
-
-        auto exe_dir = dirname(exe_path);
-
-        exe_path_string = std::string(exe_path);
+        GetModuleFileName(nullptr, exe_path, MAX_PATH);
+        exe_path_string = std::string(dirname(exe_path));
     }
     else {
         std::cerr << "Cannot get executable path - Module handle is NULL" << std::endl ;
+        CLOG(ERROR, "cmd") << "Cannot get executable path - Module handle is NULL";
         return 1;
     }
 #else
@@ -364,38 +437,34 @@ int main(int argc, char *argv[])
 #endif
     // need to load potentials from external sources, then our manager is complete
     // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
-    std::string params_path = exe_path_string + "/params";
-    std::string p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
+    std::string params_path = exe_path_string + sep + "params";
+    auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
     std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
     man_ptr->setStructureParameters(p_name, params);
 
     man_list.emplace_back(man_ptr);
 
     // open the kernels
-    std::string kernel_path = exe_path_string + "/kernels";
+    std::string kernel_path = exe_path_string + sep + "kernels";
     Kernels::atom_sort = Utils::resourceToChar(kernel_path, "atom_sort.cl");
     Kernels::floatSumReductionsource2 = Utils::resourceToChar(kernel_path, "sum_reduction.cl");
     Kernels::BandLimitSource = Utils::resourceToChar(kernel_path, "low_pass.cl");
     Kernels::fftShiftSource = Utils::resourceToChar(kernel_path, "post_fft_shift.cl");
     Kernels::opt2source = Utils::resourceToChar(kernel_path, "potential_full_3d.cl");
-    Kernels::fd2source = Utils::resourceToChar(kernel_path, "potential_finite_difference.cl");
     Kernels::conv2source = Utils::resourceToChar(kernel_path, "potential_conventional.cl");
     Kernels::propsource = Utils::resourceToChar(kernel_path, "generate_propagator.cl");
     Kernels::multisource = Utils::resourceToChar(kernel_path, "complex_multiply.cl");
-    Kernels::gradsource = Utils::resourceToChar(kernel_path, "grad.cl");
-    Kernels::fdsource = Utils::resourceToChar(kernel_path, "finite_difference.cl");
     Kernels::InitialiseWavefunctionSource = Utils::resourceToChar(kernel_path, "initialise_plane.cl");
     Kernels::imagingKernelSource = Utils::resourceToChar(kernel_path, "generate_tem_image.cl");
     Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::resourceToChar(kernel_path, "initialise_probe.cl");
     Kernels::floatabsbandPassSource = Utils::resourceToChar(kernel_path, "band_pass.cl");
     Kernels::SqAbsSource = Utils::resourceToChar(kernel_path, "square_absolute.cl");
-    Kernels::AbsSource = Utils::resourceToChar(kernel_path, "absolute.cl");
     Kernels::DqeSource = Utils::resourceToChar(kernel_path, "dqe.cl");
     Kernels::NtfSource = Utils::resourceToChar(kernel_path, "ntf.cl");
 
-    std::string ccds_path = exe_path_string + "/ccds";
+    std::string ccds_path = exe_path_string + sep + "ccds";
 
-    std::string ccd_name = JSONUtils::readJsonEntry<std::string>(j, "ctem", "ccd", "name");
+    auto ccd_name = JSONUtils::readJsonEntry<std::string>(j, "ctem", "ccd", "name");
 
     if (ccd_name != "Perfect") {
         std::vector<float> dqe, ntf;

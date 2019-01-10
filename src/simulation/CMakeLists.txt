@@ -1,6 +1,11 @@
 project(simulation_lib)
 cmake_minimum_required( VERSION 3.5 )
 
+cmake_policy(SET CMP0071 NEW)
+cmake_policy(SET CMP0074 NEW)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
+
 include_directories(clwrapper)
 add_subdirectory(clwrapper)
 
@@ -14,6 +19,13 @@ find_package (TIFF REQUIRED)
 if(TIFF_FOUND)
     message(STATUS "TIFF found (include: ${TIFF_INCLUDE_DIR})")
 endif(TIFF_FOUND)
+
+find_package(EASYLOGGINGPP REQUIRED)
+
+if(EASYLOGGINGPP_FOUND)
+    message(STATUS "Found EasyLogging++: " ${EASYLOGGINGPP_INCLUDE_DIR})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE -DELPP_FEATURE_CRASH_LOG")
+endif()
 
 set(SIM_HDRS
         simulationmanager.h
@@ -37,9 +49,9 @@ set(SIM_SCRS
 #        simulations/stemsimulation.cpp
 #        simulations/microscopesimulation.cpp
         threadworker.cpp
-        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h)
+        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h utilities/logging.cpp utilities/logging.h)
 
-add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS} )
+add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS} ${EASYLOGGINGPP_INCLUDE_DIR}/easylogging++.cc)
 
-target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} clwrapper)
+target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper)
 target_link_libraries (simulation ${TIFF_LIBRARY} clwrapper)

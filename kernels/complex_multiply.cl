@@ -12,8 +12,8 @@
 __kernel void clComplexMultiply( __global float2* input_a,
 								 __global float2* input_b,
 								 __global float2* output, 
-								 int width,
-								 int height)
+								 unsigned int width,
+								 unsigned int height)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
