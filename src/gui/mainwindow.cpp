@@ -291,6 +291,9 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
 
+    StatusBar->setSliceProgress(0.f);
+    StatusBar->setTotalProgress(0.f);
+
     // Set some variables that aren't auto updates
 
     updateManagerFromGui();

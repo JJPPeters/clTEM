@@ -103,8 +103,7 @@ public:
 
     std::shared_ptr<CbedPosition> getCBedPosition() {return CbedPos;}
 
-    bool haveStructure()
-    {
+    bool haveStructure() {
         if (Structure)
             return true;
         return false;
