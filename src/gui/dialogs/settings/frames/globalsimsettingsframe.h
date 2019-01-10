@@ -1,5 +1,5 @@
-#ifndef GLOBALSETTINGSFRAME_H
-#define GLOBALSETTINGSFRAME_H
+#ifndef GLOBALSIMSETTINGSFRAME_H
+#define GLOBALSIMSETTINGSFRAME_H
 
 #include <QWidget>
 #include <simulationmanager.h>
@@ -7,10 +7,10 @@
 
 
 namespace Ui {
-class GlobalSettingsFrame;
+class GlobalSimSettingsFrame;
 }
 
-class GlobalSettingsFrame : public QWidget
+class GlobalSimSettingsFrame : public QWidget
 {
     Q_OBJECT
 
@@ -23,18 +23,16 @@ private slots:
 
     void on_cmbParams_currentIndexChanged(int index);
 
-    void on_chkLogging_toggled(bool state);
-
 public:
-    explicit GlobalSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
-    ~GlobalSettingsFrame();
+    explicit GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
+    ~GlobalSimSettingsFrame();
 
 private:
-    Ui::GlobalSettingsFrame *ui;
+    Ui::GlobalSimSettingsFrame *ui;
 
     std::shared_ptr<SimulationManager> Manager;
 
     void populateParamsCombo();
 };
 
-#endif // GLOBALSETTINGSFRAME_H
+#endif // GLOBALSIMSETTINGSFRAME_H

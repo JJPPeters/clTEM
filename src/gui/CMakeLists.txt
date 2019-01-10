@@ -41,7 +41,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} $
 find_package(EASYLOGGINGPP REQUIRED)
 
 # so easy logging stuff works
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE -DELPP_FEATURE_CRASH_LOG -DELPP_NO_LOG_TO_FILE")
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
     if(WIN32)
@@ -72,7 +72,7 @@ set ( clTEM_SRCS
         frames/aberrationframe.cpp
         dialogs/settings/settingsdialog.cpp
         dialogs/settings/frames/openclframe.cpp
-        dialogs/settings/frames/globalsettingsframe.cpp
+        dialogs/settings/frames/globalsimsettingsframe.cpp
         dialogs/settings/frames/fullaberrationframe.cpp
         dialogs/settings/frames/ctemareaframe.cpp
         dialogs/settings/frames/stemareaframe.cpp
@@ -97,7 +97,7 @@ set ( clTEM_UIS
         controls/statuslayout.ui
         dialogs/settings/settingsdialog.ui
         dialogs/settings/frames/openclframe.ui
-        dialogs/settings/frames/globalsettingsframe.ui
+        dialogs/settings/frames/globalsimsettingsframe.ui
         dialogs/settings/frames/fullaberrationframe.ui
         dialogs/settings/frames/stemdetectorframe.ui
         dialogs/settings/frames/ctemareaframe.ui
@@ -109,8 +109,8 @@ set ( clTEM_UIS
 
 IF(WIN32)
     # add the ui stuff for themes, if we can set them (aka on windows)
-    set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/themeframe.ui )
-    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/themeframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
+    set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/generalsettingsframe.ui )
+    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/generalsettingsframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
     #    # add the theme resources if they are needed
     set ( clTEM_RSCS theme/theme.qrc )
     QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})

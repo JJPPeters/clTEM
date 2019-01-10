@@ -351,7 +351,7 @@
   </action>
   <action name="actionTheme">
    <property name="text">
-    <string>Theme</string>
+    <string>General</string>
    </property>
   </action>
   <action name="actionImport_default">

@@ -284,20 +284,21 @@ int main(int argc, char *argv[])
     defaultConf.setGlobally(el::ConfigurationType::Enabled, "false"); // default to no logging
 
     if (verbose_flag) {
-        std::cout << "Output directory: " << output_dir << std::endl;
-        fs::path dir(output_dir);
-        if (!fs::is_directory(dir)) {
-            std::cout << "Directory does not exist. Will be created by logging procedures..." << std::endl;
-        }
-
-        // Get a writable location to save the log file
         std::wstring w_sep(&fs::path::preferred_separator);
         std::string sep(w_sep.begin(), w_sep.end());
-        std::string log_dir = output_dir + sep + "log.log";
+
+#ifdef _WIN32 // windows
+        std::string appdata_loc = std::string(std::getenv("LOCALAPPDATA")) + sep + "PetersSoft" + sep + "clTEM";
+#else // I only support linux (no apple stuff)
+        // I think I am fine 'hard coding' the .config location
+        std::string appdata_loc = std::string(std::getenv("HOME")) + sep + ".local" + sep + "share" + sep + "PetersSoft" + sep + "clTEM";
+#endif
+
+        // Get a writable location to save the log file
+        std::string log_dir = appdata_loc + sep + "log.log";
 
         defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir);
-        defaultConf.setGlobally(el::ConfigurationType::Format,
-                                "[%logger] %datetime (thread:%thread) %level - %func: %msg");
+        defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
         defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
         defaultConf.setGlobally(el::ConfigurationType::ToFile, "true");
         defaultConf.setGlobally(el::ConfigurationType::Enabled, "true");
@@ -323,7 +324,7 @@ int main(int argc, char *argv[])
         device_list = getDevices(device_options);
     } catch (std::runtime_error &e) {
         std::cout << "Error finding OpenCL devices" << e.what() << std::endl;
-        CLOG(ERROR, "cmd") << "Could not get OpenCL devices" << e.what();
+        CLOG(ERROR, "cmd") << "Could not get OpenCL devices: " << e.what();
         return 1;
     }
 
@@ -374,15 +375,11 @@ int main(int argc, char *argv[])
     auto imageRet = imageReturned;
     man_ptr->setImageReturnFunc(imageRet);
 
-    if (!verbose_flag)
-        std::cout << "Output directory: " << output_dir << std::endl;
+    std::cout << "Output directory: " << output_dir << std::endl;
 
     fs::path dir(output_dir);
     if (!fs::is_directory(dir)) {
-        if (!verbose_flag)
         std::cout << "Directory does not exist. Attempting to create..." << std::endl;
-        else
-            std::cout << "Logging procedures did not create directory. Attempting to create now..." << std::endl;
         bool good;
         try {
             good = fs::create_directory(dir);
@@ -398,6 +395,8 @@ int main(int argc, char *argv[])
             CLOG(ERROR, "cmd") << "Error making output directory";
             return 1;
         }
+
+        std::cout << "Successfully created folder" << std::endl;
     }
 
     // load external sources

@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     // Set up logging
 
     // Get a writable location to save the log file
-    auto log_dir = QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + QDir::separator() + QString("logs")) + QDir::separator() + "log.log";
+    auto log_dir = QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + QString("logs")) + QDir::separator() + "log.log";
 
     // create a logger for our gui and simulation
     el::Loggers::getLogger("gui");
@@ -39,7 +39,16 @@ int main(int argc, char *argv[]) {
     defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir.toStdString());
     defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
     defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
-    defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+
+    QSettings settings;
+    if (!settings.contains("logging"))
+        settings.setValue("logging", false);
+
+    if (settings.value("logging").toBool())
+        defaultConf.setGlobally(el::ConfigurationType::ToFile, "true");
+    else
+        defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+
     defaultConf.set(el::Level::Error, el::ConfigurationType::ToFile, "true");
 
     // set the config for the loggers
@@ -69,7 +78,6 @@ int main(int argc, char *argv[]) {
 
 #ifdef _WIN32
 
-    QSettings settings;
     if (!settings.contains("theme"))
         settings.setValue("theme", "Native");
 

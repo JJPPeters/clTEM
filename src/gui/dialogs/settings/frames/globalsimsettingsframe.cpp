@@ -1,20 +1,18 @@
 #include <QtGui/QRegExpValidator>
 #include <dialogs/settings/settingsdialog.h>
-#include "globalsettingsframe.h"
-#include "ui_globalsettingsframe.h"
+#include "globalsimsettingsframe.h"
+#include "ui_globalsimsettingsframe.h"
 
-#include "utilities/logging.h"
-
-GlobalSettingsFrame::GlobalSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
     QWidget(parent), Manager(simManager),
-    ui(new Ui::GlobalSettingsFrame)
+    ui(new Ui::GlobalSimSettingsFrame)
 {
     ui->setupUi(this);
 
     auto parent_dlg = dynamic_cast<GlobalSettingsDialog*>(parentWidget());
-    connect(parent_dlg, &GlobalSettingsDialog::okSignal, this, &GlobalSettingsFrame::dlgOk_clicked);
-    connect(parent_dlg, &GlobalSettingsDialog::cancelSignal, this, &GlobalSettingsFrame::dlgCancel_clicked);
-    connect(parent_dlg, &GlobalSettingsDialog::applySignal, this, &GlobalSettingsFrame::dlgApply_clicked);
+    connect(parent_dlg, &GlobalSettingsDialog::okSignal, this, &GlobalSimSettingsFrame::dlgOk_clicked);
+    connect(parent_dlg, &GlobalSettingsDialog::cancelSignal, this, &GlobalSimSettingsFrame::dlgCancel_clicked);
+    connect(parent_dlg, &GlobalSettingsDialog::applySignal, this, &GlobalSimSettingsFrame::dlgApply_clicked);
 
     QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
@@ -38,34 +36,34 @@ GlobalSettingsFrame::GlobalSettingsFrame(QWidget *parent, std::shared_ptr<Simula
     populateParamsCombo();
 }
 
-GlobalSettingsFrame::~GlobalSettingsFrame()
+GlobalSimSettingsFrame::~GlobalSimSettingsFrame()
 {
     delete ui;
 }
 
-void GlobalSettingsFrame::dlgCancel_clicked()
+void GlobalSimSettingsFrame::dlgCancel_clicked()
 {
     // don't need to do anything, just return
     parentWidget()->close();
 }
 
-void GlobalSettingsFrame::dlgOk_clicked()
+void GlobalSimSettingsFrame::dlgOk_clicked()
 {
     // same as clicking apply then closing the dialog
     dlgApply_clicked();
     parentWidget()->close();
 }
 
-void GlobalSettingsFrame::dlgApply_clicked()
+void GlobalSimSettingsFrame::dlgApply_clicked()
 {
-    int n_3d = ui->edt3dIntegrals->text().toInt();
-    int n_parallel = ui->edtParallelPx->text().toInt();
+    unsigned int n_3d = ui->edt3dIntegrals->text().toInt();
+    unsigned int n_parallel = ui->edtParallelPx->text().toInt();
 
     Manager->setFull3dInts(n_3d);
     Manager->setParallelPixels(n_parallel);
 }
 
-void GlobalSettingsFrame::populateParamsCombo() {
+void GlobalSimSettingsFrame::populateParamsCombo() {
     auto names = StructureParameters::getNames();
 
     for (int i = 0; i < names.size(); ++i)
@@ -75,18 +73,8 @@ void GlobalSettingsFrame::populateParamsCombo() {
     ui->cmbParams->setCurrentIndex(cur);
 }
 
-void GlobalSettingsFrame::on_cmbParams_currentIndexChanged(int index) {
+void GlobalSimSettingsFrame::on_cmbParams_currentIndexChanged(int index) {
     std::string text = ui->cmbParams->currentText().toStdString();
 
 
-}
-
-void GlobalSettingsFrame::on_chkLogging_toggled(bool state) {
-
-    std::string state_str = "false";
-    if (state)
-        state_str = "true";
-
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, state_str);
-    el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToFile, "true");// ensure this is always logged
 }

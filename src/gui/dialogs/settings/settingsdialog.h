@@ -7,11 +7,11 @@
 #include <dialogs/settings/frames/stemareaframe.h>
 #include <dialogs/settings/frames/thermalscatteringframe.h>
 #include <dialogs/settings/frames/arealayoutframe.h>
-#include <dialogs/settings/frames/globalsettingsframe.h>
+#include <dialogs/settings/frames/globalsimsettingsframe.h>
 #include "dialogs/settings/frames/openclframe.h"
 #include "dialogs/settings/frames/fullaberrationframe.h"
 #ifdef _WIN32
-#include "dialogs/settings/frames/themeframe.h"
+#include "dialogs/settings/frames/generalsettingsframe.h"
 #endif
 
 #include <structure/crystalstructure.h>
@@ -68,7 +68,7 @@ Q_OBJECT
 
 #ifdef _WIN32
 private:
-    ThemeFrame* tFrame;
+    GeneralSettingsFrame* tFrame;
 #endif
 
 public:
@@ -85,7 +85,7 @@ signals:
     void globalSettingsChanged();
 
 private:
-    GlobalSettingsFrame* GeneralFrame;
+    GlobalSimSettingsFrame* GeneralFrame;
 
 public:
     explicit GlobalSettingsDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
