@@ -15,6 +15,63 @@
     #include <theme/thememanager.h>
 #endif
 
+
+
+#include <QtCore/QAbstractNativeEventFilter>
+
+
+class AbstractNativeEventFilterHelper : public QAbstractNativeEventFilter
+{
+public:
+    AbstractNativeEventFilterHelper() : current_use_light(false){
+        current_use_light = detectUseLightTheme();
+
+        if (ThemeManager::CurrentTheme == ThemeManager::Native) {
+            ThemeManager::setNativeTheme(current_use_light);
+        }
+    }
+
+private:
+    bool current_use_light;
+
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override {
+//        std::cout << "lol" << std::endl;
+
+        if (eventType == "windows_generic_MSG" || eventType == "windows_dispatcher_MSG")
+            if( static_cast<MSG*>(message)->message == WM_WININICHANGE) {
+                // this catches the change of dark/light theme in windows, not sure if it get's called by much else?
+                // see https://docs.microsoft.com/en-us/windows/desktop/winmsg/wm-wininichange
+                // see https://stackoverflow.com/a/51336913
+
+                bool use_light = detectUseLightTheme();
+
+                if (use_light == current_use_light)
+                    return false;
+
+                current_use_light = use_light;
+
+                // TODO: emit some message here that can update the palette?
+                std::cout << "THEME HAS CHANGED" << std::endl;
+
+                if (ThemeManager::CurrentTheme == ThemeManager::Native) {
+                    ThemeManager::setNativeTheme(current_use_light);
+                }
+            }
+
+        return false; // false makes the message 'be handled further'
+    }
+
+    bool detectUseLightTheme() {
+        // https://stackoverflow.com/questions/29795410/read-windows-registry-in-qt
+        QSettings settings(R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize)", QSettings::NativeFormat);
+        auto use_light = settings.value("AppsUseLightTheme").toBool();
+        return use_light;
+    }
+};
+
+
+
+
 int main(int argc, char *argv[]) {
     // Create our application
     QApplication a(argc, argv);
@@ -22,6 +79,8 @@ int main(int argc, char *argv[]) {
     // set the app details so we can save/load settings (this is critical for using the QStandardPaths)
     QCoreApplication::setOrganizationName("PetersSoft");
     QCoreApplication::setApplicationName("clTEM");
+
+    a.installNativeEventFilter(new AbstractNativeEventFilterHelper());
 
     // Set up logging
 

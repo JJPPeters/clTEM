@@ -75,7 +75,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->tStem->updateScaleLabels();
 
-    auto p = Manager->getMicroscopeParams();
     ui->tAberr->updateTextBoxes();
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);

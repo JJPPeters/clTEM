@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/Theme">
+        <file>native-dark.qss</file>
         <file>flat-theme.qss</file>
         <file>icons/close.png</file>
         <file>icons/maximise.png</file>

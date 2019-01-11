@@ -17,6 +17,9 @@
 #include <controls/borderlessdialog.h>
 #include <QtCore/QSettings>
 
+#include <QtGui/QPixmapCache>
+#include <QtWidgets/QComboBox>
+
 struct ThemeManager {
 
 public:
@@ -90,12 +93,49 @@ public:
         }
     }
 
-private:
-    static void setNativeTheme() {
-        // remove our stylesheet
+public:
+    static void setNativeTheme(bool use_light=true) {
+        if (!use_light)
+            setNativeDarkTheme();
+        else
+            setNativeLightTheme();
+    }
+
+    static void setNativeLightTheme() {
+        // remove any stylesheet we may have set (this is needed to remove my custom themes
         qApp->setStyleSheet("");
-        // reset our palette
+        // reset our palette to the default
         qApp->setPalette(QApplication::style()->standardPalette());
+    }
+
+    static void setNativeDarkTheme() {
+        // I tried doing this with QPalette, but it is bullshit and doesnt apply to everything...
+
+
+
+
+
+
+
+
+        QFile f(":/Theme/native-dark.qss");
+        if (f.open(QFile::ReadOnly | QFile::Text)) {
+            QTextStream in(&f);
+            QString s = in.readAll();
+            f.close();
+
+//            // this is so the plots function properly...
+//            QPalette darkPalette;
+//            darkPalette.setColor(QPalette::Window, QColor(d1));
+//            darkPalette.setColor(QPalette::Mid, QColor(l2));
+//            qApp->setPalette(darkPalette);
+
+            qApp->setStyleSheet(s);
+        }
+
+
+
+
     }
 
     static void setDarkTheme() {

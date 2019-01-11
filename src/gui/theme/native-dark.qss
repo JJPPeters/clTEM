@@ -1,0 +1,68 @@
+/* === Window === */
+QWidget:window {
+	background-color: #191919;
+}
+
+/* === QComboBox === */
+
+QComboBox {
+    color: #FFFFFF;
+    background-color: #191919;
+}
+
+QComboBox QAbstractItemView {
+    color: #FFFFFF;
+    background-color: #2B2B2B;
+}
+
+/* === QPushButton === */
+
+QPushButton {
+    background-color: #191919;
+    color: #FFFFFF;
+}
+
+QPushButton:hover {
+    background-color: #474747;
+}
+
+QPushButton:pressed {
+    background: solid #6C6C6C;
+}
+
+QPushButton:disabled {
+    background-color: #313131;
+}
+
+/* === QCheckBox === */
+
+QCheckBox::indicator  {
+    color: #FFFFFF;
+    background-color: #191919;
+}
+
+/* === QTabBar === */
+
+QTabBar::tab {
+    color: #2B2B2B;
+}
+
+QTabBar::tab:hover {
+    background-color: transparent;
+    border: 0px solid transparent;
+    border-bottom: 2px solid {l2};
+    color: {l1};
+}
+
+QTabBar::tab:selected {
+    background-color: transparent;
+    border: 0px solid transparent;
+    border-top: none;
+    border-bottom: 2px solid {a1};
+    color: {l1};
+}
+
+QStackedWidget {
+    background: #2B2B2B;   /* This covers a bunch of things, I was thinking about making it transparent, */
+                        /* but I would have to find all the other elements... but QTabWidget::pane may be it */
+}

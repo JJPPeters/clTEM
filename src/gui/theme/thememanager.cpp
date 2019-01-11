@@ -4,4 +4,4 @@
 
 #include "thememanager.h"
 
-ThemeManager::Theme ThemeManager::CurrentTheme = ThemeManager::Theme::Native;
+ThemeManager::Theme ThemeManager::CurrentTheme = ThemeManager::Native;
