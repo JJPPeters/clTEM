@@ -4,8 +4,6 @@ cmake_minimum_required( VERSION 3.5 )
 cmake_policy(SET CMP0071 NEW)
 cmake_policy(SET CMP0074 NEW)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
@@ -37,8 +35,6 @@ include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
 add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
-
-find_package(EASYLOGGINGPP REQUIRED)
 
 # so easy logging stuff works
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE -DELPP_FEATURE_CRASH_LOG -DELPP_NO_LOG_TO_FILE")
@@ -110,7 +106,7 @@ set ( clTEM_UIS
 IF(WIN32)
     # add the ui stuff for themes, if we can set them (aka on windows)
     set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/generalsettingsframe.ui )
-    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/generalsettingsframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
+    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/generalsettingsframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp theme/abstractnativeeventfilter.cpp theme/abstractnativeeventfilter.h)
     #    # add the theme resources if they are needed
     set ( clTEM_RSCS theme/theme.qrc )
     QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})

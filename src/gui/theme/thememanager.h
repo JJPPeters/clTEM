@@ -124,11 +124,11 @@ public:
             QString s = in.readAll();
             f.close();
 
-//            // this is so the plots function properly...
-//            QPalette darkPalette;
-//            darkPalette.setColor(QPalette::Window, QColor(d1));
-//            darkPalette.setColor(QPalette::Mid, QColor(l2));
-//            qApp->setPalette(darkPalette);
+            // this is so the plots function properly...
+            QPalette darkPalette;
+            darkPalette.setColor(QPalette::Window, QColor("#191919"));
+            darkPalette.setColor(QPalette::Mid, QColor("#2B2B2B"));
+            qApp->setPalette(darkPalette);
 
             qApp->setStyleSheet(s);
         }

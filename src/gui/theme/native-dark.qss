@@ -3,66 +3,163 @@ QWidget:window {
 	background-color: #191919;
 }
 
-/* === QComboBox === */
+/* === QLabel === */
 
-QComboBox {
-    color: #FFFFFF;
-    background-color: #191919;
-}
-
-QComboBox QAbstractItemView {
-    color: #FFFFFF;
-    background-color: #2B2B2B;
+QLabel {
+	background: transparent;
+	color: #FFFFFF;
 }
 
 /* === QPushButton === */
 
 QPushButton {
-    background-color: #191919;
-    color: #FFFFFF;
+	background-color: #373737;
+	color: #FFFFFF;
+	border: 1px solid #555555;
+	padding: 4px 22px;
 }
 
 QPushButton:hover {
-    background-color: #474747;
+	background-color: #474747;
 }
 
 QPushButton:pressed {
-    background: solid #6C6C6C;
+	background: solid #6C6C6C;
 }
 
 QPushButton:disabled {
-    background-color: #313131;
-}
-
-/* === QCheckBox === */
-
-QCheckBox::indicator  {
-    color: #FFFFFF;
-    background-color: #191919;
+    background-color: #2B2B2B;
 }
 
 /* === QTabBar === */
+/* From https://gist.github.com/espdev/4f1565b18497a42d317cdf2531b7ef05 */
 
-QTabBar::tab {
-    color: #2B2B2B;
+QTabWidget::pane {
+    border: 1px solid #2B2B2B;
+    background: #202020;
 }
 
-QTabBar::tab:hover {
-    background-color: transparent;
-    border: 0px solid transparent;
-    border-bottom: 2px solid {l2};
-    color: {l1};
+QTabWidget::tab-bar:top {
+    top: 1px;
+}
+
+QTabWidget::tab-bar:bottom {
+    bottom: 1px;
+}
+
+QTabWidget::tab-bar:left {
+    right: 1px;
+}
+
+QTabWidget::tab-bar:right {
+    left: 1px;
+}
+
+QTabBar::tab {
+    border: 1px solid #2B2B2B;
+}
+
+QTabBar::tab:!selected {
+    color: #CCCCCC;
+    background: #191919;
+}
+
+QTabBar::tab:!selected:hover {
+    background: #373737;
+}
+
+QTabBar::tab:top, QTabBar::tab:bottom {
+    min-width: 8ex;
+    margin-right: -1px;
+    padding: 5px 10px 5px 10px;
+}
+
+QTabBar::tab:top:selected {
+    border-bottom: 0px solid transparent;
+    border-bottom-color: none;
+}
+
+QTabBar::tab:bottom:selected {
+    border-top: 0px solid transparent;
+    border-top-color: none;
+}
+
+QTabBar::tab:top:last, QTabBar::tab:bottom:last,
+QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
+    margin-right: 0;
+}
+
+QTabBar::tab:left, QTabBar::tab:right {
+    min-height: 8ex;
+    margin-bottom: -1px;
+    padding: 10px 5px 10px 5px;
+}
+
+QTabBar::tab:left:selected {
+    border-left: 0px solid transparent;
+    border-left-color: none;
+}
+
+QTabBar::tab:right:selected {
+    border-right: 0px solid transparent;
+    border-right-color: none;
+}
+
+QTabBar::tab:left:last, QTabBar::tab:right:last,
+QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
+    margin-bottom: 0;
 }
 
 QTabBar::tab:selected {
-    background-color: transparent;
-    border: 0px solid transparent;
-    border-top: none;
-    border-bottom: 2px solid {a1};
-    color: {l1};
+    color: #FFFFFF;
+    background: #202020;
 }
 
-QStackedWidget {
-    background: #2B2B2B;   /* This covers a bunch of things, I was thinking about making it transparent, */
-                        /* but I would have to find all the other elements... but QTabWidget::pane may be it */
+/* === QMenu === */
+
+QMenu {
+	background-color: #202020;		/* File Menu Background color */
+	color: #FFFFFF;
+	border: 1px solid #2B2B2B;
+}
+
+QMenu::item:selected {
+	background-color: #474747;
+}
+
+QMenu::item:pressed {
+	background-color: #6C6C6C;
+}
+
+QMenu::separator {
+	height: 1px;
+	background: #2B2B2B;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+/* === QMenuBar === */
+
+QMenuBar {
+	background-color: #191919;
+	color: #FFFFFF;
+}
+
+QMenuBar::item:selected {
+	background-color: #474747;
+}
+
+QMenuBar::item:pressed {
+	background-color: #6C6C6C;
+}
+
+/* === QLineEdit === */
+
+QLineEdit {
+	background: #191919;
+	border: 1px solid #2B2B2B;
+	color: #FFFFFF; /*text colour*/
+	selection-background-color: #474747;
 }

@@ -15,7 +15,6 @@
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
 #include <frames/aberrationframe.h>
-
 #include <variant>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -44,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent) :
     loadSavedOpenClSettings();
 
     ui->setupUi(this);
-
     setWindowTitle("clTEM");
 
 #ifndef _WIN32
