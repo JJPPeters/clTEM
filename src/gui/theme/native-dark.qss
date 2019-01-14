@@ -140,6 +140,10 @@ QMenu::separator {
 	margin-bottom: 5px;
 }
 
+QMenu::right-arrow {
+    image: url(:/Theme/icons/right-arrow_dark.png);
+}
+
 /* === QMenuBar === */
 
 QMenuBar {
@@ -163,3 +167,176 @@ QLineEdit {
 	color: #FFFFFF; /*text colour*/
 	selection-background-color: #474747;
 }
+
+/* === QCheckBox === */
+
+QCheckBox, QRadioButton {
+	color: #FFFFFF;
+}
+
+QCheckBox::indicator  {
+	background-color: #191919;
+	border: 1px solid #2B2B2B;
+	width: 16px;
+    height: 16px;
+}
+
+QCheckBox::indicator::checked {
+	image: url(:/Theme/icons/tick_dark.png);
+}
+
+QCheckBox::indicator::hover {
+	border: 1px solid #474747;
+}
+
+QCheckBox::indicator::pressed {
+	background: solid #6C6C6C;
+}
+
+QCheckBox::indicator::disabled {
+    background-color: #2B2B2B;
+}
+
+/* === QComboBox === */
+
+QComboBox {
+	color: #FFFFFF;
+	background-color: #191919;
+	border: 1px solid #2B2B2B;
+}
+
+QComboBox QAbstractItemView
+{
+	background: #202020;
+    selection-background-color: #474747;
+    color: #FFFFFF;
+	border: 1px solid #2B2B2B;
+}
+
+QComboBox::item:selected {
+    background-color: #474747;
+}
+
+QComboBox::drop-down {
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 20px;
+     border-left: 0px transparent;
+ }
+
+QComboBox::down-arrow {
+    width: 16px;
+    image: url(:/Theme/icons/down-arrow_dark.png);
+}
+
+/* === QProgressBar === */
+
+QProgressBar {
+	background: solid #202020;
+	border: 1px solid #2B2B2B;
+}
+
+QProgressBar::chunk {
+	background: solid #2B2B2B;
+}
+
+/* === QGroupBox === */
+
+QGroupBox {
+    border: 1px solid #2B2B2B;
+    margin-top: 1em;
+}
+
+QGroupBox::title {
+	color: #FFFFFF;
+    subcontrol-origin: margin;
+    left: 6px;
+    padding: 0px 3px 2px 3px;
+}
+
+/* === QTableWidget === */
+
+QTableWidget {
+    gridline-color: transparent;
+    background: #191919;
+    border: 1px solid #2B2B2B;
+    color: #FFFFFF;
+}
+
+QTableWidget::item:selected {
+    background: #474747;
+}
+
+QHeaderView::section {
+    background-color: #2B2B2B;
+    padding: 4px;
+    border-style: none;
+    border: 1px solid #2B2B2B;
+    color: #FFFFFF;
+}
+
+/* === QScrollBar === */
+/* much of this scrollbar stuff is from: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/style.qss */
+
+QScrollBar {
+    background-color: #191919;
+    width: 20px;
+    margin: 15px 3px 15px 3px;
+    border: 1px transparent;
+}
+
+QScrollBar::handle {
+    background-color: #191919;
+    min-height: 20px;
+}
+
+QScrollBar::sub-line {
+    margin: 5px 0px 5px 0px;
+    border-image: url(:/Theme/icons/up-arrow_dark.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line {
+    margin: 5px 0px 5px 0px;
+    border-image: url(:/Theme/icons/down-arrow_dark.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+
+
+/*
+QScrollBar::sub-line:vertical:hover,
+QScrollBar::sub-line:vertical:on {
+    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical:hover,
+QScrollBar::add-line:vertical:on {
+    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    height: 5px;
+    width: 10px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+*/

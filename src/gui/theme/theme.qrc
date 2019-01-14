@@ -12,5 +12,7 @@
         <file>icons/up-arrow_light.png</file>
         <file>icons/down-arrow_light.png</file>
         <file>icons/right-arrow_light.png</file>
+        <file>icons/tick_light.png</file>
+        <file>icons/tick_dark.png</file>
     </qresource>
 </RCC>
