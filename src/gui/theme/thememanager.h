@@ -25,17 +25,25 @@ struct ThemeManager {
 public:
     enum Theme {
         Native,
-        Dark,
-        Light
+        CustomDark,
+        CustomLight
     };
 
     static Theme CurrentTheme;
 
+    static void setUseLightNative(bool use_light) {
+        if (UseLightNative != use_light) {
+            UseLightNative = use_light;
+            if (CurrentTheme == Theme::Native)
+                setNativeTheme();
+        }
+    }
+
     static void setTheme(std::string th) {
         if (th == "Dark") {
-            setTheme(Theme::Dark);
+            setTheme(Theme::CustomDark);
         } else if (th == "Light") {
-            setTheme(Theme::Light);
+            setTheme(Theme::CustomLight);
         } else {
             setTheme(Theme::Native);
         }
@@ -43,9 +51,9 @@ public:
 
     static void setTheme(Theme th) {
         CurrentTheme = th;
-        if (th == Theme::Dark) {
+        if (th == Theme::CustomDark) {
             setDarkTheme();
-        } else if (th == Theme::Light) {
+        } else if (th == Theme::CustomLight) {
             setLightTheme();
         } else {
             setNativeTheme();
@@ -84,18 +92,20 @@ public:
 
     static void setSettings(Theme th) {
         QSettings settings;
-        if (th == Theme::Dark) {
+        if (th == Theme::CustomDark) {
             settings.setValue("theme", "Dark");
-        } else if (th == Theme::Light) {
+        } else if (th == Theme::CustomLight) {
             settings.setValue("theme", "Light");
         } else {
             settings.setValue("theme", "Native");
         }
     }
 
-public:
-    static void setNativeTheme(bool use_light=true) {
-        if (!use_light)
+private:
+    static bool UseLightNative;
+
+    static void setNativeTheme() {
+        if (!UseLightNative)
             setNativeDarkTheme();
         else
             setNativeLightTheme();

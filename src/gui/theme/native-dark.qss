@@ -278,43 +278,37 @@ QHeaderView::section {
 /* === QScrollBar === */
 /* much of this scrollbar stuff is from: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/style.qss */
 
-QScrollBar {
+QScrollBar:vertical {
     background-color: #191919;
     width: 20px;
     margin: 15px 3px 15px 3px;
-    border: 1px transparent;
+    border: 1px solid #191919;
 }
 
-QScrollBar::handle {
-    background-color: #191919;
+QScrollBar::handle:vertical {
+    background-color: #2B2B2B;
     min-height: 20px;
 }
 
-QScrollBar::sub-line {
+QScrollBar::sub-line:vertical {
     margin: 5px 0px 5px 0px;
     border-image: url(:/Theme/icons/up-arrow_dark.png);
-    height: 5px;
     width: 10px;
     subcontrol-position: top;
     subcontrol-origin: margin;
 }
 
-QScrollBar::add-line {
+QScrollBar::add-line:vertical {
     margin: 5px 0px 5px 0px;
     border-image: url(:/Theme/icons/down-arrow_dark.png);
-    height: 5px;
     width: 10px;
     subcontrol-position: bottom;
     subcontrol-origin: margin;
 }
 
-
-
-/*
 QScrollBar::sub-line:vertical:hover,
 QScrollBar::sub-line:vertical:on {
-    border-image: url(:/Theme/icons/up-arrow_{t}.png);
-    height: 5px;
+    border-image: url(:/Theme/icons/up-arrow_dark.png);
     width: 10px;
     subcontrol-position: top;
     subcontrol-origin: margin;
@@ -322,8 +316,7 @@ QScrollBar::sub-line:vertical:on {
 
 QScrollBar::add-line:vertical:hover,
 QScrollBar::add-line:vertical:on {
-    border-image: url(:/Theme/icons/down-arrow_{t}.png);
-    height: 5px;
+    border-image: url(:/Theme/icons/down-arrow_dark.png);
     width: 10px;
     subcontrol-position: bottom;
     subcontrol-origin: margin;
@@ -338,5 +331,3 @@ QScrollBar::add-page:vertical,
 QScrollBar::sub-page:vertical {
     background: none;
 }
-
-*/

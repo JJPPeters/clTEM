@@ -5,3 +5,4 @@
 #include "thememanager.h"
 
 ThemeManager::Theme ThemeManager::CurrentTheme = ThemeManager::Native;
+bool ThemeManager::UseLightNative = true;
