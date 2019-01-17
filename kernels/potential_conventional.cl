@@ -42,7 +42,8 @@
 /// startx - x start position of simulation (when simulation is cropped)
 /// starty - y start position of simulation
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// With these, I am assuming the function names are sensible, I did not check them properly
+/// Bessel function
+/// These function's can be found in the numerical recipes books (at least the C one)
 /// bessi0 - calculate the zero order modified bessel function of the first kind (using only for bessk0)
 /// bessk0 - calculate the zero order modified bessel function of the second kind
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
