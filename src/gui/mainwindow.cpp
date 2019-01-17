@@ -491,7 +491,7 @@ bool MainWindow::checkSimulationPrerequisites()
 {
     std::vector<std::string> errorList;
 
-    if(std::get<0>(Devices).size() <= 0)
+    if(std::get<0>(Devices).empty())
         errorList.emplace_back("No OpenCL devices selected.");
 
     if(!Manager->getStructure())
@@ -501,7 +501,6 @@ bool MainWindow::checkSimulationPrerequisites()
         errorList.emplace_back("No valid simulation resolution set.");
 
     auto mp = Manager->getMicroscopeParams();
-
     if(mp->Voltage <= 0)
         errorList.emplace_back("Voltage must be a non-zero positive number.");
     if(mp->Aperture <= 0)
@@ -524,14 +523,16 @@ bool MainWindow::checkSimulationPrerequisites()
 
     // TODO: warnings option (stem detector radius checks...
 
-    if (errorList.size() > 0) {
-        std::string final = "";
+    if (!errorList.empty()) {
+        std::string final;
         for (const auto &err : errorList) {
             final += err + "\n";
         }
         throw std::runtime_error(final);
+        return false;
     }
 
+    return true;
 }
 
 void MainWindow::simulationComplete()
