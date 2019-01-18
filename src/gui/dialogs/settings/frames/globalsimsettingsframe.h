@@ -21,8 +21,6 @@ private slots:
 
     void dlgCancel_clicked();
 
-    void on_cmbParams_currentIndexChanged(int index);
-
 public:
     explicit GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
     ~GlobalSimSettingsFrame();

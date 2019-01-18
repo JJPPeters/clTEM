@@ -419,6 +419,7 @@ void SimulationWorker::initialiseSimulation()
     float startx = job->simManager->getPaddedSimLimitsX()[0];
     float starty = job->simManager->getPaddedSimLimitsY()[0];
     int full3dints = job->simManager->getFull3dInts();
+    std::string param_name = job->simManager->getStructureParametersName();
 
     // Work out area that is to be simulated (in real space)
     float SimSizeX = pixelscale * resolution;
@@ -527,9 +528,9 @@ void SimulationWorker::initialiseSimulation()
     CLOG(DEBUG, "sim") << "Set up potential kernel";
     // have various options depending on the user preferences
     if (isFull3D)
-        BinnedAtomicPotential = clKernel(ctx, Kernels::opt2source.c_str(), 27, "clBinnedAtomicPotentialOpt");
+        BinnedAtomicPotential = clKernel(ctx, Kernels::opt2source.c_str(), 28, "clBinnedAtomicPotentialOpt");
     else
-        BinnedAtomicPotential = clKernel(ctx, Kernels::conv2source.c_str(), 26, "clBinnedAtomicPotentialConventional");
+        BinnedAtomicPotential = clKernel(ctx, Kernels::conv2source.c_str(), 27, "clBinnedAtomicPotentialConventional");
 
     // Work out which blocks to load by ensuring we have the entire area around workgroup up to 5 angstroms away...
     // TODO: check this is doing what the above comment says it is doing...
@@ -542,24 +543,32 @@ void SimulationWorker::initialiseSimulation()
     // Set some of the arguments which dont change each iteration
     BinnedAtomicPotential.SetArg(0, clPotential, ArgumentType::Output);
     BinnedAtomicPotential.SetArg(5, ClParameterisation, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(7, resolution);
+    if (param_name == "kirkland")
+        BinnedAtomicPotential.SetArg(6, 0);
+    else if (param_name == "peng")
+        BinnedAtomicPotential.SetArg(6, 1);
+    else if (param_name == "lobato")
+        BinnedAtomicPotential.SetArg(6, 2);
+    else
+        throw std::runtime_error("Trying to use parameterisation I do not understand");
     BinnedAtomicPotential.SetArg(8, resolution);
-    BinnedAtomicPotential.SetArg(12, dz);
-    BinnedAtomicPotential.SetArg(13, pixelscale);
-    BinnedAtomicPotential.SetArg(14, job->simManager->getBlocksX());
-    BinnedAtomicPotential.SetArg(15, job->simManager->getBlocksY());
-    BinnedAtomicPotential.SetArg(16, job->simManager->getPaddedSimLimitsX()[1]);
-    BinnedAtomicPotential.SetArg(17, job->simManager->getPaddedSimLimitsX()[0]);
-    BinnedAtomicPotential.SetArg(18, job->simManager->getPaddedSimLimitsY()[1]);
-    BinnedAtomicPotential.SetArg(19, job->simManager->getPaddedSimLimitsY()[0]);
-    BinnedAtomicPotential.SetArg(20, load_blocks_x);
-    BinnedAtomicPotential.SetArg(21, load_blocks_y);
-    BinnedAtomicPotential.SetArg(22, load_blocks_z);
-    BinnedAtomicPotential.SetArg(23, sigma); // Not sure why I am using this sigma and not commented sigma...
-    BinnedAtomicPotential.SetArg(24, startx);
-    BinnedAtomicPotential.SetArg(25, starty);
+    BinnedAtomicPotential.SetArg(9, resolution);
+    BinnedAtomicPotential.SetArg(13, dz);
+    BinnedAtomicPotential.SetArg(14, pixelscale);
+    BinnedAtomicPotential.SetArg(15, job->simManager->getBlocksX());
+    BinnedAtomicPotential.SetArg(16, job->simManager->getBlocksY());
+    BinnedAtomicPotential.SetArg(17, job->simManager->getPaddedSimLimitsX()[1]);
+    BinnedAtomicPotential.SetArg(18, job->simManager->getPaddedSimLimitsX()[0]);
+    BinnedAtomicPotential.SetArg(19, job->simManager->getPaddedSimLimitsY()[1]);
+    BinnedAtomicPotential.SetArg(20, job->simManager->getPaddedSimLimitsY()[0]);
+    BinnedAtomicPotential.SetArg(21, load_blocks_x);
+    BinnedAtomicPotential.SetArg(22, load_blocks_y);
+    BinnedAtomicPotential.SetArg(23, load_blocks_z);
+    BinnedAtomicPotential.SetArg(24, sigma); // Not sure why I am using this sigma and not commented sigma...
+    BinnedAtomicPotential.SetArg(25, startx);
+    BinnedAtomicPotential.SetArg(26, starty);
     if (isFull3D)
-        BinnedAtomicPotential.SetArg(26, full3dints);
+        BinnedAtomicPotential.SetArg(27, full3dints);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up the propogator
@@ -771,10 +780,10 @@ void SimulationWorker::doMultiSliceStep(int slice)
     BinnedAtomicPotential.SetArg(2, ClAtomY, ArgumentType::Input);
     BinnedAtomicPotential.SetArg(3, ClAtomZ, ArgumentType::Input);
     BinnedAtomicPotential.SetArg(4, ClAtomA, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(6, ClBlockStartPositions, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(9, slice);
-    BinnedAtomicPotential.SetArg(10, numberOfSlices);
-    BinnedAtomicPotential.SetArg(11, currentz);
+    BinnedAtomicPotential.SetArg(7, ClBlockStartPositions, ArgumentType::Input);
+    BinnedAtomicPotential.SetArg(10, slice);
+    BinnedAtomicPotential.SetArg(11, numberOfSlices);
+    BinnedAtomicPotential.SetArg(12, currentz);
 
     CLOG(DEBUG, "sim") << "Calculating potentials";
 

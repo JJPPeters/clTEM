@@ -236,6 +236,7 @@ __kernel void clBinnedAtomicPotentialConventional( __global float2* potential,
 										 		   __global const float* restrict pos_z,
 												   __global const int* restrict atomic_num,
 												   __constant float* params,
+												   unsigned int param_selector,
 										 		   __global const int* restrict block_start_pos,
 												   unsigned int width,
 												   unsigned int height,
@@ -305,8 +306,14 @@ __kernel void clBinnedAtomicPotentialConventional( __global float2* potential,
 				if(rad < 0.25f * pixelscale) // is this sensible?
 					rad = 0.25f * pixelscale;
 
-				if( rad < 3.0f) // Should also make sure is not too small
-					sumz += kirkland(params, atZ[l], rad);
+				if( rad < 3.0f) { // Should also make sure is not too small
+					if (param_selector == 0)
+                        sumz += kirkland(params, atZ[l], rad);
+                    else if (param_selector == 1)
+                        sumz += peng(params, atZ[l], rad);
+                    else if (param_selector == 2)
+                        sumz += lobato(params, atZ[l], rad);
+				}
 			}
 
 			barrier(CLK_LOCAL_MEM_FENCE);

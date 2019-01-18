@@ -17,8 +17,7 @@ __kernel void clComplexMultiply( __global float2* input_a,
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
-	if(xid < width && yid < height)
-	{
+	if(xid < width && yid < height) {
 		int Index = xid + width*yid;
 		output[Index].x = input_a[Index].x * input_b[Index].x - input_a[Index].y * input_b[Index].y;
 		output[Index].y = input_a[Index].x * input_b[Index].y + input_a[Index].y * input_b[Index].x;

@@ -4,8 +4,7 @@
 #include "ui_globalsimsettingsframe.h"
 
 GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
-    QWidget(parent), Manager(simManager),
-    ui(new Ui::GlobalSimSettingsFrame)
+    QWidget(parent), ui(new Ui::GlobalSimSettingsFrame), Manager(simManager)
 {
     ui->setupUi(this);
 
@@ -36,45 +35,42 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     populateParamsCombo();
 }
 
-GlobalSimSettingsFrame::~GlobalSimSettingsFrame()
-{
+GlobalSimSettingsFrame::~GlobalSimSettingsFrame() {
     delete ui;
 }
 
-void GlobalSimSettingsFrame::dlgCancel_clicked()
-{
+void GlobalSimSettingsFrame::dlgCancel_clicked() {
     // don't need to do anything, just return
     parentWidget()->close();
 }
 
-void GlobalSimSettingsFrame::dlgOk_clicked()
-{
+void GlobalSimSettingsFrame::dlgOk_clicked() {
     // same as clicking apply then closing the dialog
     dlgApply_clicked();
     parentWidget()->close();
 }
 
-void GlobalSimSettingsFrame::dlgApply_clicked()
-{
-    unsigned int n_3d = ui->edt3dIntegrals->text().toInt();
-    unsigned int n_parallel = ui->edtParallelPx->text().toInt();
+void GlobalSimSettingsFrame::dlgApply_clicked() {
+    unsigned int n_3d = ui->edt3dIntegrals->text().toUInt();
+    unsigned int n_parallel = ui->edtParallelPx->text().toUInt();
+    std::string param_name = ui->cmbParams->currentText().toStdString();
 
     Manager->setFull3dInts(n_3d);
     Manager->setParallelPixels(n_parallel);
+    Manager->setStructureParameters(param_name);
 }
 
 void GlobalSimSettingsFrame::populateParamsCombo() {
     auto names = StructureParameters::getNames();
 
-    for (int i = 0; i < names.size(); ++i)
+    auto cur = Manager->getStructureParametersName();
+
+    unsigned int current = 0;
+    for (unsigned int i = 0; i < names.size(); ++i) {
+        if (names[i] == cur)
+            current = i;
         ui->cmbParams->addItem(QString::fromStdString(names[i]));
+    }
 
-    auto cur = StructureParameters::getCurrent();
-    ui->cmbParams->setCurrentIndex(cur);
-}
-
-void GlobalSimSettingsFrame::on_cmbParams_currentIndexChanged(int index) {
-    std::string text = ui->cmbParams->currentText().toStdString();
-
-
+    ui->cmbParams->setCurrentIndex(current);
 }

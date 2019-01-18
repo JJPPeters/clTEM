@@ -440,7 +440,8 @@ int main(int argc, char *argv[])
     std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
     std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
-    man_ptr->setStructureParameters(p_name, params);
+    StructureParameters::setParams(params, p_name);
+    man_ptr->setStructureParameters(p_name);
 
     man_list.emplace_back(man_ptr);
 

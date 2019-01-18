@@ -129,6 +129,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 										  __global const float* restrict pos_z,
 										  __global const int* restrict atomic_num,
 										  __constant float* params,
+                                          unsigned int param_selector,
 										  __global const int* restrict block_start_pos,
 										  unsigned int width,
 										  unsigned int height,
@@ -210,7 +211,13 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 
 					if( rad < 3.0f) { // Should also make sure is not too small
 						// note that all the funny numbers are just pre-calculated groups of constants
-						float p1 = kirkland(params, atZ[l], rad);
+						float p1;
+						if (param_selector == 0)
+						    p1 = kirkland(params, atZ[l], rad);
+                        else if (param_selector == 1)
+                            p1 = peng(params, atZ[l], rad);
+                        else if (param_selector == 2)
+                            p1 = lobato(params, atZ[l], rad);
 
 						// why make sure h!=0 when we can just remove it from the loop?
 						// surely h == 0 will be in the previous slice??

@@ -33,6 +33,9 @@ namespace JSONUtils {
         try { man.setMaintainAreas( readJsonEntry<bool>(j, "maintain areas") );
         } catch (json::out_of_range& e) {}
 
+        try { man.setStructureParameters( readJsonEntry<std::string>(j, "potentials") );
+        } catch (json::out_of_range& e) {}
+
         //
         // Do all the microscope parameters stuff...
         //

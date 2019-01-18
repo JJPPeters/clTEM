@@ -17,8 +17,7 @@ __kernel void clSqAbs( __global const float2* input,
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
 
-	if(xid<width&&yid<height)
-	{
+	if(xid<width&&yid<height) {
 		int Index = xid + yid*width;
 		float real = input[Index].x;
 		float imag = input[Index].y;

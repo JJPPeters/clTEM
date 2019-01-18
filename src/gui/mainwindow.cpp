@@ -745,9 +745,6 @@ void MainWindow::updateManagerFromGui() {
     // CBED/STEM TDS
     // CTEM CCD stuff
 
-    // copy the potentials over
-    Manager->setStructureParameters(StructureParameters::getCurrentName(), StructureParameters::getCurrentParams());
-
     // Sort out TDS bits
     Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
     Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
