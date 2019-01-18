@@ -439,8 +439,9 @@ int main(int argc, char *argv[])
     // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
     std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
-    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
-    StructureParameters::setParams(params, p_name);
+    unsigned int row_count;
+    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat", row_count);
+    StructureParameters::setParams(params, p_name, row_count);
     man_ptr->setStructureParameters(p_name);
 
     man_list.emplace_back(man_ptr);

@@ -10,7 +10,7 @@
 #include "utilities/structureutils.h"
 
 CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
-                                                         dist(std::uniform_real_distribution<>(0, 1))
+                                                         dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0)
 {
     resetLimits();
     Atoms = std::vector<AtomSite>();
@@ -138,18 +138,14 @@ void CrystalStructure::openXyz(std::string fPath) {
             // this can get very confusing, but what we do is build a list of atoms that are at the same site
             // then we process them when we have a full list of atoms on that site
             // first test if we have a list of atoms sharing a site
-            if (!prevAtoms.empty()) // we do!
-            {
-                // we have a list of atoms, if this new one is in the same place then we just add it
-                if (prevAtoms[0] == thisAtom) {
+            if (!prevAtoms.empty()) { // we do!
+                if (prevAtoms[0] == thisAtom) { // we have a list of atoms, if this new one is in the same place then we just add it
                     prevAtoms.emplace_back(thisAtom);
-                } else // this means we have a complete array and we need to process it
-                {
+                } else {// this means we have a complete array and we need to process it
                     processOccupancyList(prevAtoms); // this adds the atoms and clears the vector
                     prevAtoms.emplace_back(thisAtom);
                 }
-            } else // we don't, so we make it here!
-            {
+            } else {// we don't, so we make it here!
                 prevAtoms.emplace_back(thisAtom);
             }
             ++count;
@@ -176,20 +172,15 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
     if (aList.empty())
         return;
 
-    if (aList.size() == 1 and aList[0].occ == 1.0) // small try at optimising
-    {
+    if (aList.size() == 1 and aList[0].occ == 1.0) {// small try at optimising
         addAtom(aList[0]);
-    }
-    else
-    {
+    } else {
         double r = dist(rng);
         float totalOcc = 0.0;
 
         for(auto a : aList) {
-            if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0)) {
+            if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0))
                 addAtom(a);
-            }
-
             totalOcc += a.occ;
         }
 
@@ -214,6 +205,9 @@ void CrystalStructure::updateLimits(const Atom &a)
         MinY = a.y;
     if (a.z < MinZ)
         MinZ = a.z;
+
+    if (a.A > MaxAtomicNumber)
+        MaxAtomicNumber = a.A;
 }
 
 void CrystalStructure::resetLimits()

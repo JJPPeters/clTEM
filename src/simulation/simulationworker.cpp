@@ -30,7 +30,7 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
 
     CLOG(DEBUG, "sim") << "Starting simulation";
 
-    uploadParameters(job->simManager->getStructureParameters());
+    uploadParameters(job->simManager->getStructureParameterData());
 
     // now what we do depends on the simulation type (I think...)
     auto mode = job->simManager->getMode();

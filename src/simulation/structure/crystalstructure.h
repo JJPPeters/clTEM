@@ -35,6 +35,7 @@ private:
     float MaxZ;
     float MinZ;
 
+    unsigned int MaxAtomicNumber; // This is only really used to see if it is available in our parameterisation
     unsigned int AtomCount;
 
     std::mt19937 rng;
@@ -69,6 +70,8 @@ public:
     std::valarray<float> getLimitsY() {return {MinY, MaxY};}
 
     std::valarray<float> getLimitsZ() {return {MinZ, MaxZ};}
+
+    unsigned int getMaxAtomicNumber() {return MaxAtomicNumber;}
 };
 
 #endif // CRYSTALSTRUCTURE_H

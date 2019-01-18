@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include <utility>
+
 #ifndef SIMULATIONMANAGER_H
 #define SIMULATIONMANAGER_H
 
@@ -219,9 +221,10 @@ public:
     void setSliceThickness(float thk) { slice_dz = thk; }
     void setSliceOffset(float off) { slice_offset = off; }
 
-    bool setStructureParameters(std::string name) { structure_parameters_name = name; }
+    void setStructureParameters(std::string name) { structure_parameters_name = std::move(name); }
 
-    std::vector<float> getStructureParameters() {return StructureParameters::getParams(std::move(structure_parameters_name));}
+    Parameterisation getStructureParameter() {return StructureParameters::getParameter(structure_parameters_name);}
+    std::vector<float> getStructureParameterData() {return StructureParameters::getParameterData(structure_parameters_name);}
     std::string getStructureParametersName() {return structure_parameters_name;}
 
     std::shared_ptr<ThermalVibrations> getThermalVibrations() {return thermal_vibrations;}

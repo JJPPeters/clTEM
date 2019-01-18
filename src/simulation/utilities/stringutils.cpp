@@ -1,7 +1,5 @@
 #include <stdexcept>
 #include <algorithm>
-//#include <QtCore/QFile>
-//#include <QtCore/QTextStream>
 #include "stringutils.h"
 
 namespace Utils
@@ -86,12 +84,23 @@ namespace Utils
         return fileContents;
     }
 
-    std::vector<float> paramsToVector(std::string full_directory, std::string fileName)
+    std::vector<float> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count)
     {
         std::ifstream inStream(full_directory + "/" + fileName);
 
         if (inStream.fail())
             throw std::runtime_error("Error opening resource file: " + full_directory + "/" + fileName);
+
+        // here we just want the number of rows (a.k.a. the number of atoms
+        // https://stackoverflow.com/questions/3482064/counting-the-number-of-lines-in-a-text-file
+        row_count = 0;
+        std::string temp;
+        while (std::getline(inStream, temp))
+            ++row_count;
+
+        // start back at the beginning to do the actual reading
+        inStream.clear();
+        inStream.seekg(0, std::ifstream::beg);
 
         std::vector<float> out;
         float p;
