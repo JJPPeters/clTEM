@@ -1,5 +1,9 @@
 #include <utility>
 
+#include <utility>
+
+#include <utility>
+
 #ifndef SIMULATIONMANAGER_H
 #define SIMULATIONMANAGER_H
 
@@ -10,6 +14,7 @@
 #include <structure/thermalvibrations.h>
 
 #include "structure/crystalstructure.h"
+#include "structure/structureparameters.h"
 #include "utilities/commonstructs.h"
 #include "utilities/enums.h"
 #include "utilities/stringutils.h"
@@ -28,7 +33,7 @@ public:
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
-              slice_offset(sm.slice_offset), structure_parameters(sm.structure_parameters), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
+              slice_offset(sm.slice_offset), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
               rng(std::mt19937(std::random_device()())), dist(std::normal_distribution<>(0, 1))
     {
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
@@ -70,7 +75,6 @@ public:
         ccd_binning = sm.ccd_binning;
         ccd_dose = sm.ccd_dose;
         slice_offset = sm.slice_offset;
-        structure_parameters = sm.structure_parameters;
         structure_parameters_name = sm.structure_parameters_name;
         maintain_area = sm.maintain_area;
         rng = std::mt19937(std::random_device()());
@@ -217,12 +221,10 @@ public:
     void setSliceThickness(float thk) { slice_dz = thk; }
     void setSliceOffset(float off) { slice_offset = off; }
 
-    void setStructureParameters(std::string name, std::vector<float> params) {
-        structure_parameters = std::move(params);
-        structure_parameters_name = std::move(name);
-    }
+    void setStructureParameters(std::string name) { structure_parameters_name = std::move(name); }
 
-    std::vector<float> getStructureParameters() {return structure_parameters;}
+    Parameterisation getStructureParameter() {return StructureParameters::getParameter(structure_parameters_name);}
+    std::vector<float> getStructureParameterData() {return StructureParameters::getParameterData(structure_parameters_name);}
     std::string getStructureParametersName() {return structure_parameters_name;}
 
     std::shared_ptr<ThermalVibrations> getThermalVibrations() {return thermal_vibrations;}
@@ -251,7 +253,6 @@ private:
         return sa;
     }
 
-    std::vector<float> structure_parameters;
     std::string structure_parameters_name;
 
     bool maintain_area;

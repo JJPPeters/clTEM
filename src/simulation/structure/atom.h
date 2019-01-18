@@ -4,12 +4,12 @@
 
 struct Atom
 {
-    int A;
+    unsigned int A;
     float x, y, z;
 
     Atom() : A(0), x(0.0f), y(0.0f), z(0.0f) {}
 
-    Atom(int _A, float _x, float _y, float _z) : A(_A), x(_x), y(_y), z(_z) {}
+    Atom(unsigned int _A, float _x, float _y, float _z) : A(_A), x(_x), y(_y), z(_z) {}
 
     // this is only for position testing (Not element testing)
     bool operator==(const Atom &RHS) {
@@ -26,7 +26,7 @@ struct AtomSite : public Atom
     float occ;
     float ux, uy, uz;
     AtomSite() : Atom(), occ(1.0f), ux(0.0f), uy(0.0f), uz(0.0f) {}
-    AtomSite(int _A, float _x, float _y, float _z, float _occ, float _ux, float _uy, float _uz) : Atom(_A, _x, _y, _z), occ(_occ), ux(_ux), uy(_uy), uz(_uz) {}
+    AtomSite(unsigned int _A, float _x, float _y, float _z, float _occ, float _ux, float _uy, float _uz) : Atom(_A, _x, _y, _z), occ(_occ), ux(_ux), uy(_uy), uz(_uz) {}
 
     AtomSite operator* (float f) {
         // u is in Angstrom squared

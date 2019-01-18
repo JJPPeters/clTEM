@@ -10,11 +10,8 @@
 ///
 /// This kernel calculates the actual potential for each slice, which the wave function is then propagated through. Most
 /// of the parameterisation stuff can be found in Kirkland's "Advanced computing in electron microscopy 2nd ed." in
-/// appendix C (also where the parameters are given). Particularly equation C.19 gives the actual equation to generate
-/// the potential. The rest of this function is loading the atoms, calculating whether they are relevant and maybe more.
-/// Note that there are lot's of funny indices when accessing the parameters. This is because they are kept in one array
-/// grouped into twelve for each atomic number, these values represent a1, b1, a2, b2, a3, b3, c1, d1, c2, d2, c3, d3.
-/// so accessing all the values is a bit clumsy.
+/// appendix C (also where the parameters are given). The rest of this function is loading the atoms, calculating
+/// whether they are relevant and maybe more.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// potential - the output potential image for the slice
 /// pos_x - x position of the atoms
@@ -44,12 +41,95 @@
 /// starty - y start position of simulation
 /// integrals - the number of sub-slices used to build the full 3d potential
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Projected potential functions
+/// The lobato paper (10.1107/S205327331401643X) gives a good overview of these parameters. Kirkland's book 2nd ed. has
+/// a useful table too (Table C.1) to see a list of other parameterisations.
+/// kirkland - See equation C.20 from Kirkland's book (2nd ed.). Parameters are stored as:
+/// a1, b1, a2, b2, a3, b3, c1, d1, c2, d2, c3, d3
+/// lobato - See equation 16 from their paper (10.1107/S205327331401643X). Parameter are stored as:
+/// a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
+/// peng - See equation 47 from the lobato paper (this needs to be integrated for the projected potential. Reference
+/// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float kirkland(__constant float* params, int ZNum, float rad) {
+    int i;
+    float suml, sumg, x;
+    suml = 0.0f;
+    sumg = 0.0f;
+    //
+    // Lorentzians
+    //
+    x = 2.0f * 3.141592654f * rad;
+
+    // Loop through our parameters (a and b)
+    for(i=0; i<6; i+=2) {
+        float a = params[(ZNum-1)*12+i];
+        float b = params[(ZNum-1)*12+i+1];
+        suml += a * native_exp(-x * native_sqrt(b) );
+    }
+
+    //
+    // Gaussians
+    //
+    x = 3.141592654f * rad;
+    x = x * x;
+
+    // Loop through our parameters (a and b)
+    for(i=6; i<12; i+=2) {
+        float c = params[(ZNum-1)*12+i];
+        float d = params[(ZNum-1)*12+i+1];
+        float d_inv_root = native_rsqrt(d);
+        sumg += c * (d_inv_root*d_inv_root*d_inv_root) * native_exp(-x * native_recip(d));
+    }
+
+    // The funny floats are from the remaining constants in equation C.20
+    // Not that they use the fundamental charge as 14.4 Volt-Angstroms
+    return 150.4121417f * native_recip(rad) * suml + 266.5157269f * sumg;
+ }
+
+float lobato(__constant float* params, int ZNum, float rad) {
+    int i;
+    float sum, x;
+    sum = 0.0f;
+
+    x = 3.141592654f * rad;
+
+    for(i=0; i < 5; ++i) {
+        float a = params[(ZNum-1)*10+i];
+        float b = params[(ZNum-1)*10+i+5];
+        float b_inv_root = native_rsqrt(b);
+        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-2.0f * x * b_inv_root) * (native_sqrt(b) * native_recip(x) + 1.0f);
+    }
+
+    return 472.545072199968f * sum;
+}
+
+float peng(__constant float* params, int ZNum, float rad) {
+    int i;
+    float sum, x;
+    sum = 0.0f;
+
+    x = 3.141592654f * rad;
+    x = x * x;
+
+    for(i=0; i<5; ++i) {
+        float a = params[(ZNum-1)*10+i];
+        float b = params[(ZNum-1)*10+i+5];
+
+        sum += a * native_exp(-x * native_recip(b));
+    }
+
+    return 1844.76074609315f * sum;
+}
+
 __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 										  __global const float* restrict pos_x,
 										  __global const float* restrict pos_y,
 										  __global const float* restrict pos_z,
 										  __global const int* restrict atomic_num,
 										  __constant float* params,
+                                          unsigned int param_selector,
 										  __global const int* restrict block_start_pos,
 										  unsigned int width,
 										  unsigned int height,
@@ -92,23 +172,20 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 	__local float atz[256];
 	__local int atZ[256];
 
-	int startj = fmax(floor( (starty - min_y+  gy *    get_local_size(1) * pixel_scale) * blocks_y  / (max_y-min_y)) - block_load_y, 0) ;
+	int startj = fmax(floor( (starty - min_y +  gy    * get_local_size(1) * pixel_scale) * blocks_y  / (max_y-min_y)) - block_load_y, 0) ;
 	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixel_scale) * blocks_y  / (max_y-min_y)) + block_load_y, blocks_y-1);
-	int starti = fmax(floor( (startx - min_x +  gx *    get_local_size(0) * pixel_scale) * blocks_x  / (max_x-min_x)) - block_load_x, 0) ;
+	int starti = fmax(floor( (startx - min_x +  gx    * get_local_size(0) * pixel_scale) * blocks_x  / (max_x-min_x)) - block_load_x, 0) ;
 	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixel_scale) * blocks_x  / (max_x-min_x)) + block_load_x, blocks_x-1);
 
-	for(int k = topz; k <= bottomz; k++)
-	{
-		for (int j = startj ; j <= endj; j++)
-		{
+	for(int k = topz; k <= bottomz; k++) {
+		for (int j = startj ; j <= endj; j++) {
 			//Need list of atoms to load, so we can load in sequence
 			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti];
 			int end = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
 
 			int gid = start + lid;
 
-			if(lid < end-start)
-			{
+			if(lid < end-start) {
 				atx[lid] = pos_x[gid];
 				aty[lid] = pos_y[gid];
 				atz[lid] = pos_z[gid];
@@ -118,13 +195,10 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 			barrier(CLK_LOCAL_MEM_FENCE);
 
 			float p2=0.0f;
-			for (int l = 0; l < end-start; l++)
-			{
+			for (int l = 0; l < end-start; l++) {
 				float xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
 
-				int ZNum = atZ[l];
-				for (int h = 0; h <= integrals; h++)
-				{
+				for (int h = 0; h <= integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
@@ -135,25 +209,21 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 
 					float p1 = 0.0f;
 
-					if( rad < 3.0f) // Should also make sure is not too small
-					{
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This part is given by equation C.19 in Kirkland (i.e. actually transforms the paremeterisation into the potential)
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-						// note that all the funny numbers a re just precalculated groups of constants
-						p1 += (150.4121417f * native_recip(rad) * params[(ZNum-1)*12  ]* native_exp( -2.0f*3.141592f*rad*native_sqrt(params[(ZNum-1)*12+1  ])));
-						p1 += (150.4121417f * native_recip(rad) * params[(ZNum-1)*12+2]* native_exp( -2.0f*3.141592f*rad*native_sqrt(params[(ZNum-1)*12+2+1])));
-						p1 += (150.4121417f * native_recip(rad) * params[(ZNum-1)*12+4]* native_exp( -2.0f*3.141592f*rad*native_sqrt(params[(ZNum-1)*12+4+1])));
-						p1 += (266.5157269f * params[(ZNum-1)*12+6] * native_exp (-3.141592f*rad*3.141592f*rad/params[(ZNum-1)*12+6+1]) * native_powr(params[(ZNum-1)*12+6+1],-1.5f));
-						p1 += (266.5157269f * params[(ZNum-1)*12+8] * native_exp (-3.141592f*rad*3.141592f*rad/params[(ZNum-1)*12+8+1]) * native_powr(params[(ZNum-1)*12+8+1],-1.5f));
-						p1 += (266.5157269f * params[(ZNum-1)*12+10] * native_exp (-3.141592f*rad*3.141592f*rad/params[(ZNum-1)*12+10+1]) * native_powr(params[(ZNum-1)*12+10+1],-1.5f));
+					if( rad < 3.0f) { // Should also make sure is not too small
+						// note that all the funny numbers are just pre-calculated groups of constants
+						float p1;
+						if (param_selector == 0)
+						    p1 = kirkland(params, atZ[l], rad);
+                        else if (param_selector == 1)
+                            p1 = peng(params, atZ[l], rad);
+                        else if (param_selector == 2)
+                            p1 = lobato(params, atZ[l], rad);
 
 						// why make sure h!=0 when we can just remove it from the loop?
 						// surely h == 0 will be in the previous slice??
 						// because p1 is used in the next iteration (why it is set to p2)
 						sumz += (h!=0) * (p1+p2)*0.5f;
 						p2 = p1;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					}
 				}
 			}
@@ -161,8 +231,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 			barrier(CLK_LOCAL_MEM_FENCE);
 		}
 	}
-	if(xid < width && yid < height)
-	{
+	if(xid < width && yid < height) {
 		potential[Index].x = native_cos((dz/integrals)*sigma*sumz);
 		potential[Index].y = native_sin((dz/integrals)*sigma*sumz);
 	}

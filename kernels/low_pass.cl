@@ -19,10 +19,9 @@ __kernel void clBandLimit( __global float2* input_output,
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
-	if(xid < width && yid < height)
-	{
+	if(xid < width && yid < height) {
 		int Index = xid + width*yid;
-		float k = sqrt( k_x[xid]*k_x[xid] + k_y[yid]*k_y[yid] );
+		float k = native_sqrt( k_x[xid]*k_x[xid] + k_y[yid]*k_y[yid] );
 		input_output[Index].x *= (k<=k_max);
 		input_output[Index].y *= (k<=k_max);
 	}

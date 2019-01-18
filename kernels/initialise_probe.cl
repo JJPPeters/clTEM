@@ -96,8 +96,8 @@ __kernel void clInitialiseSTEMWavefunction( __global float2* output,
 			float cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			float chi = 2.0f * M_PI_F * cchi / wavelength;
 
-			output[Index].x = cos(chi) * cos(posTerm) + sin(chi) * sin(posTerm);
-			output[Index].y = cos(chi) * sin(posTerm) - sin(chi) * cos(posTerm);
+			output[Index].x = native_cos(chi) * native_cos(posTerm) + native_sin(chi) * native_sin(posTerm);
+			output[Index].y = native_cos(chi) * native_sin(posTerm) - native_sin(chi) * native_cos(posTerm);
 		}
 		else
 		{

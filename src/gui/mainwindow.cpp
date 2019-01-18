@@ -506,8 +506,11 @@ bool MainWindow::checkSimulationPrerequisites()
     if(mp->Aperture <= 0)
         errorList.emplace_back("Aperture must be a non-zero positive number.");
 
-    if(Manager->getStructureParameters().empty())
+    if(Manager->getStructureParameterData().empty())
         errorList.emplace_back("Potentials have not been loaded correctly.");
+
+    if(Manager->getStructureParameter().Max_Atomic_Number < Manager->getStructure()->getMaxAtomicNumber())
+        errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " + std::to_string(Manager->getStructureParameter().Max_Atomic_Number));
 
     // TODO: check beta (alpha) and delta?
 
@@ -583,10 +586,11 @@ void MainWindow::loadExternalSources()
         throw std::runtime_error("Need at least one valid parameters file");
 
     for (int k = 0; k < params_files.size(); ++k) {
-        std::vector<float> params = Utils_Qt::paramsToVector(params_files[k].toStdString());
+        unsigned int row_count;
+        std::vector<float> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
         std::string p_name = params_files[k].toStdString();
         p_name.erase(p_name.find(".dat"), 4);
-        StructureParameters::setParams(params, p_name);
+        StructureParameters::setParams(params, p_name, row_count);
     }
 
     // load DQE, NQE for the CTEM simulation
@@ -744,9 +748,6 @@ void MainWindow::updateManagerFromGui() {
     // Aberrations
     // CBED/STEM TDS
     // CTEM CCD stuff
-
-    // copy the potentials over
-    Manager->setStructureParameters(StructureParameters::getCurrentName(), StructureParameters::getCurrentParams());
 
     // Sort out TDS bits
     Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());

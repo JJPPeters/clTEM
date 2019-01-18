@@ -24,23 +24,15 @@ __kernel void clFloatBandPass( __global const float2* restrict input,
 	//Get the work items ID
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
-	if(xid<width && yid<height)
-	{
-		int Index = xid + yid*width;
-    	float centX = width/2.0f + x_centre;
-    	float centY = height/2.0f + y_centre;
-    	float radius = sqrt( (xid-centX)*(xid-centX) + (yid-centY)*(yid-centY) );
-    	//float x = xid - (width/2.0f + x_centre);
-    	//float y = yid - (height/2.0f + y_centre);
-    	//float radius = sqrt( x*x + y*y );
-    	if (radius < outer && radius > inner)
-    	{
+	if(xid<width && yid<height) {
+		int Index = xid + yid * width;
+    	float centX = width / 2.0f + x_centre;
+    	float centY = height / 2.0f + y_centre;
+    	float radius = native_sqrt( (xid-centX) * (xid-centX) + (yid-centY) * (yid-centY) );
+    	if (radius < outer && radius > inner) {
 		    output[Index] = input[Index].x*input[Index].x + input[Index].y*input[Index].y;
-		}
-		else
-		{
+		} else {
 		    output[Index] = 0.0f;
 		}
-
 	}
 }

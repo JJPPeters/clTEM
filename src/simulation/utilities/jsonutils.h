@@ -26,6 +26,9 @@ namespace JSONUtils {
 
     SimulationManager JsonToManager(json& j);
 
+    // This function is used for the command line to check if the area has been defined
+    SimulationManager JsonToManager(json& j, bool& area_set);
+
     ThermalVibrations JsonToThermalVibrations(json& j);
 
     template <typename T>

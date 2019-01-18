@@ -26,18 +26,16 @@ __kernel void clGeneratePropagator( __global float2* propagator,
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
-	if(xid < width && yid < height)
-	{
+	if(xid < width && yid < height) {
 		int Index = xid + width*yid;
 		float k0x = k_x[xid];
 		float k0y = k_y[yid];
-		float Pi = 3.14159265f;
 
 		k0x*=k0x;
 		k0y*=k0y;
 
-		propagator[Index].x = cos(Pi*dz*wavelength*(k0x+k0y));
-		propagator[Index].y = -1.0f*sin(Pi*dz*wavelength*(k0x+k0y));
+		propagator[Index].x = native_cos(M_PI_F * dz * wavelength * (k0x+k0y));
+		propagator[Index].y = -1.0f * native_sin(M_PI_F * dz * wavelength * (k0x+k0y));
 	}
 }
 

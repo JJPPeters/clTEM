@@ -346,7 +346,6 @@ int main(int argc, char *argv[])
     std::vector<std::shared_ptr<SimulationManager>> man_list;
 
     // read the config file in
-
     nlohmann::json j;
 
     std::cout << "Config file: " << input_params << std::endl;
@@ -359,7 +358,11 @@ int main(int argc, char *argv[])
     }
 
     // make our manager...
-    auto man_ptr = std::make_shared<SimulationManager>(JSONUtils::JsonToManager(j));
+    bool area_set;
+    auto man_ptr = std::make_shared<SimulationManager>(JSONUtils::JsonToManager(j, area_set));
+
+    // areas have been explicitly set in the config file, so we will use those (else the structure limits will be used)
+    man_ptr->setMaintainAreas(area_set);
 
     // try to open the structure file...
     std::cout << "Structure file: " << input_struct << std::endl;
@@ -439,8 +442,10 @@ int main(int argc, char *argv[])
     // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
     std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
-    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat");
-    man_ptr->setStructureParameters(p_name, params);
+    unsigned int row_count;
+    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat", row_count);
+    StructureParameters::setParams(params, p_name, row_count);
+    man_ptr->setStructureParameters(p_name);
 
     man_list.emplace_back(man_ptr);
 

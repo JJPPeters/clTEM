@@ -42,8 +42,7 @@ __kernel void clAtomSort( __global const float* x_input,
 	int xid = get_global_id(0);	
 	if(xid < n_atoms) 
 	{
-	    if (x_input[xid] >= min_x && x_input[xid] <= max_x && y_input[xid] >= min_y && y_input[xid] <= max_y)
-	    {
+	    if (x_input[xid] >= min_x && x_input[xid] <= max_x && y_input[xid] >= min_y && y_input[xid] <= max_y) {
             // get the fractional position of the atoms (in the structure), times by the number of blocks and floor
             int bidx = floor( (x_input[xid] - min_x) / (max_x - min_x) * blocks_x);
             int bidy = floor( (y_input[xid] - min_y) / (max_y - min_y) * blocks_y);
@@ -59,9 +58,7 @@ __kernel void clAtomSort( __global const float* x_input,
             int bid = bidx + blocks_x * bidy;
             block_ids[xid] = bid;
             z_ids[xid] = zid;
-        }
-        else
-        {
+        } else {
             block_ids[xid] = -1;
             z_ids[xid] = -1;
         }

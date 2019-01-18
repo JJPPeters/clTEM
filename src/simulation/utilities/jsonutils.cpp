@@ -7,11 +7,16 @@
 
 namespace JSONUtils {
 
-    SimulationManager JsonToManager(json& j)
+    SimulationManager JsonToManager(json& j) {
+        bool dummy;
+        return JsonToManager(j, dummy);
+    }
+
+    SimulationManager JsonToManager(json& j, bool& area_set)
     {
         SimulationManager man;
+        area_set = false;
         // not sure there is a particularly easy way to go about this. Just go through all the options...
-
         try { man.setMode( readJsonEntry<SimulationMode>(j, "mode", "id") );
         } catch (json::out_of_range& e) {}
 
@@ -31,6 +36,9 @@ namespace JSONUtils {
         } catch (json::out_of_range& e) {}
 
         try { man.setMaintainAreas( readJsonEntry<bool>(j, "maintain areas") );
+        } catch (json::out_of_range& e) {}
+
+        try { man.setStructureParameters( readJsonEntry<std::string>(j, "potentials") );
         } catch (json::out_of_range& e) {}
 
         //
@@ -138,6 +146,8 @@ namespace JSONUtils {
             SimulationArea ar(xs, xf, ys, yf);
             auto area = man.getSimulationArea();
             *area = ar;
+            if (man.getMode() == SimulationMode::CTEM)
+                area_set = true;
         } catch (json::out_of_range& e) {}
 
         //
@@ -158,6 +168,8 @@ namespace JSONUtils {
             StemArea ar(xs, xf, ys, yf, xp, yp, pad);
             auto area = man.getStemArea();
             *area = ar;
+            if (man.getMode() == SimulationMode::STEM)
+                area_set = true;
         } catch (json::out_of_range& e) {}
 
         try { man.setTdsRunsStem(readJsonEntry<unsigned int>(j, "stem", "tds", "configurations"));
@@ -202,6 +214,8 @@ namespace JSONUtils {
             CbedPosition ar(x, y, pad);
             auto area = man.getCBedPosition();
             *area = ar;
+            if (man.getMode() == SimulationMode::CBED)
+                area_set = true; // I don't know if this one matters...
         } catch (json::out_of_range& e) {}
 
         try { man.setTdsRunsCbed(readJsonEntry<unsigned int>(j, "cbed", "tds", "configurations"));
