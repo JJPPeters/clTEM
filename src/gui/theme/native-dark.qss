@@ -1,3 +1,24 @@
+QPushButton {
+    margin: 1px 0px;
+    min-width: 100px;
+    min-height: 36px;
+    padding: 2px 6px;
+}
+
+QComboBox {
+    margin: 0px;
+    min-width: 100px;
+    min-height: 36px;
+    padding: 2px 6px;
+}
+
+QLineEdit {
+    margin: 1px 0px;
+    min-width: 100px;
+    min-height: 36px;
+    padding: 2px 6px;
+}
+
 /* === Window === */
 QWidget:window {
 	background-color: #191919;
@@ -16,7 +37,6 @@ QPushButton {
 	background-color: #373737;
 	color: #FFFFFF;
 	border: 1px solid #555555;
-	padding: 4px 22px;
 }
 
 QPushButton:hover {
