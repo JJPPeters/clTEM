@@ -43,7 +43,7 @@ OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice> current_device
 
     this->setWindowTitle("OpenCL");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 std::tuple<std::vector<clDevice>, std::vector<float>> OpenClDialog::getChosenDevices()
@@ -62,7 +62,7 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent, std::shared_ptr<Simu
 
     this->setWindowTitle("General settings");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 
@@ -77,7 +77,7 @@ AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<Microscope
     // don't think I ever need to disconnect this, should be handles by Qt when the objects are destroyed
     connect(AberrFrame, &FullAberrationFrame::aberrationsApplied, this, &AberrationsDialog::coreAberrationsChanged);
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 void AberrationsDialog::coreAberrationsChanged()
@@ -95,7 +95,7 @@ SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Simulation area");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 
@@ -109,7 +109,7 @@ StemDetectorDialog::StemDetectorDialog(QWidget *parent, std::vector<StemDetector
 
     connect(DetFrame, &StemDetectorFrame::detectorsChanged, this, &StemDetectorDialog::coreDetectorsChanged);
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 void StemDetectorDialog::coreDetectorsChanged()
@@ -126,7 +126,7 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
 
     this->setWindowTitle("Thermal scattering");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 
@@ -139,7 +139,7 @@ StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, 
 {
     this->setWindowTitle("STEM area");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 }
 
 
@@ -152,6 +152,6 @@ ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
 
     this->setWindowTitle("Theme");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->sizeHint());
 #endif
 }
