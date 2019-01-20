@@ -80,7 +80,8 @@ set ( clTEM_SRCS
         utils/guiutils.cpp
         controls/editunitsbox.cpp
         controls/borderlesswindow.cpp
-        controls/borderlessdialog.cpp)
+        controls/borderlessdialog.cpp
+        controls/hovercombobox.h)
 
 set ( clTEM_UIS
         mainwindow.ui

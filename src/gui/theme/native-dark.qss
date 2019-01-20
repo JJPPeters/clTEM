@@ -1,22 +1,26 @@
 QPushButton {
-    margin: 1px 0px;
+    margin: 0px 0px;
     min-width: 100px;
-    min-height: 36px;
+    min-height: 26px;
     padding: 2px 6px;
 }
 
 QComboBox {
     margin: 0px;
     min-width: 100px;
-    min-height: 36px;
+    min-height: 26px;
     padding: 2px 6px;
 }
 
 QLineEdit {
-    margin: 1px 0px;
+    margin: 0px 0px;
     min-width: 100px;
-    min-height: 36px;
+    min-height: 26px;
     padding: 2px 6px;
+}
+
+QLineEdit:focus {
+	border: 1px solid #474747;
 }
 
 /* === Window === */
@@ -90,6 +94,7 @@ QTabBar::tab:!selected:hover {
 
 QTabBar::tab:top, QTabBar::tab:bottom {
     min-width: 8ex;
+    min-height: 26px;
     margin-right: -1px;
     padding: 5px 10px 5px 10px;
 }
@@ -197,12 +202,19 @@ QCheckBox, QRadioButton {
 QCheckBox::indicator  {
 	background-color: #191919;
 	border: 1px solid #2B2B2B;
+	padding: 3px;
+
+}
+
+QCheckBox::indicator::!checked {
 	width: 16px;
     height: 16px;
 }
 
 QCheckBox::indicator::checked {
 	image: url(:/Theme/icons/tick_dark.png);
+	width: 16px;
+    height: 16px;
 }
 
 QCheckBox::indicator::hover {
@@ -221,8 +233,20 @@ QCheckBox::indicator::disabled {
 
 QComboBox {
 	color: #FFFFFF;
-	background-color: #191919;
-	border: 1px solid #2B2B2B;
+	background: #373737;
+	border: 1px solid #555555;
+}
+
+QComboBox:hover:!on {
+	background: solid #474747;
+}
+
+QComboBox:on {
+	background: solid #6C6C6C;
+}
+
+QComboBox:disabled {
+	background: solid #2B2B2B;
 }
 
 QComboBox QAbstractItemView
@@ -242,6 +266,7 @@ QComboBox::drop-down {
      subcontrol-position: top right;
      width: 20px;
      border-left: 0px transparent;
+     margin: 4px;
  }
 
 QComboBox::down-arrow {
