@@ -82,17 +82,17 @@ namespace fileio //D:
 
         std::vector<unsigned char> data_out(padded_x*size_y);
 
-        int ind = 0;
-        for (int j = 0; j < size_y; ++j) {
-            for (int i = 0; i < size_x; ++i) {
+        unsigned int ind = 0;
+        for (unsigned int j = 0; j < size_y; ++j) {
+            for (unsigned int i = 0; i < size_x; ++i) {
                 // normalise data to 0 to 255 data range
-                int in_ind = j * size_x + i;
+                unsigned int in_ind = j * size_x + i;
                 T_in t1 = data[in_ind] - min;
                 double t2 = (double) t1 / (double) max;
                 data_out[ind] = (unsigned char) std::round(t2 * 255);
                 ++ind;
             }
-            for (int i = 0; i < pad; ++i) {
+            for (unsigned int i = 0; i < pad; ++i) {
                 data_out[ind] = 0;
                 ++ind;
             }
