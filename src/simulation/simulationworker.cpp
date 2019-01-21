@@ -47,7 +47,7 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
             doStem();
         }
     } catch (const std::runtime_error &e) {
-        CLOG(ERROR, "sim") << "Error performing simulation:\n" << e.what();
+        CLOG(ERROR, "sim") << "Error performing simulation: " << e.what();
         job->simManager->failedSimulation();
     }
 

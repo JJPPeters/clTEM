@@ -77,8 +77,7 @@ std::string clFftError::GetError(clfftStatus error_code)
 
 void clError::Throw(cl_int error_code, std::string info)
 {
-    if (error_code != CL_SUCCESS)
-    {
+    if (error_code != CL_SUCCESS) {
         std::string message = clError::GetError(error_code);
         if (info.size() > 0)
             message += ": " + info;
@@ -88,10 +87,9 @@ void clError::Throw(cl_int error_code, std::string info)
 
 void clFftError::Throw(clfftStatus error_code, std::string info)
 {
-    if ((cl_int) error_code != CL_SUCCESS)
-    {
+    if ((cl_int) error_code != CL_SUCCESS) {
         std::string message = clError::GetError(error_code);
-        if (info.size() > 0)
+        if (!info.empty())
             message += ": " + info;
         throw std::runtime_error(message.c_str());
     }

@@ -65,14 +65,6 @@ public:
         CodeString = codestring;
     }
 
-    // Can enter arguments as literals now...
-    template <class T> void SetArg(unsigned int position, const T arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified)
-    {
-        ArgType[position] = ArgumentType;
-        status |= clSetKernelArg(Kernel, (cl_uint)position, sizeof(T), &arg);
-        clError::Throw(status, Name + " arg " + std::to_string(position));
-    }
-
     clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy form a reference (&) to not, why?
         if(this!=&Copy)
         {
@@ -109,13 +101,30 @@ public:
     {
         ArgType[position] = ArgumentType;
         Callbacks[position] = arg.get();
+
+        status |= clSetKernelArg(Kernel, position, sizeof(cl_mem), nullptr);
+        clError::Throw(status,  Name + " arg " + std::to_string(position) + ": Possibly trying to set a buffer argument with a non-buffer.");
+
         status |= clSetKernelArg(Kernel, position, sizeof(cl_mem), &arg->GetBuffer());
         clError::Throw(status,  Name + " arg " + std::to_string(position));
     }
 
-    template <class T> void SetLocalMemoryArg(unsigned int position, int size)
+    // Can enter arguments as literals now...
+    template <class T> void SetArg(unsigned int position, const T arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified)
     {
-        status |= clSetKernelArg(Kernel,position,size*sizeof(T),NULL);
+        ArgType[position] = ArgumentType;
+
+        status = clSetKernelArg(Kernel, position, sizeof(cl_mem), nullptr);
+        if (status == CL_SUCCESS)
+            clError::Throw(CL_INVALID_ARG_VALUE,  Name + " arg " + std::to_string(position) + ": Possibly trying to set a non-buffer argument with a buffer.");
+        status = CL_SUCCESS;
+
+        status |= clSetKernelArg(Kernel, (cl_uint)position, sizeof(T), &arg);
+        clError::Throw(status, Name + " arg " + std::to_string(position));
+    }
+
+    template <class T> void SetLocalMemoryArg(unsigned int position, int size) {
+        status |= clSetKernelArg(Kernel, position, size*sizeof(T), nullptr);
         clError::Throw(status,  Name + " arg " + std::to_string(position));
     }
 
