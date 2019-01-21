@@ -57,8 +57,8 @@
 float bessi0(float x) {
 	int i;
 	float ax, x2, sum;
-	__constant float i0a[] = {1.0f, 3.5156229f, 3.0899424f, 1.2067492f, 0.2659732f, 0.0360768f, 0.0045813f};
-	__constant float i0b[] = {0.39894228f, 0.01328592f, 0.00225319f, -0.00157565f, 0.00916281f, -0.02057706f, 0.02635537f, -0.01647633f, 0.00392377f};
+	float i0a[] = {1.0f, 3.5156229f, 3.0899424f, 1.2067492f, 0.2659732f, 0.0360768f, 0.0045813f};
+	float i0b[] = {0.39894228f, 0.01328592f, 0.00225319f, -0.00157565f, 0.00916281f, -0.02057706f, 0.02635537f, -0.01647633f, 0.00392377f};
 
 	ax = fabs(x);
 
@@ -82,8 +82,8 @@ float bessi0(float x) {
 float bessi1(float x) {
     int i;
     float ax, x2, sum;
-    __constant float i1a[] = {0.5f, 0.87890594f, 0.51498869f, 0.15084934f, 0.02658733f, 0.00301532f, 0.00032411f};
-    __constant float i1b[] = {0.39894228f, -0.03988024f, -0.00362018f, 0.00163801f, -0.01031555f, 0.02282967f, -0.02895312f, 0.01787654f, 0.00420059f};
+    float i1a[] = {0.5f, 0.87890594f, 0.51498869f, 0.15084934f, 0.02658733f, 0.00301532f, 0.00032411f};
+    float i1b[] = {0.39894228f, -0.03988024f, -0.00362018f, 0.00163801f, -0.01031555f, 0.02282967f, -0.02895312f, 0.01787654f, 0.00420059f};
 
     ax = fabs(x);
 
@@ -108,8 +108,8 @@ float bessi1(float x) {
 float bessk0(float x) {
 	int i;
 	float ax, x2, sum;
-	__constant float k0a[] = {-0.57721566f, 0.42278420f, 0.23069756f, 0.03488590f, 0.00262698f, 0.00010750f, 0.00000740f};
-	__constant float k0b[] = {1.25331414f, -0.07832358f, 0.02189568f, -0.01062446f, 0.00587872f, -0.00251540f, 0.00053208f};
+	float k0a[] = {-0.57721566f, 0.42278420f, 0.23069756f, 0.03488590f, 0.00262698f, 0.00010750f, 0.00000740f};
+	float k0b[] = {1.25331414f, -0.07832358f, 0.02189568f, -0.01062446f, 0.00587872f, -0.00251540f, 0.00053208f};
 
 	ax = fabs(x);
 
@@ -135,8 +135,8 @@ float bessk0(float x) {
 float bessk1(float x) {
     int i;
     float ax, x2, sum;
-    __constant float k1a[] = {1.0f, 0.15443144f, -0.67278579f, -0.18156897f, -0.01919402f, -0.00110404f, -0.00004686f};
-    __constant float k1b[] = {1.25331414f, 0.23498619f, -0.03655620f, 0.01504268f, -0.00780353f, 0.00325614f, -0.00068245f};
+    float k1a[] = {1.0f, 0.15443144f, -0.67278579f, -0.18156897f, -0.01919402f, -0.00110404f, -0.00004686f};
+    float k1b[] = {1.25331414f, 0.23498619f, -0.03655620f, 0.01504268f, -0.00780353f, 0.00325614f, -0.00068245f};
 
     ax = fabs(x);
 
@@ -167,7 +167,7 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     //
     // Lorentzians
     //
-    x = 2.0f * 3.141592654f * rad;
+    x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
     for(i=0; i<6; i+=2) {
@@ -179,7 +179,7 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     //
     // Gaussians
     //
-    x = 3.141592654f * rad;
+    x = M_PI_F * rad;
     x = x * x;
 
     // Loop through our parameters (a and b)
@@ -200,7 +200,7 @@ float lobato(__constant float* params, int ZNum, float rad) {
     float sum, x;
     sum = 0.0f;
 
-    x = 2.0f * 3.141592654f * rad;
+    x = 2.0f * M_PI_F * rad;
 
     for(i=0; i < 5; ++i) {
         float a = params[(ZNum-1)*10+i];
@@ -217,7 +217,7 @@ float peng(__constant float* params, int ZNum, float rad) {
     float sum, x;
     sum = 0.0f;
 
-    x = 3.141592654f * rad;
+    x = M_PI_F * rad;
     x = x * x;
 
     for(i=0; i<5; ++i) {

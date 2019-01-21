@@ -60,7 +60,7 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     //
     // Lorentzians
     //
-    x = 2.0f * 3.141592654f * rad;
+    x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
     for(i=0; i<6; i+=2) {
@@ -72,7 +72,7 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     //
     // Gaussians
     //
-    x = 3.141592654f * rad;
+    x = M_PI_F * rad;
     x = x * x;
 
     // Loop through our parameters (a and b)
@@ -93,7 +93,7 @@ float lobato(__constant float* params, int ZNum, float rad) {
     float sum, x;
     sum = 0.0f;
 
-    x = 3.141592654f * rad;
+    x = M_PI_F * rad;
 
     for(i=0; i < 5; ++i) {
         float a = params[(ZNum-1)*10+i];
@@ -110,7 +110,7 @@ float peng(__constant float* params, int ZNum, float rad) {
     float sum, x;
     sum = 0.0f;
 
-    x = 3.141592654f * rad;
+    x = M_PI_F * rad;
     x = x * x;
 
     for(i=0; i<5; ++i) {
@@ -161,6 +161,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 	float sumz = 0.0f;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
+	float int_r = native_recip(integrals);
 
 	if(topz < 0 )
 		topz = 0;
@@ -172,10 +173,10 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 	__local float atz[256];
 	__local int atZ[256];
 
-	int startj = fmax(floor( (starty - min_y +  gy    * get_local_size(1) * pixel_scale) * blocks_y  / (max_y-min_y)) - block_load_y, 0) ;
-	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixel_scale) * blocks_y  / (max_y-min_y)) + block_load_y, blocks_y-1);
-	int starti = fmax(floor( (startx - min_x +  gx    * get_local_size(0) * pixel_scale) * blocks_x  / (max_x-min_x)) - block_load_x, 0) ;
-	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixel_scale) * blocks_x  / (max_x-min_x)) + block_load_x, blocks_x-1);
+	int startj = fmax(floor( (starty - min_y +  gy    * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) - block_load_y, 0) ;
+	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) + block_load_y, blocks_y-1);
+	int starti = fmax(floor( (startx - min_x +  gx    * get_local_size(0) * pixel_scale) * blocks_x * native_recip(max_x-min_x)) - block_load_x, 0) ;
+	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixel_scale) * blocks_x * native_recip(max_x-min_x)) + block_load_x, blocks_x-1);
 
 	for(int k = topz; k <= bottomz; k++) {
 		for (int j = startj ; j <= endj; j++) {
@@ -202,7 +203,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
-					float rad = native_sqrt(xyrad2 + (z - h*dz/integrals -atz[l])*(z - h*dz/integrals-atz[l]));
+					float rad = native_sqrt(xyrad2 + (z - h * dz * int_r - atz[l])*(z - h * dz * int_r - atz[l]));
 
 					if(rad < 0.25f * pixel_scale)
 						rad = 0.25f * pixel_scale;
@@ -232,7 +233,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 		}
 	}
 	if(xid < width && yid < height) {
-		potential[Index].x = native_cos((dz/integrals)*sigma*sumz);
-		potential[Index].y = native_sin((dz/integrals)*sigma*sumz);
+		potential[Index].x = native_cos((dz * int_r) * sigma * sumz);
+		potential[Index].y = native_sin((dz * int_r) * sigma * sumz);
 	}
 }

@@ -39,15 +39,15 @@ __kernel void clAtomSort( __global const float* x_input,
 						  float dz,
 						  int n_slices) 
 {		
-	int xid = get_global_id(0);	
+	int xid = get_global_id(0);
 	if(xid < n_atoms) 
 	{
 	    if (x_input[xid] >= min_x && x_input[xid] <= max_x && y_input[xid] >= min_y && y_input[xid] <= max_y) {
             // get the fractional position of the atoms (in the structure), times by the number of blocks and floor
-            int bidx = floor( (x_input[xid] - min_x) / (max_x - min_x) * blocks_x);
-            int bidy = floor( (y_input[xid] - min_y) / (max_y - min_y) * blocks_y);
+            int bidx = floor( (x_input[xid] - min_x) * native_recip(max_x - min_x) * blocks_x);
+            int bidy = floor( (y_input[xid] - min_y) * native_recip(max_y - min_y) * blocks_y);
             // I think this assumes that the z is always from 0?
-            int zid  = floor( (max_z - z_input[xid]) / dz);
+            int zid  = floor( (max_z - z_input[xid]) * native_recip(dz));
 
             // account for any edge cases that are exactly on the limit of z
             zid -= (zid==n_slices);

@@ -31,8 +31,8 @@ __kernel void clGeneratePropagator( __global float2* propagator,
 		float k0x = k_x[xid];
 		float k0y = k_y[yid];
 
-		k0x*=k0x;
-		k0y*=k0y;
+		k0x *= k0x;
+		k0y *= k0y;
 
 		propagator[Index].x = native_cos(M_PI_F * dz * wavelength * (k0x+k0y));
 		propagator[Index].y = -1.0f * native_sin(M_PI_F * dz * wavelength * (k0x+k0y));

@@ -22,6 +22,6 @@ __kernel void clSqAbs( __global const float2* input,
 		float real = input[Index].x;
 		float imag = input[Index].y;
 		output[Index].x = real*real + imag*imag;
-		output[Index].y = 0;
+		output[Index].y = 0.0f;
 	}
 }
