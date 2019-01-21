@@ -350,6 +350,10 @@ void MainWindow::totalProgressChanged(float prog)
 
 void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm)
 {
+    if (ims.empty()) {
+        simulationFailed();
+    }
+
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
@@ -541,6 +545,21 @@ bool MainWindow::checkSimulationPrerequisites()
 void MainWindow::simulationComplete()
 {
     setUiActive(true);
+}
+
+void MainWindow::simulationFailed()
+{
+    // reset our gui
+    setUiActive(true);
+
+    // set an error message
+    QMessageBox msgBox(nullptr);
+    msgBox.setText("Error:");
+    msgBox.setInformativeText("Problem running simulation (see log file)");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setMinimumSize(160, 125);
+    msgBox.exec();
 }
 
 void MainWindow::cancel_simulation()

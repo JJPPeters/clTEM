@@ -196,6 +196,9 @@ public:
     void setProgressSliceReporterFunc(std::function<void(float)> f) {progressSliceReporter = std::move(f);}
 
     void updateImages(std::map<std::string, Image<float>> ims, int jobCount);
+    void failedSimulation();
+
+
     void reportTotalProgress(float prog);
     void reportSliceProgress(float prog);
 

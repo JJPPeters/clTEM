@@ -168,6 +168,15 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
     }
 }
 
+void SimulationManager::failedSimulation() {
+    std::map<std::string, Image<float>> ims;
+    if (imageReturn) {
+        CLOG(DEBUG, "sim") << "Returning blank data";
+        imageReturn(ims, *this);
+    }
+}
+
+
 void SimulationManager::reportTotalProgress(float prog)
 {
     if (progressTotalReporter)

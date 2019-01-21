@@ -35,15 +35,20 @@ void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
     // now what we do depends on the simulation type (I think...)
     auto mode = job->simManager->getMode();
 
-    if (mode == SimulationMode::CTEM) {
-        CLOG(DEBUG, "sim") << "Doing CTEM simulation";
-        doCtem();
-    } else if (mode == SimulationMode::CBED) {
-        CLOG(DEBUG, "sim") << "Doing CBED simulation";
-        doCbed();
-    } else if (mode == SimulationMode::STEM) {
-        CLOG(DEBUG, "sim") << "Doing STEM simulation";
-        doStem();
+    try {
+        if (mode == SimulationMode::CTEM) {
+            CLOG(DEBUG, "sim") << "Doing CTEM simulation";
+            doCtem();
+        } else if (mode == SimulationMode::CBED) {
+            CLOG(DEBUG, "sim") << "Doing CBED simulation";
+            doCbed();
+        } else if (mode == SimulationMode::STEM) {
+            CLOG(DEBUG, "sim") << "Doing STEM simulation";
+            doStem();
+        }
+    } catch (const std::runtime_error &e) {
+        CLOG(ERROR, "sim") << "Error performing simulation:\n" << e.what();
+        job->simManager->failedSimulation();
     }
 
     CLOG(DEBUG, "sim") << "Completed simulation";

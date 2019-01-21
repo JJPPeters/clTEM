@@ -112,6 +112,8 @@ private slots:
 
     void simulationComplete();
 
+    void simulationFailed();
+
     void saveTiff();
 
     void saveBmp();
