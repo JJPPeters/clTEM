@@ -65,6 +65,8 @@ namespace Utils
                 return "STEM";
             case SimulationMode::CBED:
                 return "CBED";
+            default:
+                return "";
         }
     }
 

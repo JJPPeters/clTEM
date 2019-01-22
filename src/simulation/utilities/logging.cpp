@@ -4,11 +4,9 @@
 
 #include "logging.h"
 
-//INITIALIZE_EASYLOGGINGPP
+INITIALIZE_EASYLOGGINGPP
 
 #if ELPP_COMPILER_GCC
-
-INITIALIZE_EASYLOGGINGPP
 
 std::string getMethodName(const std::string& prettyFunction) {
     // find our '(' as we want to find the spaces not in the function list

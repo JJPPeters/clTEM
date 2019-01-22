@@ -111,6 +111,8 @@ unsigned long SimulationManager::getTotalParts()
     else if (Mode == SimulationMode::STEM)
         // round up as still need to complete that 'fraction of a job'
         return (unsigned long) (getTdsRuns() * std::ceil((float) getStemArea()->getNumPixels() / numParallelPixels));
+
+    return 0;
 }
 
 void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, int jobCount)

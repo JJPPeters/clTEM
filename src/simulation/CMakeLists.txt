@@ -20,11 +20,12 @@ if(TIFF_FOUND)
     message(STATUS "TIFF found (include: ${TIFF_INCLUDE_DIR})")
 endif(TIFF_FOUND)
 
+set(EASYLOGGINGPP_USE_STATIC_LIBS TRUE)
 find_package(EASYLOGGINGPP REQUIRED)
 
 if(EASYLOGGINGPP_FOUND)
     message(STATUS "Found EasyLogging++: " ${EASYLOGGINGPP_INCLUDE_DIR})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE -DELPP_FEATURE_CRASH_LOG")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_THREAD_SAFE -DELPP_NO_LOG_TO_FILE")
 endif()
 
 set(SIM_HDRS
@@ -51,7 +52,7 @@ set(SIM_SCRS
         threadworker.cpp
         threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h utilities/logging.cpp utilities/logging.h)
 
-add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS} ${EASYLOGGINGPP_INCLUDE_DIR}/easylogging++.cc)
+add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 
 target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper)
-target_link_libraries (simulation ${TIFF_LIBRARY} clwrapper)
+target_link_libraries (simulation ${TIFF_LIBRARY} ${EASYLOGGINGPP_LIBRARY} clwrapper)
