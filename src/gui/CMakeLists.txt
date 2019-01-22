@@ -38,6 +38,14 @@ add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
+find_package (QCustomPlot REQUIRED)
+if(QCUSTOMPLOT_FOUND)
+    message(STATUS "QCUSTOMPLOT found (include: ${QCustomPlot_INCLUDE_DIR})")
+    message(STATUS "QCUSTOMPLOT found (library: ${QCustomPlot_LIBRARIES})")
+endif(QCUSTOMPLOT_FOUND)
+
+add_definitions(${QCustomPlot_DEFINITIONS})
+
 if(CMAKE_BUILD_TYPE MATCHES Release)
     if(WIN32)
         if(CMAKE_COMPILER_IS_GNUCXX)
@@ -58,7 +66,6 @@ set ( clTEM_SRCS
         controls/tabpanel.cpp
         controls/tabpanelbar.cpp
         controls/imagetab.cpp
-        controls/imageplot/qcustomplot.cpp
         controls/imageplot/imageplotwidget.cpp
         frames/simulationframe.cpp
         frames/temframe.cpp
@@ -124,8 +131,8 @@ if(MINGW)
 endif(MINGW)
 
 add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
-target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation glViewWidget)
-target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport simulation glViewWidget)
+target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${QCustomPlot_INCLUDE_DIR} simulation glViewWidget)
+target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport ${QCustomPlot_LIBRARY} simulation glViewWidget)
 
 # This is for the theming. I need to get a better way of doing it instead of hard coding it.
 if(WIN32)
