@@ -30,6 +30,7 @@ public:
               numParallelPixels(sm.numParallelPixels), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabledStem(sm.TdsEnabledStem), TdsEnabledCbed(sm.TdsEnabledCbed),
+              default_xy_padding(sm.default_xy_padding), default_z_padding(sm.default_z_padding),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
@@ -63,6 +64,8 @@ public:
         StemDets = sm.StemDets;
         TdsEnabledStem = sm.TdsEnabledStem;
         TdsEnabledCbed = sm.TdsEnabledCbed;
+        default_xy_padding = sm.default_xy_padding;
+        default_z_padding = sm.default_z_padding;
         padding_x = sm.padding_x;
         padding_y = sm.padding_y;
         padding_z = sm.padding_z;
@@ -115,8 +118,25 @@ public:
 
     SimulationArea getCtemArea() {return *SimArea;}
 
-    std::valarray<float> getPaddingX() {return padding_x;}
-    std::valarray<float> getPaddingY() {return padding_y;}
+    void setPaddingXY(const std::valarray<float> &pd_xy) {
+        if(pd_xy.size() != 2)
+            throw std::runtime_error("XY padding value must be valarray with 2 values");
+        default_xy_padding = pd_xy;
+    }
+
+    void setPaddingZ(const std::valarray<float> &pd_z) {
+        if(pd_z.size() != 2)
+            throw std::runtime_error("XY padding value must be valarray with 2 values");
+            throw std::runtime_error("XY padding value must be valarray with 2 values");
+        default_z_padding = pd_z;
+    }
+
+    // The rounding doesnt always do something, but is for a uniform style so stuff can be added in later
+    std::valarray<float> getDefaultPaddingXY() {return default_xy_padding;}
+    std::valarray<float> getDefaultPaddingZ() {return default_z_padding;}
+
+    std::valarray<float> getPaddingX() {round_X_padding(); return padding_x;}
+    std::valarray<float> getPaddingY() {round_Y_padding(); return padding_y;}
     std::valarray<float> getPaddingZ() {round_Z_padding(); return padding_z;}
 
     std::valarray<float> getStructLimitsX() {return Structure->getLimitsX();}
@@ -202,8 +222,6 @@ public:
     void reportTotalProgress(float prog);
     void reportSliceProgress(float prog);
 
-    void round_Z_padding();
-
     bool getSimulateCtemImage() {return simulateCtemImage;}
     void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
 
@@ -238,8 +256,13 @@ public:
     bool getMaintainAreas() {return maintain_area;}
 
 private:
-    static std::valarray<float> const default_xy_padding;
-    static std::valarray<float> const default_z_padding;
+    std::valarray<float> default_xy_padding;
+    std::valarray<float> default_z_padding;
+
+    // Nothing happens with the xy padding now, but z needs to be rounded to get the correct slice offset
+    void round_X_padding() {padding_x = default_xy_padding;}
+    void round_Y_padding() {padding_y = default_xy_padding;}
+    void round_Z_padding();
 
     SimulationArea getCurrentAreaBase() {
         // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's

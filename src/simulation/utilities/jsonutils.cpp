@@ -41,6 +41,16 @@ namespace JSONUtils {
         try { man.setStructureParameters( readJsonEntry<std::string>(j, "potentials") );
         } catch (json::out_of_range& e) {}
 
+        try {
+            auto p_xy_val = readJsonEntry<float>(j, "default padding", "xy", "val");
+            man.setPaddingXY({-p_xy_val, p_xy_val});
+        } catch (json::out_of_range& e) {}
+
+        try {
+            auto p_z_val = readJsonEntry<float>(j, "default padding", "z", "val");
+            man.setPaddingZ({-p_z_val, p_z_val});
+        } catch (json::out_of_range& e) {}
+
         //
         // Do all the microscope parameters stuff...
         //
@@ -303,14 +313,35 @@ namespace JSONUtils {
 
         auto xl = man.getPaddedSimLimitsX();
         auto yl = man.getPaddedSimLimitsY();
+        auto zl = man.getPaddedStructLimitsZ(); // z never changes, so always is struct limits
+
+        // padding is always plus/minus one value, with the second element ([1]) being positive
+        auto xp = man.getPaddingX()[1];
+        auto yp = man.getPaddingY()[1];
+        auto zp = man.getPaddingZ()[1];
 
         j["maintain areas"] = man.getMaintainAreas();
         j["simulation area"]["x"]["start"] = xl[0];
         j["simulation area"]["x"]["finish"] = xl[1];
+        j["simulation area"]["x"]["padding"] = xp;
         j["simulation area"]["x"]["units"] = "Å";
         j["simulation area"]["y"]["start"] = yl[0];
         j["simulation area"]["y"]["finish"] = yl[1];
+        j["simulation area"]["y"]["padding"] = yp;
         j["simulation area"]["y"]["units"] = "Å";
+        j["simulation area"]["z"]["start"] = zl[0];
+        j["simulation area"]["z"]["finish"] = zl[1];
+        j["simulation area"]["z"]["padding"] = zp;
+        j["simulation area"]["z"]["units"] = "Å";
+
+
+        auto p_z_d_val = man.getDefaultPaddingZ();
+        auto p_xy_d_val = man.getDefaultPaddingXY();
+
+        j["default padding"]["z"]["val"] = p_z_d_val[1];
+        j["default padding"]["z"]["units"] = "Å";
+        j["default padding"]["xy"]["val"] = p_xy_d_val[1];
+        j["default padding"]["xy"]["units"] = "Å";
 
         // TODO: could put some pixel scale things here for convenience? (would have to distinguish between diff maybe?)
 
