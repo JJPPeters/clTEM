@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    setWindowTitle("clTEM");
+    setWindowTitle(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
 
 #ifndef _WIN32
     // Hide our theme menu options if not on windows

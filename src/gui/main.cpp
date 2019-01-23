@@ -28,6 +28,9 @@ int main(int argc, char *argv[]) {
     // Get a writable location to save the log file
     auto log_dir = QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + QString("logs")) + QDir::separator() + "log.log";
 
+    if(!QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation)).exists())
+        QDir().mkdir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+
     // create a logger for our gui and simulation
     el::Loggers::getLogger("gui");
     el::Loggers::getLogger("sim");

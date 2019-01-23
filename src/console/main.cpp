@@ -302,6 +302,28 @@ int main(int argc, char *argv[])
         // Get a writable location to save the log file
         std::string log_dir = appdata_loc + sep + "log.log";
 
+        fs::path dir(appdata_loc);
+        if (!fs::is_directory(dir)) {
+            std::cout << "Log directory (" + appdata_loc + ") does not exist. Attempting to create..." << std::endl;
+            bool good;
+            try {
+                good = fs::create_directory(dir);
+            } catch (fs::filesystem_error& e) {
+                std::cout << "Error making log directory. Exiting..." << std::endl;
+                std::cout << e.what() << std::endl;
+                return 1;
+            }
+
+            if (!good) {
+                std::cout << "Error making log directory. Exiting..." << std::endl;
+                CLOG(ERROR, "cmd") << "Error making output directory";
+                return 1;
+            }
+
+            std::cout << "Successfully created folder" << std::endl;
+        }
+
+
         defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir);
         defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
         defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
