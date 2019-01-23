@@ -138,13 +138,29 @@ public:
     std::valarray<float> getPaddingY() {round_Y_padding(); return padding_y;}
     std::valarray<float> getPaddingZ() {round_Z_padding(); return padding_z;}
 
-    std::valarray<float> getStructLimitsX() {return Structure->getLimitsX();}
-    std::valarray<float> getStructLimitsY() {return Structure->getLimitsY();}
-    std::valarray<float> getStructLimitsZ() {return Structure->getLimitsZ();}
+    std::valarray<float> getStructLimitsX() {
+        if (Structure)
+            return Structure->getLimitsX();
+        else
+            return {0.f, 0.f};
+    }
 
-    std::valarray<float> getPaddedStructLimitsX() {return getStructLimitsX() + getPaddingX();}
-    std::valarray<float> getPaddedStructLimitsY() {return getStructLimitsY() + getPaddingY();}
-    std::valarray<float> getPaddedStructLimitsZ() {return getStructLimitsZ() + getPaddingZ();}
+    std::valarray<float> getStructLimitsY() {
+        if (Structure)
+            return Structure->getLimitsY();
+        else
+            return {0.f, 0.f};
+    }
+    std::valarray<float> getStructLimitsZ() {
+        if (Structure)
+            return Structure->getLimitsZ();
+        else
+            return {0.f, 0.f};
+    }
+
+    std::valarray<float> getPaddedStructLimitsX() { return getStructLimitsX() + getPaddingX(); }
+    std::valarray<float> getPaddedStructLimitsY() { return getStructLimitsY() + getPaddingY(); }
+    std::valarray<float> getPaddedStructLimitsZ() { return getStructLimitsZ() + getPaddingZ(); }
 
     // should have corrected the shift issue so this more intuitive version works!!
     std::valarray<float> getPaddedSimLimitsX() {

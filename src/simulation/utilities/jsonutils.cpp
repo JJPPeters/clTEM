@@ -311,6 +311,9 @@ namespace JSONUtils {
         j["slice offset"]["val"] = man.getSliceOffset();
         j["slice offset"]["units"] = "Å";
 
+        j["maintain areas"] = man.getMaintainAreas();
+
+
         auto xl = man.getPaddedSimLimitsX();
         auto yl = man.getPaddedSimLimitsY();
         auto zl = man.getPaddedStructLimitsZ(); // z never changes, so always is struct limits
@@ -320,7 +323,6 @@ namespace JSONUtils {
         auto yp = man.getPaddingY()[1];
         auto zp = man.getPaddingZ()[1];
 
-        j["maintain areas"] = man.getMaintainAreas();
         j["simulation area"]["x"]["start"] = xl[0];
         j["simulation area"]["x"]["finish"] = xl[1];
         j["simulation area"]["x"]["padding"] = xp;
