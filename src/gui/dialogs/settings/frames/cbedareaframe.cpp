@@ -1,16 +1,18 @@
+#include <utility>
+
 #include <QtGui/QRegExpValidator>
 #include <utils/stringutils.h>
 #include "cbedareaframe.h"
 #include "ui_cbedareaframe.h"
 
-CbedAreaFrame::CbedAreaFrame(QWidget *parent, CbedPosition pos) :
-    QWidget(parent), Position(pos),
+CbedAreaFrame::CbedAreaFrame(QWidget *parent, CbedPosition pos, std::shared_ptr<CrystalStructure> struc) :
+    QWidget(parent), Position(pos), Structure(std::move(struc)),
     ui(new Ui::CbedAreaFrame)
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp("[+-]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtPosX->setValidator(pmValidator);
     ui->edtPosY->setValidator(pmValidator);
@@ -57,14 +59,23 @@ void CbedAreaFrame::on_btnReset_clicked()
 
 void CbedAreaFrame::on_btnDefault_clicked() {
     //TODO: this default is set in the json file -> get it here somehow?
-    ui->edtPosX->setText(Utils_Qt::numToQString( 0.f));
-    ui->edtPosY->setText(Utils_Qt::numToQString( 0.f));
-    ui->edtPadding->setText(Utils_Qt::numToQString( 0.f));
+    if (Structure) {
+        auto xLims = Structure->getLimitsX();
+        auto yLims = Structure->getLimitsY();
+        float padding = 0.f;
+
+        ui->edtPosX->setText(Utils_Qt::numToQString((xLims[0] + xLims[1]) / 2));
+        ui->edtPosY->setText(Utils_Qt::numToQString((yLims[0] + yLims[1]) / 2));
+
+        ui->edtPadding->setText(Utils_Qt::numToQString(padding));
+    } else {
+        on_btnReset_clicked();
+    }
     emit areaChanged();
 }
 
 void CbedAreaFrame::editing_finished() {
-    QLineEdit* sndr = (QLineEdit*) sender();
+    auto* sndr = (QLineEdit*) sender();
 
     auto val = sndr->text().toFloat();
     sndr->setText(Utils_Qt::numToQString( val ));

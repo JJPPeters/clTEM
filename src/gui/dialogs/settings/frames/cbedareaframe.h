@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <utilities/commonstructs.h>
+#include <structure/crystalstructure.h>
 
 namespace Ui {
 class CbedAreaFrame;
@@ -16,7 +17,7 @@ signals:
     void areaChanged();
 
 public:
-    explicit CbedAreaFrame(QWidget *parent, CbedPosition pos);
+    explicit CbedAreaFrame(QWidget *parent, CbedPosition pos, std::shared_ptr<CrystalStructure> struc);
     ~CbedAreaFrame();
 
     CbedPosition getCbedPos();
@@ -36,6 +37,8 @@ private:
     Ui::CbedAreaFrame *ui;
 
     CbedPosition Position;
+
+    std::shared_ptr<CrystalStructure> Structure;
 };
 
 #endif // CBEDAREAFRAME_H

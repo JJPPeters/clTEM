@@ -60,7 +60,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
     CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->getStructure());
     StemFrame = new StemAreaFrame(this, stemArea, SimManager->getStructure());
-    CbedFrame = new CbedAreaFrame(this, cbedPos);
+    CbedFrame = new CbedAreaFrame(this, cbedPos, SimManager->getStructure());
 
     ui->vCtemLayout->insertWidget(0, CtemFrame);
     ui->vStemLayout->insertWidget(0, StemFrame);

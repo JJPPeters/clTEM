@@ -203,24 +203,25 @@ void StemAreaFrame::on_btnReset_clicked() {
 
 void StemAreaFrame::on_btnDefault_clicked() {
     // TODO: set to structure limits
+    // TODO: Pixels are defined in the json file -> get them here somehow?
+    if (Structure) {
+        auto xLims = Structure->getLimitsX();
+        auto yLims = Structure->getLimitsY();
+        float padding = 0.f;
+        ui->edtStartX->setText(Utils_Qt::numToQString(xLims[0]));
+        ui->edtFinishX->setText(Utils_Qt::numToQString(xLims[1]));
+//        ui->edtPixelsX->setText(Utils_Qt::numToQString( px ));
+        ui->edtRangeX->setText(Utils_Qt::numToQString(xLims[1] - xLims[0]));
 
-    auto xLims = Structure->getLimitsX();
-    auto yLims = Structure->getLimitsY();
-//    int px = 64; // TODO: These are defined in the json file -> get them here somehow?
-//    int py = 64;
-    float padding = 0.f;
+        ui->edtStartY->setText(Utils_Qt::numToQString(yLims[0]));
+        ui->edtFinishY->setText(Utils_Qt::numToQString(yLims[1]));
+//        ui->edtPixelsY->setText(Utils_Qt::numToQString( py ));
+        ui->edtRangeY->setText(Utils_Qt::numToQString(yLims[1] - yLims[0]));
 
-    ui->edtStartX->setText(Utils_Qt::numToQString( xLims[0] ));
-    ui->edtFinishX->setText(Utils_Qt::numToQString( xLims[1] ));
-//    ui->edtPixelsX->setText(Utils_Qt::numToQString( px ));
-    ui->edtRangeX->setText(Utils_Qt::numToQString( xLims[1] - xLims[0] ));
-
-    ui->edtStartY->setText(Utils_Qt::numToQString( yLims[0] ));
-    ui->edtFinishY->setText(Utils_Qt::numToQString( yLims[1] ));
-//    ui->edtPixelsY->setText(Utils_Qt::numToQString( py ));
-    ui->edtRangeY->setText(Utils_Qt::numToQString( yLims[1] - yLims[0] ));
-
-    ui->edtPadding->setText(Utils_Qt::numToQString(padding));
+        ui->edtPadding->setText(Utils_Qt::numToQString(padding));
+    } else {
+        on_btnReset_clicked();
+    }
 
     emit areaChanged();
 }
