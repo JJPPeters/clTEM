@@ -33,6 +33,35 @@
           <string>General</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
+          <item row="5" column="2">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="lblParameters">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Potentials: </string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="2">
            <widget class="QLineEdit" name="edt3dIntegrals">
             <property name="minimumSize">
@@ -72,34 +101,18 @@
             </property>
            </spacer>
           </item>
-          <item row="3" column="2">
-           <spacer name="verticalSpacer_2">
+          <item row="2" column="0">
+           <spacer name="horizontalSpacer_3">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>0</height>
+              <width>10</width>
+              <height>20</height>
              </size>
             </property>
            </spacer>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="lblParameters">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Potentials: </string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
           </item>
           <item row="1" column="2">
            <widget class="QComboBox" name="cmbParams">
@@ -124,18 +137,57 @@
             </property>
            </spacer>
           </item>
-          <item row="2" column="0">
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="3" column="1">
+           <widget class="QLabel" name="lblPaddingXY">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="sizeHint" stdset="0">
+            <property name="text">
+             <string>Min padding x/y: </string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="lblPaddingZ">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Min padding z: </string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="EditUnitsBox" name="edtPaddingXY">
+            <property name="minimumSize">
              <size>
-              <width>10</width>
-              <height>20</height>
+              <width>100</width>
+              <height>26</height>
              </size>
             </property>
-           </spacer>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="EditUnitsBox" name="edtPaddingZ">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>26</height>
+             </size>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -237,6 +289,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
   <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>
