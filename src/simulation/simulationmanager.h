@@ -118,16 +118,15 @@ public:
 
     SimulationArea getCtemArea() {return *SimArea;}
 
-    void setPaddingXY(const std::valarray<float> &pd_xy) {
+    void setDefaultPaddingXY(const std::valarray<float> &pd_xy) {
         if(pd_xy.size() != 2)
             throw std::runtime_error("XY padding value must be valarray with 2 values");
         default_xy_padding = pd_xy;
     }
 
-    void setPaddingZ(const std::valarray<float> &pd_z) {
+    void setDefaultPaddingZ(const std::valarray<float> &pd_z) {
         if(pd_z.size() != 2)
-            throw std::runtime_error("XY padding value must be valarray with 2 values");
-            throw std::runtime_error("XY padding value must be valarray with 2 values");
+            throw std::runtime_error("Z padding value must be valarray with 2 values");
         default_z_padding = pd_z;
     }
 

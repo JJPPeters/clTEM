@@ -43,12 +43,12 @@ namespace JSONUtils {
 
         try {
             auto p_xy_val = readJsonEntry<float>(j, "default padding", "xy", "val");
-            man.setPaddingXY({-p_xy_val, p_xy_val});
+            man.setDefaultPaddingXY({-p_xy_val, p_xy_val});
         } catch (json::out_of_range& e) {}
 
         try {
             auto p_z_val = readJsonEntry<float>(j, "default padding", "z", "val");
-            man.setPaddingZ({-p_z_val, p_z_val});
+            man.setDefaultPaddingZ({-p_z_val, p_z_val});
         } catch (json::out_of_range& e) {}
 
         //

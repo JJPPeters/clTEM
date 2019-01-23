@@ -50,7 +50,7 @@ void SimulationManager::setStructure(std::string filePath)
         getStemArea()->setRawLimitsY(y_lims[0], y_lims[1]);
 
         getCBedPosition()->setXPos((x_lims[0] + x_lims[1]) / 2);
-        getCBedPosition()->setXPos((y_lims[0] + y_lims[1]) / 2);
+        getCBedPosition()->setYPos((y_lims[0] + y_lims[1]) / 2);
     }
 }
 
