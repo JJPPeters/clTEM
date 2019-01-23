@@ -500,6 +500,9 @@ bool MainWindow::checkSimulationPrerequisites()
 
     if(!Manager->getStructure())
         errorList.emplace_back("No structure loaded.");
+    else
+        if(Manager->getStructureParameter().Max_Atomic_Number < Manager->getStructure()->getMaxAtomicNumber())
+            errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " + std::to_string(Manager->getStructureParameter().Max_Atomic_Number));
 
     if(!Manager->haveResolution())
         errorList.emplace_back("No valid simulation resolution set.");
@@ -512,9 +515,6 @@ bool MainWindow::checkSimulationPrerequisites()
 
     if(Manager->getStructureParameterData().empty())
         errorList.emplace_back("Potentials have not been loaded correctly.");
-
-    if(Manager->getStructureParameter().Max_Atomic_Number < Manager->getStructure()->getMaxAtomicNumber())
-        errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " + std::to_string(Manager->getStructureParameter().Max_Atomic_Number));
 
     // TODO: check beta (alpha) and delta?
 
