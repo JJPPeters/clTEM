@@ -9,7 +9,7 @@ void ThreadWorker::operator()()
 {
     std::shared_ptr<SimulationJob> task;
 
-    while(!pool.tasks.empty())
+    while(true)
     {
         {   // acquire lock
             std::unique_lock<std::mutex> lock(pool.queue_mutex);

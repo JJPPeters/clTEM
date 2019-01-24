@@ -41,10 +41,15 @@ private:
     std::vector<std::shared_ptr<MemoryRecord>> MemList;
 
 public:
-    clContext(clDevice _ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_int _Status)
-            : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_Queue), Status(_Status){}
-    clContext(clDevice _ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_command_queue _IOQueue, cl_int _Status)
-            : ContextDevice(_ContextDevice), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), Status(_Status){}
+    clContext(const clDevice &_ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_int _Status)
+            : Status(_Status), Context(_Context), Queue(_Queue), IOQueue(_Queue), ContextDevice(_ContextDevice){}
+    clContext(const clDevice &_ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_command_queue _IOQueue, cl_int _Status)
+            : Status(_Status), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), ContextDevice(_ContextDevice){}
+
+    ~clContext() {
+        Status = clReleaseContext(Context);
+        clError::Throw(Status);
+    }
 
     void WaitForQueueFinish() {
         int status = clFinish(Queue);
@@ -72,12 +77,12 @@ public:
     size_t GetOccupiedMemorySize()
     {
         size_t total = 0;
-        for(auto it = MemList.begin(); it != MemList.end(); it++)
-            total += (*it)->size;
+        for (auto &it : MemList)
+            total += it->size;
         return total;
     }
 
-    void RemoveMemRecord(std::shared_ptr<MemoryRecord> rec)
+    void RemoveMemRecord(const std::shared_ptr<MemoryRecord> &rec)
     {
         auto it = std::find(MemList.begin(), MemList.end(), rec);
         if (it != MemList.end())
@@ -87,7 +92,7 @@ public:
     template<class T,template <class> class AutoPolicy> std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(size_t size)
     {
         std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
-        auto b = clCreateBuffer(Context, MemoryFlags::ReadWrite, size*sizeof(T), 0, &Status);
+        auto b = clCreateBuffer(Context, MemoryFlags::ReadWrite, size*sizeof(T), nullptr, &Status);
         clError::Throw(Status, "");
         std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(this, size, b, rec);
         MemList.emplace_back(rec);
@@ -97,7 +102,7 @@ public:
     template<class T,template <class> class AutoPolicy > std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(size_t size, enum MemoryFlags flags)
     {
         std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
-        auto b = clCreateBuffer(Context, flags, size*sizeof(T), 0, &Status);
+        auto b = clCreateBuffer(Context, flags, size*sizeof(T), nullptr, &Status);
         std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(this, size, b, rec);
         clError::Throw(Status, "");
         MemList.emplace_back(rec);
