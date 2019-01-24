@@ -14,13 +14,11 @@ void ThreadWorker::operator()()
         {   // acquire lock
             std::unique_lock<std::mutex> lock(pool.queue_mutex);
 
+            // only proceed if we are stopping (so we can exit) or we have a task to do (so we can do it)
             pool.condition.wait(lock, [this]{ return this->pool.stop || !this->pool.tasks.empty(); });
 
-            if(pool.stop) { // exit if the pool is stopped
-                for (auto &pt : pool.tasks)
-                    pt->promise.set_value(); // make our threads have some output so other threads don't wait for them
+            if(pool.stop) // exit if the pool is stopped
                 return;
-            }
 
             // get the task from the queue
             task = std::move(pool.tasks.front());

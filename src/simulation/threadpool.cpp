@@ -32,6 +32,9 @@ void ThreadPool::stopThreads()
     // join them
     for (auto &worker : workers)
         worker.join();
-
     workers.clear();
+
+    for (auto &task : tasks)
+        task->promise.set_value();
+    tasks.clear();
 }
