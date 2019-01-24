@@ -18,13 +18,13 @@
 class ThreadWorker
 {
 public:
-    ThreadWorker(ThreadPool &s, int _id) : pool(s), id(_id) { }
+    ThreadWorker(ThreadPool &s, unsigned int _id) : pool(s), id(_id) { }
 
     void operator()();
 
-    virtual void Run(std::shared_ptr<SimulationJob> job) {};
+    virtual void Run(const std::shared_ptr<SimulationJob> &job) {};
 
-    int id;
+    unsigned int id;
 
 protected:
     ThreadPool &pool;

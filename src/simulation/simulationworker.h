@@ -14,11 +14,11 @@ class SimulationWorker : public ThreadWorker
 {
 public:
     // initialise FourierTrans just with any values
-    SimulationWorker(ThreadPool &s, int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx), FourierTrans(_ctx, 256, 256) {}
+    SimulationWorker(ThreadPool &s, unsigned int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx), FourierTrans(_ctx, 256, 256) {}
 
     ~SimulationWorker() = default;
 
-    void Run(std::shared_ptr<SimulationJob> _job) override;
+    void Run(const std::shared_ptr<SimulationJob> &_job) override;
 
 private:
     clContext ctx;

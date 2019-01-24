@@ -9,7 +9,7 @@
 #include "kernels.h"
 #include "ccdparams.h"
 
-void SimulationWorker::Run(std::shared_ptr<SimulationJob> _job) {
+void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
     int p_num = ctx.GetContextDevice().GetPlatformNumber();

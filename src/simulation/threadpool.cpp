@@ -9,8 +9,7 @@
 ThreadPool::ThreadPool(std::vector<clDevice> devList, int num_jobs) : stop(false)
 {
     size_t n_threads = std::min(devList.size(), (size_t) num_jobs);
-    for(size_t i = 0; i < n_threads; ++i) // TODO: depends what is lower, n jobs or n devices
-    {
+    for(unsigned int i = 0; i < n_threads; ++i) { // TODO: depends what is lower, n jobs or n devices
         workers.emplace_back(std::thread(std::move(SimulationWorker(*this, i, OpenCL::MakeContext(devList[i])))));
     }
 }
@@ -31,8 +30,8 @@ void ThreadPool::stopThreads()
     condition.notify_all();
 
     // join them
-    for(size_t i = 0; i < workers.size(); ++i)
-        workers[i].join();
+    for (auto &worker : workers)
+        worker.join();
 
     workers.clear();
 }
