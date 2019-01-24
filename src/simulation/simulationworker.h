@@ -88,24 +88,24 @@ private:
 
     // General kernels
     clFourier FourierTrans;
-    clKernel BandLimit;
-    clKernel fftShift;
-    clKernel BinnedAtomicPotential;
-    clKernel GeneratePropagator;
-    clKernel ComplexMultiply;
+    std::shared_ptr<clKernel> BandLimit;
+    std::shared_ptr<clKernel> fftShift;
+    std::shared_ptr<clKernel> BinnedAtomicPotential;
+    std::shared_ptr<clKernel> GeneratePropagator;
+    std::shared_ptr<clKernel> ComplexMultiply;
 
     // CTEM
-    clKernel InitPlaneWavefunction;
-    clKernel ImagingKernel;
-    clKernel ABS2;
+    std::shared_ptr<clKernel> InitPlaneWavefunction;
+    std::shared_ptr<clKernel> ImagingKernel;
+    std::shared_ptr<clKernel> ABS2;
     
     // CBED
-    clKernel InitProbeWavefunction;
+    std::shared_ptr<clKernel> InitProbeWavefunction;
     std::shared_ptr<clMemory<float, Manual>> clTDSMaskDiff;
 
     // STEM
-    clKernel TDSMaskingAbsKernel;
-    clKernel SumReduction;
+    std::shared_ptr<clKernel> TDSMaskingAbsKernel;
+    std::shared_ptr<clKernel> SumReduction;
 };
 
 

@@ -16,14 +16,17 @@ SimulationRunner::SimulationRunner(std::vector<std::shared_ptr<SimulationManager
 void SimulationRunner::runSimulations()
 {
     start = true;
+    CLOG(DEBUG, "gui") << "Running through " << managers.size() << " managers";
     for (const auto &m : managers)
         runSingle(m);
 }
 
 void SimulationRunner::runSingle(std::shared_ptr<SimulationManager> sim_pointer)
 {
+    CLOG(DEBUG, "gui") << "Splitting jobs";
     auto jobs = SplitJobs(std::move(sim_pointer));
 
+    CLOG(DEBUG, "gui") << "Making threadpool";
     t_pool = std::make_unique<ThreadPool>(dev_list, jobs.size());
 
     if (!start)

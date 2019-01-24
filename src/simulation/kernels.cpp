@@ -1,17 +1,17 @@
 # include "kernels.h"
 
-std::string Kernels::atom_sort = "";
-std::string Kernels::floatSumReductionsource2 = "";
-std::string Kernels::BandLimitSource = "";
-std::string Kernels::fftShiftSource = "";
-std::string Kernels::opt2source = "";
-std::string Kernels::conv2source = "";
-std::string Kernels::propsource = "";
-std::string Kernels::multisource = "";
-std::string Kernels::InitialiseWavefunctionSource = "";
-std::string Kernels::imagingKernelSource = "";
-std::string Kernels::InitialiseSTEMWavefunctionSourceTest = "";
-std::string Kernels::floatabsbandPassSource = "";
-std::string Kernels::SqAbsSource = "";
-std::string Kernels::DqeSource = "";
-std::string Kernels::NtfSource = "";
+KernelSource Kernels::atom_sort;
+KernelSource Kernels::floatSumReductionsource2;
+KernelSource Kernels::BandLimitSource;
+KernelSource Kernels::fftShiftSource;
+KernelSource Kernels::opt2source;
+KernelSource Kernels::conv2source;
+KernelSource Kernels::propsource;
+KernelSource Kernels::multisource;
+KernelSource Kernels::InitialiseWavefunctionSource;
+KernelSource Kernels::imagingKernelSource;
+KernelSource Kernels::InitialiseSTEMWavefunctionSourceTest;
+KernelSource Kernels::floatabsbandPassSource;
+KernelSource Kernels::SqAbsSource;
+KernelSource Kernels::DqeSource;
+KernelSource Kernels::NtfSource;

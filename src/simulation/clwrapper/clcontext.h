@@ -25,7 +25,7 @@ enum MemoryFlags
 class MemoryRecord
 {
 public:
-    MemoryRecord(size_t _size): size(_size){};
+    explicit MemoryRecord(size_t _size): size(_size){};
     size_t size;
 };
 

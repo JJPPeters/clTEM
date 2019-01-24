@@ -133,6 +133,11 @@ public:
     clEvent operator()(clWorkGroup Global, clWorkGroup Local);
     clEvent operator()(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent);
 
+    clEvent run(clWorkGroup Global);
+    clEvent run(clWorkGroup Global, clEvent StartEvent);
+    clEvent run(clWorkGroup Global, clWorkGroup Local);
+    clEvent run(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent);
+
     cl_int GetStatus(){ return status; };
     unsigned int NumberOfArgs;
 

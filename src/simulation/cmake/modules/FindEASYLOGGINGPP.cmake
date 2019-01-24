@@ -24,16 +24,30 @@ find_path(EASYLOGGINGPP_INCLUDE_DIR
 
 if (EASYLOGGINGPP_USE_STATIC_LIBS)
     message ("-- Easylogging++: Static linking is preferred")
-    find_library(EASYLOGGINGPP_LIBRARY
-        NAMES libeasyloggingpp.a libeasyloggingpp.dylib libeasyloggingpp
-        HINTS "${CMAKE_PREFIX_PATH}/lib"
-    )
+    if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+        find_library(EASYLOGGINGPP_LIBRARY
+                NAMES libeasyloggingppd.a libeasyloggingppd.dylib libeasyloggingppd
+                HINTS "${CMAKE_PREFIX_PATH}/lib"
+                )
+    else ()
+        find_library(EASYLOGGINGPP_LIBRARY
+                NAMES libeasyloggingpp.a libeasyloggingpp.dylib libeasyloggingpp
+                HINTS "${CMAKE_PREFIX_PATH}/lib"
+                )
+    endif ()
 elseif (EASYLOGGINGPP_USE_SHARED_LIBS)
     message ("-- Easylogging++: Dynamic linking is preferred")
-    find_library(EASYLOGGINGPP_LIBRARY
-        NAMES libeasyloggingpp.dylib libeasyloggingpp libeasyloggingpp.a
-        HINTS "${CMAKE_PREFIX_PATH}/lib"
-    )
+    if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+        find_library(EASYLOGGINGPP_LIBRARY
+            NAMES libeasyloggingppd.dylib libeasyloggingppd libeasyloggingppd.a
+            HINTS "${CMAKE_PREFIX_PATH}/lib"
+        )
+    else ()
+        find_library(EASYLOGGINGPP_LIBRARY
+                NAMES libeasyloggingpp.dylib libeasyloggingpp libeasyloggingpp.a
+                HINTS "${CMAKE_PREFIX_PATH}/lib"
+                )
+    endif ()
 endif()
 
 find_package_handle_standard_args(EASYLOGGINGPP REQUIRED_VARS EASYLOGGINGPP_INCLUDE_DIR)

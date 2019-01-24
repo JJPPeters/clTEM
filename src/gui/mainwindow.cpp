@@ -595,13 +595,13 @@ void MainWindow::loadExternalSources()
 
     // load parameters
     // get all the files in the parameters folder
-    auto params_path = QApplication::instance()->applicationDirPath() + "/params/";
+    auto params_path = qApp->applicationDirPath() + "/params/";
     QDir params_dir(params_path);
     QStringList params_filt;
     params_filt << "*.dat";
     QStringList params_files = params_dir.entryList(params_filt);
 
-    if (params_files.size() < 1)
+    if (params_files.empty())
         throw std::runtime_error("Need at least one valid parameters file");
 
     for (int k = 0; k < params_files.size(); ++k) {
@@ -614,7 +614,7 @@ void MainWindow::loadExternalSources()
 
     // load DQE, NQE for the CTEM simulation
 
-    auto ccd_path = QApplication::instance()->applicationDirPath() + "/ccds/";
+    auto ccd_path = qApp->applicationDirPath() + "/ccds/";
     QDir ccd_dir(ccd_path);
     QStringList ccd_filt;
     ccd_filt << "*.dat";
