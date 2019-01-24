@@ -28,7 +28,7 @@ namespace Direction
 
 class clFourier
 {
-    clContext* Context;
+    std::shared_ptr<clContext> Context;
     clfftStatus fftStatus;
     clfftSetupData fftSetupData;
     clfftPlanHandle fftplan;
@@ -42,7 +42,7 @@ class clFourier
 
 public:
 
-    clFourier(clContext &Context, unsigned int _width, unsigned int _height);
+    clFourier(std::shared_ptr<clContext> Context, unsigned int _width, unsigned int _height);
 
     clFourier(const clFourier &RHS): Context(RHS.Context), width(RHS.width), height(RHS.height), buffersize(0)
     {

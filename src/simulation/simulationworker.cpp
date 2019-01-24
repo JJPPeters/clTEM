@@ -12,8 +12,8 @@
 void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
-    int p_num = ctx.GetContextDevice().GetPlatformNumber();
-    int d_num = ctx.GetContextDevice().GetDeviceNumber();
+    int p_num = ctx->GetContextDevice().GetPlatformNumber();
+    int d_num = ctx->GetContextDevice().GetDeviceNumber();
 
     el::Helpers::setThreadName("p" + std::to_string(p_num) + ":d" + std::to_string(d_num));
 
@@ -62,9 +62,9 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
 
 void SimulationWorker::uploadParameters(std::vector<float> param) {
     CLOG(DEBUG, "sim") << "Uploading parameters";
-    ClParameterisation = ctx.CreateBuffer<float, Manual>(param.size());
+    ClParameterisation = ctx->CreateBuffer<float, Manual>(param.size());
     ClParameterisation->Write(param);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 }
 
 void SimulationWorker::sortAtoms(bool doTds) {
@@ -98,13 +98,13 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     CLOG(DEBUG, "sim") << "Creating buffers";
 
-    ClAtomA = ctx.CreateBuffer<int, Manual>(atom_count);
-    ClAtomX = ctx.CreateBuffer<float, Manual>(atom_count);
-    ClAtomY = ctx.CreateBuffer<float, Manual>(atom_count);
-    ClAtomZ = ctx.CreateBuffer<float, Manual>(atom_count);
+    ClAtomA = ctx->CreateBuffer<int, Manual>(atom_count);
+    ClAtomX = ctx->CreateBuffer<float, Manual>(atom_count);
+    ClAtomY = ctx->CreateBuffer<float, Manual>(atom_count);
+    ClAtomZ = ctx->CreateBuffer<float, Manual>(atom_count);
 
-    ClBlockIds = ctx.CreateBuffer<int,Manual>(atom_count);
-    ClZIds = ctx.CreateBuffer<int,Manual>(atom_count);
+    ClBlockIds = ctx->CreateBuffer<int,Manual>(atom_count);
+    ClZIds = ctx->CreateBuffer<int,Manual>(atom_count);
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
 
@@ -151,7 +151,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
     CLOG(DEBUG, "sim") << "Running sort kernel";
     clAtomSort->run(SortSize);
 
-    ctx.WaitForQueueFinish(); // test
+    ctx->WaitForQueueFinish(); // test
 
     CLOG(DEBUG, "sim") << "Reading sort kernel output";
 
@@ -223,7 +223,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
     // Last element indicates end of last block as total number of atoms.
     blockStartPositions[numberOfSlices*BlocksX*BlocksY] = count_in_range;
 
-    ClBlockStartPositions = ctx.CreateBuffer<int, Manual>(numberOfSlices * BlocksX * BlocksY + 1);
+    ClBlockStartPositions = ctx->CreateBuffer<int, Manual>(numberOfSlices * BlocksX * BlocksY + 1);
 
     CLOG(DEBUG, "sim") << "Writing binned atom posisitons to bufffers";
 
@@ -236,7 +236,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
     ClBlockStartPositions->Write(blockStartPositions);
 
     // wait for the IO queue here so that we are sure the data is uploaded before we start usign it
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 }
 
 void SimulationWorker::doCtem(bool simImage)
@@ -486,16 +486,16 @@ void SimulationWorker::initialiseSimulation()
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
     // write our frequencies to OpenCL buffers
-    clXFrequencies = ctx.CreateBuffer<float, Manual>(resolution);
-    clYFrequencies = ctx.CreateBuffer<float, Manual>(resolution);
+    clXFrequencies = ctx->CreateBuffer<float, Manual>(resolution);
+    clYFrequencies = ctx->CreateBuffer<float, Manual>(resolution);
     clXFrequencies->Write(k0x);
     clYFrequencies->Write(k0y);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create a few buffers we will need later
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    clPropagator = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
-    clPotential = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
+    clPropagator = ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution);
+    clPotential = ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution);
 
     clWorkGroup WorkSize(resolution, resolution, 1);
 
@@ -503,7 +503,7 @@ void SimulationWorker::initialiseSimulation()
     /// Setup Fourier Transforms, this is sort of obvious
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up FFT kernel";
-    FourierTrans = clFourier(ctx, resolution, resolution);
+    FourierTrans = std::make_shared<clFourier>(ctx, resolution, resolution);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up FFT shift kernel
@@ -623,10 +623,10 @@ void SimulationWorker::initialiseCtem()
     // Note that for CTEM, the vectors are not really needed, but use them for compatibility
     clWorkGroup WorkSize(resolution, resolution, 1);
 
-    clWaveFunction1.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-    clWaveFunction2.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-    clWaveFunction3 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
-    clWaveFunction4.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
+    clWaveFunction1.push_back(ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution));
+    clWaveFunction2.push_back(ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution));
+    clWaveFunction3 = ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution);
+    clWaveFunction4.push_back(ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution));
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create plane wave function
@@ -647,7 +647,7 @@ void SimulationWorker::initialiseCtem()
     if (job->simManager->getSimulateCtemImage()) {
         CLOG(DEBUG, "sim") << "Set up image kernel";
         // this is only needed if the imaging part is used, but build it here (with it's buffer) to save time later
-        clImageWaveFunction = ctx.CreateBuffer<cl_float2, Manual>(resolution * resolution);
+        clImageWaveFunction = ctx->CreateBuffer<cl_float2, Manual>(resolution * resolution);
         ImagingKernel = Kernels::imagingKernelSource.BuildToKernel(ctx);
 
         CLOG(DEBUG, "sim") << "Set up absolute squared kernel";
@@ -669,13 +669,13 @@ void SimulationWorker::initialiseCbed() {
     // Initialise Wavefunctions and Create other buffers...
     // Even though CBED only eer has 1 parallel simulation (per device), this set up is also used for STEM
     for (int i = 1; i <= n_parallel; i++) {
-        clWaveFunction1.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-        clWaveFunction2.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
-        clWaveFunction4.push_back(ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution));
+        clWaveFunction1.push_back(ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution));
+        clWaveFunction2.push_back(ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution));
+        clWaveFunction4.push_back(ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution));
     }
-    clWaveFunction3 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
+    clWaveFunction3 = ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution);
 
-    clTDSMaskDiff = ctx.CreateBuffer<cl_float, Manual>(resolution*resolution);
+    clTDSMaskDiff = ctx->CreateBuffer<cl_float, Manual>(resolution*resolution);
 
     CLOG(DEBUG, "sim") << "Set up Probe wavefunction kernel";
     InitProbeWavefunction = Kernels::InitialiseSTEMWavefunctionSourceTest.BuildToKernel(ctx);
@@ -750,7 +750,7 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     CLOG(DEBUG, "sim") << "Run probe wavefunction generation kernel";
     InitProbeWavefunction->run(WorkSize);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// IFFT probe to real space
@@ -758,8 +758,8 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
 
     // IFFT
     CLOG(DEBUG, "sim") << "IFFT probe wavefunction";
-    FourierTrans.Do(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
+    ctx->WaitForQueueFinish();
 }
 
 void SimulationWorker::doMultiSliceStep(int slice)
@@ -798,20 +798,20 @@ void SimulationWorker::doMultiSliceStep(int slice)
 
     BinnedAtomicPotential->run(Work, LocalWork);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "FFT potentials";
-    FourierTrans.Do(clPotential, clWaveFunction3, Direction::Forwards);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(clPotential, clWaveFunction3, Direction::Forwards);
+    ctx->WaitForQueueFinish();
     CLOG(DEBUG, "sim") << "Band limit potentials";
     BandLimit->run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
     CLOG(DEBUG, "sim") << "IFFT band limited potentials";
-    FourierTrans.Do(clWaveFunction3, clPotential, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(clWaveFunction3, clPotential, Direction::Inverse);
+    ctx->WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
@@ -821,14 +821,14 @@ void SimulationWorker::doMultiSliceStep(int slice)
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
         // Apply low pass filter to wavefunction
         CLOG(DEBUG, "sim") << "FFT incoming wavefunction";
-        FourierTrans.Do(clWaveFunction1[i - 1], clWaveFunction3, Direction::Forwards);
-        ctx.WaitForQueueFinish();
+        FourierTrans->Do(clWaveFunction1[i - 1], clWaveFunction3, Direction::Forwards);
+        ctx->WaitForQueueFinish();
         CLOG(DEBUG, "sim") << "Band limit incoming wavefunction";
         BandLimit->run(Work);
-        ctx.WaitForQueueFinish();
+        ctx->WaitForQueueFinish();
         CLOG(DEBUG, "sim") << "IFFT band limited incoming wavefunction";
-        FourierTrans.Do(clWaveFunction3, clWaveFunction1[i - 1], Direction::Inverse);
-        ctx.WaitForQueueFinish();
+        FourierTrans->Do(clWaveFunction3, clWaveFunction1[i - 1], Direction::Inverse);
+        ctx->WaitForQueueFinish();
         
         //Multiply potential with wavefunction
         ComplexMultiply->SetArg(0, clPotential, ArgumentType::Input);
@@ -836,12 +836,12 @@ void SimulationWorker::doMultiSliceStep(int slice)
         ComplexMultiply->SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
         ComplexMultiply->run(Work);
-        ctx.WaitForQueueFinish();
+        ctx->WaitForQueueFinish();
 
         // go to reciprocal space
         CLOG(DEBUG, "sim") << "FFT to reciprocal space";
-        FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction3, Direction::Forwards);
-        ctx.WaitForQueueFinish();
+        FourierTrans->Do(clWaveFunction2[i - 1], clWaveFunction3, Direction::Forwards);
+        ctx->WaitForQueueFinish();
 
         // convolve with propagator
         ComplexMultiply->SetArg(0, clWaveFunction3, ArgumentType::Input);
@@ -849,12 +849,12 @@ void SimulationWorker::doMultiSliceStep(int slice)
         ComplexMultiply->SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Convolve with propogator";
         ComplexMultiply->run(Work);
-        ctx.WaitForQueueFinish();
+        ctx->WaitForQueueFinish();
 
         // IFFT back to real space
         CLOG(DEBUG, "sim") << "IFFT to real space";
-        FourierTrans.Do(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
-        ctx.WaitForQueueFinish();
+        FourierTrans->Do(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
+        ctx->WaitForQueueFinish();
     }
 }
 
@@ -895,12 +895,12 @@ void SimulationWorker::simulateCtemImage()
     clWorkGroup Work(resolution, resolution, 1);
 
     ImagingKernel->run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // Now get and display absolute value
     CLOG(DEBUG, "sim") << "IFFT to real space";
-    FourierTrans.Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Calculate absolute squared";
     ABS2->SetArg(0, clWaveFunction1[0], ArgumentType::Input);
@@ -908,7 +908,7 @@ void SimulationWorker::simulateCtemImage()
     ABS2->SetArg(2, resolution);
     ABS2->SetArg(3, resolution);
     ABS2->run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 };
 
 // TODO: what should be done with the conversion factor?
@@ -924,8 +924,8 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     auto mParams = job->simManager->getMicroscopeParams();
 
     // Set up some temporary memory objects for the image simulation
-    auto Temp1 = ctx.CreateBuffer<cl_float2, Manual>(resolution*resolution);
-    auto dqe_ntf_buffer = ctx.CreateBuffer<cl_float, Manual>(725);
+    auto Temp1 = ctx->CreateBuffer<cl_float2, Manual>(resolution*resolution);
+    auto dqe_ntf_buffer = ctx->CreateBuffer<cl_float, Manual>(725);
 
     clWorkGroup Work(resolution, resolution, 1);
 
@@ -945,13 +945,13 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     // FFT
     CLOG(DEBUG, "sim") << "FFT back to reciprocal space";
-    FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(clImageWaveFunction, Temp1, Direction::Forwards);
+    ctx->WaitForQueueFinish();
 
     // write DQE to opencl
     CLOG(DEBUG, "sim") << "Upload DQE buffer";
     dqe_ntf_buffer->Write(dqe_data);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Apply DQE";
     // apply DQE
@@ -962,12 +962,12 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     DQE->SetArg(4, binning);
 
     DQE->run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // IFFT back
     CLOG(DEBUG, "sim") << "IFFT to real space";
-    FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(Temp1, clImageWaveFunction, Direction::Inverse);
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Read from buffer";
     float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
@@ -992,15 +992,15 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     CLOG(DEBUG, "sim") << "Write back to buffer";
     clImageWaveFunction->Write(compdata);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "FFT to reciprocal space";
-    FourierTrans(clImageWaveFunction, Temp1, Direction::Forwards);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(clImageWaveFunction, Temp1, Direction::Forwards);
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Upload NTF buffer";
     dqe_ntf_buffer->Write(ntf_data);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Apply NTF";
     NTF->SetArg(0, Temp1, ArgumentType::InputOutput);
@@ -1010,11 +1010,11 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     NTF->SetArg(4, binning);
 
     NTF->run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "FFT to real space";
-    FourierTrans(Temp1, clImageWaveFunction, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    FourierTrans->Do(Temp1, clImageWaveFunction, Direction::Inverse);
+    ctx->WaitForQueueFinish();
 }
 
 std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
@@ -1087,7 +1087,7 @@ float SimulationWorker::doSumReduction(std::shared_ptr<clMemory<float, Manual>> 
 {
     CLOG(DEBUG, "sim") << "Starting sum reduction";
     CLOG(DEBUG, "sim") << "Create local buffer";
-    auto outArray = ctx.CreateBuffer<float, Manual>(nGroups);
+    auto outArray = ctx->CreateBuffer<float, Manual>(nGroups);
 
     CLOG(DEBUG, "sim") << "Doing sum reduction";
     SumReduction->SetArg(0, data, ArgumentType::Input);

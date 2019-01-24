@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by jon on 23/11/17.
 //
@@ -14,14 +16,14 @@ class SimulationWorker : public ThreadWorker
 {
 public:
     // initialise FourierTrans just with any values
-    SimulationWorker(ThreadPool &s, unsigned int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx), FourierTrans(_ctx, 256, 256) {}
+    SimulationWorker(ThreadPool &s, unsigned int _id, std::shared_ptr<clContext> _ctx) : ThreadWorker(s, _id), ctx(std::move(_ctx)) {}
 
     ~SimulationWorker() = default;
 
     void Run(const std::shared_ptr<SimulationJob> &_job) override;
 
 private:
-    clContext ctx;
+    std::shared_ptr<clContext> ctx;
 
     std::shared_ptr<SimulationJob> job;
 
@@ -87,7 +89,7 @@ private:
     std::shared_ptr<clMemory<cl_float2, Manual>> clImageWaveFunction;
 
     // General kernels
-    clFourier FourierTrans;
+    std::shared_ptr<clFourier> FourierTrans;
     std::shared_ptr<clKernel> BandLimit;
     std::shared_ptr<clKernel> fftShift;
     std::shared_ptr<clKernel> BinnedAtomicPotential;

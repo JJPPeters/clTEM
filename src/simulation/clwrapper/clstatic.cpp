@@ -76,7 +76,7 @@ std::vector<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
     return DeviceList;
 }
 
-clContext OpenCL::MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Queue::QueueType IOQtype)
+std::shared_ptr<clContext> OpenCL::MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Queue::QueueType IOQtype)
 {
     cl_int status;
     cl_context ctx = clCreateContext(NULL,1,&dev.GetDeviceID(),NULL,NULL,&status);
@@ -86,11 +86,10 @@ clContext OpenCL::MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Que
     cl_command_queue ioq = clCreateCommandQueue(ctx,dev.GetDeviceID(),IOQtype,&status);
     clError::Throw(status);
 
-    clContext Context(dev, ctx, q, ioq, status);
-    return Context;
+    return std::make_shared<clContext>(dev, ctx, q, ioq, status);
 }
 
-clContext OpenCL::MakeTwoQueueContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Queue::QueueType IOQtype, Device::DeviceType devType)
+std::shared_ptr<clContext> OpenCL::MakeTwoQueueContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Queue::QueueType IOQtype, Device::DeviceType devType)
 {
     std::vector<clDevice>::iterator it =  devices.begin();
     clDevice dev;
@@ -120,12 +119,11 @@ clContext OpenCL::MakeTwoQueueContext(std::vector<clDevice> &devices, Queue::Que
     cl_command_queue ioq = clCreateCommandQueue(ctx,dev.GetDeviceID(),IOQtype,&status);
     clError::Throw(status);
 
-    clContext Context(dev,ctx,q,ioq,status);
-    return Context;
+    return std::make_shared<clContext>(dev,ctx,q,ioq,status);
 }
 
 
-clContext OpenCL::MakeContext(clDevice& dev, Queue::QueueType Qtype)
+std::shared_ptr<clContext> OpenCL::MakeContext(clDevice& dev, Queue::QueueType Qtype)
 {
     cl_int status;
     cl_context ctx = clCreateContext(NULL,1,&dev.GetDeviceID(),NULL,NULL,&status);
@@ -133,13 +131,12 @@ clContext OpenCL::MakeContext(clDevice& dev, Queue::QueueType Qtype)
     cl_command_queue q = clCreateCommandQueue(ctx,dev.GetDeviceID(),Qtype,&status);
     clError::Throw(status);
 
-    clContext Context(dev,ctx,q,status);
-    return Context;
+    return std::make_shared<clContext>(dev,ctx,q,status);
 }
 
-clContext OpenCL::MakeContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Device::DeviceType devType)
+std::shared_ptr<clContext> OpenCL::MakeContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Device::DeviceType devType)
 {
-    std::vector<clDevice>::iterator it =  devices.begin();
+    auto it =  devices.begin();
     clDevice dev;
 
     bool found = false;
@@ -165,13 +162,12 @@ clContext OpenCL::MakeContext(std::vector<clDevice> &devices, Queue::QueueType Q
     cl_command_queue q = clCreateCommandQueue(ctx,dev.GetDeviceID(),Qtype,&status);
     clError::Throw(status);
 
-    clContext Context(dev,ctx,q,status);
-    return Context;
+    return std::make_shared<clContext>(dev,ctx,q,status);
 }
 
 clDevice OpenCL::GetDeviceByIndex(std::vector<clDevice> DeviceList, int index)
 {
-    std::vector<clDevice>::iterator it = DeviceList.begin();
+    auto it = DeviceList.begin();
     std::advance(it, index);
     return (*it);
 }

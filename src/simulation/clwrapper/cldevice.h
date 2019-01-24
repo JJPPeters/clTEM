@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by jon on 08/10/16.
 //
@@ -25,14 +27,14 @@ namespace Device
 
 class clDevice {
 public:
-    clDevice(){};
+    clDevice() = default;
     clDevice(cl_device_id devID, int platNum, int devNum, std::string platName, std::string devName )
-            : deviceID(devID), deviceNum(devNum), platformNum(platNum), platformname(platName), devicename(devName){};
+            : deviceID(devID), deviceNum(devNum), platformNum(platNum), platformname(std::move(platName)), devicename(
+            std::move(devName)){};
 
-    ~clDevice()
-    {
-//        cl_int status = clReleaseDevice(deviceID);
-//        clError::Throw(status);
+    ~clDevice() {
+        cl_int status = clReleaseDevice(deviceID);
+        clError::Throw(status);
     }
 
     cl_device_id& GetDeviceID(){ return deviceID; };

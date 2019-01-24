@@ -47,8 +47,18 @@ public:
             : Status(_Status), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), ContextDevice(_ContextDevice){}
 
     ~clContext() {
-        Status = clReleaseContext(Context);
-        clError::Throw(Status);
+        if (Queue) {
+            Status = clReleaseCommandQueue(Queue);
+            clError::Throw(Status);
+        }
+        if (Queue != IOQueue && IOQueue) {
+            Status = clReleaseCommandQueue(IOQueue);
+            clError::Throw(Status);
+        }
+        if (Context) {
+            Status = clReleaseContext(Context);
+            clError::Throw(Status);
+        }
     }
 
     void WaitForQueueFinish() {

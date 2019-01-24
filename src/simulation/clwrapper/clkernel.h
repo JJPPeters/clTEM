@@ -55,8 +55,8 @@ public:
         }
     }
 
-    clKernel(clContext &_context, const char* codestring, unsigned int _NumberOfArgs, std::string _name)
-            : Context(&_context), NumberOfArgs(_NumberOfArgs), Name(_name)
+    clKernel(std::shared_ptr<clContext> _context, const char* codestring, unsigned int _NumberOfArgs, std::string _name)
+            : Context(_context), NumberOfArgs(_NumberOfArgs), Name(_name)
     {
         NotDefault = true;
         ArgType.resize(_NumberOfArgs);
@@ -65,7 +65,7 @@ public:
         CodeString = codestring;
     }
 
-    clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy form a reference (&) to not, why?
+    clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy from a reference (&) to not, why?
         if(this!=&Copy)
         {
             Context = Copy.Context;
@@ -146,7 +146,7 @@ private:
     cl_int status;
     std::vector<ArgumentType::ArgTypes> ArgType;
     std::vector<Notify*> Callbacks;
-    clContext* Context;
+    std::shared_ptr<clContext> Context;
     cl_program Program;
     cl_kernel Kernel;
     std::string Name;

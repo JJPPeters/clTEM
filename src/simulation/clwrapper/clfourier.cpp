@@ -86,7 +86,7 @@ void clFourier::Setup(unsigned int _width, unsigned int _height)
     }
 }
 
-clFourier::clFourier(clContext &Context, unsigned int _width, unsigned int _height): Context(&Context), width(_width), height(_height), buffersize(0)
+clFourier::clFourier(std::shared_ptr<clContext> Context, unsigned int _width, unsigned int _height): Context(Context), width(_width), height(_height), buffersize(0)
 {
     Setup(_width,_height);
     AutoTeardownFFT::GetInstance();

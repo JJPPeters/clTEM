@@ -25,10 +25,10 @@ class OpenCL
 public:
     static std::vector<clDevice> GetDeviceList(Device::DeviceType dev_type = Device::DeviceType::All);
     static clDevice GetDeviceByIndex(std::vector<clDevice> DeviceList, int index);
-    static clContext MakeContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder);
-    static clContext MakeContext(std::vector<clDevice>& devices, Queue::QueueType Qtype = Queue::QueueType::InOrder, Device::DeviceType devType = Device::DeviceType::GPU);
-    static clContext MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder);
-    static clContext MakeTwoQueueContext(std::vector<clDevice>& devices, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder, Device::DeviceType devType = Device::DeviceType::GPU);
+    static std::shared_ptr<clContext> MakeContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder);
+    static std::shared_ptr<clContext> MakeContext(std::vector<clDevice>& devices, Queue::QueueType Qtype = Queue::QueueType::InOrder, Device::DeviceType devType = Device::DeviceType::GPU);
+    static std::shared_ptr<clContext> MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder);
+    static std::shared_ptr<clContext> MakeTwoQueueContext(std::vector<clDevice>& devices, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder, Device::DeviceType devType = Device::DeviceType::GPU);
 };
 
 
