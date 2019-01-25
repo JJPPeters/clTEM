@@ -138,7 +138,7 @@ void MainWindow::on_actionOpen_triggered()
         Manager->setStructure(fileName.toStdString());
     } catch (const std::exception &e) {
         CLOG(ERROR, "gui") << "Could not open file: " << e.what() << ".";
-        QMessageBox msgBox(nullptr);
+        QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
         msgBox.setIcon(QMessageBox::Critical);
@@ -279,11 +279,11 @@ void MainWindow::updateTotalProgress(float prog)
     emit totalProgressUpdated(prog);
 }
 
-void MainWindow::updateImages(std::map<std::string, Image<float>> ims, SimulationManager sm)
+void MainWindow::updateImages(SimulationManager sm)
 {
     QMutexLocker locker(&Image_Mutex);
     // this will be running in a different thread
-    emit imagesReturned(ims, sm);
+    emit imagesReturned(sm);
 }
 
 void MainWindow::on_actionSimulate_EW_triggered()
@@ -324,7 +324,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
     auto totalRep = std::bind(&MainWindow::updateTotalProgress, this, std::placeholders::_1);
     Manager->setProgressTotalReporterFunc(totalRep);
 
-    auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1, std::placeholders::_2);
+    auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
@@ -348,8 +348,11 @@ void MainWindow::totalProgressChanged(float prog)
     StatusBar->setTotalProgress(prog);
 }
 
-void MainWindow::imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm)
+void MainWindow::imagesChanged(SimulationManager sm)
 {
+
+    auto ims = sm.getImages();
+
     if (ims.empty()) {
         simulationFailed();
     }
@@ -542,24 +545,27 @@ bool MainWindow::checkSimulationPrerequisites()
     return true;
 }
 
-void MainWindow::simulationComplete()
-{
+void MainWindow::simulationComplete() {
     setUiActive(true);
+
+    if (SimThread) {
+        SimThread->cancelSimulation();
+    }
 }
 
 void MainWindow::simulationFailed()
 {
     // reset our gui
-    setUiActive(true);
+    simulationComplete();
 
     // set an error message
-    QMessageBox msgBox(nullptr);
-    msgBox.setText("Error:");
-    msgBox.setInformativeText("Problem running simulation (see log file)");
-    msgBox.setIcon(QMessageBox::Critical);
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setMinimumSize(160, 125);
-    msgBox.exec();
+//    QMessageBox msgBox(this);
+//    msgBox.setText("Error:");
+//    msgBox.setInformativeText("Problem running simulation (see log file)");
+//    msgBox.setIcon(QMessageBox::Critical);
+//    msgBox.setStandardButtons(QMessageBox::Ok);
+//    msgBox.setMinimumSize(160, 125);
+//    msgBox.exec();
 }
 
 void MainWindow::cancel_simulation()

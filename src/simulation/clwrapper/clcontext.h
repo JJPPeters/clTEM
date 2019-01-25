@@ -92,31 +92,18 @@ public:
         return total;
     }
 
+    void AddMemRecord(const std::shared_ptr<MemoryRecord> &rec)
+    {
+        auto it = std::find(MemList.begin(), MemList.end(), rec);
+        if (it == MemList.end())
+            MemList.emplace_back(rec);
+    }
+
     void RemoveMemRecord(const std::shared_ptr<MemoryRecord> &rec)
     {
         auto it = std::find(MemList.begin(), MemList.end(), rec);
         if (it != MemList.end())
             MemList.erase(it);
-    }
-
-    template<class T,template <class> class AutoPolicy> std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(size_t size)
-    {
-        std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
-        auto b = clCreateBuffer(Context, MemoryFlags::ReadWrite, size*sizeof(T), nullptr, &Status);
-        clError::Throw(Status, "");
-        std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(this, size, b, rec);
-        MemList.emplace_back(rec);
-        return Mem;
-    }
-
-    template<class T,template <class> class AutoPolicy > std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(size_t size, enum MemoryFlags flags)
-    {
-        std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
-        auto b = clCreateBuffer(Context, flags, size*sizeof(T), nullptr, &Status);
-        std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(this, size, b, rec);
-        clError::Throw(Status, "");
-        MemList.emplace_back(rec);
-        return Mem;
     }
 };
 

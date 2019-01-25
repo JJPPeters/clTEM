@@ -8,6 +8,7 @@
 #include "CL/cl.h"
 #include "clFFT.h"
 
+#include "clstatic.h"
 #include "clcontext.h"
 #include "clevent.h"
 #include "clmemory.h"
@@ -65,34 +66,28 @@ public:
     ~clFourier();
 
     template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
-    clEvent Do(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
+    std::shared_ptr<clEvent> Do(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
     {
         clfftDirection Dir = (Direction == Direction::Forwards) ? CLFFT_FORWARD : CLFFT_BACKWARD;
 
         std::vector<cl_event> eventwaitlist;
-        clEvent e = input->GetFinishedWriteEvent();
-        clEvent e2 = input->GetFinishedReadEvent();
-        if (e.isSet())
-        {
-            eventwaitlist.push_back(e.event);
-        }
-        if (e2.isSet())
-        {
-            eventwaitlist.push_back(e2.event);
-        }
+        std::shared_ptr<clEvent> e = input->GetFinishedWriteEvent();
+        std::shared_ptr<clEvent> e2 = input->GetFinishedReadEvent();
+        if (e->isSet())
+            eventwaitlist.push_back(e->event);
+        if (e2->isSet())
+            eventwaitlist.push_back(e2->event);
 
-        clEvent finished;
+        std::shared_ptr<clEvent> finished = std::make_shared<clEvent>();
 
         if(buffersize)
             fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(),
-                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event,
+                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished->event,
                                                &input->GetBuffer(), &output->GetBuffer(), clMedBuffer->GetBuffer() );
         else
             fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(),
-                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event,
+                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished->event,
                                                &input->GetBuffer(), &output->GetBuffer(), NULL );
-
-        finished.Set();
 
         if(output->isAuto)
             output->Update(finished);
@@ -102,7 +97,7 @@ public:
 
     // This worked fine, but would confuse my editor?
     template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
-    clEvent operator()(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
+    std::shared_ptr<clEvent> operator()(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
     {
         return Do(input, output, Direction);
     }

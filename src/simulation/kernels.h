@@ -35,7 +35,7 @@ public:
 
     std::shared_ptr<clKernel> BuildToKernel(std::shared_ptr<clContext> ctx) {
         std::lock_guard<std::mutex> lck(mtx);
-        return std::make_shared<clKernel>(ctx, source.c_str(), num_args, name);
+        return std::make_shared<clKernel>(ctx, source, num_args, name);
     }
 
 private:

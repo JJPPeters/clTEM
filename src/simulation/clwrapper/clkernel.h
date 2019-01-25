@@ -43,26 +43,25 @@ public:
         cl_int Status;
     };
 
-    clKernel(){ NotDefault = false; }
+    clKernel() : NumberOfArgs(0), status(CL_SUCCESS), Program(nullptr), Kernel(nullptr) { }
     ~clKernel()
     {
-        if(NotDefault)
-        {
+        if(Program) {
             status = clReleaseProgram(Program);
             clError::Throw(status, Name);
+        }
+        if (Kernel) {
             status = clReleaseKernel(Kernel);
             clError::Throw(status, Name);
         }
     }
 
-    clKernel(std::shared_ptr<clContext> _context, const char* codestring, unsigned int _NumberOfArgs, std::string _name)
-            : Context(_context), NumberOfArgs(_NumberOfArgs), Name(_name)
+    clKernel(std::shared_ptr<clContext> _context, std::string codestring, unsigned int _NumberOfArgs, std::string _name)
+            : Context(_context), NumberOfArgs(_NumberOfArgs), Name(_name), Program(nullptr), Kernel(nullptr), status(CL_SUCCESS)
     {
-        NotDefault = true;
         ArgType.resize(_NumberOfArgs);
         Callbacks.resize(_NumberOfArgs);
-        BuildKernelFromString(codestring,_name);
-        CodeString = codestring;
+        BuildKernelFromString(codestring, _name);
     }
 
     clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy from a reference (&) to not, why?
@@ -71,36 +70,31 @@ public:
             Context = Copy.Context;
             NumberOfArgs = Copy.NumberOfArgs;
             Name = Copy.Name;
-            CodeString = Copy.CodeString;
-            NotDefault = Copy.NotDefault;
+//            CodeString = Copy.CodeString;
             ArgType.clear();
             ArgType.resize(NumberOfArgs);
             Callbacks.clear();
             Callbacks.resize(NumberOfArgs);
-            BuildKernelFromString(CodeString,Name);
+//            BuildKernelFromString(CodeString,Name);
         }
         return *this;
     }
 
-    clKernel(const clKernel& Copy): Context(Copy.Context), NumberOfArgs(Copy.NumberOfArgs), Name(Copy.Name), CodeString(Copy.CodeString)
+    clKernel(const clKernel& Copy): Context(Copy.Context), NumberOfArgs(Copy.NumberOfArgs), Name(Copy.Name)
     {
-        NotDefault = Copy.NotDefault;
         ArgType.clear();
         Callbacks.clear();
 
-        if (!NotDefault)
-            return;
-
         ArgType.resize(NumberOfArgs);
         Callbacks.resize(NumberOfArgs);
-        BuildKernelFromString(CodeString,Name);
+//        BuildKernelFromString(CodeString,Name);
     }
 
     // Overload for OpenCL Memory Buffers
     template <class T, template <class> class AutoPolicy> void SetArg(unsigned int position, std::shared_ptr<clMemory<T,AutoPolicy>>& arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified)
     {
         ArgType[position] = ArgumentType;
-        Callbacks[position] = arg.get();
+        Callbacks[position] = arg;
 
         status |= clSetKernelArg(Kernel, position, sizeof(cl_mem), nullptr);
         clError::Throw(status,  Name + " arg " + std::to_string(position) + ": Possibly trying to set a buffer argument with a non-buffer.");
@@ -128,33 +122,31 @@ public:
         clError::Throw(status,  Name + " arg " + std::to_string(position));
     }
 
-    clEvent operator()(clWorkGroup Global);
-    clEvent operator()(clWorkGroup Global, clEvent StartEvent);
-    clEvent operator()(clWorkGroup Global, clWorkGroup Local);
-    clEvent operator()(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent);
+    std::shared_ptr<clEvent> operator()(clWorkGroup Global);
+    std::shared_ptr<clEvent> operator()(clWorkGroup Global, std::shared_ptr<clEvent> StartEvent);
+    std::shared_ptr<clEvent> operator()(clWorkGroup Global, clWorkGroup Local);
+    std::shared_ptr<clEvent> operator()(clWorkGroup Global, clWorkGroup Local, std::shared_ptr<clEvent> StartEvent);
 
-    clEvent run(clWorkGroup Global);
-    clEvent run(clWorkGroup Global, clEvent StartEvent);
-    clEvent run(clWorkGroup Global, clWorkGroup Local);
-    clEvent run(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent);
+    std::shared_ptr<clEvent> run(clWorkGroup Global);
+    std::shared_ptr<clEvent> run(clWorkGroup Global, std::shared_ptr<clEvent> StartEvent);
+    std::shared_ptr<clEvent> run(clWorkGroup Global, clWorkGroup Local);
+    std::shared_ptr<clEvent> run(clWorkGroup Global, clWorkGroup Local, std::shared_ptr<clEvent> StartEvent);
 
     cl_int GetStatus(){ return status; };
     unsigned int NumberOfArgs;
 
 private:
-    bool NotDefault;
     cl_int status;
     std::vector<ArgumentType::ArgTypes> ArgType;
-    std::vector<Notify*> Callbacks;
+    std::vector<std::weak_ptr<Notify>> Callbacks;
     std::shared_ptr<clContext> Context;
     cl_program Program;
     cl_kernel Kernel;
     std::string Name;
-    const char* CodeString;
+//    const char* CodeString;
 
     void swap(clKernel& first, clKernel& second)
     {
-        std::swap(first.NotDefault,second.NotDefault);
         std::swap(first.Program,second.Program);
         std::swap(first.Kernel,second.Kernel);
         std::swap(first.Context,second.Context);
@@ -163,8 +155,8 @@ private:
         std::swap(first.Name,second.Name);
     }
 
-    void RunCallbacks(clEvent KernelFinished);
-    void BuildKernelFromString(const char* codestring, std::string kernelname);
+    void RunCallbacks(std::shared_ptr<clEvent> KernelFinished);
+    void BuildKernelFromString(std::string, std::string kernelname);
 };
 
 

@@ -100,13 +100,15 @@ void reportTotalProgress(float frac)
         std::cout << std::endl;
 }
 
-void imageReturned(std::map<std::string, Image<float>> ims, SimulationManager sm)
+void imageReturned(SimulationManager sm)
 {
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
     std::wstring w_sep(&fs::path::preferred_separator);
     std::string sep(w_sep.begin(), w_sep.end());
+
+    auto ims = sm.getImages();
 
     // save the images....
     // we've been given a list of images, got to display them now....

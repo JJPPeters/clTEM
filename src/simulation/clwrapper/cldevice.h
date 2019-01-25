@@ -27,14 +27,17 @@ namespace Device
 
 class clDevice {
 public:
-    clDevice() = default;
+    clDevice() : deviceID(nullptr) {};
     clDevice(cl_device_id devID, int platNum, int devNum, std::string platName, std::string devName )
             : deviceID(devID), deviceNum(devNum), platformNum(platNum), platformname(std::move(platName)), devicename(
             std::move(devName)){};
 
     ~clDevice() {
-        cl_int status = clReleaseDevice(deviceID);
-        clError::Throw(status);
+        if (deviceID) {
+            // I don't think this really matters as these are never sub-devices
+            cl_int status = clReleaseDevice(deviceID);
+            clError::Throw(status);
+        }
     }
 
     cl_device_id& GetDeviceID(){ return deviceID; };

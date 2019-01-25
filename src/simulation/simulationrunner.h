@@ -18,10 +18,11 @@ public:
 
     SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs);
 
+    ~SimulationRunner() {cancelSimulation();}
+
     void runSimulations();
 
-    void cancelSimulation()
-    {
+    void cancelSimulation() {
         start = false;
         if (t_pool)
             t_pool->stopThreads();

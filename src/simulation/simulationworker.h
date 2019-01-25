@@ -18,7 +18,7 @@ public:
     // initialise FourierTrans just with any values
     SimulationWorker(ThreadPool &s, unsigned int _id, std::shared_ptr<clContext> _ctx) : ThreadWorker(s, _id), ctx(std::move(_ctx)) {}
 
-    ~SimulationWorker() = default;
+    ~SimulationWorker() {ctx->WaitForQueueFinish(); ctx->WaitForIOQueueFinish();}
 
     void Run(const std::shared_ptr<SimulationJob> &_job) override;
 
@@ -100,7 +100,7 @@ private:
     std::shared_ptr<clKernel> InitPlaneWavefunction;
     std::shared_ptr<clKernel> ImagingKernel;
     std::shared_ptr<clKernel> ABS2;
-    
+
     // CBED
     std::shared_ptr<clKernel> InitProbeWavefunction;
     std::shared_ptr<clMemory<float, Manual>> clTDSMaskDiff;

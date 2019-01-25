@@ -38,3 +38,20 @@ void ThreadPool::stopThreads()
         task->promise.set_value();
     tasks.clear();
 }
+
+auto ThreadPool::enqueue(std::shared_ptr<SimulationJob> job) -> std::future<void> {
+    std::future<void> res = job->get_future();
+    { // acquire lock
+        std::unique_lock<std::mutex> lock(queue_mutex);
+
+        if(stop)
+            throw std::runtime_error("enqueue on stopped ThreadPool");
+
+        // add the task
+        tasks.push_back(job);
+    } // release lock
+
+    // wake up one thread
+    condition.notify_one();
+    return res;
+}

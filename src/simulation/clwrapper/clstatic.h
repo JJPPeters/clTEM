@@ -24,11 +24,34 @@ class OpenCL
 {
 public:
     static std::vector<clDevice> GetDeviceList(Device::DeviceType dev_type = Device::DeviceType::All);
-    static clDevice GetDeviceByIndex(std::vector<clDevice> DeviceList, int index);
     static std::shared_ptr<clContext> MakeContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder);
     static std::shared_ptr<clContext> MakeContext(std::vector<clDevice>& devices, Queue::QueueType Qtype = Queue::QueueType::InOrder, Device::DeviceType devType = Device::DeviceType::GPU);
     static std::shared_ptr<clContext> MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder);
     static std::shared_ptr<clContext> MakeTwoQueueContext(std::vector<clDevice>& devices, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder, Device::DeviceType devType = Device::DeviceType::GPU);
+
+    template<class T,template <class> class AutoPolicy>
+    static std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(std::shared_ptr<clContext> ctx, size_t size)
+    {
+        cl_int status;
+        std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
+        auto b = clCreateBuffer(ctx->GetContext(), MemoryFlags::ReadWrite, size*sizeof(T), nullptr, &status);
+        clError::Throw(status, "");
+        std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(ctx, size, b, rec);
+        ctx->AddMemRecord(rec);
+        return Mem;
+    }
+
+    template<class T,template <class> class AutoPolicy >
+    static std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(std::shared_ptr<clContext> ctx, size_t size, enum MemoryFlags flags)
+    {
+        cl_int status;
+        std::shared_ptr<MemoryRecord> rec = std::make_shared<MemoryRecord>(size*sizeof(T));
+        auto b = clCreateBuffer(ctx->GetContext(), flags, size*sizeof(T), nullptr, &status);
+        std::shared_ptr<clMemory<T,AutoPolicy>> Mem = std::make_shared<clMemory<T,AutoPolicy>>(ctx, size, b, rec);
+        clError::Throw(status, "");
+        ctx->AddMemRecord(rec);
+        return Mem;
+    }
 };
 
 

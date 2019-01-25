@@ -12,6 +12,10 @@ clFourier::~clFourier()
 
     fftStatus = clfftDestroyPlan(&fftplan);
     clFftError::Throw(fftStatus, "clFourier");
+//
+//    // not sure if this is needed (or even wise)
+//    fftStatus = clfftTeardown();
+//    clFftError::Throw(fftStatus, "clFourier");
 }
 
 void clFourier::Setup(unsigned int _width, unsigned int _height)
@@ -82,7 +86,7 @@ void clFourier::Setup(unsigned int _width, unsigned int _height)
     if (buffersize)
     {
         // because buffersize should be in bytes already...
-        clMedBuffer = std::move(Context->CreateBuffer<char,Manual>(buffersize));
+        clMedBuffer = std::move(OpenCL::CreateBuffer<char,Manual>(Context, buffersize));
     }
 }
 

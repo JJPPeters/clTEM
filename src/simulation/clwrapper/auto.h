@@ -27,51 +27,51 @@ bool isUpToDate;
 // enqueue is non blocking. Use GetLocal() to force waiting for current version.
 std::vector<T> Local;
 
-virtual clEvent Read(std::vector<T>&data)=0;
-virtual clEvent Read(std::vector<T>&data,clEvent KernelFinished)=0;
+virtual std::shared_ptr<clEvent> Read(std::vector<T>&data)=0;
+virtual std::shared_ptr<clEvent> Read(std::vector<T>&data,clEvent KernelFinished)=0;
 
-virtual clEvent GetStartWriteEvent()=0;
-virtual clEvent GetStartReadEvent()=0;
-virtual clEvent GetFinishedWriteEvent()=0;
-virtual clEvent GetFinishedReadEvent()=0;
+virtual std::shared_ptr<clEvent> GetStartWriteEvent()=0;
+virtual std::shared_ptr<clEvent> GetStartReadEvent()=0;
+virtual std::shared_ptr<clEvent> GetFinishedWriteEvent()=0;
+virtual std::shared_ptr<clEvent> GetFinishedReadEvent()=0;
 
-virtual void SetFinishedEvent(clEvent KernelFinished) =0;
+virtual void SetFinishedEvent(std::shared_ptr<clEvent> KernelFinished) = 0;
 
 // This call will block if the Memory is currently waiting on
 // an event before updating itself.
 std::vector<T>& GetLocal()
 {
-    clEvent es = GetStartReadEvent();
-    clEvent e = GetFinishedReadEvent();
+    std::shared_ptr<clEvent> es = GetStartReadEvent();
+    std::shared_ptr<clEvent> e = GetFinishedReadEvent();
 
-    if(es.isSet())
-        es.Wait();
+    if(es->isSet())
+        es->Wait();
 
-    if(isUpToDate == false)
+    if(!isUpToDate)
     {
         Update(es);
         isUpToDate = true;
 
         if((es = GetFinishedReadEvent()).isSet())
-            es.Wait();
+            es->Wait();
     }
-    else if(e.isSet())
-        e.Wait();
+    else if(e->isSet())
+        e->Wait();
 
     return Local;
 };
 
 // Called by clKernel for Output types to generate automatic
 // memory updates (non blocking)
-void Update(clEvent KernelFinished)
+void Update(std::shared_ptr<clEvent> KernelFinished)
 {
-    if(Local.empty() == true || Local.size() != Size)
+    if(Local.empty() || Local.size() != Size)
         Local.resize(Size);
     Read(Local,KernelFinished);
     isUpToDate = true;
 }
 
-void UpdateEventOnly(clEvent KernelFinished)
+void UpdateEventOnly(std::shared_ptr<clEvent> KernelFinished)
 {
     isUpToDate = false;
     SetFinishedEvent(KernelFinished);

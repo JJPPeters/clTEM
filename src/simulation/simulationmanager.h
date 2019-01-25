@@ -226,11 +226,12 @@ public:
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
     void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
 
-    void setImageReturnFunc(std::function<void(std::map<std::string, Image<float>>, SimulationManager)> f) {imageReturn = std::move(f);}
+    void setImageReturnFunc(std::function<void(SimulationManager)> f) {imageReturn = std::move(f);}
     void setProgressTotalReporterFunc(std::function<void(float)> f) {progressTotalReporter = std::move(f);}
     void setProgressSliceReporterFunc(std::function<void(float)> f) {progressSliceReporter = std::move(f);}
 
     void updateImages(std::map<std::string, Image<float>> ims, int jobCount);
+    std::map<std::string, Image<float>> getImages() { return Images; }
     void failedSimulation();
 
 
@@ -340,7 +341,7 @@ private:
 
     std::mutex image_update_mtx;
 
-    std::function<void(std::map<std::string, Image<float>>, SimulationManager)> imageReturn;
+    std::function<void(SimulationManager)> imageReturn;
     std::function<void(float)> progressTotalReporter;
     std::function<void(float)> progressSliceReporter;
 

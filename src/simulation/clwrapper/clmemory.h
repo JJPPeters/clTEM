@@ -24,7 +24,7 @@ class clMemory : public AutoPolicy<T>
 private:
     cl_mem Buffer;
     size_t Size;
-    clContext* Context;
+    std::shared_ptr<clContext> Context;
     std::shared_ptr<MemoryRecord> Rec;
 
 public:
@@ -36,63 +36,59 @@ public:
     size_t	GetSize(){ return Size*sizeof(MemType); };
 
     // Will wait for this event to complete before performing read.
-    clEvent StartReadEvent;
+    std::shared_ptr<clEvent> StartReadEvent;
     // This event signifies a read has been performed.
-    clEvent FinishedReadEvent;
+    std::shared_ptr<clEvent> FinishedReadEvent;
     // This event will be completed after we write to this memory.
-    clEvent FinishedWriteEvent;
+    std::shared_ptr<clEvent> FinishedWriteEvent;
     // Write will not begin until this event is completed.
-    clEvent StartWriteEvent;
+    std::shared_ptr<clEvent> StartWriteEvent;
 
-    virtual clEvent GetFinishedWriteEvent(){return FinishedWriteEvent;};
-    virtual clEvent GetFinishedReadEvent(){return FinishedReadEvent;};
-    virtual clEvent GetStartWriteEvent(){return StartWriteEvent;};
-    virtual clEvent GetStartReadEvent(){return StartReadEvent;};
+    virtual std::shared_ptr<clEvent> GetFinishedWriteEvent(){return FinishedWriteEvent;};
+    virtual std::shared_ptr<clEvent> GetFinishedReadEvent(){return FinishedReadEvent;};
+    virtual std::shared_ptr<clEvent> GetStartWriteEvent(){return StartWriteEvent;};
+    virtual std::shared_ptr<clEvent> GetStartReadEvent(){return StartReadEvent;};
 
-    clEvent Read(std::vector<T> &data)
+    std::shared_ptr<clEvent> Read(std::vector<T> &data)
     {
         cl_int status;
-        status = clEnqueueReadBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],0,NULL,&FinishedReadEvent.event);
+        status = clEnqueueReadBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],0,NULL,&FinishedReadEvent->event);
         clError::Throw(status);
-        FinishedReadEvent.Set();
         return FinishedReadEvent;
     };
 
     // Wait on single event before reading
-    clEvent Read(std::vector<T> &data, clEvent Start)
+    std::shared_ptr<clEvent> Read(std::vector<T> &data, std::shared_ptr<clEvent> Start)
     {
         cl_int status;
         StartReadEvent = Start;
-        status = clEnqueueReadBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],1,&Start.event,&FinishedReadEvent.event);
+        status = clEnqueueReadBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],1,&Start->event,&FinishedReadEvent->event);
         clError::Throw(status);
-        FinishedReadEvent.Set();
         return FinishedReadEvent;
     };
 
-    clEvent Write(std::vector<T> &data)
+    std::shared_ptr<clEvent> Write(std::vector<T> &data)
     {
         cl_int status;
-        status = clEnqueueWriteBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],0,NULL,&FinishedWriteEvent.event);
+        status = clEnqueueWriteBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],0,NULL,&FinishedWriteEvent->event);
         clError::Throw(status);
-        FinishedWriteEvent.Set();
         return FinishedWriteEvent;
     };
 
     // Wait on single event before writing.
-    clEvent Write(std::vector<T> &data, clEvent Start)
+    std::shared_ptr<clEvent> Write(std::vector<T> &data, std::shared_ptr<clEvent> Start)
     {
         cl_int status;
         StartWriteEvent = Start;
-        status = clEnqueueWriteBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],1,&Start.event,&FinishedWriteEvent.event);
+        status = clEnqueueWriteBuffer(Context->GetIOQueue(),Buffer,CL_FALSE,0,data.size()*sizeof(T),&data[0],1,&Start->event,&FinishedWriteEvent->event);
         clError::Throw(status);
-        FinishedWriteEvent.Set();
         return FinishedWriteEvent;
     };
 
-    clMemory<T,AutoPolicy>(clContext* context, size_t size, cl_mem buffer, std::shared_ptr<MemoryRecord> rec) : Context(context), Buffer(buffer), Size(size),
-                                                                                                AutoPolicy<T>(size), FinishedReadEvent(), FinishedWriteEvent(), StartReadEvent(), StartWriteEvent(), Rec(rec){};
+    clMemory<T,AutoPolicy>(std::shared_ptr<clContext> context, size_t size, cl_mem buffer, std::shared_ptr<MemoryRecord> rec) : Context(context), Buffer(buffer), Size(size),
+                                                                                                AutoPolicy<T>(size), FinishedReadEvent(std::make_shared<clEvent>()), FinishedWriteEvent(std::make_shared<clEvent>()), StartReadEvent(std::make_shared<clEvent>()), StartWriteEvent(std::make_shared<clEvent>()), Rec(rec){};
 
-    void SetFinishedEvent(clEvent KernelFinished)
+    void SetFinishedEvent(std::shared_ptr<clEvent> KernelFinished)
     {
         StartReadEvent = KernelFinished;
     };
@@ -100,15 +96,13 @@ public:
     ~clMemory<T,AutoPolicy>()
     {
         Context->RemoveMemRecord(Rec);
-        Release();
-    };
 
-private:
+        StartReadEvent.reset();
+        StartWriteEvent.reset();
+        FinishedReadEvent.reset();
+        FinishedWriteEvent.reset();
 
-    void Release()
-    {
-        if(Buffer) // Does this work?
-        {
+        if(Buffer) {
             cl_int status;
             status = clReleaseMemObject(Buffer);
             clError::Throw(status);

@@ -10,9 +10,9 @@
 class Notify
 {
         public:
-        virtual void Update(clEvent KernelFinished)=0;
-        virtual void UpdateEventOnly(clEvent KernelFinished) = 0;
-        virtual clEvent GetFinishedWriteEvent()=0;
-        virtual clEvent GetFinishedReadEvent()=0;
+        virtual void Update(std::shared_ptr<clEvent> KernelFinished)=0;
+        virtual void UpdateEventOnly(std::shared_ptr<clEvent> KernelFinished) = 0;
+        virtual std::shared_ptr<clEvent> GetFinishedWriteEvent()=0;
+        virtual std::shared_ptr<clEvent> GetFinishedReadEvent()=0;
 };
 #endif //CLWRAPPER_MAIN_NOTIFY_H

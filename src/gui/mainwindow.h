@@ -30,7 +30,7 @@ signals:
     void sliceProgressUpdated(float);
     void totalProgressUpdated(float);
 
-    void imagesReturned(std::map<std::string, Image<float>>, SimulationManager);
+    void imagesReturned(SimulationManager);
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -51,7 +51,7 @@ public:
     void updateSlicesProgress(float prog);
     void updateTotalProgress(float prog);
 
-    void updateImages(std::map<std::string, Image<float>> ims, SimulationManager sm);
+    void updateImages(SimulationManager sm);
 
     void updateManagerFromGui();
 
@@ -106,7 +106,7 @@ private slots:
 
     void totalProgressChanged(float prog);
 
-    void imagesChanged(std::map<std::string, Image<float>> ims, SimulationManager sm);
+    void imagesChanged(SimulationManager sm);
 
     void setUiActive(bool active);
 

@@ -166,15 +166,15 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, in
     // this means this simulation is finished
     if (completeJobs == getTotalParts() && imageReturn) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
-        imageReturn(Images, *this);
+        imageReturn(*this);
+//        Images.clear();
     }
 }
 
 void SimulationManager::failedSimulation() {
-    std::map<std::string, Image<float>> ims;
     if (imageReturn) {
         CLOG(DEBUG, "sim") << "Returning blank data";
-        imageReturn(ims, *this);
+        imageReturn(*this);
     }
 }
 

@@ -4,37 +4,38 @@
 
 #include "clkernel.h"
 
-clEvent clKernel::operator()(clWorkGroup Global) { return run(Global); }
+std::shared_ptr<clEvent> clKernel::operator()(clWorkGroup Global) { return run(Global); }
 
-clEvent clKernel::operator()(clWorkGroup Global, clEvent StartEvent) { return run(Global, StartEvent); }
+std::shared_ptr<clEvent> clKernel::operator()(clWorkGroup Global, std::shared_ptr<clEvent> StartEvent) { return run(Global, StartEvent); }
 
-clEvent clKernel::operator()(clWorkGroup Global, clWorkGroup Local) { return run(Global, Local); }
+std::shared_ptr<clEvent> clKernel::operator()(clWorkGroup Global, clWorkGroup Local) { return run(Global, Local); }
 
-clEvent clKernel::operator()(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent) { return run(Global, Local, StartEvent); }
+std::shared_ptr<clEvent> clKernel::operator()(clWorkGroup Global, clWorkGroup Local, std::shared_ptr<clEvent> StartEvent) { return run(Global, Local, StartEvent); }
 
-void clKernel::RunCallbacks(clEvent KernelFinished)
+void clKernel::RunCallbacks(std::shared_ptr<clEvent> KernelFinished)
 {
     for( int arg = 0 ; arg < NumberOfArgs ; arg++) {
         if(ArgType[arg] == ArgumentType::Output || ArgType[arg] == ArgumentType::InputOutput) {
-            Callbacks[arg]->Update(KernelFinished);
+            Callbacks[arg].lock()->Update(KernelFinished);
         } else if(ArgType[arg] == ArgumentType::OutputNoUpdate || ArgType[arg] == ArgumentType::InputOutputNoUpdate ) {
-            Callbacks[arg]->UpdateEventOnly(KernelFinished);
+            Callbacks[arg].lock()->UpdateEventOnly(KernelFinished);
         }
     }
 }
 
-void clKernel::BuildKernelFromString(const char* codestring, std::string kernelname)
+void clKernel::BuildKernelFromString(std::string codestring, std::string kernelname)
 {
     // denorms now flushed to zero, and no checks for NaNs or infs, should be faster...
-    const char options[] = "-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros -Werror"; //-cl-finite-math-only -cl-mad-enable -Werror";
+    std::string options = "-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros -Werror"; //-cl-finite-math-only -cl-mad-enable -Werror";
     size_t log_size;
     Name = kernelname;
 
-    Program = clCreateProgramWithSource(Context->GetContext(), 1, &codestring, nullptr, &status);
+    auto code_char = codestring.c_str();
+    Program = clCreateProgramWithSource(Context->GetContext(), 1, &code_char, nullptr, &status);
     clError::Throw(status, kernelname);
 
-    status = clBuildProgram(Program,1,&Context->GetContextDevice().GetDeviceID(),options, nullptr, nullptr);
-    if (status != 0) {
+    status = clBuildProgram(Program,1,&Context->GetContextDevice().GetDeviceID(), options.c_str(), nullptr, nullptr);
+    if (status != CL_SUCCESS) {
         status = clGetProgramBuildInfo(Program, Context->GetContextDevice().GetDeviceID(), CL_PROGRAM_BUILD_LOG, 0, nullptr, &log_size);
 
         std::vector<char> buildlog_char(log_size);
@@ -47,7 +48,7 @@ void clKernel::BuildKernelFromString(const char* codestring, std::string kerneln
     clError::Throw(status, kernelname);
 }
 
-clEvent clKernel::run(clWorkGroup Global) {
+std::shared_ptr<clEvent> clKernel::run(clWorkGroup Global) {
     std::vector<cl_event> eventwaitlist;
 
     // Check callbacks for any input types... need to wait on there write events..
@@ -56,25 +57,25 @@ clEvent clKernel::run(clWorkGroup Global) {
         // Data is being written to an input type, wait for it to finish
         if(ArgType[arg] == ArgumentType::Input || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::InputOutputNoUpdate )
         {
-            clEvent e = Callbacks[arg]->GetFinishedWriteEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedWriteEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
         // Current data is presently being retrieved (don't overwrite yet)
         if(ArgType[arg] == ArgumentType::Output || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::OutputNoUpdate || ArgType[arg] == ArgumentType::InputOutputNoUpdate)
         {
-            clEvent e = Callbacks[arg]->GetFinishedReadEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedReadEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
     }
 
-    clEvent KernelFinished;
-    status = clEnqueueNDRangeKernel(Context->GetQueue(),Kernel,2, nullptr,Global.worksize, nullptr,(cl_uint)eventwaitlist.size(), !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &KernelFinished.event);
+    std::shared_ptr<clEvent> KernelFinished = std::make_shared<clEvent>();
+    status = clEnqueueNDRangeKernel(Context->GetQueue(),Kernel,2, nullptr,Global.worksize, nullptr,(cl_uint)eventwaitlist.size(), !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &KernelFinished->event);
     clError::Throw(status, Name);
 
     RunCallbacks(KernelFinished);
@@ -82,7 +83,7 @@ clEvent clKernel::run(clWorkGroup Global) {
     return KernelFinished;
 }
 
-clEvent clKernel::run(clWorkGroup Global, clEvent StartEvent) {
+std::shared_ptr<clEvent> clKernel::run(clWorkGroup Global, std::shared_ptr<clEvent> StartEvent) {
     std::vector<cl_event> eventwaitlist;
 
     // Check callbacks for any input types... need to wait on there write events..
@@ -91,27 +92,27 @@ clEvent clKernel::run(clWorkGroup Global, clEvent StartEvent) {
         // Data is being written to an input type, wait for it to finish
         if(ArgType[arg] == ArgumentType::Input || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::InputOutputNoUpdate )
         {
-            clEvent e = Callbacks[arg]->GetFinishedWriteEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedWriteEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
         // Current data is presently being retrieved (don't overwrite yet)
         if(ArgType[arg] == ArgumentType::Output || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::OutputNoUpdate || ArgType[arg] == ArgumentType::InputOutputNoUpdate)
         {
-            clEvent e = Callbacks[arg]->GetFinishedReadEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedReadEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
     }
 
-    eventwaitlist.push_back(StartEvent.event);
+    eventwaitlist.push_back(StartEvent->event);
 
-    clEvent KernelFinished;
-    status = clEnqueueNDRangeKernel(Context->GetQueue(), Kernel, 2, nullptr, Global.worksize, nullptr, static_cast<cl_uint>(eventwaitlist.size()), &eventwaitlist[0], &KernelFinished.event);
+    std::shared_ptr<clEvent> KernelFinished = std::make_shared<clEvent>();
+    status = clEnqueueNDRangeKernel(Context->GetQueue(), Kernel, 2, nullptr, Global.worksize, nullptr, static_cast<cl_uint>(eventwaitlist.size()), &eventwaitlist[0], &KernelFinished->event);
     clError::Throw(status, Name);
 
     RunCallbacks(KernelFinished);
@@ -119,7 +120,7 @@ clEvent clKernel::run(clWorkGroup Global, clEvent StartEvent) {
     return KernelFinished;
 }
 
-clEvent clKernel::run(clWorkGroup Global, clWorkGroup Local) {
+std::shared_ptr<clEvent> clKernel::run(clWorkGroup Global, clWorkGroup Local) {
     std::vector<cl_event> eventwaitlist;
 
     // Check callbacks for any input types... need to wait on there write events..
@@ -128,25 +129,25 @@ clEvent clKernel::run(clWorkGroup Global, clWorkGroup Local) {
         // Data is being written to an input type, wait for it to finish
         if(ArgType[arg] == ArgumentType::Input || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::InputOutputNoUpdate )
         {
-            clEvent e = Callbacks[arg]->GetFinishedWriteEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedWriteEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
         // Current data is presently being retrieved (don't overwrite yet)
         if(ArgType[arg] == ArgumentType::Output || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::OutputNoUpdate || ArgType[arg] == ArgumentType::InputOutputNoUpdate)
         {
-            clEvent e = Callbacks[arg]->GetFinishedReadEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedReadEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
     }
 
-    clEvent KernelFinished;
-    status = clEnqueueNDRangeKernel(Context->GetQueue(), Kernel, 2, nullptr, Global.worksize, Local.worksize, static_cast<cl_uint>(eventwaitlist.size()), !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &KernelFinished.event);
+    std::shared_ptr<clEvent> KernelFinished = std::make_shared<clEvent>();
+    status = clEnqueueNDRangeKernel(Context->GetQueue(), Kernel, 2, nullptr, Global.worksize, Local.worksize, static_cast<cl_uint>(eventwaitlist.size()), !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &KernelFinished->event);
     clError::Throw(status, Name);
 
     RunCallbacks(KernelFinished);
@@ -154,7 +155,7 @@ clEvent clKernel::run(clWorkGroup Global, clWorkGroup Local) {
     return KernelFinished;
 }
 
-clEvent clKernel::run(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent) {
+std::shared_ptr<clEvent> clKernel::run(clWorkGroup Global, clWorkGroup Local, std::shared_ptr<clEvent> StartEvent) {
     std::vector<cl_event> eventwaitlist;
 
     // Check callbacks for any input types... need to wait on there write events..
@@ -163,27 +164,27 @@ clEvent clKernel::run(clWorkGroup Global, clWorkGroup Local, clEvent StartEvent)
         // Data is being written to an input type, wait for it to finish
         if(ArgType[arg] == ArgumentType::Input || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::InputOutputNoUpdate )
         {
-            clEvent e = Callbacks[arg]->GetFinishedWriteEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedWriteEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
         // Current data is presently being retrieved (don't overwrite yet)
         if(ArgType[arg] == ArgumentType::Output || ArgType[arg] == ArgumentType::InputOutput || ArgType[arg] == ArgumentType::OutputNoUpdate || ArgType[arg] == ArgumentType::InputOutputNoUpdate)
         {
-            clEvent e = Callbacks[arg]->GetFinishedReadEvent();
-            if (e.isSet())
+            std::shared_ptr<clEvent> e = Callbacks[arg].lock()->GetFinishedReadEvent();
+            if (e->isSet())
             {
-                eventwaitlist.push_back(e.event);
+                eventwaitlist.push_back(e->event);
             }
         }
     }
 
-    eventwaitlist.push_back(StartEvent.event);
+    eventwaitlist.push_back(StartEvent->event);
 
-    clEvent KernelFinished;
-    status = clEnqueueNDRangeKernel(Context->GetQueue(), Kernel, 2, nullptr, Global.worksize, Local.worksize, static_cast<cl_uint>(eventwaitlist.size()), &eventwaitlist[0], &KernelFinished.event);
+    std::shared_ptr<clEvent> KernelFinished = std::make_shared<clEvent>();
+    status = clEnqueueNDRangeKernel(Context->GetQueue(), Kernel, 2, nullptr, Global.worksize, Local.worksize, static_cast<cl_uint>(eventwaitlist.size()), &eventwaitlist[0], &KernelFinished->event);
     clError::Throw(status);
 
     RunCallbacks(KernelFinished);
