@@ -55,12 +55,6 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
         job->simManager->failedSimulation();
     }
 
-    typedef std::map<std::string, Image<float>> return_map;
-    return_map Images;
-    job->simManager->updateImages(Images, 1);
-
-    job->simManager.reset();
-
     CLOG(DEBUG, "sim") << "Completed simulation";
     // finally, end this thread ?
     job->promise.set_value();
@@ -161,85 +155,85 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     CLOG(DEBUG, "sim") << "Reading sort kernel output";
 
-//    std::vector<int> HostBlockIDs = ClBlockIds->CreateLocalCopy();
-//    std::vector<int> HostZIDs = ClZIds->CreateLocalCopy();
-//
-//    CLOG(DEBUG, "sim") << "Binning atoms";
-//
-//    // this silly initialising is to make the first two levels of our vectors, we then dynamically
-//    // fill the next level in the following loop :)
-//    std::vector<std::vector<std::vector<float>>> Binnedx((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
-//    std::vector<std::vector<std::vector<float>>> Binnedy((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
-//    std::vector<std::vector<std::vector<float>>> Binnedz((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
-//    std::vector<std::vector<std::vector<int>>> BinnedA((unsigned long) BlocksX*BlocksY, std::vector<std::vector<int>>(numberOfSlices));
-//
-//    // TODO: speed could be improved by either reserving space for full count of atoms? OR  calculting number we have in the rangewe want (so we don't dynamically create everything
-//
-//    int count_in_range = 0;
-//    for(int i = 0; i < atom_count; i++) {
-//        if (HostZIDs[i] > 0 && HostBlockIDs[i] > 0) {
-//            Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
-//            Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
-//            Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i]);
-//            BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
-//            ++count_in_range;
-//        }
-//    }
-//
-//    unsigned long long max_bin_xy = 0;
-//    unsigned long long max_bin_z = 0;
-//
-//    //
-//    // This only works because x and y have the same number of blocks (so I only need to look at one of x or y)
-//    //
-//    for (auto &bx_1 : Binnedx) {
-//        if (bx_1.size() > max_bin_xy)
-//            max_bin_xy = bx_1.size();
-//
-//        for (auto &bx_2 : bx_1)
-//            if (bx_2.size() > max_bin_z)
-//                max_bin_z = bx_2.size();
-//    }
-//
-//    int atomIterator = 0;
-//
-//    std::vector<int> blockStartPositions(numberOfSlices*BlocksX*BlocksY+1);
-//
-//    // Put all bins into a linear block of memory ordered by z then y then x and record start positions for every block.
-//    CLOG(DEBUG, "sim") << "Putting binned atoms into continuous array";
-//
-//    for(int slicei = 0; slicei < numberOfSlices; slicei++) {
-//        for(int j = 0; j < BlocksY; j++) {
-//            for(int k = 0; k < BlocksX; k++) {
-//                blockStartPositions[slicei*BlocksX*BlocksY+ j*BlocksX + k] = atomIterator;
-//
-//                if(!Binnedx[j * BlocksX + k][slicei].empty()) {
-//                    for(int l = 0; l < Binnedx[j*BlocksX+k][slicei].size(); l++) {
-//                        AtomXPos[atomIterator] = Binnedx[j*BlocksX+k][slicei][l];
-//                        AtomYPos[atomIterator] = Binnedy[j*BlocksX+k][slicei][l];
-//                        AtomZPos[atomIterator] = Binnedz[j*BlocksX+k][slicei][l];
-//                        AtomANum[atomIterator] = BinnedA[j*BlocksX+k][slicei][l];
-//                        atomIterator++;
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    // Last element indicates end of last block as total number of atoms.
-//    blockStartPositions[numberOfSlices*BlocksX*BlocksY] = count_in_range;
-//
-//    ClBlockStartPositions = OpenCL::CreateBuffer<int, Manual>(ctx, numberOfSlices * BlocksX * BlocksY + 1);
-//
-//    CLOG(DEBUG, "sim") << "Writing binned atom posisitons to bufffers";
-//
-//    // Now upload the sorted atoms onto the device..
-//    ClAtomX->Write(AtomXPos);
-//    ClAtomY->Write(AtomYPos);
-//    ClAtomZ->Write(AtomZPos);
-//    ClAtomA->Write(AtomANum);
-//
-//    ClBlockStartPositions->Write(blockStartPositions);
+    std::vector<int> HostBlockIDs = ClBlockIds->CreateLocalCopy();
+    std::vector<int> HostZIDs = ClZIds->CreateLocalCopy();
+
+    CLOG(DEBUG, "sim") << "Binning atoms";
+
+    // this silly initialising is to make the first two levels of our vectors, we then dynamically
+    // fill the next level in the following loop :)
+    std::vector<std::vector<std::vector<float>>> Binnedx((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
+    std::vector<std::vector<std::vector<float>>> Binnedy((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
+    std::vector<std::vector<std::vector<float>>> Binnedz((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
+    std::vector<std::vector<std::vector<int>>> BinnedA((unsigned long) BlocksX*BlocksY, std::vector<std::vector<int>>(numberOfSlices));
+
+    // TODO: speed could be improved by either reserving space for full count of atoms? OR  calculting number we have in the rangewe want (so we don't dynamically create everything
+
+    int count_in_range = 0;
+    for(int i = 0; i < atom_count; i++) {
+        if (HostZIDs[i] > 0 && HostBlockIDs[i] > 0) {
+            Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
+            Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
+            Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i]);
+            BinnedA[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomANum[i]);
+            ++count_in_range;
+        }
+    }
+
+    unsigned long long max_bin_xy = 0;
+    unsigned long long max_bin_z = 0;
+
+    //
+    // This only works because x and y have the same number of blocks (so I only need to look at one of x or y)
+    //
+    for (auto &bx_1 : Binnedx) {
+        if (bx_1.size() > max_bin_xy)
+            max_bin_xy = bx_1.size();
+
+        for (auto &bx_2 : bx_1)
+            if (bx_2.size() > max_bin_z)
+                max_bin_z = bx_2.size();
+    }
+
+    int atomIterator = 0;
+
+    std::vector<int> blockStartPositions(numberOfSlices*BlocksX*BlocksY+1);
+
+    // Put all bins into a linear block of memory ordered by z then y then x and record start positions for every block.
+    CLOG(DEBUG, "sim") << "Putting binned atoms into continuous array";
+
+    for(int slicei = 0; slicei < numberOfSlices; slicei++) {
+        for(int j = 0; j < BlocksY; j++) {
+            for(int k = 0; k < BlocksX; k++) {
+                blockStartPositions[slicei*BlocksX*BlocksY+ j*BlocksX + k] = atomIterator;
+
+                if(!Binnedx[j * BlocksX + k][slicei].empty()) {
+                    for(int l = 0; l < Binnedx[j*BlocksX+k][slicei].size(); l++) {
+                        AtomXPos[atomIterator] = Binnedx[j*BlocksX+k][slicei][l];
+                        AtomYPos[atomIterator] = Binnedy[j*BlocksX+k][slicei][l];
+                        AtomZPos[atomIterator] = Binnedz[j*BlocksX+k][slicei][l];
+                        AtomANum[atomIterator] = BinnedA[j*BlocksX+k][slicei][l];
+                        atomIterator++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Last element indicates end of last block as total number of atoms.
+    blockStartPositions[numberOfSlices*BlocksX*BlocksY] = count_in_range;
+
+    ClBlockStartPositions = OpenCL::CreateBuffer<int, Manual>(ctx, numberOfSlices * BlocksX * BlocksY + 1);
+
+    CLOG(DEBUG, "sim") << "Writing binned atom posisitons to bufffers";
+
+    // Now upload the sorted atoms onto the device..
+    ClAtomX->Write(AtomXPos);
+    ClAtomY->Write(AtomYPos);
+    ClAtomZ->Write(AtomZPos);
+    ClAtomA->Write(AtomANum);
+
+    ClBlockStartPositions->Write(blockStartPositions);
 
     // wait for the IO queue here so that we are sure the data is uploaded before we start usign it
     ctx->WaitForQueueFinish();
@@ -250,75 +244,75 @@ void SimulationWorker::doCtem(bool simImage)
     // sort structure, TDS is always false so leave blank
     sortAtoms();
 
-//    initialiseCtem();
-//
-//    CLOG(DEBUG, "sim") << "Starting multislice loop";
-//    // loop through slices
-//    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
-//    for (int i = 0; i < numberOfSlices; ++i) {
-//        doMultiSliceStep(i);
-//        if (pool.stop)
-//            return;
-//        job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
-//    }
-//
-//    if (simImage)
-//        simulateCtemImage();
-//
-//    CLOG(DEBUG, "sim") << "Getting return images";
-//
-//    int resolution = job->simManager->getResolution();
-//    typedef std::map<std::string, Image<float>> return_map;
-//    return_map Images;
-//
-//    float real_scale = job->simManager->getRealScale();
-//
-//    auto x_im_range = job->simManager->getRawSimLimitsX()[1] - job->simManager->getRawSimLimitsX()[0];
-//    auto x_sim_range = job->simManager->getPaddedSimLimitsX()[1] - job->simManager->getPaddedSimLimitsX()[0];
-//    auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
-//
-//    auto y_im_range = job->simManager->getRawSimLimitsY()[1] - job->simManager->getRawSimLimitsY()[0];
-//    auto y_sim_range = job->simManager->getPaddedSimLimitsY()[1] - job->simManager->getPaddedSimLimitsY()[0];
-//    auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
-//
-//    auto crop_l = (int) std::floor(crop_lr_total / 2.0);
-//    auto crop_b = (int) std::floor(crop_tb_total / 2.0);
-//
-//    int crop_r = (int)crop_lr_total - crop_l;
-//    int crop_t = (int)crop_tb_total - crop_b;
-//
-//    auto ew = Image<float>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
-//    auto diff = Image<float>(resolution, resolution, getDiffractionImage());
-//
-//    // get the images we need
-//    Images.insert(return_map::value_type("EW", ew));
-//    Images.insert(return_map::value_type("Diff", diff));
-//
-//    if (job->simManager->getSimulateCtemImage()) {
-//
-//        std::string ccd = job->simManager->getCcdName();
-//        if (CCDParams::nameExists(ccd)) {
-//            auto dqe = CCDParams::getDQE(ccd);
-//            auto ntf = CCDParams::getNTF(ccd);
-//            int binning = job->simManager->getCcdBinning();
-//            // get dose
-//            float dose = job->simManager->getCcdDose(); // electrons per area
-//            // get electrons per pixel
-//            float scale = job->simManager->getRealScale();
-//            scale *= scale; // square it to get area of pixel
-//            float dose_per_pix = dose * scale;
-//
-//            simulateCtemImage(dqe, ntf, binning, dose_per_pix);
-//        }
-//        else {
-//            simulateCtemImage();
-//        }
-//
-//        auto ctem_im = Image<float>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
-//        Images.insert(return_map::value_type("Image", ctem_im));
-//    }
-//
-//    job->simManager->updateImages(Images, 1);
+    initialiseCtem();
+
+    CLOG(DEBUG, "sim") << "Starting multislice loop";
+    // loop through slices
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    for (int i = 0; i < numberOfSlices; ++i) {
+        doMultiSliceStep(i);
+        if (pool.stop)
+            return;
+        job->simManager->reportSliceProgress(((float)i+1) / (float)numberOfSlices);
+    }
+
+    if (simImage)
+        simulateCtemImage();
+
+    CLOG(DEBUG, "sim") << "Getting return images";
+
+    int resolution = job->simManager->getResolution();
+    typedef std::map<std::string, Image<float>> return_map;
+    return_map Images;
+
+    float real_scale = job->simManager->getRealScale();
+
+    auto x_im_range = job->simManager->getRawSimLimitsX()[1] - job->simManager->getRawSimLimitsX()[0];
+    auto x_sim_range = job->simManager->getPaddedSimLimitsX()[1] - job->simManager->getPaddedSimLimitsX()[0];
+    auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
+
+    auto y_im_range = job->simManager->getRawSimLimitsY()[1] - job->simManager->getRawSimLimitsY()[0];
+    auto y_sim_range = job->simManager->getPaddedSimLimitsY()[1] - job->simManager->getPaddedSimLimitsY()[0];
+    auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
+
+    auto crop_l = (int) std::floor(crop_lr_total / 2.0);
+    auto crop_b = (int) std::floor(crop_tb_total / 2.0);
+
+    int crop_r = (int)crop_lr_total - crop_l;
+    int crop_t = (int)crop_tb_total - crop_b;
+
+    auto ew = Image<float>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
+    auto diff = Image<float>(resolution, resolution, getDiffractionImage());
+
+    // get the images we need
+    Images.insert(return_map::value_type("EW", ew));
+    Images.insert(return_map::value_type("Diff", diff));
+
+    if (job->simManager->getSimulateCtemImage()) {
+
+        std::string ccd = job->simManager->getCcdName();
+        if (CCDParams::nameExists(ccd)) {
+            auto dqe = CCDParams::getDQE(ccd);
+            auto ntf = CCDParams::getNTF(ccd);
+            int binning = job->simManager->getCcdBinning();
+            // get dose
+            float dose = job->simManager->getCcdDose(); // electrons per area
+            // get electrons per pixel
+            float scale = job->simManager->getRealScale();
+            scale *= scale; // square it to get area of pixel
+            float dose_per_pix = dose * scale;
+
+            simulateCtemImage(dqe, ntf, binning, dose_per_pix);
+        }
+        else {
+            simulateCtemImage();
+        }
+
+        auto ctem_im = Image<float>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
+        Images.insert(return_map::value_type("Image", ctem_im));
+    }
+
+    job->simManager->updateImages(Images, 1);
 }
 
 void SimulationWorker::doCbed()
@@ -404,8 +398,8 @@ void SimulationWorker::doStem()
     CLOG(DEBUG, "sim") << "Getting return images";
     typedef std::map<std::string, Image<float>> return_map;
     return_map Images;
-    int px_x = job->simManager->getStemArea()->getPixelsX();
-    int px_y = job->simManager->getStemArea()->getPixelsY();
+    unsigned int px_x = job->simManager->getStemArea()->getPixelsX();
+    unsigned int px_y = job->simManager->getStemArea()->getPixelsY();
 
     for (const auto &det : job->simManager->getDetectors()) {
         std::vector<float> im(stemPixels->getNumPixels(), 0.0f);

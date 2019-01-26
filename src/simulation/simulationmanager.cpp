@@ -115,7 +115,7 @@ unsigned long SimulationManager::getTotalParts()
     return 0;
 }
 
-void SimulationManager::updateImages(std::map<std::string, Image<float>> ims, int jobCount)
+void SimulationManager::updateImages(std::map<std::string, Image<float>> &ims, int jobCount)
 {
     CLOG(DEBUG, "sim") << "Updating images";
     std::lock_guard<std::mutex> lck(image_update_mtx);

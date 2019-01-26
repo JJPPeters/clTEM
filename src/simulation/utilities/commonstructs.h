@@ -215,8 +215,8 @@ struct StemArea : public SimulationArea {
     float getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
     float getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}
 
-    int getPixelsX() {return xPixels;}
-    int getPixelsY() {return yPixels;}
+    unsigned int getPixelsX() {return xPixels;}
+    unsigned int getPixelsY() {return yPixels;}
     float getPadding() {return padding;}
 
     float getScaleX();

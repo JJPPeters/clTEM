@@ -23,16 +23,15 @@ void clKernel::RunCallbacks(std::shared_ptr<clEvent> KernelFinished)
     }
 }
 
-void clKernel::BuildKernelFromString(std::string codestring, std::string kernelname)
+void clKernel::BuildKernelFromString()
 {
     // denorms now flushed to zero, and no checks for NaNs or infs, should be faster...
     std::string options = "-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros -Werror"; //-cl-finite-math-only -cl-mad-enable -Werror";
     size_t log_size;
-    Name = kernelname;
 
-    auto code_char = codestring.c_str();
+    auto code_char = CodeString.c_str();
     Program = clCreateProgramWithSource(Context->GetContext(), 1, &code_char, nullptr, &status);
-    clError::Throw(status, kernelname);
+    clError::Throw(status, Name);
 
     status = clBuildProgram(Program,1,&Context->GetContextDevice().GetDeviceID(), options.c_str(), nullptr, nullptr);
     if (status != CL_SUCCESS) {
@@ -42,10 +41,10 @@ void clKernel::BuildKernelFromString(std::string codestring, std::string kerneln
         status = clGetProgramBuildInfo(Program, Context->GetContextDevice().GetDeviceID(), CL_PROGRAM_BUILD_LOG, log_size, &buildlog_char[0], nullptr);
 
         std::string buildlog_str(buildlog_char.begin(), buildlog_char.end());
-        clError::Throw(status, kernelname + "\nBuild log:\n" + buildlog_str);
+        clError::Throw(status, Name + "\nBuild log:\n" + buildlog_str);
     }
-    Kernel = clCreateKernel(Program,kernelname.c_str(),&status);
-    clError::Throw(status, kernelname);
+    Kernel = clCreateKernel(Program, Name.c_str(), &status);
+    clError::Throw(status, Name);
 }
 
 std::shared_ptr<clEvent> clKernel::run(clWorkGroup Global) {

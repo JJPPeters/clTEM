@@ -36,7 +36,7 @@ template <class T> class Manual : public Notify
         cl_int status;
 
         std::vector<T> Local(Size);
-        if(KernelFinished->event && KernelFinished->isSet())
+        if(KernelFinished && KernelFinished->event && KernelFinished->isSet())
         {
             std::shared_ptr<clEvent> e = Read(Local,KernelFinished);
             status = clWaitForEvents(1, &e->event);

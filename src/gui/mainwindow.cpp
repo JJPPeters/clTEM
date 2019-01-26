@@ -116,6 +116,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    if(SimThread)
+        SimThread->cancelSimulation();
+
     delete ui;
 }
 
@@ -559,13 +562,13 @@ void MainWindow::simulationFailed()
     simulationComplete();
 
     // set an error message
-//    QMessageBox msgBox(this);
-//    msgBox.setText("Error:");
-//    msgBox.setInformativeText("Problem running simulation (see log file)");
-//    msgBox.setIcon(QMessageBox::Critical);
-//    msgBox.setStandardButtons(QMessageBox::Ok);
-//    msgBox.setMinimumSize(160, 125);
-//    msgBox.exec();
+    QMessageBox msgBox(this);
+    msgBox.setText("Error:");
+    msgBox.setInformativeText("Problem running simulation (see log file)");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setMinimumSize(160, 125);
+    msgBox.exec();
 }
 
 void MainWindow::cancel_simulation()

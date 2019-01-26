@@ -36,16 +36,21 @@ namespace ArgumentType
 class clKernel
 {
 public:
-    class BuildException: public std::runtime_error
-    {
-    public:
-        BuildException(std::string message, cl_int status): runtime_error(message), Status(status){};
-        cl_int Status;
-    };
+    unsigned int NumberOfArgs;
 
+private:
+    cl_int status;
+    std::vector<ArgumentType::ArgTypes> ArgType;
+    std::vector<std::weak_ptr<Notify>> Callbacks;
+    std::shared_ptr<clContext> Context;
+    cl_program Program;
+    cl_kernel Kernel;
+    std::string CodeString;
+    std::string Name;
+
+public:
     clKernel() : NumberOfArgs(0), status(CL_SUCCESS), Program(nullptr), Kernel(nullptr) { }
-    ~clKernel()
-    {
+    ~clKernel() {
         if(Program) {
             status = clReleaseProgram(Program);
             clError::Throw(status, Name);
@@ -57,42 +62,42 @@ public:
     }
 
     clKernel(std::shared_ptr<clContext> _context, std::string codestring, unsigned int _NumberOfArgs, std::string _name)
-            : Context(_context), NumberOfArgs(_NumberOfArgs), Name(_name), Program(nullptr), Kernel(nullptr), status(CL_SUCCESS)
-    {
+            : NumberOfArgs(_NumberOfArgs), status(CL_SUCCESS), Context(std::move(_context)), Program(nullptr), Kernel(nullptr),
+            CodeString(std::move(codestring)), Name(std::move(_name)) {
         ArgType.resize(_NumberOfArgs);
         Callbacks.resize(_NumberOfArgs);
-        BuildKernelFromString(codestring, _name);
-    }
+        BuildKernelFromString();
+}
 
     clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy from a reference (&) to not, why?
-        if(this!=&Copy)
-        {
+        if(this!=&Copy) {
             Context = Copy.Context;
             NumberOfArgs = Copy.NumberOfArgs;
             Name = Copy.Name;
-//            CodeString = Copy.CodeString;
+            CodeString = Copy.CodeString;
             ArgType.clear();
             ArgType.resize(NumberOfArgs);
             Callbacks.clear();
             Callbacks.resize(NumberOfArgs);
-//            BuildKernelFromString(CodeString,Name);
+            // why do we need to rebuild this?
+            BuildKernelFromString();
         }
         return *this;
     }
 
-    clKernel(const clKernel& Copy): Context(Copy.Context), NumberOfArgs(Copy.NumberOfArgs), Name(Copy.Name)
-    {
+    clKernel(const clKernel& Copy)//: Context(Copy.Context), NumberOfArgs(Copy.NumberOfArgs), Name(Copy.Name)
+            : NumberOfArgs(Copy.NumberOfArgs), status(Copy.status), Context(Copy.Context), Program(nullptr), Kernel(nullptr),
+            CodeString(Copy.CodeString), Name(Copy.Name) {
         ArgType.clear();
         Callbacks.clear();
-
         ArgType.resize(NumberOfArgs);
         Callbacks.resize(NumberOfArgs);
-//        BuildKernelFromString(CodeString,Name);
+
+        BuildKernelFromString();
     }
 
     // Overload for OpenCL Memory Buffers
-    template <class T, template <class> class AutoPolicy> void SetArg(unsigned int position, std::shared_ptr<clMemory<T,AutoPolicy>>& arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified)
-    {
+    template <class T, template <class> class AutoPolicy> void SetArg(cl_uint position, std::shared_ptr<clMemory<T,AutoPolicy>>& arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified) {
         ArgType[position] = ArgumentType;
         Callbacks[position] = arg;
 
@@ -104,8 +109,7 @@ public:
     }
 
     // Can enter arguments as literals now...
-    template <class T> void SetArg(unsigned int position, const T arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified)
-    {
+    template <class T> void SetArg(cl_uint position, const T arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified) {
         ArgType[position] = ArgumentType;
 
         status = clSetKernelArg(Kernel, position, sizeof(cl_mem), nullptr);
@@ -113,7 +117,7 @@ public:
             clError::Throw(CL_INVALID_ARG_VALUE,  Name + " arg " + std::to_string(position) + ": Possibly trying to set a non-buffer argument with a buffer.");
         status = CL_SUCCESS;
 
-        status |= clSetKernelArg(Kernel, (cl_uint)position, sizeof(T), &arg);
+        status |= clSetKernelArg(Kernel, position, sizeof(T), &arg);
         clError::Throw(status, Name + " arg " + std::to_string(position));
     }
 
@@ -133,30 +137,21 @@ public:
     std::shared_ptr<clEvent> run(clWorkGroup Global, clWorkGroup Local, std::shared_ptr<clEvent> StartEvent);
 
     cl_int GetStatus(){ return status; };
-    unsigned int NumberOfArgs;
 
 private:
-    cl_int status;
-    std::vector<ArgumentType::ArgTypes> ArgType;
-    std::vector<std::weak_ptr<Notify>> Callbacks;
-    std::shared_ptr<clContext> Context;
-    cl_program Program;
-    cl_kernel Kernel;
-    std::string Name;
-//    const char* CodeString;
 
-    void swap(clKernel& first, clKernel& second)
-    {
+    void swap(clKernel& first, clKernel& second) {
         std::swap(first.Program,second.Program);
         std::swap(first.Kernel,second.Kernel);
         std::swap(first.Context,second.Context);
         std::swap(first.ArgType,second.ArgType);
         std::swap(first.Callbacks,second.Callbacks);
+        std::swap(first.CodeString,second.CodeString);
         std::swap(first.Name,second.Name);
     }
 
     void RunCallbacks(std::shared_ptr<clEvent> KernelFinished);
-    void BuildKernelFromString(std::string, std::string kernelname);
+    void BuildKernelFromString();
 };
 
 

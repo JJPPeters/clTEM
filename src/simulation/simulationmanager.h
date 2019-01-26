@@ -230,7 +230,7 @@ public:
     void setProgressTotalReporterFunc(std::function<void(float)> f) {progressTotalReporter = std::move(f);}
     void setProgressSliceReporterFunc(std::function<void(float)> f) {progressSliceReporter = std::move(f);}
 
-    void updateImages(std::map<std::string, Image<float>> ims, int jobCount);
+    void updateImages(std::map<std::string, Image<float>> &ims, int jobCount);
     std::map<std::string, Image<float>> getImages() { return Images; }
     void failedSimulation();
 
