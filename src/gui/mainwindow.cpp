@@ -530,9 +530,15 @@ bool MainWindow::checkSimulationPrerequisites()
 
     // TODO: STEM area in simulation area
 
-    // TODO: STEM detectors exist
+    // Check STEM detectors exist
+    if (Manager->getMode() == SimulationMode::STEM)
+        if(Manager->getDetectors().empty())
+            errorList.emplace_back("STEM simulation requires at least 1 detector.");
 
     // TODO: dose sim for TEM checks
+    if (Manager->getMode() == SimulationMode::CTEM)
+        if(Manager->getCcdDose() <= 0.0f)
+            errorList.emplace_back("CCD dose cannot be 0.");
 
     // TODO: warnings option (stem detector radius checks...
 
