@@ -17,6 +17,9 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
 
     el::Helpers::setThreadName("p" + std::to_string(p_num) + ":d" + std::to_string(d_num));
 
+    // clear vectors so we don't keep adding to them
+    cleanup();
+
     CLOG(DEBUG, "sim") << "Running simulation worker";
 
     job = _job;
@@ -627,7 +630,7 @@ void SimulationWorker::initialiseCtem()
     clWaveFunction1.emplace_back(ctx, resolution*resolution);
     clWaveFunction2.emplace_back(ctx, resolution*resolution);
     clWaveFunction3 = clMemory<cl_float2, Manual>(ctx, resolution*resolution);
-    clWaveFunction4.emplace_back(clMemory<cl_float2, Manual>(ctx, resolution*resolution));
+    clWaveFunction4.emplace_back(ctx, resolution*resolution);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create plane wave function
@@ -1038,7 +1041,7 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
     CLOG(DEBUG, "sim") << "Calculating absolute squared value";
     for (int i = 0; i < resolution * resolution; i++)
         // Get absolute value for display...
-        data_out[i] += (compdata[i].s[0] * compdata[i].s[0] + compdata[i].s[1] * compdata[i].s[1]);
+        data_out[i] += (compdata[i].x * compdata[i].x + compdata[i].y * compdata[i].y);
 
     return data_out;
 }
@@ -1100,6 +1103,8 @@ float SimulationWorker::doSumReduction(clMemory<float, Manual> data, clWorkGroup
 
     SumReduction.run(globalSizeSum, localSizeSum);
 
+    ctx.WaitForQueueFinish();
+
     // Now copy back
     CLOG(DEBUG, "sim") << "Copy from buffer";
     std::vector<float> sums = outArray.CreateLocalCopy();
@@ -1141,6 +1146,8 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
     TDSMaskingAbsKernel.SetArg(7, ycPx);
 
     TDSMaskingAbsKernel.run(WorkSize);
+
+    ctx.WaitForQueueFinish();
 
     unsigned int totalSize = resolution*resolution;
     unsigned int nGroups = totalSize / 256;

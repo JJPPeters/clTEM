@@ -17,7 +17,7 @@ class SimulationWorker : public ThreadWorker
 {
 public:
     // initialise FourierTrans just with any values
-    SimulationWorker(ThreadPool &s, unsigned int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx) {}
+    SimulationWorker(ThreadPool &s, unsigned int _id, const clContext &_ctx) : ThreadWorker(s, _id), ctx(_ctx) {}
 
     ~SimulationWorker() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
 
@@ -27,6 +27,12 @@ private:
     clContext ctx;
 
     std::shared_ptr<SimulationJob> job;
+
+    void cleanup() {
+        clWaveFunction1.clear();
+        clWaveFunction2.clear();
+        clWaveFunction4.clear();
+    }
 
     void uploadParameters(std::vector<float> param);
 
