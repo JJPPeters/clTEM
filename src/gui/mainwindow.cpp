@@ -163,20 +163,17 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionOpenCL_triggered()
 {
     // TODO: later will want to pass the full tuple (performance factors and all)
-    OpenClDialog *myDialog = new OpenClDialog(this, std::get<0>(Devices));
+    OpenClDialog *myDialog = new OpenClDialog(this, Devices);
 
     myDialog->exec();
 
-    auto chosen = myDialog->getChosenDevices();
-
-//    Manager->setOpenClDevices(chosen);
-    Devices = chosen;
+    Devices = myDialog->getChosenDevices();
 
     // remove all current device entries in the settings and reset them
     QSettings settings;
     settings.remove("opencl");
     int counter = 0;
-    for (auto& dev : std::get<0>(Devices))
+    for (auto& dev : Devices)
     {
         settings.setValue("opencl/" + QString::number(counter) + "/platform", dev.GetPlatformNumber());
         settings.setValue("opencl/" + QString::number(counter) + "/device", dev.GetDeviceNumber());
@@ -303,14 +300,13 @@ void MainWindow::on_actionSimulate_EW_triggered()
 
     // test we have everything we need
     try {
-        checkSimulationPrerequisites();
+        Utils::checkSimulationPrerequisites(Manager, Devices);
     }
     catch (const std::runtime_error& e) {
         CLOG(WARNING, "gui") << "Simulation prerequisites not met: " << e.what();
         QMessageBox msgBox(this);
         msgBox.setText("Error:");
         msgBox.setInformativeText(e.what());
-//        msgBox.setDetailedText(e.what());
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setMinimumSize(160, 125);
@@ -334,7 +330,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
 
     man_list.push_back(temp);
 
-    std::vector<clDevice> &d = std::get<0>(Devices);
+    std::vector<clDevice> &d = Devices;
 
     SimThread = std::make_shared<SimulationThread>(man_list, d);
 
@@ -492,66 +488,8 @@ void MainWindow::loadSavedOpenClSettings()
                 dev_list.push_back(d);
         }
     }
-    std::vector<float> perfs(dev_list.size(), 1.0f); //TODO: implement this properly later...
-    Devices = std::tuple<std::vector<clDevice>, std::vector<float>>(dev_list, perfs);
+    Devices = std::vector<clDevice>(dev_list);
     settings.endGroup();
-}
-
-bool MainWindow::checkSimulationPrerequisites()
-{
-    std::vector<std::string> errorList;
-
-    if(std::get<0>(Devices).empty())
-        errorList.emplace_back("No OpenCL devices selected.");
-
-    if(!Manager->getStructure())
-        errorList.emplace_back("No structure loaded.");
-    else
-        if(Manager->getStructureParameter().Max_Atomic_Number < Manager->getStructure()->getMaxAtomicNumber())
-            errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " + std::to_string(Manager->getStructureParameter().Max_Atomic_Number));
-
-    if(!Manager->haveResolution())
-        errorList.emplace_back("No valid simulation resolution set.");
-
-    auto mp = Manager->getMicroscopeParams();
-    if(mp->Voltage <= 0)
-        errorList.emplace_back("Voltage must be a non-zero positive number.");
-    if(mp->Aperture <= 0)
-        errorList.emplace_back("Aperture must be a non-zero positive number.");
-
-    if(Manager->getStructureParameterData().empty())
-        errorList.emplace_back("Potentials have not been loaded correctly.");
-
-    // TODO: check beta (alpha) and delta?
-
-    // TODO: check TDS entries
-
-    // TODO: CBED position in simulation area
-
-    // TODO: STEM area in simulation area
-
-    // Check STEM detectors exist
-    if (Manager->getMode() == SimulationMode::STEM)
-        if(Manager->getDetectors().empty())
-            errorList.emplace_back("STEM simulation requires at least 1 detector.");
-
-    // TODO: dose sim for TEM checks
-    if (Manager->getMode() == SimulationMode::CTEM)
-        if(Manager->getCcdDose() <= 0.0f)
-            errorList.emplace_back("CCD dose cannot be 0.");
-
-    // TODO: warnings option (stem detector radius checks...
-
-    if (!errorList.empty()) {
-        std::string final;
-        for (const auto &err : errorList) {
-            final += err + "\n";
-        }
-        throw std::runtime_error(final);
-        return false;
-    }
-
-    return true;
 }
 
 void MainWindow::simulationComplete() {

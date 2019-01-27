@@ -19,7 +19,7 @@ public:
 
     ~OpenClFrame();
 
-    std::tuple<std::vector<clDevice>, std::vector<float>> getChosenDevices() {return std::make_tuple(chosenDevs, chosenRatios);}
+    std::vector<clDevice> getChosenDevices() {return chosenDevs;}
 
 private slots:
     void on_cmbPlatform_currentIndexChanged(int index);
@@ -34,20 +34,17 @@ private slots:
 
     void dlgCancel_clicked();
 
-    void on_edtRatio_textChanged(const QString &arg1);
-
 private:
     Ui::OpenClFrame *ui;
 
     std::vector<clDevice> Devices;
 
     std::vector<clDevice> chosenDevs;
-    std::vector<float> chosenRatios;
 
     void populatePlatformCombo();
     void populateDeviceCombo();
 
-    void addDeviceToList(clDevice dev, float ratio);
+    void addDeviceToList(clDevice dev);
 };
 
 #endif // OPENCLFRAME_H

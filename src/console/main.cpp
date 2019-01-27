@@ -6,6 +6,7 @@
 #include <utilities/json.hpp>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
+#include <utilities/simutils.h>
 
 #include "getopt.h"
 #include "parseopencl.h"
@@ -471,6 +472,13 @@ int main(int argc, char *argv[])
     StructureParameters::setParams(params, p_name, row_count);
     man_ptr->setStructureParameters(p_name);
 
+    // check all our prerequisites here (some repeated?)
+    try {
+        Utils::checkSimulationPrerequisites(man_ptr, device_list);
+    } catch (const std::runtime_error &e) {
+        std::cout << e.what() << std::endl;
+    }
+
     man_list.emplace_back(man_ptr);
 
     // open the kernels
@@ -504,6 +512,7 @@ int main(int argc, char *argv[])
 
     // global because I am lazy (or smart?)
     out_path = output_dir;
+
 
     auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list);
 

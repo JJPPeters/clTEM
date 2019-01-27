@@ -13,6 +13,7 @@
 #include "simulationthread.h"
 
 #include "utilities/logging.h"
+#include "utilities/simutils.h"
 
 class CbedFrame;
 class SimulationFrame;
@@ -127,11 +128,9 @@ private:
 
     std::shared_ptr<SimulationThread> SimThread;
 
-    std::tuple<std::vector<clDevice>, std::vector<float>> Devices;
+    std::vector<clDevice> Devices;
 
     void loadSavedOpenClSettings();
-
-    bool checkSimulationPrerequisites();
 
     void loadExternalSources();
 

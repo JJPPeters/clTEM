@@ -46,7 +46,7 @@ OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice> current_device
     this->setFixedSize(this->minimumSizeHint());
 }
 
-std::tuple<std::vector<clDevice>, std::vector<float>> OpenClDialog::getChosenDevices()
+std::vector<clDevice> OpenClDialog::getChosenDevices()
 {
     return OClFrame->getChosenDevices();
 }

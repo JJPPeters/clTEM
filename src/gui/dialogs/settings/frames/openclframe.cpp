@@ -25,11 +25,8 @@ OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice> current_devices)
     ui->tblDevices->setColumnWidth(1, 190);
     ui->tblDevices->setColumnWidth(2, 35);
     ui->tblDevices->setColumnWidth(3, 190);
-    ui->tblDevices->setColumnWidth(4, 50);
 
     ui->tblDevices->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-
-    ui->edtRatio->setValidator(new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)")));
 
     auto parent_dlg = dynamic_cast<OpenClDialog*>(parentWidget());
     connect(parent_dlg, &OpenClDialog::okSignal, this, &OpenClFrame::dlgOk_clicked);
@@ -37,7 +34,7 @@ OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice> current_devices)
     connect(parent_dlg, &OpenClDialog::applySignal, this, &OpenClFrame::dlgApply_clicked);
 
     for (const auto &current_device : current_devices) {
-        addDeviceToList(current_device, 1.0); //TODO: implement performance factors
+        addDeviceToList(current_device); //TODO: implement performance factors
     }
 
     // doing this will activate the currentIndexChanged action on the cmbPlatform
@@ -61,9 +58,6 @@ void OpenClFrame::on_btnAdd_clicked()
     if(!ui->cmbDevice->isEnabled())
         return;
 
-    if(ui->edtRatio->text().toFloat() <= 0)
-        return;
-
     // get strings from combo box
     int platNum = ui->cmbPlatform->currentData().toInt();
     int devNum = ui->cmbDevice->currentData().toInt();
@@ -75,14 +69,12 @@ void OpenClFrame::on_btnAdd_clicked()
         if (platNum == d.GetPlatformNumber() && devNum == d.GetDeviceNumber())
             dev = d;
 
-    float r = std::stof(ui->edtRatio->text().toStdString());
-
-    addDeviceToList(dev, r);
+    addDeviceToList(dev);
 
     populateDeviceCombo();
 }
 
-void OpenClFrame::addDeviceToList(clDevice dev, float ratio)
+void OpenClFrame::addDeviceToList(clDevice dev)
 {
     int n = ui->tblDevices->rowCount();
     ui->tblDevices->insertRow(n);
@@ -101,14 +93,10 @@ void OpenClFrame::addDeviceToList(clDevice dev, float ratio)
     auto cell_3 = cell_1->clone();
     cell_3->setText(QString::fromStdString(dev.GetDeviceName()));
 
-    auto cell_4 = cell_0->clone();
-    cell_4->setText(QString::fromStdString(Utils::numToString(ratio)));
-
     ui->tblDevices->setItem(n, 0, cell_0);
     ui->tblDevices->setItem(n, 1, cell_1);
     ui->tblDevices->setItem(n, 2, cell_2);
     ui->tblDevices->setItem(n, 3, cell_3);
-    ui->tblDevices->setItem(n, 4, cell_4);
 }
 
 void OpenClFrame::on_btnDelete_clicked()
@@ -123,8 +111,7 @@ void OpenClFrame::on_btnDelete_clicked()
     std::sort(toRemove.begin(), toRemove.end());
 
     int n = 0;
-    for(int i = 0; i < toRemove.size(); ++i)
-    {
+    for(int i = 0; i < toRemove.size(); ++i) {
         ui->tblDevices->removeRow(toRemove[i] - n);
         ++n;
     }
@@ -192,10 +179,7 @@ void OpenClFrame::populateDeviceCombo()
         }
     }
 
-    if (ui->cmbDevice->count() < 1)
-        ui->cmbDevice->setEnabled(false);
-    else
-        ui->cmbDevice->setEnabled(true);
+    ui->cmbDevice->setEnabled(ui->cmbDevice->count() >= 1);
 }
 
 void OpenClFrame::dlgCancel_clicked()
@@ -214,16 +198,13 @@ void OpenClFrame::dlgOk_clicked()
 void OpenClFrame::dlgApply_clicked()
 {
     chosenDevs.clear();
-    chosenRatios.clear();
     int nRows = ui->tblDevices->rowCount();
     chosenDevs.resize(nRows);
-    chosenRatios.resize(nRows);
 
     for (int i = 0; i < nRows; ++i)
     {
         int p = std::stoi(ui->tblDevices->item(i, 0)->text().toStdString());
         int d = std::stoi(ui->tblDevices->item(i, 2)->text().toStdString());
-        float r = std::stof(ui->tblDevices->item(i, 4)->text().toStdString());
 
         clDevice dev;
         for (auto dv : Devices)
@@ -231,17 +212,6 @@ void OpenClFrame::dlgApply_clicked()
                 dev = dv;
 
         chosenDevs[i] = dev;
-        chosenRatios[i] = r;
     }
 
-}
-
-void OpenClFrame::on_edtRatio_textChanged(const QString &text)
-{
-    float val = ui->edtRatio->text().toFloat();
-
-    if (val <= 0)
-        ui->edtRatio->setStyleSheet("color: #FF8C00");
-    else
-        ui->edtRatio->setStyleSheet("");
 }

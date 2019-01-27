@@ -58,7 +58,7 @@ private:
 public:
     explicit OpenClDialog(QWidget *parent, std::vector<clDevice> current_devices);
 
-    std::tuple<std::vector<clDevice>, std::vector<float>> getChosenDevices();
+    std::vector<clDevice> getChosenDevices();
 };
 
 
