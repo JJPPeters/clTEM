@@ -1,9 +1,8 @@
 #include "temframe.h"
 #include "ui_temframe.h"
 
-#include <iostream>
-#include <utils/stringutils.h>
 #include <QtGui/QRegExpValidator>
+#include <utils/stringutils.h>
 
 TemFrame::TemFrame(QWidget *parent) :
     QWidget(parent),

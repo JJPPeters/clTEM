@@ -8,11 +8,9 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-#include <clwrapper/clwrapper.h>
 #include <iostream>
-#include "threadpool.h"
 #include <chrono>
-
+#include "threadpool.h"
 
 // our worker thread objects
 class ThreadWorker

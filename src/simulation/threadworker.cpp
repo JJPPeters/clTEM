@@ -2,7 +2,6 @@
 // Created by jon on 23/11/17.
 //
 
-#include "threadpool.h"
 #include "threadworker.h"
 
 void ThreadWorker::operator()()

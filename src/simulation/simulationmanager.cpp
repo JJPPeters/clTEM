@@ -167,7 +167,6 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> &ims, i
     if (completeJobs == getTotalParts() && imageReturn) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
         imageReturn(*this);
-//        Images.clear();
     }
 }
 

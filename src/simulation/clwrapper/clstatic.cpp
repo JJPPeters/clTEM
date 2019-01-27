@@ -14,153 +14,55 @@ std::vector<clDevice> OpenCL::GetDeviceList(Device::DeviceType dev_type)
 {
     std::vector<clDevice> DeviceList;
 
-    size_t valueSize;
-    std::vector<char> value;
-    std::vector<char> Pvalue;
-
     //Setup OpenCL
     cl_int status;
-    cl_uint numPlatforms = 0;
 
     // get all platforms
-    status = clGetPlatformIDs(0, nullptr, &numPlatforms);
+    std::vector<cl::Platform> platforms;
+    status = cl::Platform::get(&platforms);
     clError::Throw(status);
 
-    std::vector<cl_platform_id> platforms(numPlatforms);
-    status = clGetPlatformIDs(numPlatforms, &platforms[0], nullptr);
-    clError::Throw(status);
+    unsigned int p_counter = 0;
 
-    std::vector<cl_uint> DevPerPlatform;
-    std::vector<std::vector<cl_device_id>> devices;
+    for (auto & p : platforms) {
+        std::string p_name = p.getInfo<CL_PLATFORM_NAME>();
+//        std::string p_name = Utils::Trim(p.getInfo<CL_PLATFORM_NAME>());
 
-    for (int i = 0; i < numPlatforms; i++)
-    {
-        // fill vector with dummy data that will be written over immediately
-        DevPerPlatform.push_back(0);
-        //devices.push_back(NULL);
-
-        // get all devices
-        status = clGetDeviceIDs(platforms[i], dev_type, 0, nullptr, &DevPerPlatform[i]);
-        if (DevPerPlatform[i] == 0)
-            break; // no devices on this platform, but no need to throw (could be bacuse we are only looking for certain device types
-        clError::Throw(status);
-        devices.emplace_back(DevPerPlatform[i]);
-        status = clGetDeviceIDs(platforms[i], dev_type, DevPerPlatform[i], &devices[i][0], nullptr);
+        std::vector<cl::Device> devices;
+        status = p.getDevices(dev_type, &devices);
         clError::Throw(status);
 
-        status = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 0, nullptr, &valueSize);
-        clError::Throw(status);
-        Pvalue = std::vector<char>(valueSize);
-        status = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, valueSize, &Pvalue[0], nullptr);
-        clError::Throw(status);
-        std::string pName(Pvalue.begin(), Pvalue.end());
-        pName.erase(std::remove(pName.begin(), pName.end(), '\0'), pName.end());
-
-        // for each device get and store name, platform, and device number
-        for (int j = 0; j < DevPerPlatform[i]; j++)
-        {
-            // get device name
-            status = clGetDeviceInfo(devices[i][j], CL_DEVICE_NAME, 0, nullptr, &valueSize);
-            clError::Throw(status);
-            value = std::vector<char>(valueSize);
-            status = clGetDeviceInfo(devices[i][j], CL_DEVICE_NAME, valueSize, &value[0], nullptr);
-            clError::Throw(status);
-            std::string dName(value.begin(), value.end());
-            dName.erase(std::remove(dName.begin(), dName.end(), '\0'), dName.end());
-
-            clDevice newDev(devices[i][j], i, j, Utils::Trim(pName), Utils::Trim(dName));
-            DeviceList.push_back(newDev);
+        unsigned int d_counter = 0;
+        for (auto & d : devices) {
+            DeviceList.emplace_back(clDevice(d, p_name, p_counter, d_counter));
+            d_counter++;
         }
+        p_counter++;
     }
 
     return DeviceList;
 }
 
-std::shared_ptr<clContext> OpenCL::MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Queue::QueueType IOQtype)
+clContext OpenCL::MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Queue::QueueType IOQtype)
 {
-    cl_int status;
-    cl_context ctx = clCreateContext(nullptr,1,&dev.GetDeviceID(), nullptr, nullptr,&status);
+    cl_int status = CL_SUCCESS;
+    std::vector<cl::Device> device_list = {dev.getDevice()};
+    cl::Context ctx(device_list);
+    cl::CommandQueue q(ctx, dev.getDevice(), Qtype, &status);
     clError::Throw(status);
-    cl_command_queue q = clCreateCommandQueue(ctx,dev.GetDeviceID(),Qtype,&status);
-    clError::Throw(status);
-    cl_command_queue ioq = clCreateCommandQueue(ctx,dev.GetDeviceID(),IOQtype,&status);
+    cl::CommandQueue ioq(ctx, dev.getDevice(), IOQtype, &status);
     clError::Throw(status);
 
-    return std::make_shared<clContext>(dev, ctx, q, ioq, status);
+    return clContext(ctx, q, ioq, dev);
 }
 
-std::shared_ptr<clContext> OpenCL::MakeTwoQueueContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Queue::QueueType IOQtype, Device::DeviceType devType)
+clContext OpenCL::MakeContext(clDevice &dev, Queue::QueueType Qtype)
 {
-    auto it =  devices.begin();
-    clDevice dev;
-
-    bool found = false;
-
-    for(int i = 1; i <= devices.size() && !found; i++)
-    {
-        if((*it).GetDeviceType() == devType)
-        {
-            dev = *it;
-            found = true;
-        }
-        ++it;
-    }
-
-    if(!found)
-    {
-        throw "No suitable device";
-    }
-
-    cl_int status;
-    cl_context ctx = clCreateContext(nullptr,1,&dev.GetDeviceID(), nullptr, nullptr,&status);
-    clError::Throw(status);
-    cl_command_queue q = clCreateCommandQueue(ctx,dev.GetDeviceID(),Qtype,&status);
-    clError::Throw(status);
-    cl_command_queue ioq = clCreateCommandQueue(ctx,dev.GetDeviceID(),IOQtype,&status);
+    cl_int status = CL_SUCCESS;
+    std::vector<cl::Device> device_list = {dev.getDevice()};
+    cl::Context ctx(device_list);
+    cl::CommandQueue q(ctx, dev.getDevice(), Qtype, &status);
     clError::Throw(status);
 
-    return std::make_shared<clContext>(dev,ctx,q,ioq,status);
-}
-
-
-std::shared_ptr<clContext> OpenCL::MakeContext(clDevice& dev, Queue::QueueType Qtype)
-{
-    cl_int status;
-    cl_context ctx = clCreateContext(nullptr, 1, &dev.GetDeviceID(), nullptr, nullptr,&status);
-    clError::Throw(status);
-    cl_command_queue q = clCreateCommandQueue(ctx, dev.GetDeviceID(),Qtype,&status);
-    clError::Throw(status);
-
-    return std::make_shared<clContext>(dev,ctx,q,status);
-}
-
-std::shared_ptr<clContext> OpenCL::MakeContext(std::vector<clDevice> &devices, Queue::QueueType Qtype, Device::DeviceType devType)
-{
-    auto it =  devices.begin();
-    clDevice dev;
-
-    bool found = false;
-
-    for(int i = 1; i <= devices.size() && !found; i++)
-    {
-        if((*it).GetDeviceType() == devType)
-        {
-            dev = *it;
-            found = true;
-        }
-        ++it;
-    }
-
-    if(!found)
-    {
-        throw "No suitable device";
-    }
-
-    cl_int status;
-    cl_context ctx = clCreateContext(NULL,1,&dev.GetDeviceID(),NULL,NULL,&status);
-    clError::Throw(status);
-    cl_command_queue q = clCreateCommandQueue(ctx,dev.GetDeviceID(),Qtype,&status);
-    clError::Throw(status);
-
-    return std::make_shared<clContext>(dev,ctx,q,status);
+    return clContext(ctx, q, dev);
 }

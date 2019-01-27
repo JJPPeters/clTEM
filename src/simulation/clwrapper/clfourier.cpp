@@ -6,31 +6,24 @@
 
 #include <cmath>
 
-clFourier::~clFourier()
-{
-    clMedBuffer.reset();
-
-    fftStatus = clfftDestroyPlan(&fftplan);
-    clFftError::Throw(fftStatus, "clFourier");
-//
-//    // not sure if this is needed (or even wise)
-//    fftStatus = clfftTeardown();
-//    clFftError::Throw(fftStatus, "clFourier");
+clFourier::~clFourier() {
+    if (fftplan) {
+        fftStatus = clfftDestroyPlan(&fftplan);
+        clFftError::Throw(fftStatus, "clFourier");
+    }
 }
 
-void clFourier::Setup(unsigned int _width, unsigned int _height)
-{
+void clFourier::Setup(unsigned int _width, unsigned int _height) {
     // Perform setup for FFT's
     fftStatus = clfftInitSetupData(&fftSetupData);
+    clFftError::Throw(fftStatus);
 
 //    fftSetupData.debugFlags = 0x1; # this dumps the kernels that are produced to the current working directory
 
-    clFftError::Throw(fftStatus);
     fftStatus = clfftSetup(&fftSetupData);
     clFftError::Throw(fftStatus);
 
     //	Local Data
-
     clfftDim fftdim = CLFFT_2D;
     clfftResultLocation	place = CLFFT_OUTOFPLACE;
     clfftLayout inLayout  = CLFFT_COMPLEX_INTERLEAVED;
@@ -41,7 +34,6 @@ void clFourier::Setup(unsigned int _width, unsigned int _height)
     size_t clStrides[ 4 ];
     size_t batchSize = 1;
 
-
     clLengths[0] = _width;
     clLengths[1] = _height;
     clLengths[2] = 1;
@@ -51,7 +43,7 @@ void clFourier::Setup(unsigned int _width, unsigned int _height)
     clStrides[ 2 ] = clStrides[ 1 ] * (clLengths[ 1 ] + clPadding[ 1 ]);
     clStrides[ 3 ] = clStrides[ 2 ] * (clLengths[ 2 ] + clPadding[ 2 ]);
 
-    fftStatus = clfftCreateDefaultPlan( &fftplan, Context->GetContext(), fftdim, clLengths );
+    fftStatus = clfftCreateDefaultPlan( &fftplan, Context.GetContext()(), fftdim, clLengths );
     clFftError::Throw(fftStatus, "clFourier");
 
     //	Default plan creates a plan that expects an inPlace transform with interleaved complex numbers
@@ -75,7 +67,7 @@ void clFourier::Setup(unsigned int _width, unsigned int _height)
         clfftSetPlanDistance  ( fftplan, clStrides[ fftdim ], clStrides[ fftdim ]);
     }
 
-    fftStatus = clfftBakePlan( fftplan, 1, &Context->GetQueue(), nullptr, nullptr);
+    fftStatus = clfftBakePlan( fftplan, 1, &Context.GetQueue()(), nullptr, nullptr);
     clFftError::Throw(fftStatus, "clFourier");
 
     //get the buffersize
@@ -83,15 +75,13 @@ void clFourier::Setup(unsigned int _width, unsigned int _height)
     fftStatus = clfftGetTmpBufSize(fftplan, &buffersize );
     clFftError::Throw(fftStatus, "clFourier");
 
-    if (buffersize)
-    {
+    if (buffersize) {
         // because buffersize should be in bytes already...
-        clMedBuffer = std::move(OpenCL::CreateBuffer<char,Manual>(Context, buffersize));
+        clMedBuffer = clMemory<char,Manual>(Context, buffersize);
     }
 }
 
-clFourier::clFourier(std::shared_ptr<clContext> Context, unsigned int _width, unsigned int _height): Context(Context), width(_width), height(_height), buffersize(0)
-{
+clFourier::clFourier(clContext Context, unsigned int _width, unsigned int _height): Context(Context), width(_width), height(_height), buffersize(0), fftplan(0) {
     Setup(_width,_height);
     AutoTeardownFFT::GetInstance();
 };

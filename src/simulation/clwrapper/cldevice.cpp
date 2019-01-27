@@ -4,12 +4,9 @@
 
 #include "cldevice.h"
 
-Device::DeviceType clDevice::GetDeviceType()
-{
+Device::DeviceType clDevice::getDeviceType() {
     cl_int status;
-    Device::DeviceType deviceType;
-    status =  clGetDeviceInfo(deviceID, CL_DEVICE_TYPE, sizeof(Device::DeviceType), &deviceType, NULL);
-    clError::Throw(status);
-
+    auto deviceType = static_cast<Device::DeviceType>(device.getInfo<CL_DEVICE_TYPE>(&status));
+    clError::Throw(status, "clDevice");
     return deviceType;
 };

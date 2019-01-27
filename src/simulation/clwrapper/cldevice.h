@@ -1,5 +1,3 @@
-#include <utility>
-
 //
 // Created by jon on 08/10/16.
 //
@@ -8,10 +6,11 @@
 #define CLWRAPPER_CLDEVICE_H
 
 #include <string>
+#include <utility>
 
-#include "CL/cl.h"
-
+#include "CL/cl.hpp"
 #include "clerror.h"
+#include "utils.h"
 
 namespace Device
 {
@@ -26,33 +25,31 @@ namespace Device
 };
 
 class clDevice {
-public:
-    clDevice() : deviceID(nullptr) {};
-    clDevice(cl_device_id devID, int platNum, int devNum, std::string platName, std::string devName )
-            : deviceID(devID), deviceNum(devNum), platformNum(platNum), platformname(std::move(platName)), devicename(
-            std::move(devName)){};
-
-    ~clDevice() {
-        if (deviceID) {
-            // I don't think this really matters as these are never sub-devices
-            cl_int status = clReleaseDevice(deviceID);
-            clError::Throw(status);
-        }
-    }
-
-    cl_device_id& GetDeviceID(){ return deviceID; };
-    std::string GetDeviceName(){ return devicename; };
-    std::string GetPlatformName(){ return platformname; };
-    int GetPlatformNumber(){ return platformNum; };
-    int GetDeviceNumber(){ return deviceNum; };
-    Device::DeviceType GetDeviceType();
-
 private:
-    int platformNum;
-    int deviceNum;
-    std::string platformname;
-    std::string devicename;
-    cl_device_id deviceID;
+    cl::Device device;
+
+    std::string platform_name;
+    unsigned int  platform_number;
+
+    std::string device_name;
+    unsigned int device_number;
+
+
+public:
+    clDevice() : device(nullptr) {};
+    clDevice(cl::Device _device, std::string _platform_name, unsigned int _platform_number, unsigned int _device_number) : device(_device), platform_name(_platform_name), platform_number(_platform_number), device_number(_device_number)  {
+        cl_int status;
+        device_name = device.getInfo<CL_DEVICE_NAME>(&status);
+        clError::Throw(status, "clDevice");
+//        device_name = Utils::Trim(device.getInfo<CL_DEVICE_NAME>(&status));
+    };
+
+    cl::Device& getDevice(){ return device; };
+    std::string GetDeviceName(){ return device_name; };
+    std::string GetPlatformName(){ return platform_name; };
+    unsigned int GetDeviceNumber(){ return device_number; };
+    unsigned int GetPlatformNumber(){ return (int) platform_number; };
+    Device::DeviceType getDeviceType();
 
 };
 

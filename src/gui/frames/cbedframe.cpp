@@ -1,7 +1,8 @@
-#include <QtGui/QRegExpValidator>
-#include <utils/stringutils.h>
 #include "cbedframe.h"
 #include "ui_cbedframe.h"
+
+#include <QtGui/QRegExpValidator>
+#include <utils/stringutils.h>
 
 CbedFrame::CbedFrame(QWidget *parent) :
         QWidget(parent), Main(0),

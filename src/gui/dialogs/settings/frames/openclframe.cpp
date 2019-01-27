@@ -1,8 +1,8 @@
 #include "openclframe.h"
 #include "ui_openclframe.h"
 
-#import <QRegExpValidator>
-#import <QTableWidgetItem>
+#include <QRegExpValidator>
+#include <QTableWidgetItem>
 #include <utilities/commonstructs.h>
 #include <dialogs/settings/settingsdialog.h>
 
@@ -29,16 +29,15 @@ OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice> current_devices)
 
     ui->tblDevices->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 
-    ui->edtRatio->setValidator(new QRegExpValidator(QRegExp("[+]?(\\d*(?:\\.\\d*)?(?:[eE]([+\\-]?\\d+)?)>)*")));
+    ui->edtRatio->setValidator(new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)")));
 
     auto parent_dlg = dynamic_cast<OpenClDialog*>(parentWidget());
     connect(parent_dlg, &OpenClDialog::okSignal, this, &OpenClFrame::dlgOk_clicked);
     connect(parent_dlg, &OpenClDialog::cancelSignal, this, &OpenClFrame::dlgCancel_clicked);
     connect(parent_dlg, &OpenClDialog::applySignal, this, &OpenClFrame::dlgApply_clicked);
 
-    for (int i = 0; i < current_devices.size(); ++i)
-    {
-        addDeviceToList(current_devices[i], 1.0); //TODO: implement performance factors
+    for (const auto &current_device : current_devices) {
+        addDeviceToList(current_device, 1.0); //TODO: implement performance factors
     }
 
     // doing this will activate the currentIndexChanged action on the cmbPlatform
@@ -88,7 +87,7 @@ void OpenClFrame::addDeviceToList(clDevice dev, float ratio)
     int n = ui->tblDevices->rowCount();
     ui->tblDevices->insertRow(n);
 
-    QTableWidgetItem* cell_0 = new QTableWidgetItem();
+    auto * cell_0 = new QTableWidgetItem();
     cell_0->setTextAlignment(Qt::AlignCenter);
     cell_0->setText(QString::fromStdString(Utils::numToString(dev.GetPlatformNumber())));
 

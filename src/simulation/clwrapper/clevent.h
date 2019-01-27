@@ -5,7 +5,7 @@
 #ifndef CLWRAPPER_MAIN_CLEVENT_H
 #define CLWRAPPER_MAIN_CLEVENT_H
 
-#include "CL/cl.h"
+#include "CL/cl.hpp"
 
 #include "clerror.h"
 
@@ -13,46 +13,44 @@
 class clEvent
 {
 public:
-    clEvent(): event(nullptr){};
+    clEvent(){};
+//
+//    ~clEvent() {
+//        if (event) {
+//            cl_int status = clReleaseEvent(event);
+//            clError::Throw(status);
+//        }
+//    }
 
-    ~clEvent() {
-        if (event) {
-            cl_int status = clReleaseEvent(event);
-            clError::Throw(status);
-        }
-    }
+    cl::Event event;
 
-    cl_event event;
-
-    bool isSet(){ return event != nullptr;};
+//    bool isSet(){ return event != nullptr;};
     void Wait()
     {
-        if (event) {
-            cl_int status;
-            status = clWaitForEvents(1, &event);
-            clError::Throw(status);
-        }
-    };
-    // If profiling is enable can use these functions
-    cl_ulong GetStartTime()
-    {
-        cl_ulong param;
         cl_int status;
-        status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &param, nullptr);
+        status = event.wait();
         clError::Throw(status);
-        return param;
-    };
-    cl_ulong GetEndTime()
-    {
-        cl_ulong param;
-        cl_int status;
-        status = clWaitForEvents(1,&event);
-        clError::Throw(status);
-        status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &param, nullptr);
-        clError::Throw(status);
-        return param;
-    };
-    cl_ulong GetElapsedTime(){return GetEndTime() - GetStartTime();};
+    }
+//    // If profiling is enable can use these functions
+//    cl_ulong GetStartTime()
+//    {
+//        cl_ulong param;
+//        cl_int status;
+//        status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &param, nullptr);
+//        clError::Throw(status);
+//        return param;
+//    };
+//    cl_ulong GetEndTime()
+//    {
+//        cl_ulong param;
+//        cl_int status;
+//        status = clWaitForEvents(1,&event);
+//        clError::Throw(status);
+//        status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &param, nullptr);
+//        clError::Throw(status);
+//        return param;
+//    };
+//    cl_ulong GetElapsedTime(){return GetEndTime() - GetStartTime();};
 
 };
 

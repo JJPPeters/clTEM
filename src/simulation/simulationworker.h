@@ -12,18 +12,19 @@
 #include "clwrapper.h"
 #include "utilities/logging.h"
 
+
 class SimulationWorker : public ThreadWorker
 {
 public:
     // initialise FourierTrans just with any values
-    SimulationWorker(ThreadPool &s, unsigned int _id, std::shared_ptr<clContext> _ctx) : ThreadWorker(s, _id), ctx(std::move(_ctx)) {}
+    SimulationWorker(ThreadPool &s, unsigned int _id, clContext _ctx) : ThreadWorker(s, _id), ctx(_ctx) {}
 
-    ~SimulationWorker() {ctx->WaitForQueueFinish(); ctx->WaitForIOQueueFinish();}
+    ~SimulationWorker() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
 
     void Run(const std::shared_ptr<SimulationJob> &_job) override;
 
 private:
-    std::shared_ptr<clContext> ctx;
+    clContext ctx;
 
     std::shared_ptr<SimulationJob> job;
 
@@ -60,54 +61,54 @@ private:
 
     std::vector<float> getCtemImage();
 
-    float doSumReduction(std::shared_ptr<clMemory<float, Manual>> data, clWorkGroup globalSizeSum,
+    float doSumReduction(clMemory<float, Manual> data, clWorkGroup globalSizeSum,
                          clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
     float getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind);
 
     // OpenCL stuff
-    std::shared_ptr<clMemory<float, Manual>> ClParameterisation;
+    clMemory<float, Manual> ClParameterisation;
 
-    std::shared_ptr<clMemory<float, Manual>> ClAtomX;
-    std::shared_ptr<clMemory<float, Manual>> ClAtomY;
-    std::shared_ptr<clMemory<float, Manual>> ClAtomZ;
-    std::shared_ptr<clMemory<int, Manual>> ClAtomA;
+    clMemory<float, Manual> ClAtomX;
+    clMemory<float, Manual> ClAtomY;
+    clMemory<float, Manual> ClAtomZ;
+    clMemory<int, Manual> ClAtomA;
 
-    std::shared_ptr<clMemory<int, Manual>> ClBlockStartPositions;
-    std::shared_ptr<clMemory<int, Manual>> ClBlockIds;
-    std::shared_ptr<clMemory<int, Manual>> ClZIds;
+    clMemory<int, Manual> ClBlockStartPositions;
+    clMemory<int, Manual> ClBlockIds;
+    clMemory<int, Manual> ClZIds;
 
-    std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction1;
-    std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction2;
-    std::shared_ptr<clMemory<cl_float2, Manual>> clWaveFunction3;
-    std::vector<std::shared_ptr<clMemory<cl_float2, Manual>>> clWaveFunction4;
+    std::vector<clMemory<cl_float2, Manual>> clWaveFunction1;
+    std::vector<clMemory<cl_float2, Manual>> clWaveFunction2;
+    clMemory<cl_float2, Manual> clWaveFunction3;
+    std::vector<clMemory<cl_float2, Manual>> clWaveFunction4;
 
-    std::shared_ptr<clMemory<float, Manual>> clXFrequencies;
-    std::shared_ptr<clMemory<float, Manual>> clYFrequencies;
-    std::shared_ptr<clMemory<cl_float2, Manual>> clPropagator;
-    std::shared_ptr<clMemory<cl_float2, Manual>> clPotential;
-    std::shared_ptr<clMemory<cl_float2, Manual>> clImageWaveFunction;
+    clMemory<float, Manual> clXFrequencies;
+    clMemory<float, Manual> clYFrequencies;
+    clMemory<cl_float2, Manual> clPropagator;
+    clMemory<cl_float2, Manual> clPotential;
+    clMemory<cl_float2, Manual> clImageWaveFunction;
 
     // General kernels
-    std::shared_ptr<clFourier> FourierTrans;
-    std::shared_ptr<clKernel> BandLimit;
-    std::shared_ptr<clKernel> fftShift;
-    std::shared_ptr<clKernel> BinnedAtomicPotential;
-    std::shared_ptr<clKernel> GeneratePropagator;
-    std::shared_ptr<clKernel> ComplexMultiply;
+    clFourier FourierTrans;
+    clKernel BandLimit;
+    clKernel fftShift;
+    clKernel BinnedAtomicPotential;
+    clKernel GeneratePropagator;
+    clKernel ComplexMultiply;
 
     // CTEM
-    std::shared_ptr<clKernel> InitPlaneWavefunction;
-    std::shared_ptr<clKernel> ImagingKernel;
-    std::shared_ptr<clKernel> ABS2;
+    clKernel InitPlaneWavefunction;
+    clKernel ImagingKernel;
+    clKernel ABS2;
 
     // CBED
-    std::shared_ptr<clKernel> InitProbeWavefunction;
-    std::shared_ptr<clMemory<float, Manual>> clTDSMaskDiff;
+    clKernel InitProbeWavefunction;
+    clMemory<float, Manual> clTDSMaskDiff;
 
     // STEM
-    std::shared_ptr<clKernel> TDSMaskingAbsKernel;
-    std::shared_ptr<clKernel> SumReduction;
+    clKernel TDSMaskingAbsKernel;
+    clKernel SumReduction;
 };
 
 

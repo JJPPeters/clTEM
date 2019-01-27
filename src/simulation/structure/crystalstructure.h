@@ -6,8 +6,6 @@
 #include <valarray>
 #include <random>
 
-#include "clwrapper.h"
-#include "clstatic.h"
 #include "utilities/commonstructs.h"
 
 #include "thermalvibrations.h"

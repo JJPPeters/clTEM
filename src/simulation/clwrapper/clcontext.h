@@ -11,7 +11,7 @@
 #include "boost/shared_ptr.hpp"
 
 #include "cldevice.h"
-#include "CL/cl.h"
+#include "CL/cl.hpp"
 
 template <class T, template <class> class AutoPolicy> class clMemory;
 
@@ -33,56 +33,45 @@ class clContext
 {
 
 private:
-    cl_int Status;
-    cl_context Context;
-    cl_command_queue Queue;
-    cl_command_queue IOQueue;
+    cl::Context Context;
+    cl::CommandQueue Queue;
+    cl::CommandQueue IOQueue;
     clDevice ContextDevice;
+
     std::vector<std::shared_ptr<MemoryRecord>> MemList;
 
 public:
-    clContext(const clDevice &_ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_int _Status)
-            : Status(_Status), Context(_Context), Queue(_Queue), IOQueue(_Queue), ContextDevice(_ContextDevice){}
-    clContext(const clDevice &_ContextDevice, cl_context _Context, cl_command_queue _Queue, cl_command_queue _IOQueue, cl_int _Status)
-            : Status(_Status), Context(_Context), Queue(_Queue), IOQueue(_IOQueue), ContextDevice(_ContextDevice){}
+    clContext() {}
 
-    ~clContext() {
-        if (Queue) {
-            Status = clReleaseCommandQueue(Queue);
-            clError::Throw(Status);
-        }
-        if (Queue != IOQueue && IOQueue) {
-            Status = clReleaseCommandQueue(IOQueue);
-            clError::Throw(Status);
-        }
-        if (Context) {
-            Status = clReleaseContext(Context);
-            clError::Throw(Status);
-        }
-    }
+    clContext(cl::Context _context, cl::CommandQueue _queue, clDevice _device)
+            : Context(_context), Queue(_queue), IOQueue(_queue), ContextDevice(_device){}
+
+    clContext(cl::Context _context, cl::CommandQueue _queue, cl::CommandQueue _ioqueue, clDevice _device)
+            : Context(_context), Queue(_queue), IOQueue(_ioqueue), ContextDevice(_device){}
+
+    ~clContext() = default;
 
     void WaitForQueueFinish() {
-        int status = clFinish(Queue);
+        int status = Queue.finish();
         clError::Throw(status);
     }
     void WaitForIOQueueFinish() {
-        int status = clFinish(IOQueue);
+        int status = IOQueue.finish();
         clError::Throw(status);
     }
     void QueueFlush() {
-        int status = clFlush(Queue);
+        int status = Queue.flush();
         clError::Throw(status);
     }
     void IOQueueFlush() {
-        int status = clFlush(IOQueue);
+        int status = IOQueue.flush();
         clError::Throw(status);
     }
 
-    clDevice GetContextDevice(){return ContextDevice;}
-    cl_context& GetContext(){return Context;}
-    cl_int GetStatus(){return Status;}
-    cl_command_queue& GetQueue(){ return Queue; }
-    cl_command_queue& GetIOQueue(){return IOQueue;}
+    clDevice& GetContextDevice(){return ContextDevice;}
+    cl::Context& GetContext(){return Context;}
+    cl::CommandQueue& GetQueue(){ return Queue; }
+    cl::CommandQueue& GetIOQueue(){return IOQueue;}
 
     size_t GetOccupiedMemorySize()
     {

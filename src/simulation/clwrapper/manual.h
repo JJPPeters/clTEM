@@ -5,7 +5,7 @@
 #ifndef CLWRAPPER_MAIN_MANUAL_H
 #define CLWRAPPER_MAIN_MANUAL_H
 
-#include "CL/cl.h"
+#include "CL/cl.hpp"
 
 #include "clevent.h"
 #include "clerror.h"
@@ -13,47 +13,50 @@
 // This class is inherited by OpenCL memory buffers that have to manage there own memory lifetimes.
 template <class T> class Manual : public Notify
 {
-    public:
-    Manual<T>(size_t size): Size(size), isAuto(false) {};
     const bool isAuto;
     size_t Size;
-    std::shared_ptr<clEvent> KernelFinished;
-    void Update(std::shared_ptr<clEvent> _KernelFinished){KernelFinished = _KernelFinished;};
+    clEvent KernelFinished;
 
-    virtual std::shared_ptr<clEvent> Read(std::vector<T>&data)=0;
-    virtual std::shared_ptr<clEvent> Read(std::vector<T>&data, std::shared_ptr<clEvent> KernelFinished)=0;
-    virtual std::shared_ptr<clEvent> GetStartWriteEvent()=0;
-    virtual std::shared_ptr<clEvent> GetStartReadEvent()=0;
-    virtual std::shared_ptr<clEvent> GetFinishedWriteEvent()=0;
-    virtual std::shared_ptr<clEvent> GetFinishedReadEvent()=0;
+public:
+    Manual<T>(): Size(0), isAuto(false) {}
+    explicit Manual<T>(size_t size): Size(size), isAuto(false) {}
+    Manual<T>& operator=(const Manual<T> &rhs) {
+        Size = rhs.Size;
+        KernelFinished = rhs.KernelFinished;
 
-    virtual void SetFinishedEvent(std::shared_ptr<clEvent> KernelFinished) =0;
+        return *this;
+    }
+
+    void Update(clEvent _KernelFinished) override {KernelFinished = _KernelFinished;};
+
+    virtual clEvent Read(std::vector<T>&data)=0;
+    virtual clEvent Read(std::vector<T>&data, clEvent KernelFinished)=0;
+    virtual clEvent GetStartWriteEvent()=0;
+    virtual clEvent GetStartReadEvent()=0;
+    clEvent GetFinishedWriteEvent() override = 0;
+    clEvent GetFinishedReadEvent() override = 0;
+
+    virtual void SetFinishedEvent(clEvent KernelFinished) =0;
 
     // This will create a vector filled with the current contents of the memory
     // Will block until the read has been completed
-    std::vector<T> CreateLocalCopy()
-    {
-        cl_int status;
+    std::vector<T> CreateLocalCopy() {
+        cl_int status = CL_SUCCESS;
 
         std::vector<T> Local(Size);
-        if(KernelFinished && KernelFinished->event && KernelFinished->isSet())
-        {
-            std::shared_ptr<clEvent> e = Read(Local,KernelFinished);
-            status = clWaitForEvents(1, &e->event);
-        }
-        else
-        {
-            std::shared_ptr<clEvent> e = Read(Local);
-            status = clWaitForEvents(1, &e->event);
-        }
+
+        clEvent e = Read(Local, KernelFinished);
+        e.Wait();
+
         clError::Throw(status);
         return Local;
     };
 
-    void UpdateEventOnly(std::shared_ptr<clEvent> KernelFinished)
-    {
+    void UpdateEventOnly(clEvent KernelFinished) {
         SetFinishedEvent(KernelFinished);
     };
+
+    bool getAuto() {return isAuto;}
 };
 
 #endif //CLWRAPPER_MAIN_MANUAL_H

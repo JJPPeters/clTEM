@@ -5,25 +5,28 @@
 #ifndef CLWRAPPER_MAIN_CLWORKGROUP_H
 #define CLWRAPPER_MAIN_CLWORKGROUP_H
 
+#include "CL/cl.hpp"
+
 // Specifiy number of threads to launch
 class clWorkGroup
 {
 public:
     clWorkGroup(unsigned int x, unsigned int y, unsigned int z)
     {
-        worksize[0] = x;
-        worksize[1] = y;
-        worksize[2] = z;
+        worksize = cl::NDRange(x, y, z);
     };
 
-    clWorkGroup(size_t* workgroupsize)
+    clWorkGroup(unsigned int x, unsigned int y)
     {
-        worksize[0] = workgroupsize[0];
-        worksize[1] = workgroupsize[1];
-        worksize[2] = workgroupsize[2];
+        worksize = cl::NDRange(x, y);
     };
 
-    size_t worksize[3];
+    clWorkGroup(unsigned int x)
+    {
+        worksize = cl::NDRange(x);
+    };
+
+    cl::NDRange worksize;
 };
 
 #endif //CLWRAPPER_MAIN_CLWORKGROUP_H

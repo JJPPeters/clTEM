@@ -13,69 +13,75 @@
 // from kernels with argument types specified.
 template <class T> class Auto : public Notify
 {
+    size_t Size;
+    bool isAuto;
+    bool isUpToDate;
+    std::vector<T> Local;
+
 public:
-Auto<T>(size_t size): Size(size), isAuto(true), isUpToDate(true){
-    Local.resize(0);
-};
+    Auto<T>(): Size(0), isAuto(true), isUpToDate(true) {}
+    explicit Auto<T>(size_t size): Size(size), isAuto(true), isUpToDate(true), Local() {}
+    Auto<T>& operator=(const Auto<T> &rhs) {
+        Size = rhs.Size;
+        isAuto = rhs.isAuto;
+        isUpToDate = rhs.isUpToDate;
+        Local = rhs.Local;
 
-size_t Size;
-bool isAuto;
-bool isUpToDate;
-
-// Reading directly from Local is unadvised as it will be updated whenever the kernel
-// actually completes which is not in general, directly after it has been called as kernel
-// enqueue is non blocking. Use GetLocal() to force waiting for current version.
-std::vector<T> Local;
-
-virtual std::shared_ptr<clEvent> Read(std::vector<T>&data)=0;
-virtual std::shared_ptr<clEvent> Read(std::vector<T>&data,clEvent KernelFinished)=0;
-
-virtual std::shared_ptr<clEvent> GetStartWriteEvent()=0;
-virtual std::shared_ptr<clEvent> GetStartReadEvent()=0;
-virtual std::shared_ptr<clEvent> GetFinishedWriteEvent()=0;
-virtual std::shared_ptr<clEvent> GetFinishedReadEvent()=0;
-
-virtual void SetFinishedEvent(std::shared_ptr<clEvent> KernelFinished) = 0;
-
-// This call will block if the Memory is currently waiting on
-// an event before updating itself.
-std::vector<T>& GetLocal()
-{
-    std::shared_ptr<clEvent> es = GetStartReadEvent();
-    std::shared_ptr<clEvent> e = GetFinishedReadEvent();
-
-    if(es->isSet())
-        es->Wait();
-
-    if(!isUpToDate)
-    {
-        Update(es);
-        isUpToDate = true;
-
-        if((es = GetFinishedReadEvent()).isSet())
-            es->Wait();
+        return *this;
     }
-    else if(e->isSet())
-        e->Wait();
 
-    return Local;
-};
+    bool getAuto() {return isAuto;}
 
-// Called by clKernel for Output types to generate automatic
-// memory updates (non blocking)
-void Update(std::shared_ptr<clEvent> KernelFinished)
-{
-    if(Local.empty() || Local.size() != Size)
-        Local.resize(Size);
-    Read(Local,KernelFinished);
-    isUpToDate = true;
-}
+    virtual clEvent Read(std::vector<T>&data)=0;
+    virtual clEvent Read(std::vector<T>&data,clEvent KernelFinished)=0;
 
-void UpdateEventOnly(std::shared_ptr<clEvent> KernelFinished)
-{
-    isUpToDate = false;
-    SetFinishedEvent(KernelFinished);
-};
+    virtual clEvent GetStartWriteEvent()=0;
+    virtual clEvent GetStartReadEvent()=0;
+
+    clEvent GetFinishedWriteEvent() override =0;
+
+    clEvent GetFinishedReadEvent() override =0;
+
+    virtual void SetFinishedEvent(clEvent KernelFinished) = 0;
+
+    // This call will block if the Memory is currently waiting on
+    // an event before updating itself.
+    std::vector<T>& GetLocal()
+    {
+        clEvent es = GetStartReadEvent();
+        clEvent e = GetFinishedReadEvent();
+
+        es.Wait();
+
+        if(!isUpToDate)
+        {
+            Update(es);
+            isUpToDate = true;
+
+            if((es = GetFinishedReadEvent()).isSet())
+                es.Wait();
+        }
+        else
+            e.Wait();
+
+        return Local;
+    }
+
+    // Called by clKernel for Output types to generate automatic
+    // memory updates (non blocking)
+    void Update(clEvent KernelFinished)
+    {
+        if(Local.empty() || Local.size() != Size)
+            Local.resize(Size);
+        Read(Local,KernelFinished);
+        isUpToDate = true;
+    }
+
+    void UpdateEventOnly(clEvent KernelFinished)
+    {
+        isUpToDate = false;
+        SetFinishedEvent(KernelFinished);
+    }
 };
 
 #endif //CLWRAPPER_MAIN_AUTO_H

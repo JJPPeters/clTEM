@@ -8,7 +8,7 @@
 #include <string>
 #include <clFFT.h>
 
-#include "CL/cl.h"
+#include "CL/cl.hpp"
 
 namespace clError
 {

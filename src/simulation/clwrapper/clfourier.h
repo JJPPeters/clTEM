@@ -5,7 +5,7 @@
 #ifndef CLWRAPPER_MAIN_CLFOURIER_H
 #define CLWRAPPER_MAIN_CLFOURIER_H
 
-#include "CL/cl.h"
+#include "CL/cl.hpp"
 #include "clFFT.h"
 
 #include "clstatic.h"
@@ -29,36 +29,40 @@ namespace Direction
 
 class clFourier
 {
-    std::shared_ptr<clContext> Context;
+    clContext Context;
     clfftStatus fftStatus;
     clfftSetupData fftSetupData;
     clfftPlanHandle fftplan;
 
     //intermediate buffer
-    std::shared_ptr<clMemory<char,Manual>> clMedBuffer;
+    clMemory<char, Manual> clMedBuffer;
 //    cl_int medstatus;
+    unsigned int width, height;
     size_t buffersize;
-    void Setup(unsigned int _width, unsigned int _height);
-    unsigned int width,height;
 
 public:
 
-    clFourier(std::shared_ptr<clContext> Context, unsigned int _width, unsigned int _height);
+    clFourier() : fftplan(0) {}
 
-    clFourier(const clFourier &RHS): Context(RHS.Context), width(RHS.width), height(RHS.height), buffersize(0)
-    {
-        Setup(width,height);
+    clFourier(clContext Context, unsigned int _width, unsigned int _height);
+
+    clFourier(const clFourier &RHS): Context(RHS.Context), fftplan(0), width(RHS.width), height(RHS.height), buffersize(0) {
+        if (Context.GetContext()())
+            Setup(width,height);
     };
 
-
-    clFourier& operator=(const clFourier &RHS)
-    {
+    clFourier& operator=(const clFourier &RHS) {
         if(this != &RHS){
-            clfftDestroyPlan(&fftplan);
+            if (fftplan) {
+                fftStatus = clfftDestroyPlan(&fftplan);
+                clFftError::Throw(fftStatus, "clFourier");
+            }
+            fftplan = 0;
             Context = RHS.Context;
             width = RHS.width;
             height = RHS.height;
-            Setup(width,height);
+            if (Context.GetContext()())
+                Setup(width,height);
         }
         return *this;
     };
@@ -66,50 +70,46 @@ public:
     ~clFourier();
 
     template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
-    std::shared_ptr<clEvent> Do(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
+    clEvent Do(clMemory<T,AutoPolicy2>& input, clMemory<T,AutoPolicy>& output, Direction::TransformDirection Direction)
     {
         clfftDirection Dir = (Direction == Direction::Forwards) ? CLFFT_FORWARD : CLFFT_BACKWARD;
 
         std::vector<cl_event> eventwaitlist;
-        std::shared_ptr<clEvent> e = input->GetFinishedWriteEvent();
-        std::shared_ptr<clEvent> e2 = input->GetFinishedReadEvent();
-        if (e->isSet())
-            eventwaitlist.push_back(e->event);
-        if (e2->isSet())
-            eventwaitlist.push_back(e2->event);
+        clEvent e = input.GetFinishedWriteEvent();
+        clEvent e2 = input.GetFinishedReadEvent();
+        if (e.event())
+            eventwaitlist.push_back(e.event());
+        if (e2.event())
+            eventwaitlist.push_back(e2.event());
 
-        std::shared_ptr<clEvent> finished = std::make_shared<clEvent>();
+        clEvent finished;
 
         if(buffersize)
-            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(),
-                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished->event,
-                                               &input->GetBuffer(), &output->GetBuffer(), clMedBuffer->GetBuffer() );
+            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context.GetQueue()(), (cl_uint)eventwaitlist.size(),
+                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event(),
+                                               &input.GetBuffer()(), &output.GetBuffer()(), clMedBuffer.GetBuffer()() );
         else
-            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueue(), (cl_uint)eventwaitlist.size(),
-                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished->event,
-                                               &input->GetBuffer(), &output->GetBuffer(), NULL );
+            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context.GetQueue()(), (cl_uint)eventwaitlist.size(),
+                                               !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event(),
+                                               &input.GetBuffer()(), &output.GetBuffer()(), NULL );
 
-        if(output->isAuto)
-            output->Update(finished);
+        if(output.getAuto())
+            output.Update(finished);
 
         return finished;
     };
 
-    // This worked fine, but would confuse my editor?
-    template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
-    std::shared_ptr<clEvent> operator()(std::shared_ptr<clMemory<T,AutoPolicy2>>& input, std::shared_ptr<clMemory<T,AutoPolicy>>& output, Direction::TransformDirection Direction)
-    {
-        return Do(input, output, Direction);
-    }
+private:
+    void Setup(unsigned int _width, unsigned int _height);
 };
 
 //// Singleton to auto call clfftteardown on program termination
 class AutoTeardownFFT
 {
-private:
-    AutoTeardownFFT() = default;;
-    AutoTeardownFFT &operator=(AutoTeardownFFT const&rhs) = delete;
 public:
+    AutoTeardownFFT() = default;;
+    AutoTeardownFFT &operator=(AutoTeardownFFT const &rhs) = delete;
+
     AutoTeardownFFT(AutoTeardownFFT const& copy) = delete;
 
     ~AutoTeardownFFT()
