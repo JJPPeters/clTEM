@@ -82,7 +82,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
     for(int i = 0; i < atom_count; i++) {
         float dx = 0.0f, dy = 0.0f, dz = 0.0f;
         if (doTds) {
-            // TODO: need a log guard here or in the structure file...
+            // TODO: need a log guard here or in the structure file?
             dx = job->simManager->generateTdsFactor(atoms[i], 0);
             dy = job->simManager->generateTdsFactor(atoms[i], 1);
             dz = job->simManager->generateTdsFactor(atoms[i], 2);
@@ -105,8 +105,8 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     // NOTE: DONT CHANGE UNLESS CHANGE ELSEWHERE ASWELL!
     // Or fix it so they are all referencing same variable.
-    int BlocksX = job->simManager->getBlocksX();
-    int BlocksY = job->simManager->getBlocksY();
+    unsigned int BlocksX = job->simManager->getBlocksX();
+    unsigned int BlocksY = job->simManager->getBlocksY();
     std::valarray<float> x_lims = job->simManager->getPaddedSimLimitsX(); // is this the right padding?
     std::valarray<float> y_lims = job->simManager->getPaddedSimLimitsY();
     std::valarray<float> z_lims = job->simManager->getPaddedStructLimitsZ();
@@ -146,15 +146,13 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     // this silly initialising is to make the first two levels of our vectors, we then dynamically
     // fill the next level in the following loop :)
-    std::vector<std::vector<std::vector<float>>> Binnedx((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
-    std::vector<std::vector<std::vector<float>>> Binnedy((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
-    std::vector<std::vector<std::vector<float>>> Binnedz((unsigned long) BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices));
-    std::vector<std::vector<std::vector<int>>> BinnedA((unsigned long) BlocksX*BlocksY, std::vector<std::vector<int>>(numberOfSlices));
-
-    // TODO: speed could be improved by either reserving space for full count of atoms? OR  calculting number we have in the rangewe want (so we don't dynamically create everything
+    std::vector<std::vector<std::vector<float>>> Binnedx( BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices) );
+    std::vector<std::vector<std::vector<float>>> Binnedy( BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices) );
+    std::vector<std::vector<std::vector<float>>> Binnedz( BlocksX*BlocksY, std::vector<std::vector<float>>(numberOfSlices) );
+    std::vector<std::vector<std::vector<int>>>   BinnedA( BlocksX*BlocksY, std::vector<std::vector<int>>  (numberOfSlices) );
 
     int count_in_range = 0;
-    for(int i = 0; i < atom_count; i++) {
+    for(int i = 0; i < atom_count; ++i) {
         if (HostZIDs[i] > 0 && HostBlockIDs[i] > 0) {
             Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
             Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
