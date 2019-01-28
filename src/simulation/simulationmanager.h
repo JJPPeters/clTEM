@@ -289,7 +289,7 @@ private:
             sa = static_cast<SimulationArea>(*StemSimArea);
         else if (Mode == SimulationMode::CBED)
             sa = CbedPos->getSimArea();
-        else
+        else if (Mode == SimulationMode::CTEM)
             sa = *SimArea;
 
         return sa;

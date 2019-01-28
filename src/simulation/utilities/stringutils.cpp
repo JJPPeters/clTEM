@@ -66,7 +66,7 @@ namespace Utils
             case SimulationMode::CBED:
                 return "CBED";
             default:
-                return "";
+                return "None";
         }
     }
 
