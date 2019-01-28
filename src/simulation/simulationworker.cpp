@@ -17,9 +17,6 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
 
     el::Helpers::setThreadName("p" + std::to_string(p_num) + ":d" + std::to_string(d_num));
 
-    // clear vectors so we don't keep adding to them
-//    cleanup();
-
     CLOG(DEBUG, "sim") << "Running simulation worker";
 
     job = _job;
@@ -38,6 +35,10 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
     CLOG(DEBUG, "sim") << "Starting simulation";
 
     initialiseSimulation();
+
+    CLOG(DEBUG, "sim") << "Sorting atoms";
+
+    sortAtoms(job->simManager->getTdsRuns() > 1);
 
     // now what we do depends on the simulation type (I think...)
     auto mode = job->simManager->getMode();
@@ -62,13 +63,6 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
     CLOG(DEBUG, "sim") << "Completed simulation";
     // finally, end this thread ?
     job->promise.set_value();
-}
-
-void SimulationWorker::uploadParameters(std::vector<float> param) {
-    CLOG(DEBUG, "sim") << "Uploading parameters";
-//    ClParameterisation = clMemory<float, Manual>(ctx, param.size());
-    ClParameterisation.Write(param);
-    ctx.WaitForQueueFinish();
 }
 
 void SimulationWorker::sortAtoms(bool doTds) {
@@ -100,16 +94,6 @@ void SimulationWorker::sortAtoms(bool doTds) {
         AtomZPos[i] = atoms[i].z + dz;
     }
 
-    CLOG(DEBUG, "sim") << "Creating buffers";
-
-//    ClAtomA = clMemory<int, Manual>(ctx, atom_count);
-//    ClAtomX = clMemory<float, Manual>(ctx, atom_count);
-//    ClAtomY = clMemory<float, Manual>(ctx, atom_count);
-//    ClAtomZ = clMemory<float, Manual>(ctx, atom_count);
-//
-//    ClBlockIds = clMemory<int,Manual>(ctx, atom_count);
-//    ClZIds = clMemory<int,Manual>(ctx, atom_count);
-
     CLOG(DEBUG, "sim") << "Writing to buffers";
 
     ClAtomX.Write(AtomXPos);
@@ -119,12 +103,8 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     CLOG(DEBUG, "sim") << "Creating sort kernel";
 
-    // Make Kernel and set parameters
-//    clKernel AtomSort = Kernels::atom_sort.BuildToKernel(ctx);
-
     // NOTE: DONT CHANGE UNLESS CHANGE ELSEWHERE ASWELL!
     // Or fix it so they are all referencing same variable.
-    // TODO: get these from the structure class to keep them centralised
     int BlocksX = job->simManager->getBlocksX();
     int BlocksY = job->simManager->getBlocksY();
     std::valarray<float> x_lims = job->simManager->getPaddedSimLimitsX(); // is this the right padding?
@@ -245,11 +225,6 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
 void SimulationWorker::doCtem(bool simImage)
 {
-    // sort structure, TDS is always false so leave blank
-    initialiseCtem();
-
-    sortAtoms();
-
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
     unsigned int numberOfSlices = job->simManager->getNumberofSlices();
@@ -321,12 +296,6 @@ void SimulationWorker::doCtem(bool simImage)
 
 void SimulationWorker::doCbed()
 {
-//    sortAtoms(job->simManager->getTdsRuns() > 1);
-
-//    initialiseSimulation();
-//    initialiseCbed();
-    sortAtoms(job->simManager->getTdsRuns() > 1);
-
     auto pos = job->simManager->getCBedPosition();
 
     initialiseProbeWave(pos->getXPos(), pos->getYPos());
@@ -359,13 +328,6 @@ void SimulationWorker::doCbed()
 void SimulationWorker::doStem()
 {
     CLOG(DEBUG, "sim") << "Parallel pixels: " << job->pixels.size();
-//    sortAtoms(job->simManager->getTdsRuns() > 1);
-
-//    initialiseSimulation();
-//    initialiseStem();
-
-    bool dotds = job->simManager->getTdsRuns() > 1;
-    sortAtoms(job->simManager->getTdsRuns() > 1);
 
     // now need to work out where our probes need to be made
     auto stemPixels = job->simManager->getStemArea();
@@ -424,12 +386,17 @@ void SimulationWorker::doStem()
     job->simManager->updateImages(Images, 1);
 }
 
-void SimulationWorker::initialiseSimulation()
-{
+void SimulationWorker::initialiseSimulation() {
+    CLOG(DEBUG, "sim") << "Initialising all buffers";
     initialiseBuffers();
-    initialiseKernels();
 
-    uploadParameters(job->simManager->getStructureParameterData());
+    CLOG(DEBUG, "sim") << "Getting parameters";
+    std::vector<float> params = job->simManager->getStructureParameterData();
+    CLOG(DEBUG, "sim") << "Uploading parameters";
+    ClParameterisation.Write(params);
+
+    CLOG(DEBUG, "sim") << "Setting up all kernels";
+    initialiseKernels();
 
     CLOG(DEBUG, "sim") << "Starting general initialisation";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,30 +468,18 @@ void SimulationWorker::initialiseSimulation()
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
     // write our frequencies to OpenCL buffers
-//    clXFrequencies = clMemory<float, Manual>(ctx, resolution);
-//    clYFrequencies = clMemory<float, Manual>(ctx, resolution);
     clXFrequencies.Write(k0x);
     clYFrequencies.Write(k0y);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create a few buffers we will need later
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    clPropagator = clMemory<cl_float2, Manual>(ctx, resolution*resolution);
-//    clPotential = clMemory<cl_float2, Manual>(ctx, resolution*resolution);
-
     clWorkGroup WorkSize(resolution, resolution, 1);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Setup Fourier Transforms, this is sort of obvious
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    CLOG(DEBUG, "sim") << "Set up FFT kernel";
-//    FourierTrans = clFourier(ctx, resolution, resolution);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up FFT shift kernel
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up FFT shift kernel";
-//    fftShift = Kernels::fftShiftSource.BuildToKernel(ctx);
 
     // these will never change, so set them here
     fftShift.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
@@ -536,7 +491,6 @@ void SimulationWorker::initialiseSimulation()
     /// Set up low pass filter kernel
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up low pass filter kernel";
-//    BandLimit = Kernels::BandLimitSource.BuildToKernel(ctx);
 
     // These never change, so set them here
     BandLimit.SetArg(0, clWaveFunction3, ArgumentType::InputOutput);
@@ -550,11 +504,6 @@ void SimulationWorker::initialiseSimulation()
     /// Set up the kernels to calculate the atomic potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up potential kernel";
-    // have various options depending on the user preferences
-//    if (isFull3D)
-//        BinnedAtomicPotential = Kernels::opt2source.BuildToKernel(ctx);
-//    else
-//        BinnedAtomicPotential = Kernels::conv2source.BuildToKernel(ctx);
 
     // Work out which blocks to load by ensuring we have the entire area around workgroup up to 5 angstroms away...
     // TODO: check this is doing what the above comment says it is doing...
@@ -598,7 +547,6 @@ void SimulationWorker::initialiseSimulation()
     /// Set up the propogator
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up propagator kernel";
-//    GeneratePropagator = Kernels::propsource.BuildToKernel(ctx);
 
     GeneratePropagator.SetArg(0, clPropagator, ArgumentType::Output);
     GeneratePropagator.SetArg(1, clXFrequencies, ArgumentType::Input);
@@ -611,12 +559,12 @@ void SimulationWorker::initialiseSimulation()
 
     // actually run this kernel now
     GeneratePropagator.run(WorkSize);
+    ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up complex multiply kernel
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up complex multiply kernel";
-//    ComplexMultiply = Kernels::multisource.BuildToKernel(ctx);
 
     ComplexMultiply.SetArg(3, resolution);
     ComplexMultiply.SetArg(4, resolution);
@@ -635,24 +583,11 @@ void SimulationWorker::initialiseCtem()
     unsigned int resolution = job->simManager->getResolution();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Create buffers for the main simulation
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    CLOG(DEBUG, "sim") << "Create buffers";
-    // Initialise Wavefunctions and create other OpenCL things
-    // Note that for CTEM, the vectors are not really needed, but use them for compatibility
-    clWorkGroup WorkSize(resolution, resolution, 1);
-
-//    clWaveFunction1.emplace_back(ctx, resolution*resolution);
-//    clWaveFunction2.emplace_back(ctx, resolution*resolution);
-//    clWaveFunction3 = clMemory<cl_float2, Manual>(ctx, resolution*resolution);
-//    clWaveFunction4.emplace_back(ctx, resolution*resolution);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create plane wave function
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up plane wave kernel";
-//    InitPlaneWavefunction = Kernels::InitialiseWavefunctionSource.BuildToKernel(ctx);
 
+    clWorkGroup WorkSize(resolution, resolution, 1);
     float InitialValue = 1.0f;
     InitPlaneWavefunction.SetArg(1, resolution);
     InitPlaneWavefunction.SetArg(2, resolution);
@@ -660,56 +595,7 @@ void SimulationWorker::initialiseCtem()
     InitPlaneWavefunction.SetArg(0, clWaveFunction1[0], ArgumentType::Output);
     InitPlaneWavefunction.run(WorkSize);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Build imaging kernels
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    if (job->simManager->getSimulateCtemImage()) {
-//        CLOG(DEBUG, "sim") << "Set up image kernel";
-//        // this is only needed if the imaging part is used, but build it here (with it's buffer) to save time later
-////        clImageWaveFunction = clMemory<cl_float2, Manual>(ctx, resolution * resolution);
-////        ImagingKernel = Kernels::imagingKernelSource.BuildToKernel(ctx);
-//
-//        CLOG(DEBUG, "sim") << "Set up absolute squared kernel";
-////        ABS2 = Kernels::SqAbsSource.BuildToKernel(ctx);
-//    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// initialise everyting else
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    initialiseSimulation();
-}
-
-void SimulationWorker::initialiseCbed() {
-//    CLOG(DEBUG, "sim") << "Starting probe (CBED) initialisation";
-//    unsigned int resolution = job->simManager->getResolution();
-//    int n_parallel = job->simManager->getParallelPixels(); // this is the number of parallel pixels
-//
-//    CLOG(DEBUG, "sim") << "Create buffers";
-//    // Initialise Wavefunctions and Create other buffers...
-//    // Even though CBED only eer has 1 parallel simulation (per device), this set up is also used for STEM
-//    for (int i = 1; i <= n_parallel; i++) {
-////        clWaveFunction1.emplace_back(ctx, resolution*resolution);
-////        clWaveFunction2.emplace_back(ctx, resolution*resolution);
-////        clWaveFunction4.emplace_back(ctx, resolution*resolution);
-//    }
-////    clWaveFunction3 = clMemory<cl_float2, Manual>(ctx, resolution*resolution);
-//
-////    clTDSMaskDiff = clMemory<cl_float, Manual>(ctx, resolution*resolution);
-//
-//    CLOG(DEBUG, "sim") << "Set up Probe wavefunction kernel";
-////    InitProbeWavefunction = Kernels::InitialiseSTEMWavefunctionSourceTest.BuildToKernel(ctx);
-//
-//    initialiseSimulation();
-}
-
-void SimulationWorker::initialiseStem() {
-//    CLOG(DEBUG, "sim") << "Starting STEM initialisation";
-//    CLOG(DEBUG, "sim") << "Set up sum reduction kernel";
-////    SumReduction = Kernels::floatSumReductionsource2.BuildToKernel(ctx);
-//    CLOG(DEBUG, "sim") << "Set up band pass kernel";
-////    TDSMaskingAbsKernel = Kernels::floatabsbandPassSource.BuildToKernel(ctx);
-
-//    initialiseCbed();
+    ctx.WaitForQueueFinish();
 }
 
 // n_parallel is the index (from 0) of the current parallel pixel
@@ -942,10 +828,6 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     unsigned int resolution = job->simManager->getResolution();
     auto mParams = job->simManager->getMicroscopeParams();
 
-    // Set up some temporary memory objects for the image simulation
-//    auto Temp1 = clMemory<cl_float2, Manual>(ctx, resolution*resolution);
-//    auto clCcdBuffer = clMemory<cl_float, Manual>(ctx, 725);
-
     clWorkGroup Work(resolution, resolution, 1);
 
     //
@@ -957,10 +839,6 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     //
     // Dose stuff starts here!
     //
-
-    CLOG(DEBUG, "sim") << "Create CTEM dose specific kernels";
-//    clKernel NTF = Kernels::NtfSource.BuildToKernel(ctx);
-//    clKernel DQE = Kernels::DqeSource.BuildToKernel(ctx);
 
     // FFT
     CLOG(DEBUG, "sim") << "FFT back to reciprocal space";
@@ -1175,7 +1053,7 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
 
 void SimulationWorker::initialiseBuffers() {
 
-    auto sm = job->simManager;//->getStructureParameterData()
+    auto sm = job->simManager;
 
     // this needs to change if the parameter sizes have changed
     if (size_t ps = sm->getStructureParameterData().size(); ps != ClParameterisation.GetSize())
@@ -1192,7 +1070,7 @@ void SimulationWorker::initialiseBuffers() {
         ClZIds = clMemory<int, Manual>(ctx, as);
     }
 
-//    ClBlockStartPositions is sorted every time the atoms are sorted ?
+//    ClBlockStartPositions is not here as it is sorted every time the atoms are sorted (depends on block size etc..
 
     // change when the resolution does
     unsigned int rs = sm->getResolution();
@@ -1241,7 +1119,7 @@ void SimulationWorker::initialiseBuffers() {
         clReductionBuffer = clMemory<float, Manual>(ctx, rs*rs/256); // STEM only
     }
 
-    // TODO: could clear unneeded buffers when sim type switches, but there aren't many of them...
+    // TODO: could clear unneeded buffers when sim type switches, but there aren't many of them... (the main ones are the wavefunction vectors)
 }
 
 void SimulationWorker::initialiseKernels() {

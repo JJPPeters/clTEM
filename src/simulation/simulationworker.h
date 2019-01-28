@@ -17,8 +17,6 @@ class SimulationWorker : public ThreadWorker
 {
 private:
 
-//    unsigned int last_resolution;
-//    unsigned int last_atom_count;
     SimulationMode last_mode;
     bool last_do_3d;
     bool do_initialise;
@@ -39,14 +37,6 @@ private:
 
     std::shared_ptr<SimulationJob> job;
 
-    void cleanup() {
-        clWaveFunction1.clear();
-        clWaveFunction2.clear();
-        clWaveFunction4.clear();
-    }
-
-    void uploadParameters(std::vector<float> param);
-
     void sortAtoms(bool doTds = false);
 
     void doCtem(bool simImage = false);
@@ -58,10 +48,6 @@ private:
     void initialiseSimulation();
 
     void initialiseCtem();
-
-    void initialiseCbed();
-
-    void initialiseStem();
 
     void initialiseProbeWave(float posx, float posy, int n_parallel = 0);
 
