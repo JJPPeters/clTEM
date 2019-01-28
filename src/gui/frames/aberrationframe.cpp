@@ -75,7 +75,7 @@ void AberrationFrame::on_btnMore_clicked()
 
     updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
 
-    AberrationsDialog* myDialog = new AberrationsDialog(this, Main->getMicroscopeParams());
+    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->getMicroscopeParams());
 
     // how this is dosconnected when the dialog is destroyed...
     connect(myDialog, &AberrationsDialog::aberrationsChanged, this, &AberrationFrame::updateTextBoxes);

@@ -51,14 +51,14 @@ protected:
 class OpenClDialog : public SettingsDialog
 {
     Q_OBJECT
+signals:
+    void devicesChanged(std::vector<clDevice>);
 
 private:
     OpenClFrame* OClFrame;
 
 public:
-    explicit OpenClDialog(QWidget *parent, std::vector<clDevice> current_devices);
-
-    std::vector<clDevice> getChosenDevices();
+    explicit OpenClDialog(QWidget *parent, std::vector<clDevice> &current_devices);
 };
 
 
@@ -80,9 +80,6 @@ public:
 class GlobalSettingsDialog : public SettingsDialog
 {
 Q_OBJECT
-
-signals:
-    void globalSettingsChanged();
 
 private:
     GlobalSimSettingsFrame* GeneralFrame;

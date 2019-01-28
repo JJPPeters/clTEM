@@ -63,7 +63,7 @@ void SimulationFrame::on_btnSimArea_clicked()
     // update the manager from the ui
     Main->updateManagerFromGui();
 
-    SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
+    SimAreaDialog* myDialog = new SimAreaDialog(nullptr, Main->Manager);
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, this, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);

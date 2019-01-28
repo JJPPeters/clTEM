@@ -25,7 +25,7 @@ void StemFrame::on_btnDetectors_clicked()
 {
     if (Main == 0)
         throw std::runtime_error("Error connecting STEM frame to main window.");
-    StemDetectorDialog* myDialog = new StemDetectorDialog(this, Main->getDetectors());
+    StemDetectorDialog* myDialog = new StemDetectorDialog(nullptr, Main->getDetectors());
 
     connect(myDialog, &StemDetectorDialog::detectorsChanged, this, &StemFrame::updateDetectors);
 
@@ -46,7 +46,7 @@ void StemFrame::on_btnArea_clicked()
 
     Main->updateManagerFromGui();
 
-    SimAreaDialog* myDialog = new SimAreaDialog(this, Main->Manager);
+    SimAreaDialog* myDialog = new SimAreaDialog(nullptr, Main->Manager);
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, Main->getSimulationFrame(), &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);

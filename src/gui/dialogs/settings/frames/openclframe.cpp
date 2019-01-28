@@ -13,13 +13,12 @@
 
 // TODO: construct from list of devices/platforms and occupy the list
 
-OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice> current_devices) :
+OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice>& current_devices) :
     QWidget(parent),
+    chosenDevs(current_devices),
     ui(new Ui::OpenClFrame)
 {
     ui->setupUi(this);
-
-    chosenDevs = current_devices; // this is only really set so the cancel button works
 
     ui->tblDevices->setColumnWidth(0, 35);
     ui->tblDevices->setColumnWidth(1, 190);

@@ -28,6 +28,10 @@ public:
     explicit AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan);
     ~AreaLayoutFrame();
 
+    void closeEvent(QCloseEvent *event) {
+        delete pltStructure;
+    }
+
 private slots:
     void areasChanged();
 

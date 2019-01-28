@@ -32,11 +32,10 @@ public:
         if (_BufferPtr == 0xffffffff)
             throw std::runtime_error("OpenGL: Failed to initialise vertex buffers.");
     }
-//    OGLArrayBuffer(std::vector<Vector4f> BufferData, GLenum BufferType = GL_ARRAY_BUFFER);
 
-    void DrawArrays(bool doDraw = false, GLenum draw_type = GL_LINES);
+    virtual void DrawArrays(bool doDraw = false, GLenum draw_type = GL_LINES);
 
-    void DrawElements(bool doDraw = false, GLenum draw_type = GL_LINES);
+    virtual void DrawElements(bool doDraw = false, GLenum draw_type = GL_LINES);
 
     void Delete();
 

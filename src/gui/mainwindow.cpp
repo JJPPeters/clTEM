@@ -167,8 +167,6 @@ void MainWindow::on_actionOpenCL_triggered()
 
     myDialog->exec();
 
-    Devices = myDialog->getChosenDevices();
-
     // remove all current device entries in the settings and reset them
     QSettings settings;
     settings.remove("opencl");

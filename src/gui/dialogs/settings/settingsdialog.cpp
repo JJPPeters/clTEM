@@ -10,6 +10,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 #ifdef _WIN32
     addTitleBar();
 #endif
+    setAttribute( Qt::WA_DeleteOnClose, true );
 }
 
 SettingsDialog::~SettingsDialog()
@@ -35,7 +36,7 @@ void SettingsDialog::on_btnOk_clicked()
 
 
 
-OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice> current_devices) :
+OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice>& current_devices) :
     SettingsDialog(parent)
 {
     OClFrame = new OpenClFrame(this, current_devices);
@@ -45,12 +46,6 @@ OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice> current_device
 
     this->setFixedSize(this->minimumSizeHint());
 }
-
-std::vector<clDevice> OpenClDialog::getChosenDevices()
-{
-    return OClFrame->getChosenDevices();
-}
-
 
 
 

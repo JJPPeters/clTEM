@@ -13,6 +13,7 @@ public:
     OGLAttributeBuffer(std::vector<T> BufferData, GLuint BufferIndex, GLenum BufferType = GL_ARRAY_BUFFER): OGLArrayBuffer(BufferData, BufferType) {
         _BufferIndex = BufferIndex;
     }
+
 //    OGLAttributeBuffer(std::vector<Vector4f> BufferData, GLuint BufferIndex, GLenum BufferType = GL_ARRAY_BUFFER);
 
     void DrawArrays(bool doDraw = false, GLenum draw_type = GL_LINES);

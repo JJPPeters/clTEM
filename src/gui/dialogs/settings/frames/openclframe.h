@@ -15,7 +15,7 @@ class OpenClFrame : public QWidget
     Q_OBJECT
 
 public:
-    explicit OpenClFrame(QWidget *parent, std::vector<clDevice> current_devices);
+    explicit OpenClFrame(QWidget *parent, std::vector<clDevice>& current_devices);
 
     ~OpenClFrame();
 
@@ -39,7 +39,7 @@ private:
 
     std::vector<clDevice> Devices;
 
-    std::vector<clDevice> chosenDevs;
+    std::vector<clDevice>& chosenDevs;
 
     void populatePlatformCombo();
     void populateDeviceCombo();
