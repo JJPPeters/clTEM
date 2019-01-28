@@ -42,7 +42,7 @@ class clFourier
 
 public:
 
-    clFourier() : fftplan(0) {}
+    clFourier() : fftplan(0), width(0), height(0) {}
 
     clFourier(clContext Context, unsigned int _width, unsigned int _height);
 
@@ -98,6 +98,9 @@ public:
 
         return finished;
     };
+
+    unsigned int GetWidth() { return width; }
+    unsigned int GetHeight() { return height; }
 
 private:
     void Setup(unsigned int _width, unsigned int _height);

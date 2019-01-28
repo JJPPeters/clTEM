@@ -17,7 +17,11 @@ namespace JSONUtils {
         SimulationManager man;
         area_set = false;
         // not sure there is a particularly easy way to go about this. Just go through all the options...
-        try { man.setMode( readJsonEntry<SimulationMode>(j, "mode", "id") );
+        try {
+            auto mode = readJsonEntry<SimulationMode>(j, "mode", "id");
+            if (mode == SimulationMode::None)
+                mode = SimulationMode::CTEM;
+            man.setMode( mode );
         } catch (json::out_of_range& e) {}
 
         try { man.setResolution( readJsonEntry<unsigned int>(j, "resolution") );

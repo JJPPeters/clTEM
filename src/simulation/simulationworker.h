@@ -15,9 +15,18 @@
 
 class SimulationWorker : public ThreadWorker
 {
+private:
+
+    SimulationMode last_mode;
+    bool last_do_3d;
+    bool do_initialise;
+
+    void initialiseBuffers();
+    void initialiseKernels();
+
 public:
     // initialise FourierTrans just with any values
-    SimulationWorker(ThreadPool &s, unsigned int _id, const clContext &_ctx) : ThreadWorker(s, _id), ctx(_ctx) {}
+    SimulationWorker(ThreadPool &s, unsigned int _id, const clContext &_ctx) : ThreadWorker(s, _id), ctx(_ctx), last_mode(SimulationMode::None), last_do_3d(false), do_initialise(true) {}
 
     ~SimulationWorker() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
 
@@ -27,14 +36,6 @@ private:
     clContext ctx;
 
     std::shared_ptr<SimulationJob> job;
-
-    void cleanup() {
-        clWaveFunction1.clear();
-        clWaveFunction2.clear();
-        clWaveFunction4.clear();
-    }
-
-    void uploadParameters(std::vector<float> param);
 
     void sortAtoms(bool doTds = false);
 
@@ -47,10 +48,6 @@ private:
     void initialiseSimulation();
 
     void initialiseCtem();
-
-    void initialiseCbed();
-
-    void initialiseStem();
 
     void initialiseProbeWave(float posx, float posy, int n_parallel = 0);
 
@@ -97,6 +94,7 @@ private:
 
     // General kernels
     clFourier FourierTrans;
+    clKernel AtomSort;
     clKernel BandLimit;
     clKernel fftShift;
     clKernel BinnedAtomicPotential;
@@ -107,6 +105,10 @@ private:
     clKernel InitPlaneWavefunction;
     clKernel ImagingKernel;
     clKernel ABS2;
+    clKernel NtfKernel;
+    clKernel DqeKernel;
+    clMemory<float, Manual> clCcdBuffer;
+    clMemory<cl_float2, Manual> clTempBuffer;
 
     // CBED
     clKernel InitProbeWavefunction;
@@ -115,6 +117,7 @@ private:
     // STEM
     clKernel TDSMaskingAbsKernel;
     clKernel SumReduction;
+    clMemory<float, Manual> clReductionBuffer;
 };
 
 

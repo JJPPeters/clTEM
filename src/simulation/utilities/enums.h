@@ -7,6 +7,7 @@
 
 enum SimulationMode : unsigned int
 {
+    None,
     CTEM,
     STEM,
     CBED
