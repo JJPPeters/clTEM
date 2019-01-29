@@ -54,7 +54,7 @@ set(SOURCES
         utils.cpp
         )
 
-add_library(clwrapper STATIC ${SOURCES} ${HEADERS})
+add_library(clwrapper SHARED ${SOURCES} ${HEADERS})
 
 target_include_directories (clwrapper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCL_INCLUDE_DIRS} ${CLFFT_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 target_link_libraries (clwrapper ${OpenCL_LIBRARIES} ${CLFFT_LIBRARIES} )
