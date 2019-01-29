@@ -9,6 +9,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/
 include_directories(clwrapper)
 add_subdirectory(clwrapper)
 
+include_directories(cif)
+add_subdirectory(cif)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)

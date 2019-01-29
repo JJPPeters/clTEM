@@ -35,4 +35,5 @@ Currently clTEM has only been released in alpha. It is fully functional, though 
  - [LibTIFF](http://simplesystems.org/libtiff/) - TIFF input/output  
  - [JSON for Modern C++](https://github.com/nlohmann/json) - JSON file creation/parsing
  - [Easylogging++](https://github.com/zuhd-org/easyloggingpp) - Error and debug Logging
+ - [Eigen](http://eigen.tuxfamily.org/) - Linear algebra library
 
