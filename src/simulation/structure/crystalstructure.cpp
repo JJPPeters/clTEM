@@ -9,13 +9,22 @@
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
-CrystalStructure::CrystalStructure(std::string& fPath) : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
-                                                         dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0)
+#include "cif/cifreader.h"
+#include "cif/supercell.h"
+
+CrystalStructure::CrystalStructure(std::string &fPath)
+        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
+          dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0)
 {
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
-    openXyz(fPath);
+    std::string ext = fPath.substr(fPath.length() - 4);
+
+    if (ext == ".xyz")
+        openXyz(fPath);
+    else if (ext == ".cif")
+        openCif(fPath);
 }
 
 void CrystalStructure::openXyz(std::string fPath) {
@@ -31,12 +40,13 @@ void CrystalStructure::openXyz(std::string fPath) {
 
     // get the first line and set it as the number of atoms
     Utils::safeGetline(inputStream, line);
+    size_t atom_count;
     try {
-        AtomCount = std::stoul(line);
+        atom_count = std::stoul(line);
     } catch (const std::exception &e) {
         throw std::runtime_error("Could not parse number of atoms (line 1, " + std::string(e.what()) + ").");
     }
-    Atoms.reserve(AtomCount);
+//    Atoms.reserve(AtomCount);
 
     // get the next line, in my format, this contains the column info
     Utils::safeGetline(inputStream, line);
@@ -90,81 +100,96 @@ void CrystalStructure::openXyz(std::string fPath) {
 
     auto max_header = std::max<int>({h_A, h_x, h_y, h_z, h_occ, h_u, h_ux, h_uy, h_uz});
 
-    file_defined_thermals = h_u != -1 || h_ux != -1 || h_uy != -1 || h_uz != -1;
-
     // TODO: report warning on unused headers?
 
-    std::vector<AtomSite> prevAtoms;
-    prevAtoms.reserve(5); //this array will be resized a lot so reserve space. 5 should be plenty for any atoms sharing same sites
+    std::vector<std::string> A(atom_count);
+    std::vector<float> x(atom_count);
+    std::vector<float> y(atom_count);
+    std::vector<float> z(atom_count);
 
-    int count = 0;
+    // These are only resized when we have the headers as a way of calculating if they are used or not
+    std::vector<float> occ;
+    if (h_occ != -1)
+        occ.resize(atom_count);
 
-    // here we actually loop through the lines and get the atoms...
-//    if(h_occ != -1) // if we have occupancy values...
-//    {
-    // loop through all atoms (lines in the file)
+    std::vector<float> ux;
+    std::vector<float> uy;
+    std::vector<float> uz;
+    bool defined_thermals = h_u != -1 || h_ux != -1 || h_uy != -1 || h_uz != -1;
+    if (defined_thermals) {
+        ux.resize(atom_count);
+        uy.resize(atom_count);
+        uz.resize(atom_count);
+    }
+
     std::string temp_line;
+    int i = 0;
     while(!Utils::safeGetline(inputStream, temp_line).eof()) {
         if (temp_line.empty()) // this handles newlines at end of file etc... I think...
             break;
+
+        if (i > atom_count)
+            throw std::runtime_error("Number of atoms does not match .xyz first line (" + Utils::numToString(atom_count) + ")");
+
         auto values = Utils::splitStringSpace(temp_line);
 
         if (values.size() < max_header)
-            throw std::runtime_error(
-                    ".xyz file columns are fewer than header entries. line: " + std::to_string(2 + count));
+            throw std::runtime_error(".xyz file columns are fewer than header entries. line: " + std::to_string(2 + i));
 
-        AtomSite thisAtom;
-
-        std::string atomSymbol = values[h_A];
-        thisAtom.A = Utils::ElementSymbolToNumber(atomSymbol);
-        thisAtom.x = std::stof(values[h_x]);
-        thisAtom.y = std::stof(values[h_y]);
-        thisAtom.z = std::stof(values[h_z]);
+        A[i] = values[h_A];
+        x[i] = std::stof(values[h_x]);
+        y[i] = std::stof(values[h_y]);
+        z[i] = std::stof(values[h_z]);
 
         if (h_occ != -1) // if this isn't present, it is defaulted to 1 in the constructor
-            thisAtom.occ = std::stof(values[h_occ]);
+            occ[i] = std::stof(values[h_occ]);
 
-        if (h_u != -1)
-            thisAtom.setThermal(std::stof(values[h_u]));
+        if (h_u != -1) {
+            ux[i] = std::stof(values[h_u]);
+            uy[i] = std::stof(values[h_u]);
+            uz[i] = std::stof(values[h_u]);
+        }
         // these override the isotropic value
         if (h_ux != -1)
-            thisAtom.ux = std::stof(values[h_ux]);
+            ux[i] = std::stof(values[h_ux]);
         if (h_uy != -1)
-            thisAtom.uy = std::stof(values[h_uy]);
+            uy[i] = std::stof(values[h_uy]);
         if (h_uz != -1)
-            thisAtom.uz = std::stof(values[h_uz]);
+            uz[i] = std::stof(values[h_z]);
 
-        if (h_occ != -1) {
-            // this can get very confusing, but what we do is build a list of atoms that are at the same site
-            // then we process them when we have a full list of atoms on that site
-            // first test if we have a list of atoms sharing a site
-            if (!prevAtoms.empty()) { // we do!
-                if (prevAtoms[0] == thisAtom) { // we have a list of atoms, if this new one is in the same place then we just add it
-                    prevAtoms.emplace_back(thisAtom);
-                } else {// this means we have a complete array and we need to process it
-                    processOccupancyList(prevAtoms); // this adds the atoms and clears the vector
-                    prevAtoms.emplace_back(thisAtom);
-                }
-            } else {// we don't, so we make it here!
-                prevAtoms.emplace_back(thisAtom);
-            }
-            ++count;
-        } else {
-            // for TDS this all happens in processOccupancyList
-            addAtom(thisAtom);
-            ++count;
-        }
+        ++i;
     }
 
-    // the last set doesnt actually get processed so we do it now
-    // only does anything if the occupancy is being used
-    processOccupancyList(prevAtoms);
-
-    // can't test Atoms.size() as it won't have all atoms due to occupancy
-    if (count != AtomCount)
-        throw std::runtime_error("Number of atoms does not match .xyz first line: " + Utils::numToString(Atoms.size()) + " instead of " + Utils::numToString(AtomCount));
-
     inputStream.close();
+    if (i != atom_count)
+        throw std::runtime_error("Number of atoms does not match .xyz first line: " + Utils::numToString(i) + " instead of " + Utils::numToString(atom_count));
+
+    // now have a list of ALL our values, process them (i.e. occupancies) in this next function
+    processAtomList(A, x, y, z, occ, ux, uy, uz);
+}
+
+void CrystalStructure::openCif(std::string fPath) {
+    // open our cif here
+    filePath = fPath;
+    auto cif = CIF::CIFReader(fPath);
+
+    // now we calculate the actual supercell
+    // this is a helper to keep our supercell info in one place
+    CIF::SuperCellInfo info{};
+    info.setUVW(0, 0, 1);
+    info.setABC(1, 0, 0);
+    info.setWidths(20, 50, 100);
+    info.setTilts(0, 0, 1);
+
+
+    // need to create the vectors the data will be put into
+    std::vector<std::string> A;
+    std::vector<float> x, y, z, occ, ux, uy, uz;
+
+
+    CIF::makeSuperCell(cif, info, A, x, y, z, occ);
+
+    processAtomList(A, x, y, z, occ, ux, uy, uz);
 }
 
 void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
@@ -241,8 +266,62 @@ void CrystalStructure::addAtom(AtomSite a) {
     // update limits
     updateLimits(a * ScaleFactor);
     // update our list of atoms
-    if(std::find(AtomTypes.begin(), AtomTypes.end(), a.A) == AtomTypes.end())
-        AtomTypes.push_back(a.A);
+//    if(std::find(AtomTypes.begin(), AtomTypes.end(), a.A) == AtomTypes.end())
+//        AtomTypes.push_back(a.A);
+}
+
+void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<float> occ, std::vector<float> ux, std::vector<float> uy, std::vector<float> uz) {
+
+    // TODO: error is sizes not all the same
+    size_t count = A.size();
+    if (x.size() != count || y.size() != count || z.size() != count)
+        throw std::runtime_error("Processing atom list with unequal length vectors");
+
+    bool use_occ = !occ.empty();
+    if (use_occ && occ.size() != count)
+        throw std::runtime_error("Processing atom list with unequal length vectors");
+
+    file_defined_thermals = !ux.empty() && !uy.empty() && !uz.empty();
+    if (file_defined_thermals && (ux.size() != count || uy.size() != count || uz.size() != count))
+        throw std::runtime_error("Processing atom list with unequal length vectors");
+
+    Atoms.reserve(count);
+
+    std::vector<AtomSite> prevAtoms;
+    prevAtoms.reserve(10); //this array will be resized a lot so reserve space. 10 should be plenty for any atoms sharing same sites
+
+    for (int i = 0; i < count; ++i) {
+        AtomSite thisAtom;
+
+        thisAtom.A = Utils::ElementSymbolToNumber(A[i]);
+        thisAtom.x = x[i];
+        thisAtom.y = y[i];
+        thisAtom.z = z[i];
+
+        if (use_occ)
+            thisAtom.occ = occ[i];
+
+        if (file_defined_thermals) {
+            thisAtom.ux = ux[i];
+            thisAtom.uy = uy[i];
+            thisAtom.uz = uz[i];
+        }
+
+        if (use_occ) {
+            // this can get very confusing, but what we do is build a list of atoms that are at the same site
+            // then we process them when we have a full list of atoms on that sit
+
+            // first test if we have no previous atoms, or this atom belongs in that list
+            if (prevAtoms.empty() || prevAtoms[0] == thisAtom) {
+                prevAtoms.push_back(thisAtom); // simple add to our list
+            } else {
+                processOccupancyList(prevAtoms); // this processes the previos atoms and clears the vector
+                prevAtoms.push_back(thisAtom); // start our new list
+            }
+        } else {
+            addAtom(thisAtom); // for occ, this all happens in the processOccupancyList method
+        }
+    }
 }
 
 

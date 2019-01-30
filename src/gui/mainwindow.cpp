@@ -126,7 +126,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QSettings settings;
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open file", settings.value("dialog/currentPath").toString(), "All supported (*.xyz);; XYZ (*.xyz)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open file", settings.value("dialog/currentPath").toString(), "All supported (*.xyz *.cif);; XYZ (*.xyz);; CIF (*.xyz)");
 
     if (fileName.isNull())
         return;
@@ -135,10 +135,12 @@ void MainWindow::on_actionOpen_triggered()
 
     settings.setValue("dialog/currentPath", temp_file.path());
 
-    if (temp_file.suffix() != "xyz")
-        return;
     try {
-        Manager->setStructure(fileName.toStdString());
+        // TODO: there needs to be an extra dialog step for cif format
+        if (temp_file.suffix() == "xyz" || temp_file.suffix() == "cif")
+            Manager->setStructure(fileName.toStdString());
+        else
+            throw std::runtime_error("." + temp_file.suffix().toStdString() + " is not a supported file format");
     } catch (const std::exception &e) {
         CLOG(ERROR, "gui") << "Could not open file: " << e.what() << ".";
         QMessageBox msgBox(this);

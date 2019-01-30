@@ -8,20 +8,21 @@
 #include "CellGeometry.h"
 #include "AtomSite.h"
 
+namespace CIF {
+    class UnitCell {
+    public:
+        // constructor that accepts lengths and angles of unit cell
+        UnitCell(CellGeometry geo, std::vector<AtomSite> sites) : geometry(geo), atoms(sites) {}
 
-class UnitCell {
-public:
-    // constructor that accepts lengths and angles of unit cell
-    UnitCell(CellGeometry geo, std::vector<AtomSite> sites) : geometry(geo), atoms(sites) {}
+        CellGeometry getCellGeometry() { return geometry; }
 
-    CellGeometry getCellGeometry(){return geometry;}
-    std::vector<AtomSite> getAtoms(){return atoms;}
+        std::vector<AtomSite> getAtoms() { return atoms; }
 
-private:
-    CellGeometry geometry;
+    private:
+        CellGeometry geometry;
 
-    std::vector<AtomSite> atoms;
-};
-
+        std::vector<AtomSite> atoms;
+    };
+}
 
 #endif //XYZ_UNITCELL_H

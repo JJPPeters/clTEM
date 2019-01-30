@@ -8,24 +8,26 @@
 #include <vector>
 
 #include "cifutilities.h"
+namespace CIF {
+    class CellGeometry {
+    public:
+        CellGeometry() {}
 
-class CellGeometry
-{
-public:
-    CellGeometry(){}
-    CellGeometry(double ain, double bin, double cin, double alphain, double betain, double gammain);
+        CellGeometry(double ain, double bin, double cin, double alphain, double betain, double gammain);
 
-    std::vector<double> getAVector() { return avec; }
-    std::vector<double> getBVector() { return bvec; }
-    std::vector<double> getCVector() { return cvec; }
+        std::vector<double> getAVector() { return avec; }
 
-private:
-    double a, b, c, alpha, beta, gamma;
+        std::vector<double> getBVector() { return bvec; }
 
-    std::vector<double> avec, bvec, cvec;
+        std::vector<double> getCVector() { return cvec; }
 
-    void calculateCartesianBasis();
-};
+    private:
+        double a, b, c, alpha, beta, gamma;
 
+        std::vector<double> avec, bvec, cvec;
+
+        void calculateCartesianBasis();
+    };
+}
 
 #endif //XYZ_CELLGEOMETRY_H

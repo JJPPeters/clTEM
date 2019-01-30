@@ -12,20 +12,32 @@
 
 #include "atom.h"
 
+namespace FileFormat {
+    enum FileFormat {
+        XYZ,
+        CIF
+    };
+}
+
 class CrystalStructure
 {
+public:
 private:
     /// Vector of atoms with coordinates in Angstroms
     std::vector<AtomSite> Atoms;
 
-    std::vector<int> AtomTypes;
+    /// Vector of all the different atomic numebr we have in our structure
+//    std::vector<int> AtomTypes;
 
+    /// Filepath to to file we opened
     std::string filePath;
 
     bool file_defined_thermals;
 
+    /// Use to conver the structure/file units to Angstrom
     float ScaleFactor;
 
+    /// Spacial ;imits of our structure
     float MaxX;
     float MinX;
     float MaxY;
@@ -33,7 +45,8 @@ private:
     float MaxZ;
     float MinZ;
 
-    unsigned int MaxAtomicNumber; // This is only really used to see if it is available in our parameterisation
+    /// MAx atomic number - used to see our parameterisation covers this (assumes parameterisation does not have gaps)
+    unsigned int MaxAtomicNumber;
     unsigned int AtomCount;
 
     std::mt19937 rng;
@@ -46,16 +59,16 @@ private:
 
     void addAtom(AtomSite a);
 
+    void processAtomList(std::vector<std::string> A, std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<float> occ, std::vector<float> ux, std::vector<float> uy, std::vector<float> uz);
+
 public:
-    explicit CrystalStructure(std::string& fPath);
-
-    std::vector<int> getAtomsTypes() {return AtomTypes;}
-
-    bool isThermalFileDefined() { return file_defined_thermals; }
+    explicit CrystalStructure(std::string &fPath);
 
     /// Loads the given xyz file getting the atom coordinates in Angstroms
     /// \param fPath - path to .xyz file to open
     void openXyz(std::string fPath);
+
+    void openCif(std::string fPath);
 
     std::string getFileName() {return filePath;}
 
@@ -70,6 +83,10 @@ public:
     std::valarray<float> getLimitsZ() {return {MinZ, MaxZ};}
 
     unsigned int getMaxAtomicNumber() {return MaxAtomicNumber;}
+
+    bool isThermalFileDefined() { return file_defined_thermals; }
+
+//    std::vector<int> getAtomsTypes() {return AtomTypes;}
 };
 
 #endif // CRYSTALSTRUCTURE_H

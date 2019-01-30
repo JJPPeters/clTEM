@@ -21,34 +21,34 @@
 #include "unitcell.h"
 #include "cellgeometry.h"
 
-class CIFReader
-{
-public:
-    // constructor that takes filename
-    CIFReader(std::string filePath);
+namespace CIF {
+    class CIFReader {
+    public:
+        // constructor that takes filename
+        CIFReader(std::string filePath);
 
-    // method to return a class instance that will contain the unit cell information
-    UnitCell getUnitCell() { return UnitCell(cell, atomsites); }
+        // method to return a class instance that will contain the unit cell information
+        UnitCell getUnitCell() { return UnitCell(cell, atomsites); }
 
-private:
-    // class instance to hold unit cell information
-    std::vector<Symmetry> symmetrylist;
+    private:
+        // class instance to hold unit cell information
+        std::vector<Symmetry> symmetrylist;
 
-    std::vector<AtomSite> atomsites;
+        std::vector<AtomSite> atomsites;
 
-    CellGeometry cell;
+        CellGeometry cell;
 
-    // methods to read
-    // 1. atom positions
-    // 2. symmetry
-    // 3. basis geometry
-    void readAtomPositions(const std::string& input);
+        // methods to read
+        // 1. atom positions
+        // 2. symmetry
+        // 3. basis geometry
+        void readAtomPositions(const std::string &input);
 
-    void readSymmetryOperations(const std::string& input);
+        void readSymmetryOperations(const std::string &input);
 
-    void readCellGeometry(const std::string& input);
+        void readCellGeometry(const std::string &input);
 
-};
-
+    };
+}
 
 #endif //XYZ_CIFREADER_H

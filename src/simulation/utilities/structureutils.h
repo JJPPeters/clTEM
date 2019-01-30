@@ -7,19 +7,19 @@
 
 namespace Utils {
 
-extern const std::vector<std::pair<std::string, int>> VectorSymbolToNumber;
+extern const std::vector<std::pair<std::string, unsigned int>> VectorSymbolToNumber;
 
-extern std::unordered_map<std::string, int> MapSymbolToNumber;
+extern std::unordered_map<std::string, unsigned int> MapSymbolToNumber;
 
 // Getter for the map. Replicated convenience of [] that can't be used as the map
 // is const (and [] will add elements if the key is not present)
-int ElementSymbolToNumber(std::string sym);
+unsigned int ElementSymbolToNumber(std::string sym);
 
-std::string NumberToElementSymbol(int A);
+std::string NumberToElementSymbol(unsigned int A);
 
-int ConstructElementMap();
+unsigned int ConstructElementMap();
 
-extern int dummy_construct_map;
+extern unsigned int dummy_construct_map;
 
 }
 

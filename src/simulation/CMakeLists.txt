@@ -57,5 +57,5 @@ set(SIM_SCRS
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 
-target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper)
-target_link_libraries (simulation ${TIFF_LIBRARY} ${EASYLOGGINGPP_LIBRARY} clwrapper)
+target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper cif)
+target_link_libraries (simulation ${TIFF_LIBRARY} ${EASYLOGGINGPP_LIBRARY} clwrapper cif)

@@ -10,41 +10,42 @@
 
 #include "cifutilities.h"
 
-class SymmetryOperation
-{
-    friend class Symmetry;
-protected:
-    SymmetryOperation(){};
-public:
-    double xf, yf, zf, c;
+namespace CIF {
+    class SymmetryOperation {
+        friend class Symmetry;
 
-    SymmetryOperation(std::vector<std::string> factors);
+    protected:
+        SymmetryOperation() {};
+    public:
+        double xf, yf, zf, c;
 
-    double applyOperation(double xin, double yin, double zin);
+        SymmetryOperation(std::vector<std::string> factors);
 
-    double applyOperation(std::vector<double> positions);
-private:
-    double fractionToDecimal(std::string fractionstring, double nullReturn);
+        double applyOperation(double xin, double yin, double zin);
 
-};
+        double applyOperation(std::vector<double> positions);
+
+    private:
+        double fractionToDecimal(std::string fractionstring, double nullReturn);
+
+    };
 
 // Small class just to hold the symmetry operation for all directions
-class Symmetry
-{
-public:
+    class Symmetry {
+    public:
 
-    Symmetry() {}
+        Symmetry() {}
 
 //    void setXOperation(std::vector<std::string> factors);
 //    void setYOperation(std::vector<std::string> factors);
 //    void setZOperation(std::vector<std::string> factors);
-    SymmetryOperation getOperation(int i);
+        SymmetryOperation getOperation(int i);
 
-    void setOperation(int i, std::vector<std::string> factors);
+        void setOperation(int i, std::vector<std::string> factors);
 
-private:
-    SymmetryOperation xOperation, yOperation, zOperation;
-};
-
+    private:
+        SymmetryOperation xOperation, yOperation, zOperation;
+    };
+}
 
 #endif //XYZ_SYMMETRYOPERATION_H
