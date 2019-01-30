@@ -146,8 +146,7 @@ void FullAberrationFrame::dlgCancel_clicked()
 void FullAberrationFrame::dlgOk_clicked()
 {
     // same as clicking apply then closing the dialog
-    if(dlgApply_clicked())
-    {
+    if(dlgApply_clicked()) {
         auto * dlg = dynamic_cast<AberrationsDialog*>(parentWidget());
         dlg->accept();
     }

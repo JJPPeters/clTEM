@@ -11,10 +11,12 @@
 
 namespace CIF {
     struct SuperCellInfo {
+        SuperCellInfo() : uvw({0, 0, 1}), abc({0, 0, 0}), widths({100, 100, 100}), tilts({0, 0, 0}) {}
+
         Eigen::Vector3d uvw;
         Eigen::Vector3d abc;
-        Eigen::Vector3d widths;
-        Eigen::Vector3d tilts;
+        Eigen::Vector3d widths; // Angstrom
+        Eigen::Vector3d tilts; // Degrees
 
         void setZoneAxis(double u, double v, double w) { setUVW(u, v, w); }
 

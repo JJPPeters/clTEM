@@ -4,8 +4,7 @@
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
         BorderlessDialog(parent),
-        ui(new Ui::SettingsDialog)
-{
+        ui(new Ui::SettingsDialog) {
     ui->setupUi(this);
 #ifdef _WIN32
     addTitleBar();
@@ -13,24 +12,24 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     setAttribute( Qt::WA_DeleteOnClose, true );
 }
 
-SettingsDialog::~SettingsDialog()
-{
+SettingsDialog::~SettingsDialog() {
     delete ui;
 }
 
-void SettingsDialog::on_btnCancel_clicked()
-{
+void SettingsDialog::on_btnCancel_clicked() {
     emit cancelSignal();
 }
 
-void SettingsDialog::on_BtnApply_clicked()
-{
+void SettingsDialog::on_BtnApply_clicked() {
     emit applySignal();
 }
 
-void SettingsDialog::on_btnOk_clicked()
-{
+void SettingsDialog::on_btnOk_clicked() {
     emit okSignal();
+}
+
+void SettingsDialog::showApplyButton(bool show) {
+    ui->BtnApply->setVisible(show);
 }
 
 
@@ -149,4 +148,16 @@ ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
 
     this->setFixedSize(this->minimumSizeHint());
 #endif
+}
+
+
+CifCreatorDialog::CifCreatorDialog(QWidget *parent, CIF::CIFReader cif, std::shared_ptr<CIF::SuperCellInfo> info) : SettingsDialog(parent) {
+    showApplyButton(false);
+
+    CifFrame = new CifCreatorFrame(this, cif, info);
+    ui->vLayout->insertWidget(0, CifFrame);
+
+    this->setWindowTitle("Cif");
+
+    this->setFixedSize(this->minimumSizeHint());
 }

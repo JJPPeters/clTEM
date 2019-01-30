@@ -11,6 +11,8 @@
 #include "thermalvibrations.h"
 
 #include "atom.h"
+#include "cif/cifreader.h"
+#include "cif/supercell.h"
 
 namespace FileFormat {
     enum FileFormat {
@@ -62,13 +64,13 @@ private:
     void processAtomList(std::vector<std::string> A, std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<float> occ, std::vector<float> ux, std::vector<float> uy, std::vector<float> uz);
 
 public:
-    explicit CrystalStructure(std::string &fPath);
+    explicit CrystalStructure(std::string &fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo());
 
     /// Loads the given xyz file getting the atom coordinates in Angstroms
     /// \param fPath - path to .xyz file to open
     void openXyz(std::string fPath);
 
-    void openCif(std::string fPath);
+    void openCif(std::string fPath, CIF::SuperCellInfo info);
 
     std::string getFileName() {return filePath;}
 

@@ -9,13 +9,9 @@
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
-#include "cif/cifreader.h"
-#include "cif/supercell.h"
-
-CrystalStructure::CrystalStructure(std::string &fPath)
+CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info)
         : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
-          dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0)
-{
+          dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
@@ -23,8 +19,9 @@ CrystalStructure::CrystalStructure(std::string &fPath)
 
     if (ext == ".xyz")
         openXyz(fPath);
-    else if (ext == ".cif")
-        openCif(fPath);
+    else if (ext == ".cif") {
+        openCif(fPath, info);
+    }
 }
 
 void CrystalStructure::openXyz(std::string fPath) {
@@ -168,19 +165,10 @@ void CrystalStructure::openXyz(std::string fPath) {
     processAtomList(A, x, y, z, occ, ux, uy, uz);
 }
 
-void CrystalStructure::openCif(std::string fPath) {
+void CrystalStructure::openCif(std::string fPath, CIF::SuperCellInfo info) {
     // open our cif here
     filePath = fPath;
     auto cif = CIF::CIFReader(fPath);
-
-    // now we calculate the actual supercell
-    // this is a helper to keep our supercell info in one place
-    CIF::SuperCellInfo info{};
-    info.setUVW(0, 0, 1);
-    info.setABC(1, 0, 0);
-    info.setWidths(20, 50, 100);
-    info.setTilts(0, 0, 1);
-
 
     // need to create the vectors the data will be put into
     std::vector<std::string> A;
