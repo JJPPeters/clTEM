@@ -87,6 +87,9 @@ SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager>
     LayoutFrame = new AreaLayoutFrame(this, simManager);
     ui->vLayout->insertWidget(0, LayoutFrame);
 
+    // UNDO this because it causes issueson linux
+    setAttribute( Qt::WA_DeleteOnClose, false );
+
     this->setWindowTitle("Simulation area");
 
     this->setFixedSize(this->minimumSizeHint());

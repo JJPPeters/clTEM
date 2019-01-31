@@ -5,8 +5,8 @@
 #ifndef XYZ_UNITCELL_H
 #define XYZ_UNITCELL_H
 
-#include "CellGeometry.h"
-#include "AtomSite.h"
+#include "cellgeometry.h"
+#include "atomsite.h"
 
 namespace CIF {
     class UnitCell {

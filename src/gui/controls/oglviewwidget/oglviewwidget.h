@@ -48,7 +48,9 @@ signals:
 public:
     explicit OGLViewWidget(QWidget *parent);
 
-    ~OGLViewWidget() override = default;
+    ~OGLViewWidget() override {
+        _technique.reset();
+    }
 
     bool event(QEvent *event) override;
 

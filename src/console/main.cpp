@@ -106,8 +106,12 @@ void imageReturned(SimulationManager sm)
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
     settings["filename"] = sm.getStructure()->getFileName();
 
+#ifdef _WIN32
     std::wstring w_sep(&fs::path::preferred_separator);
     std::string sep(w_sep.begin(), w_sep.end());
+#else
+    std::string sep = &fs::path::preferred_separator;
+#endif
 
     auto ims = sm.getImages();
 
@@ -291,8 +295,12 @@ int main(int argc, char *argv[])
     defaultConf.setToDefault();
     defaultConf.setGlobally(el::ConfigurationType::Enabled, "false"); // default to no logging
 
+#ifdef _WIN32
     std::wstring w_sep(&fs::path::preferred_separator);
     std::string sep(w_sep.begin(), w_sep.end());
+#else
+    std::string sep = &fs::path::preferred_separator;
+#endif
 
     if (verbose_flag) {
 #ifdef _WIN32 // windows

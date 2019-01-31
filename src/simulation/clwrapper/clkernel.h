@@ -54,19 +54,18 @@ public:
         ArgType.resize(NumberOfArgs);
         Callbacks.resize(NumberOfArgs);
 
-        std::string options = "-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros -Werror"; //-cl-finite-math-only -cl-mad-enable -Werror";
+        std::string options = "-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros";// -Werror";
 
         cl_int status;
         Program = cl::Program(Context.GetContext(), codestring, false, &status);
-        Program.build(options.c_str()); // could just put true above
+        status = Program.build(options.c_str()); // could just put true above - need to remember to pass it the string
 
-        if (status != CL_SUCCESS) {
-            std::string buildlog_str = Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(Context.GetContextDevice().getDevice(), &status);
-            clError::Throw(status, Name + "\nBuild log:\n" + buildlog_str);
-        }
+
+        std::string buildlog_str = Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(Context.GetContextDevice().getDevice(), &status);
+        clError::Throw(status, Name + "\nBuild log:\n" + buildlog_str);
 
         Kernel = cl::Kernel(Program, Name.c_str(), &status);
-        clError::Throw(status, Name);
+        clError::Throw(status, Name + "\nBuild log:\n" + buildlog_str);
     }
 
 //    clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy from a reference (&) to not, why?

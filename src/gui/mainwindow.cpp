@@ -793,6 +793,9 @@ void MainWindow::on_actionSet_area_triggered()
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, this, &MainWindow::updateScales);
 
     myDialog->exec();
+
+    // THIS IS NEEDED, else the window will never get destructed == memory leak
+    delete myDialog;
 }
 
 void MainWindow::on_actionAberrations_triggered()

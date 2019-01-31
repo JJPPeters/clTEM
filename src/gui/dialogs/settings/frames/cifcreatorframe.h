@@ -19,7 +19,7 @@ class CifCreatorFrame : public QWidget
 Q_OBJECT
 
 public:
-    explicit CifCreatorFrame(QWidget *, CIF::CIFReader _cif, std::shared_ptr<CIF::SuperCellInfo> _info);
+    explicit CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shared_ptr<CIF::SuperCellInfo> _info);
 
 private slots:
     void rangeValuesChanged(QString dud);

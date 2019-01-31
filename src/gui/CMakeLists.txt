@@ -82,6 +82,7 @@ set ( clTEM_SRCS
         dialogs/settings/frames/stemdetectorframe.cpp
         dialogs/settings/frames/thermalscatteringframe.cpp
         dialogs/settings/frames/arealayoutframe.cpp
+        dialogs/settings/frames/cifcreatorframe.cpp
         utils/stringutils.cpp
         utils/guiutils.cpp
         controls/editunitsbox.cpp
@@ -113,7 +114,7 @@ set ( clTEM_UIS
 IF(WIN32)
     # add the ui stuff for themes, if we can set them (aka on windows)
     set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/generalsettingsframe.ui )
-    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/generalsettingsframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp dialogs/settings/frames/cifcreatorframe.cpp dialogs/settings/frames/cifcreatorframe.h)
+    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/generalsettingsframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
     #    # add the theme resources if they are needed
     set ( clTEM_RSCS theme/theme.qrc )
     QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})
