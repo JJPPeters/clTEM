@@ -14,6 +14,11 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
     ui->btnPreview->setVisible(false);
     // Set up the OpenGL stuffs
 
+    auto lb = new QLabel(this);
+    lb->setText("Preview");
+    lb->setAlignment(Qt::AlignCenter);
+    ui->vPlotLayout->addWidget(lb, 0);
+
     try {
         QSurfaceFormat format;
         format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -22,7 +27,7 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
 
         pltPreview = new OGLViewWidget(this);
         pltPreview->setFormat(format);
-        ui->hPlotLayout->addWidget(pltPreview, 1);
+        ui->vPlotLayout->addWidget(pltPreview, 1);
         pltPreview->setMinimumHeight(400);
         pltPreview->setMinimumWidth(400);
 

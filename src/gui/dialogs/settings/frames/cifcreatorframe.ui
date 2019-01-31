@@ -460,10 +460,10 @@
        <item row="0" column="1" rowspan="11">
         <layout class="QVBoxLayout" name="vLayoutLeft" stretch="1,0">
          <item>
-          <layout class="QHBoxLayout" name="hPlotLayout"/>
+          <layout class="QVBoxLayout" name="vPlotLayout"/>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
            <item>
             <widget class="QComboBox" name="cmbViewDirection">
              <property name="currentIndex">
