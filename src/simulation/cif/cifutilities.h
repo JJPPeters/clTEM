@@ -91,6 +91,22 @@ namespace CIF {
             return Eigen::Matrix3d(data.data());
         }
 
+        static std::string stripComments(const std::string& input) {
+
+            std::string output = "";
+            std::istringstream iss(input);
+            for (std::string line; std::getline(iss, line); ) {
+                size_t comm = line.rfind('#');
+                std::string temp = line.substr(0, comm);
+                temp.erase(temp.find_last_not_of(R"( \n\r\t)")+1); // I don't really care about whitespace, but I don't want blank lines (i.e. only whitespace)
+
+                if (!temp.empty())
+                    output += line.substr(0, comm) + "\n";
+            }
+
+            return output;
+        }
+
     } Utilities;
 }
 #endif //XYZ_UTILITIES_H

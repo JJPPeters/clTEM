@@ -19,11 +19,15 @@ namespace CIF {
 
         filecontents.assign((std::istreambuf_iterator<char>(filestream)), std::istreambuf_iterator<char>());
 
+        filecontents = Utilities::stripComments(filecontents);
+
         // read in the symmetry elements
         readSymmetryOperations(filecontents);
 
         // read in atom positions
-        readAtomPositions(filecontents);
+        readAtoms(filecontents);
+
+//        readThermalParameters(filecontents);
 
         // read in unit cell parameters
         readCellGeometry(filecontents);
@@ -134,107 +138,52 @@ namespace CIF {
 
     }
 
-    void CIFReader::readAtomPositions(const std::string &input) {
+    void CIFReader::readAtoms(const std::string &input) {
         atomsites = std::vector<AtomSite>();
 
         // first we need to know where the positions we need are kept (column wise)
         // we do this through the header declaration just after the "loop_"
-        std::regex rgxheaders("(?:loop_\\n)((?:_atom_site_\\w+?\\n)+)");
+        std::regex rgxheaders(R"((?:loop_\n)((?:_atom_site_\w+?\n)+))");
         std::smatch match;
 
-        if (!std::regex_search(input, match, rgxheaders))
-            throw std::runtime_error("Cannot find _atom_site_ block.");
+        auto start = input.cbegin();
+        bool found = false;
+        while(std::regex_search(start, input.cend(), match, rgxheaders)) {
+            found = true;
+            // headers
+            std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
 
-        std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
+            std::string positionpattern = "((?:\\s*";
+            for (int i = 0; i < headerlines.size() - 1; ++i)
+                positionpattern += "\\S+[ \\t]+";
+            // the last column needs to be different to close off the regex
+            positionpattern += "\\S+[ \\t]*)+)";
 
-        // now we can find the values we want and this will be the columns numbers
-        int xcol = Utilities::vectorSearch(headerlines, std::string("_atom_site_fract_x"));
-        int ycol = Utilities::vectorSearch(headerlines, std::string("_atom_site_fract_y"));
-        int zcol = Utilities::vectorSearch(headerlines, std::string("_atom_site_fract_z"));
-        int symbolcol = Utilities::vectorSearch(headerlines, std::string("_atom_site_type_symbol"));
-        // this is not absolutely needed (assume occupancy = 1 otherwise
-        int occupancycol = Utilities::vectorSearch(headerlines, std::string("_atom_site_occupancy"));
+            std::regex rgxpositions(positionpattern);
+            std::istringstream at_ss(match.suffix().str());
 
-        if (xcol >= headerlines.size())
-            throw std::runtime_error("Could not find _atom_site_fract_x.");
+            std::string atom_line;
+            std::vector<std::string> atomlines;
 
-        if (ycol >= headerlines.size())
-            throw std::runtime_error("Could not find _atom_site_fract_y.");
+            while (std::getline(at_ss, atom_line)) {
+                if(!std::regex_match(atom_line, rgxpositions) || atom_line == "loop_") // could also test if line starts with _ ?
+                    break;
 
-        if (zcol >= headerlines.size())
-            throw std::runtime_error("Could not find _atom_site_fract_z.");
-
-        if (symbolcol >= headerlines.size())
-            throw std::runtime_error("Could not find _atom_site_type_symbol.");
-
-
-        //TODO: change this to read in line after headers, it can easily stack overflow for large number of atoms (not likely, but possible)
-
-        // construct the regex dynamically to process each line (we don't know the number of columns beforehand)
-        std::string positionpattern = "((?:\\s*";
-        for (int i = 0; i < headerlines.size() - 1; ++i)
-            positionpattern += "\\S+[ \\t]+";
-        // the last column needs to be different to close off the regex
-        positionpattern += "\\S+[ \\t]*)+)";
-
-        std::regex rgxpositions(positionpattern);
-
-        std::istringstream at_ss(match.suffix().str());
-        std::string atom_line;
-        bool isValid = true;
-
-        // Now read through the following lines, check they match the operator regex and process each one
-        while (std::getline(at_ss, atom_line)) {
-            isValid = std::regex_match(atom_line, rgxpositions); //TODO: the regex for this is wrong...
-
-            if (!isValid)
-                break;
-
-            // split each line by whitespace (use a regex for this?)
-            std::regex rgxcolumns("([^\\s]+)");
-            std::vector<std::string> columns;
-
-            //TODO: is there a better way to separate this without regex?
-            while (std::regex_search(atom_line, match, rgxcolumns)) {
-                // extract column into list of vectors
-                for (int j = 1; j < match.size(); ++j)
-                    columns.push_back(match[j].str());
-
-                atom_line = match.suffix().str();
+                atomlines.push_back(atom_line);
             }
 
-            // using the column indices from before, extract the required values
-            // will need to remove brackets with errors in
-            double x = std::stod(Utilities::split(columns[xcol], '(')[0]);
-            double y = std::stod(Utilities::split(columns[ycol], '(')[0]);
-            double z = std::stod(Utilities::split(columns[zcol], '(')[0]);
-            // name has to be trimmed to remove oxidation state etc..
-            std::string symbol = "";
-            std::regex rgxname("([a-zA-Z]{1,2})");
-            if (std::regex_search(columns[symbolcol], match, rgxname))
-                symbol = match[1];
-            // TODO: add handling for when occupancy column does not exist
-            double occupancy = std::stod(Utilities::split(columns[occupancycol], '(')[0]);
+            // process these lines/headers
+            // first get all the atom position stuff
+            readAtomPositions(headerlines, atomlines);
 
-            // here we are checking if the atom is on the same site
-            std::vector<double> postemp({x, y, z});
-            bool isNew = true;
-
-            for (auto &site : atomsites) {
-                auto positions = site.getPositions();
-                int ind = Utilities::vectorSearch(positions, postemp);
-                if (ind >= positions.size())
-                    continue;
-                else {
-                    site.addAtom(symbol, occupancy);
-                    isNew = false;
-                    //TODO: think I can break the loop here
-                }
-            }
-
-            if (isNew)
-                atomsites.push_back(AtomSite(symmetrylist, symbol, x, y, z, occupancy));
+            start = match.suffix().first;
         }
+
+        if (!found)
+            throw std::runtime_error("Cannot find _atom_site_ block(s)");
+
+        if (atomsites.empty())
+            throw std::runtime_error("Could not parse atom information");
     }
 
     void CIFReader::readCellGeometry(const std::string &input) {
@@ -247,5 +196,93 @@ namespace CIF {
         double gamma = Utilities::regexFindDoubleTag(input, "_cell_angle_gamma\\s+([\\d.]+)");
 
         cell = CellGeometry(a, b, c, alpha, beta, gamma);
+    }
+
+    void CIFReader::readAtomPositions(const std::vector<std::string> &headers, const std::vector<std::string> &entries) {
+        // these are required!
+        int labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_label"));
+        bool foundlabel = labelcol != headers.size();
+        int xcol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_x"));
+        bool foundx = xcol != headers.size();
+        int ycol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_y"));
+        bool foundy = ycol != headers.size();
+        int zcol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_z"));
+        bool foundz = zcol != headers.size();
+        int symbolcol = Utilities::vectorSearch(headers, std::string("_atom_site_type_symbol"));
+        bool foundsymbol = symbolcol != headers.size();
+
+        // this is not absolutely needed (assume occupancy = 1 otherwise
+        int occupancycol = Utilities::vectorSearch(headers, std::string("_atom_site_occupancy"));
+        bool foundoccupancy = occupancycol != headers.size();
+
+//        std::string errors = "";
+//
+//        if(!foundlabel)
+//            errors += "Could not find _atom_site_label\n";
+//        if(!foundsymbol)
+//            errors += "Could not find _atom_site_fract_x\n";
+//        if(!foundx)
+//            errors += "Could not find _atom_site_type_symbol\n";
+//        if(!foundy)
+//            errors += "Could not find _atom_site_fract_y\n";
+//        if(!foundz)
+//            errors += "Could not find _atom_site_fract_z\n";
+//
+//        if (!errors.empty())
+//            throw std::runtime_error(errors);
+        if (!foundlabel || !foundsymbol || !foundx || !foundy || !foundz)
+            return;
+
+        std::smatch match;
+        std::regex rgxcolumns("([^\\s]+)");
+
+        for (auto &line : entries) {
+            std::vector<std::string> columns;
+
+            // split our line by columns
+            while (std::regex_search(line, match, rgxcolumns)) {
+                // extract column into list of vectors
+                for (int j = 1; j < match.size(); ++j)
+                    columns.push_back(match[j].str());
+            }
+
+            // the split here is to get rid of uncertainties in brackets
+            double x = std::stod(Utilities::split(columns[xcol], '(')[0]);
+            double y = std::stod(Utilities::split(columns[ycol], '(')[0]);
+            double z = std::stod(Utilities::split(columns[zcol], '(')[0]);
+
+            // this is the only simple one...
+            std::string label = columns[labelcol];
+
+            // symbol can have valence etc attached to it (probably a safe, non-regex way to do this)
+            std::string symbol = "";
+            std::regex rgxname("([a-zA-Z]{1,2})");
+            if (std::regex_search(columns[symbolcol], match, rgxname))
+                symbol = match[1];
+
+            // default to 1.0
+            double occupancy = 1.0;
+            if (foundoccupancy)
+                occupancy = std::stod(Utilities::split(columns[occupancycol], '(')[0]);
+
+            // here we are checking if the atom is on the same site
+            std::vector<double> postemp({x, y, z});
+            bool isNew = true;
+
+            for (auto &site : atomsites) {
+                auto positions = site.getPositions();
+                int ind = Utilities::vectorSearch(positions, postemp);
+                if (ind >= positions.size())
+                    continue;
+                else {
+                    site.addAtom(symbol, label, occupancy);
+                    isNew = false;
+                    break;
+                }
+            }
+
+            if (isNew)
+                atomsites.emplace_back(symmetrylist, symbol, label, x, y, z, occupancy);
+        }
     }
 }

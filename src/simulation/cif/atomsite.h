@@ -15,25 +15,25 @@ namespace CIF {
     public:
         AtomSite() {}
 
-        AtomSite(std::vector<Symmetry> symmetryvector, std::string namein, double xin, double yin, double zin,
+        AtomSite(std::vector<Symmetry> symmetryvector, std::string namein, std::string labelin, double xin, double yin, double zin,
                  double occin = 1.0);
 
         void applySymmetry(Symmetry symmetry);
 
         void applySymmetry(std::vector<Symmetry> symmetryvector);
 
-        void addAtom(std::string namein, double occin);
+        void addAtom(std::string namein, std::string labelin, double occin);
 
         std::vector<double> getOccupancies() { return occupancy; }
 
         std::vector<std::vector<double>> getPositions() { return positions; }
 
-        std::vector<std::string> getElements() { return name; }
+        std::vector<std::string> getElements() { return element; }
 
     private:
         std::vector<double> occupancy;
         std::vector<std::vector<double>> positions;
-        std::vector<std::string> name;
+        std::vector<std::string> element, label;
 
         double wrapPosition(double pos);
 

@@ -46,12 +46,15 @@ namespace CIF {
         // 1. atom positions
         // 2. symmetry
         // 3. basis geometry
-        void readAtomPositions(const std::string &input);
+        void readAtoms(const std::string &input);
 
         void readSymmetryOperations(const std::string &input);
 
         void readCellGeometry(const std::string &input);
 
+        void readAtomPositions(const std::vector<std::string> &headers, const std::vector<std::string> &entries);
+
+        void readThermalParameters(const std::vector<std::string> &headers, const std::vector<std::string> &entries) {}
     };
 }
 

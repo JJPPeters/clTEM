@@ -5,9 +5,10 @@
 #include "atomsite.h"
 
 namespace CIF {
-    AtomSite::AtomSite(std::vector<Symmetry> symmetryvector, std::string namein, double xin, double yin, double zin,
+    AtomSite::AtomSite(std::vector<Symmetry> symmetryvector, std::string namein, std::string labelin, double xin, double yin, double zin,
                        double occin) {
-        name.push_back(namein);
+        element.push_back(namein);
+        label.push_back(labelin);
         positions.push_back(std::vector<double>({wrapPosition(xin), wrapPosition(yin), wrapPosition(zin)}));
         occupancy.push_back(occin);
 
@@ -28,8 +29,9 @@ namespace CIF {
             applySymmetry(s);
     }
 
-    void AtomSite::addAtom(std::string namein, double occin) {
-        name.push_back(namein);
+    void AtomSite::addAtom(std::string namein, std::string labelin, double occin) {
+        element.push_back(namein);
+        label.push_back(labelin);
         occupancy.push_back(occin);
     }
 
