@@ -204,7 +204,7 @@ bool CifCreatorFrame::dlgApply_clicked()
     double u = ui->edtZoneU->text().toDouble();
     double v = ui->edtZoneV->text().toDouble();
     double w = ui->edtZoneW->text().toDouble();
-    if (u != 0 || v != 0 || w != 0) {
+    if (u != 0 && v != 0 && w != 0) {
         valid = false;
         errors += "Zone axis cannot be 000\n";
     }
