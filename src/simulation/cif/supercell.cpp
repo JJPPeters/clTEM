@@ -8,8 +8,6 @@ namespace CIF {
 
     void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<float> &x,
                        std::vector<float> &y, std::vector<float> &z, std::vector<float> &occ) {
-
-        std::cout << info.tilts << std::endl;
         makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ);
     }
 

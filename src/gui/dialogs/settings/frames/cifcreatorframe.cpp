@@ -204,12 +204,10 @@ bool CifCreatorFrame::dlgApply_clicked()
     double u = ui->edtZoneU->text().toDouble();
     double v = ui->edtZoneV->text().toDouble();
     double w = ui->edtZoneW->text().toDouble();
-    if (u != 0 && v != 0 && w != 0) {
+    if (u == 0 && v == 0 && w == 0) {
         valid = false;
         errors += "Zone axis cannot be 000\n";
     }
-
-
 
     double a = ui->edtZoneA->text().toDouble();
     double b = ui->edtZoneB->text().toDouble();
@@ -268,7 +266,7 @@ void CifCreatorFrame::previewStructure(bool dummy) {
     preview_info.setTilts(ta, tb, tc);
 
     // TODO: maye just draw one unit cell?
-    preview_info.setWidths(20, 20, 20);
+    preview_info.setWidths(22, 22, 22);
 
     CrystalStructure temp(cif, preview_info);
 
