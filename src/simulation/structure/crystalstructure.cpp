@@ -24,6 +24,15 @@ CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info)
     }
 }
 
+CrystalStructure::CrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info)
+        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
+          dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
+    resetLimits();
+    Atoms = std::vector<AtomSite>();
+
+    openCif(cif, info);
+}
+
 void CrystalStructure::openXyz(std::string fPath) {
     filePath = std::move(fPath);
     // open the file
@@ -166,9 +175,12 @@ void CrystalStructure::openXyz(std::string fPath) {
 }
 
 void CrystalStructure::openCif(std::string fPath, CIF::SuperCellInfo info) {
+    openCif(CIF::CIFReader(fPath), info);
+}
+
+void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {
     // open our cif here
-    filePath = fPath;
-    auto cif = CIF::CIFReader(fPath);
+    filePath = cif.getFilePath();
 
     // need to create the vectors the data will be put into
     std::vector<std::string> A;

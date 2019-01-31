@@ -64,13 +64,18 @@ private:
     void processAtomList(std::vector<std::string> A, std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<float> occ, std::vector<float> ux, std::vector<float> uy, std::vector<float> uz);
 
 public:
+    // mostly for opening .xyz files, but will handle .cif
     explicit CrystalStructure(std::string &fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo());
+
+    // only for opening cif files
+    explicit CrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
 
     /// Loads the given xyz file getting the atom coordinates in Angstroms
     /// \param fPath - path to .xyz file to open
     void openXyz(std::string fPath);
 
     void openCif(std::string fPath, CIF::SuperCellInfo info);
+    void openCif(CIF::CIFReader cif, CIF::SuperCellInfo info);
 
     std::string getFileName() {return filePath;}
 

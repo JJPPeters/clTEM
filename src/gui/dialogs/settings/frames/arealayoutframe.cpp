@@ -21,7 +21,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
         pltStructure = new OGLViewWidget(this);
         pltStructure->setFormat(format);
-        ui->vPlotLayout->addWidget(pltStructure, 1);
+        ui->vPlotLayout->addWidget(pltStructure, 0);
         pltStructure->setMinimumWidth(400);
         connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
         connect(pltStructure, &OGLViewWidget::initError, this, &AreaLayoutFrame::processOpenGLError);

@@ -11,7 +11,7 @@
 
 namespace CIF {
     struct SuperCellInfo {
-        SuperCellInfo() : uvw({0, 0, 1}), abc({0, 0, 0}), widths({100, 100, 100}), tilts({0, 0, 0}) {}
+        SuperCellInfo() : uvw({0, 0, 1}), abc({0, 0, 0}), widths({10, 10, 10}), tilts({0, 0, 0}) {}
 
         Eigen::Vector3d uvw;
         Eigen::Vector3d abc;

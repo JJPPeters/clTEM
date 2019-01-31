@@ -96,6 +96,8 @@ public:
 
     void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo());
 
+    void setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
+
     unsigned long getTotalParts();
 
     std::shared_ptr<CrystalStructure> getStructure() {return Structure;}

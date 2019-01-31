@@ -26,18 +26,30 @@ private slots:
 
     void directionValuesChanged(QString dud);
 
+    void showEvent(QShowEvent* event) override;
+
+    void previewStructure(bool dummy = false);
+
+    void viewDirectionChanged();
+
+    void processOpenGLError(std::string message);
+
 private:
     Ui::CifCreatorFrame *ui;
+
+    OGLViewWidget* pltPreview;
 
     std::shared_ptr<CIF::SuperCellInfo> CellInfo;
 
     CIF::CIFReader cif;
 
+    View::Direction getViewDirection();
+
     void dlgCancel_clicked();
 
     void dlgOk_clicked();
 
-    void dlgApply_clicked();
+    bool dlgApply_clicked();
 };
 
 

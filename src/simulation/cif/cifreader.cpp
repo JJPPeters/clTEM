@@ -7,6 +7,8 @@
 #include <iostream>
 namespace CIF {
     CIFReader::CIFReader(std::string filePath) {
+        file_path = filePath;
+
         // http://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
         std::ifstream filestream(filePath);
         std::string filecontents;

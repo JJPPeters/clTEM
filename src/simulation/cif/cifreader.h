@@ -25,10 +25,12 @@ namespace CIF {
     class CIFReader {
     public:
         // constructor that takes filename
-        CIFReader(std::string filePath);
+        explicit CIFReader(std::string filePath);
 
         // method to return a class instance that will contain the unit cell information
         UnitCell getUnitCell() { return UnitCell(cell, atomsites); }
+
+        std::string getFilePath(){return file_path;}
 
     private:
         // class instance to hold unit cell information
@@ -37,6 +39,8 @@ namespace CIF {
         std::vector<AtomSite> atomsites;
 
         CellGeometry cell;
+
+        std::string file_path;
 
         // methods to read
         // 1. atom positions

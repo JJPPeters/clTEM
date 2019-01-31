@@ -8,6 +8,8 @@ namespace CIF {
 
     void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<float> &x,
                        std::vector<float> &y, std::vector<float> &z, std::vector<float> &occ) {
+
+        std::cout << info.tilts << std::endl;
         makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ);
     }
 
@@ -50,10 +52,10 @@ namespace CIF {
             Eigen::Vector3d abc_vec = abc(0) * a_vector + abc(1) * b_vector + abc(2) * c_vector;
             abc_vec = za_rotation * abc;
             abc_vec(2) = 0.0; // no rotate the z-axis!
-            abc.normalize();
+            abc_vec.normalize();
             Eigen::Vector3d x_direction(std::vector<double>({1.0, 0.0, 0.0}).data()); // TODO: use << initialisation
             // Need the negative angle here? so give inputs in opposite order?
-            xy_rotation = Utilities::generateNormalisedRotationMatrix<double>(x_direction, abc);
+            xy_rotation = Utilities::generateNormalisedRotationMatrix<double>(x_direction, abc_vec);
         }
 
         if (xy_rotation.array().isNaN().sum() != 0) {
