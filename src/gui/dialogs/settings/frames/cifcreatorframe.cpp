@@ -237,7 +237,7 @@ bool CifCreatorFrame::dlgApply_clicked()
     CellInfo->setWidths(xr, yr, zr);
     CellInfo->setUVW(u, v, w);
     CellInfo->setABC(a, b, c);
-    CellInfo->setABC(ta, tb, tc);
+    CellInfo->setTilts(ta, tb, tc);
 
 
 
