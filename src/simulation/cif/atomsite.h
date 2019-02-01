@@ -24,14 +24,21 @@ namespace CIF {
 
         void addAtom(std::string namein, std::string labelin, double occin);
 
+        bool setIsoU(std::string lbl, double u_iso);
+
+        bool setU(std::string lbl, double u, int i);
+
         std::vector<double> getOccupancies() { return occupancy; }
 
         std::vector<std::vector<double>> getPositions() { return positions; }
 
         std::vector<std::string> getElements() { return element; }
 
+        std::vector<Eigen::Vector3d> getThermals() {return thermal_u;}
+
     private:
         std::vector<double> occupancy;
+        std::vector<Eigen::Vector3d> thermal_u;
         std::vector<std::vector<double>> positions;
         std::vector<std::string> element, label;
 

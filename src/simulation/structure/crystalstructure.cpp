@@ -187,7 +187,7 @@ void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {
     std::vector<float> x, y, z, occ, ux, uy, uz;
 
 
-    CIF::makeSuperCell(cif, info, A, x, y, z, occ);
+    CIF::makeSuperCell(cif, info, A, x, y, z, occ, ux, uy, uz);
 
     processAtomList(A, x, y, z, occ, ux, uy, uz);
 }

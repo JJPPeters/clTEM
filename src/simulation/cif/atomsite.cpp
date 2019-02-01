@@ -11,6 +11,7 @@ namespace CIF {
         label.push_back(labelin);
         positions.push_back(std::vector<double>({wrapPosition(xin), wrapPosition(yin), wrapPosition(zin)}));
         occupancy.push_back(occin);
+        thermal_u.emplace_back();
 
         applySymmetry(symmetryvector);
     }
@@ -33,6 +34,7 @@ namespace CIF {
         element.push_back(namein);
         label.push_back(labelin);
         occupancy.push_back(occin);
+        thermal_u.emplace_back();
     }
 
     double AtomSite::wrapPosition(double pos) {
@@ -43,4 +45,29 @@ namespace CIF {
             pos = 1 + std::modf(pos, &dud);
         return pos;
     }
+
+    bool AtomSite::setIsoU(std::string lbl, double u_iso) {
+
+        long long int i = std::find(label.begin(), label.end(), lbl) - label.begin();
+
+        if (i >= label.size())
+            return false;
+
+        thermal_u[i](0) = u_iso;
+        thermal_u[i](1) = u_iso;
+        thermal_u[i](2) = u_iso;
+        return true;
+    }
+
+    bool AtomSite::setU(std::string lbl, double u, int i) {
+        long long int ind = std::find(label.begin(), label.end(), lbl) - label.begin();
+
+        if (ind >= label.size())
+            return false;
+
+        thermal_u[ind](i) = u;
+        return true;
+    }
+
+
 }

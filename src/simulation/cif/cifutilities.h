@@ -18,6 +18,8 @@
 
 namespace CIF {
     static struct Utilities {
+
+
         static std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
             std::stringstream ss(s);
             std::string item;
@@ -31,6 +33,13 @@ namespace CIF {
             std::vector<std::string> elems;
             split(s, delim, elems);
             return elems;
+        }
+
+        static double stod(std::string& s) {
+            if (s == ".")
+                return 0.0;
+
+            return std::stod(s);
         }
 
         template<typename T>

@@ -27,8 +27,6 @@ namespace CIF {
         // read in atom positions
         readAtoms(filecontents);
 
-//        readThermalParameters(filecontents);
-
         // read in unit cell parameters
         readCellGeometry(filecontents);
     }
@@ -146,9 +144,9 @@ namespace CIF {
         std::regex rgxheaders(R"((?:loop_\n)((?:_atom_site_\w+?\n)+))");
         std::smatch match;
 
-        auto start = input.cbegin();
+        auto start = input;
         bool found = false;
-        while(std::regex_search(start, input.cend(), match, rgxheaders)) {
+        while(std::regex_search(start, match, rgxheaders)) {
             found = true;
             // headers
             std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
@@ -175,8 +173,9 @@ namespace CIF {
             // process these lines/headers
             // first get all the atom position stuff
             readAtomPositions(headerlines, atomlines);
+            readThermalParameters(headerlines, atomlines);
 
-            start = match.suffix().first;
+            start = match.suffix().str();
         }
 
         if (!found)
@@ -250,9 +249,9 @@ namespace CIF {
             }
 
             // the split here is to get rid of uncertainties in brackets
-            double x = std::stod(Utilities::split(columns[xcol], '(')[0]);
-            double y = std::stod(Utilities::split(columns[ycol], '(')[0]);
-            double z = std::stod(Utilities::split(columns[zcol], '(')[0]);
+            double x = Utilities::stod(Utilities::split(columns[xcol], '(')[0]);
+            double y = Utilities::stod(Utilities::split(columns[ycol], '(')[0]);
+            double z = Utilities::stod(Utilities::split(columns[zcol], '(')[0]);
 
             // this is the only simple one...
             std::string label = columns[labelcol];
@@ -266,7 +265,7 @@ namespace CIF {
             // default to 1.0
             double occupancy = 1.0;
             if (foundoccupancy)
-                occupancy = std::stod(Utilities::split(columns[occupancycol], '(')[0]);
+                occupancy = Utilities::stod(Utilities::split(columns[occupancycol], '(')[0]);
 
             // here we are checking if the atom is on the same site
             std::vector<double> postemp({x, y, z});
@@ -286,6 +285,83 @@ namespace CIF {
 
             if (isNew)
                 atomsites.emplace_back(symmetrylist, symbol, label, x, y, z, occupancy);
+        }
+    }
+
+    void CIFReader::readThermalParameters(const std::vector<std::string> &headers, const std::vector<std::string> &entries){
+
+        // find label, normal one takes precedence
+        int labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_label"));
+        bool foundlabel = labelcol < headers.size();
+
+        // then look for our aniso label
+        if (!foundlabel) {
+            labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_label"));
+            foundlabel = labelcol < headers.size();
+        }
+
+        if (!foundlabel)
+            return;
+
+        // could be u iso?
+        int isocol = Utilities::vectorSearch(headers, std::string("_atom_site_B_iso_or_equiv"));
+        bool foundiso = isocol < headers.size();
+
+        // could be B?
+        int uxcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_11"));
+        bool foundux = uxcol < headers.size();
+        int uycol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_22"));
+        bool founduy = uycol < headers.size();
+        int uzcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_33"));
+        bool founduz = uzcol < headers.size();
+
+        std::smatch match;
+        std::regex rgxcolumns("([^\\s]+)");
+
+        for (auto &row : entries) {
+            std::vector<std::string> columns;
+            std::string line = row;
+
+            // split our line by columns
+            while (std::regex_search(line, match, rgxcolumns)) {
+                // extract column into list of vectors
+                for (int j = 1; j < match.size(); ++j)
+                    columns.push_back(match[j].str());
+
+                line = match.suffix().str();
+            }
+
+            std::string lbl = columns[labelcol];
+
+            double u_iso = 0.0;
+            if (foundiso)
+                u_iso = Utilities::stod(Utilities::split(columns[isocol], '(')[0]);
+
+            double u_x = 0.0;
+            if(foundux)
+                u_x = Utilities::stod(Utilities::split(columns[uxcol], '(')[0]);
+
+            double u_y = 0.0;
+            if(foundux)
+                u_y = Utilities::stod(Utilities::split(columns[uycol], '(')[0]);
+
+            double u_z = 0.0;
+            if(foundux)
+                u_z = Utilities::stod(Utilities::split(columns[uzcol], '(')[0]);
+
+            for(auto &a : atomsites) {
+                if (foundiso)
+                    a.setIsoU(lbl, u_iso);
+
+                if (foundux)
+                    a.setU(lbl, u_x, 0);
+
+                if (founduy)
+                    a.setU(lbl, u_y, 1);
+
+                if (founduz)
+                    a.setU(lbl, u_z, 2);
+            }
         }
     }
 }

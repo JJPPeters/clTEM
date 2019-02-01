@@ -7,13 +7,15 @@
 namespace CIF {
 
     void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<float> &x,
-                       std::vector<float> &y, std::vector<float> &z, std::vector<float> &occ) {
-        makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ);
+                       std::vector<float> &y, std::vector<float> &z, std::vector<float> &occ, std::vector<float> &ux,
+                       std::vector<float> &uy, std::vector<float> &uz) {
+        makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ, ux, uy, uz);
     }
 
     void makeSuperCell(CIFReader cif, Eigen::Vector3d uvw, Eigen::Vector3d abc, Eigen::Vector3d widths,
                        Eigen::Vector3d tilts, std::vector<std::string> &A, std::vector<float> &x, std::vector<float> &y,
-                       std::vector<float> &z, std::vector<float> &occ) {
+                       std::vector<float> &z, std::vector<float> &occ, std::vector<float> &ux, std::vector<float> &uy,
+                       std::vector<float> &uz) {
         // TODO: check that the uvw and abc vectors are no colinear
         UnitCell cell = cif.getUnitCell();
 
@@ -96,6 +98,9 @@ namespace CIF {
         y.resize(count);
         z.resize(count);
         occ.resize(count);
+        ux.resize(count);
+        uy.resize(count);
+        uz.resize(count);
 
         int it = 0;
 
@@ -123,6 +128,10 @@ namespace CIF {
                                     y[it] = new_pos(1);
                                     z[it] = new_pos(2);
                                     occ[it] = at.getOccupancies()[ind];
+                                    ux[it] = at.getThermals()[ind](0);
+                                    uy[it] = at.getThermals()[ind](1);
+                                    uz[it] = at.getThermals()[ind](2);
+
                                     ++it;
                                 }
                             }
@@ -141,6 +150,9 @@ namespace CIF {
         y.resize(it);
         z.resize(it);
         occ.resize(it);
+        ux.resize(it);
+        uy.resize(it);
+        uz.resize(it);
     }
 
 

@@ -54,7 +54,7 @@ namespace CIF {
 
         void readAtomPositions(const std::vector<std::string> &headers, const std::vector<std::string> &entries);
 
-        void readThermalParameters(const std::vector<std::string> &headers, const std::vector<std::string> &entries) {}
+        void readThermalParameters(const std::vector<std::string> &headers, const std::vector<std::string> &entries);
     };
 }
 
