@@ -236,14 +236,17 @@ namespace CIF {
         std::smatch match;
         std::regex rgxcolumns("([^\\s]+)");
 
-        for (auto &line : entries) {
+        for (auto &row : entries) {
             std::vector<std::string> columns;
+            std::string line = row;
 
             // split our line by columns
             while (std::regex_search(line, match, rgxcolumns)) {
                 // extract column into list of vectors
                 for (int j = 1; j < match.size(); ++j)
                     columns.push_back(match[j].str());
+
+                line = match.suffix().str();
             }
 
             // the split here is to get rid of uncertainties in brackets

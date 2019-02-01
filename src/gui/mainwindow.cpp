@@ -154,6 +154,8 @@ void MainWindow::on_actionOpen_triggered()
 
             if(result == QDialog::Accepted)
                 Manager->setStructure(cif, *info);
+            else
+                return;
         }
         else
             throw std::runtime_error("." + temp_file.suffix().toStdString() + " is not a supported file format");
