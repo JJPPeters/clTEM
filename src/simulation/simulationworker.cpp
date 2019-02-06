@@ -153,7 +153,7 @@ void SimulationWorker::sortAtoms(bool doTds) {
 
     int count_in_range = 0;
     for(int i = 0; i < atom_count; ++i) {
-        if (HostZIDs[i] > 0 && HostBlockIDs[i] > 0) {
+        if (HostZIDs[i] >= 0 && HostBlockIDs[i] >= 0) {
             Binnedx[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomXPos[i]);
             Binnedy[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomYPos[i]);
             Binnedz[HostBlockIDs[i]][HostZIDs[i]].push_back(AtomZPos[i]);
