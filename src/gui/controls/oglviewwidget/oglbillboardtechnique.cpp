@@ -11,18 +11,16 @@ OGLBillBoardTechnique::OGLBillBoardTechnique()
     Q_INIT_RESOURCE(shaders);
 }
 
-bool OGLBillBoardTechnique::Init()
-{
-    if (!OGLTechnique::Init()) {
+bool OGLBillBoardTechnique::Init() {
+    if (!OGLTechnique::Init())
         throw std::runtime_error("OpenGL: BillBoard: Failed to initialise technique base");
-    }
 
     OGLCheckErrors("OpenGL: BillBoard: Initialising technique");
 
     QFile f_vert(":/OGL/Shaders/billboard.vs");
-    if (!f_vert.open(QFile::ReadOnly | QFile::Text)) {
+    if (!f_vert.open(QFile::ReadOnly | QFile::Text))
         throw std::runtime_error("OpenGL: BillBoard: Billboard: Failed to read vertex shader");
-    }
+
     auto s_vert = QTextStream(&f_vert).readAll().toStdString();
     if (!CompileShader(GL_VERTEX_SHADER, s_vert)) {
         throw std::runtime_error("OpenGL: Billboard: Failed to initialise vertex shader");
@@ -91,8 +89,8 @@ bool OGLBillBoardTechnique::Render(const Matrix4f &MV, const Matrix4f &P, const 
         return false;
 
     Enable();
-    SetProj(P);
     SetModelView(MV);
+    SetProj(P);
 
     _colourBuffer->DrawArrays(false);
     _positionBuffer->DrawArrays(true, GL_POINTS);

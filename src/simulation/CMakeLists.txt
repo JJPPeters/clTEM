@@ -9,6 +9,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/
 include_directories(clwrapper)
 add_subdirectory(clwrapper)
 
+include_directories(cif)
+add_subdirectory(cif)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
@@ -54,5 +57,5 @@ set(SIM_SCRS
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 
-target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper)
-target_link_libraries (simulation ${TIFF_LIBRARY} ${EASYLOGGINGPP_LIBRARY} clwrapper)
+target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper cif)
+target_link_libraries (simulation ${TIFF_LIBRARY} ${EASYLOGGINGPP_LIBRARY} clwrapper cif)

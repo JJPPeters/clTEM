@@ -20,8 +20,10 @@ OGLTechnique::~OGLTechnique()
     QOpenGLFunctions *glFuncs = con->functions();
     glFuncs->initializeOpenGLFunctions();
 
-    for (ShaderObjectList::iterator it = _shaderObjectList.begin(); it != _shaderObjectList.end(); ++it)
-        glFuncs->glDeleteShader(*it);
+    for (unsigned int &sh : _shaderObjectList)
+        glFuncs->glDeleteShader(sh);
+
+    _shaderObjectList.clear();
 
     if (_shaderProg != 0) {
         glFuncs->glDeleteProgram(_shaderProg);
@@ -66,10 +68,10 @@ bool OGLTechnique::Finalise()
     }
 
     // Delete the intermediate shader objects that have been added to the program
-    for (ShaderObjectList::iterator it = _shaderObjectList.begin(); it != _shaderObjectList.end(); ++it)
-        glFuncs->glDeleteShader(*it);
-
-    _shaderObjectList.clear();
+//    for (unsigned int &it : _shaderObjectList)
+//        glFuncs->glDeleteShader(it);
+//
+//    _shaderObjectList.clear();
 
     return true;
 }
@@ -167,6 +169,8 @@ bool OGLTechnique::CompileShader(GLenum ShaderType, std::string shdr) {
     }
 
     glFuncs->glAttachShader(_shaderProg, _shaderObj);
+
+    _shaderObjectList.push_back(_shaderObj);
 
     return true;
 }

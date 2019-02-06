@@ -30,12 +30,34 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), default
     MicroParams->C30 = 10000;
 }
 
-void SimulationManager::setStructure(std::string filePath)
+void SimulationManager::setStructure(std::string filePath, CIF::SuperCellInfo info)
 {
     // lock this in case we need multiple devices to load this structure
     std::unique_lock<std::mutex> lock(structure_mutex);
 
-    Structure.reset(new CrystalStructure(filePath));
+    Structure.reset(new CrystalStructure(filePath, info));
+
+    if (!maintain_area) {
+        auto x_lims = getStructLimitsX();
+        auto y_lims = getStructLimitsY();
+
+        SimArea->setRawLimitsX(x_lims[0], x_lims[1]);
+        SimArea->setRawLimitsY(y_lims[0], y_lims[1]);
+
+        getStemArea()->setRawLimitsX(x_lims[0], x_lims[1]);
+        getStemArea()->setRawLimitsY(y_lims[0], y_lims[1]);
+
+        getCBedPosition()->setXPos((x_lims[0] + x_lims[1]) / 2);
+        getCBedPosition()->setYPos((y_lims[0] + y_lims[1]) / 2);
+    }
+}
+
+void SimulationManager::setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info)
+{
+    // lock this in case we need multiple devices to load this structure
+    std::unique_lock<std::mutex> lock(structure_mutex);
+
+    Structure.reset(new CrystalStructure(cif, info));
 
     if (!maintain_area) {
         auto x_lims = getStructLimitsX();

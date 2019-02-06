@@ -10,12 +10,15 @@
 #include <dialogs/settings/frames/globalsimsettingsframe.h>
 #include "dialogs/settings/frames/openclframe.h"
 #include "dialogs/settings/frames/fullaberrationframe.h"
+#include "dialogs/settings/frames/cifcreatorframe.h"
 #ifdef _WIN32
 #include "dialogs/settings/frames/generalsettingsframe.h"
 #endif
 
 #include <structure/crystalstructure.h>
 #include <controls/borderlessdialog.h>
+
+#include <cif/supercell.h>
 
 namespace Ui {
 class SettingsDialog;
@@ -32,7 +35,9 @@ signals:
 
 public:
     explicit SettingsDialog(QWidget *parent = 0);
-    ~SettingsDialog();
+    ~SettingsDialog() override;
+
+    void showApplyButton(bool show);
 
 private slots:
     void on_btnCancel_clicked();
@@ -184,5 +189,17 @@ public:
 
 };
 
+
+class CifCreatorDialog : public SettingsDialog
+{
+Q_OBJECT
+
+private:
+    CifCreatorFrame* CifFrame;
+
+public:
+    explicit CifCreatorDialog(QWidget *parent, CIF::CIFReader cif, std::shared_ptr<CIF::SuperCellInfo> info);
+
+};
 
 #endif // SETTINGSDIALOG_H

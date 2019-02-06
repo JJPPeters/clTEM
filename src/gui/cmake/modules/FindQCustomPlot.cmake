@@ -17,7 +17,7 @@ find_library(QCustomPlot_LIBRARY_RELEASE NAMES qcustomplot qcustomplot2
 		PATH_SUFFIXES lib
 			 HINTS ${QCUSTOMPLOT_ROOT} $ENV{QCUSTOMPLOT_DIR} ${PC_QCustomPlot_LIBDIR} ${PC_QCustomPlot_LIBRARY_DIRS})
 
-find_library(QCustomPlot_LIBRARY_DEBUG NAMES qcustomplotd qcustomplotd2
+find_library(QCustomPlot_LIBRARY_DEBUG NAMES qcustomplotd qcustomplotd2 qcustomplot qcustomplot2
 		PATH_SUFFIXES lib
 		HINTS ${QCUSTOMPLOT_ROOT} $ENV{QCUSTOMPLOT_DIR} ${PC_QCustomPlot_LIBDIR} ${PC_QCustomPlot_LIBRARY_DIRS} )
 

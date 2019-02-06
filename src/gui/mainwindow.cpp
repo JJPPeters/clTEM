@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -15,6 +17,7 @@
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
 #include <frames/aberrationframe.h>
+#include <cif/supercell.h>
 
 #include <variant>
 
@@ -34,9 +37,9 @@ MainWindow::MainWindow(QWidget *parent) :
     if (!settings.contains("dialog/currentSavePath"))
         settings.setValue("dialog/currentSavePath", QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
 
-    Manager = std::shared_ptr<SimulationManager>(new SimulationManager());
+    Manager = std::make_shared<SimulationManager>();
 
-    std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
+    std::string exe_path = qApp->applicationDirPath().toStdString();
 
     // try loading default settings from the config location
     on_actionImport_default_triggered(true);
@@ -126,7 +129,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QSettings settings;
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open file", settings.value("dialog/currentPath").toString(), "All supported (*.xyz);; XYZ (*.xyz)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open file", settings.value("dialog/currentPath").toString(), "All supported (*.xyz *.cif);; XYZ (*.xyz);; CIF (*.xyz)");
 
     if (fileName.isNull())
         return;
@@ -135,10 +138,27 @@ void MainWindow::on_actionOpen_triggered()
 
     settings.setValue("dialog/currentPath", temp_file.path());
 
-    if (temp_file.suffix() != "xyz")
-        return;
     try {
-        Manager->setStructure(fileName.toStdString());
+        // TODO: there needs to be an extra dialog step for cif format
+        if (temp_file.suffix() == "xyz")
+            Manager->setStructure(fileName.toStdString());
+        else if (temp_file.suffix() == "cif") {
+            // open dialog to open cif
+            // read the cif now so we can pass it to the dialog
+
+            auto cif = CIF::CIFReader(fileName.toStdString());
+            auto info = std::make_shared<CIF::SuperCellInfo>();
+
+            auto myDialog = new CifCreatorDialog(this, cif, info);
+            auto result = myDialog->exec();
+
+            if(result == QDialog::Accepted)
+                Manager->setStructure(cif, *info);
+            else
+                return;
+        }
+        else
+            throw std::runtime_error("." + temp_file.suffix().toStdString() + " is not a supported file format");
     } catch (const std::exception &e) {
         CLOG(ERROR, "gui") << "Could not open file: " << e.what() << ".";
         QMessageBox msgBox(this);

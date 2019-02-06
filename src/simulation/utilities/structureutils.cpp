@@ -3,7 +3,7 @@
 namespace Utils
 {
 
-    int ElementSymbolToNumber(std::string sym) {
+    unsigned int ElementSymbolToNumber(std::string sym) {
         auto got = MapSymbolToNumber.find(sym);
 
         if ( got == MapSymbolToNumber.end() )
@@ -12,7 +12,7 @@ namespace Utils
         return got->second;
     }
 
-    std::string NumberToElementSymbol(int A) {
+    std::string NumberToElementSymbol(unsigned int A) {
 
         for (const auto& v : VectorSymbolToNumber) {
             if (v.second == A)
@@ -22,7 +22,7 @@ namespace Utils
         throw std::runtime_error("Unidentified atomic number: " + std::to_string(A));
     }
 
-    int ConstructElementMap() {
+    unsigned int ConstructElementMap() {
 
         for(auto& el : VectorSymbolToNumber) {
             MapSymbolToNumber.insert(el);
@@ -31,9 +31,9 @@ namespace Utils
     }
 
 
-    std::unordered_map<std::string, int> MapSymbolToNumber;
+    std::unordered_map<std::string, unsigned int> MapSymbolToNumber;
 
-    const std::vector<std::pair<std::string, int>> VectorSymbolToNumber = {
+    const std::vector<std::pair<std::string, unsigned int>> VectorSymbolToNumber = {
             {"H",1},
             {"He",2},
             {"Li",3},
@@ -139,5 +139,5 @@ namespace Utils
             {"Lr",103}
     };
 
-    int dummy_construct_map = ConstructElementMap();
+    unsigned int dummy_construct_map = ConstructElementMap();
 }

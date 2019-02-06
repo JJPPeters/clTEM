@@ -94,7 +94,9 @@ public:
         return *this;
     }
 
-    void setStructure(std::string filePath);
+    void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo());
+
+    void setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
 
     unsigned long getTotalParts();
 

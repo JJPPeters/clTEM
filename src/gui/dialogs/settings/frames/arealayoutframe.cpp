@@ -99,6 +99,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
 AreaLayoutFrame::~AreaLayoutFrame()
 {
+    delete pltStructure;
     delete ui;
 }
 

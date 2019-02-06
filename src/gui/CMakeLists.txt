@@ -82,6 +82,7 @@ set ( clTEM_SRCS
         dialogs/settings/frames/stemdetectorframe.cpp
         dialogs/settings/frames/thermalscatteringframe.cpp
         dialogs/settings/frames/arealayoutframe.cpp
+        dialogs/settings/frames/cifcreatorframe.cpp
         utils/stringutils.cpp
         utils/guiutils.cpp
         controls/editunitsbox.cpp
@@ -102,6 +103,7 @@ set ( clTEM_UIS
         dialogs/settings/frames/globalsimsettingsframe.ui
         dialogs/settings/frames/fullaberrationframe.ui
         dialogs/settings/frames/stemdetectorframe.ui
+        dialogs/settings/frames/cifcreatorframe.ui
         dialogs/settings/frames/ctemareaframe.ui
         dialogs/settings/frames/stemareaframe.ui
         dialogs/settings/frames/cbedareaframe.ui
