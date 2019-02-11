@@ -386,7 +386,7 @@ int main(int argc, char *argv[])
         }
 
     } else {
-        if (!size_arg.empty() || !zone_arg.empty() || !normal_arg.empty() || !tilt_arg.empty()) {
+        if (!size_arg.empty() || !zone_arg.empty() || !normal_arg.empty() || !tilt_arg.empty())
             std::cerr << "WARNING: .cif options have been set for .xyz file, these will be ignored" << std::endl;
     }
 
