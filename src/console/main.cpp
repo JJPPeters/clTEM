@@ -40,7 +40,7 @@ static int slice_pcnt;
 
 void printHelp()
 {
-    std::cout << "usage: cltem_cmd xyz_file [options]\n"
+    std::cout << "usage: cltem_cmd structure_file [options]\n"
                  "  options:\n"
                  "    -h : (--help) print this help message and exit\n"
                  "    -v : (--version) print the clTEM command line version number and exit\n"
@@ -55,7 +55,12 @@ void printHelp()
                  "             gpu     : use the first gpu available\n"
                  "             cpu     : use the first cpu available\n"
                  "             #:#     : comma separated list in for format platform:device (ids)\n"
-                 "    --debug : show full debug output" << std::endl;
+                 "    --debug : show full debug output\n"
+                 "  .cif only options:\n"
+                 "    -s : (--size) REQUIRED the size of the supercell (x,y,z values separated by commas)\n"
+                 "    -z : (--zone) REQUIRED the zone axis to construct the structure along(u,v,w values separated by commas)\n"
+                 "    -n : (--normal) the axis to place along the x-direction (u,v,w values separated by commas)\n"
+                 "    -t : (--tilts) small tilts (degrees) to modify the zone axis (tilts around x,y,z axes separated by commas)" << std::endl;
 }
 
 void printVersion()
@@ -76,6 +81,31 @@ void listDevices()
             std::cout << "Platform: " << d.GetPlatformNumber() << ", " << d.GetPlatformName() << std::endl;
         std::cout << "\tDevice: " << d.GetDeviceNumber() << ", " << d.GetDeviceName() << std::endl;
     }
+}
+
+/// Parse a string with 3 numbers separated by commas
+template <typename T>
+bool parseThreeCommaList(std::string lst, T& a, T& b, T& c)
+{
+    std::istringstream ss(lst);
+    std::string part;
+    T v;
+    std::vector<T> vec;
+    while(ss.good()) {
+        getline( ss, part, ',' );
+        std::istringstream ssp(part);
+        ssp >> v;
+        vec.emplace_back(v);
+    }
+
+    if (vec.size() != 3)
+        return false;
+
+    a = vec[0];
+    b = vec[1];
+    c = vec[2];
+
+    return true;
 }
 
 void reportSliceProgress(float frac)
@@ -186,6 +216,8 @@ int main(int argc, char *argv[])
 
     std::vector<std::string> non_option_args;
 
+    std::string size_arg, zone_arg, normal_arg, tilt_arg;
+
     while (true)
     {
         static struct option long_options[] =
@@ -196,12 +228,16 @@ int main(int argc, char *argv[])
                         {"output",   required_argument, nullptr,       'o'},
                         {"config",   required_argument, nullptr,       'c'},
                         {"device",   required_argument, nullptr,       'd'},
+                        {"size",   required_argument, nullptr,       's'},
+                        {"zone",   required_argument, nullptr,       'z'},
+                        {"normal",   required_argument, nullptr,       'n'},
+                        {"tilts",   required_argument, nullptr,       't'},
                         {"debug",  no_argument,       &verbose_flag, 1},
                         {nullptr, 0, nullptr, 0}
                 };
         // getopt_long stores the option index here.
         int option_index = 0;
-        c = getopt_long (argc, argv, "hvlo:c:d:", long_options, &option_index);
+        c = getopt_long(argc, argv, "hvlo:c:d:s:z:n:t:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1)
@@ -229,6 +265,18 @@ int main(int argc, char *argv[])
             case 'd':
                 device_options = optarg;
                 break;
+            case 's':
+                size_arg = optarg;
+                break;
+            case 'z':
+                zone_arg = optarg;
+                break;
+            case 'n':
+                normal_arg = optarg;
+                break;
+            case 't':
+                tilt_arg = optarg;
+                break;
             case '?':
                 // getopt_long already printed an error message.
                 break;
@@ -251,7 +299,7 @@ int main(int argc, char *argv[])
     bool valid_flags = true;
 
     if (non_option_args.empty()) {
-        std::cerr << "Require non-option argument as structure (.xyz) file" << std::endl;
+        std::cerr << "Require non-option argument as structure (.xyz or .cif) file" << std::endl;
         valid_flags = false;
     }
 
@@ -277,11 +325,73 @@ int main(int argc, char *argv[])
         valid_flags = false;
     }
 
-    if (!valid_flags)
-        return 1;
-
     // this is where the input is actually set
     input_struct = non_option_args[0];
+    bool isxyz = input_struct.compare(input_struct.size() - 4, 4, ".xyz") == 0;
+    bool iscif = input_struct.compare(input_struct.size() - 4, 4, ".cif") == 0;
+
+    if (!isxyz && !iscif) {
+        std::cerr << "Require a .xyz or .cif file non-option argument. Instead got: " << input_struct << std::endl;
+        valid_flags = false;
+    }
+
+    CIF::SuperCellInfo sc_info;
+
+    // Process all the .cif relevant options here
+    if (iscif) {
+        if (size_arg.empty()) {
+            std::cerr << ".cif files require a size arg (-s, --size)" << std::endl;
+            valid_flags = false;
+        }
+
+        if (zone_arg.empty()) {
+            std::cerr << ".cif files require a zone axis arg (-z, --zone)" << std::endl;
+            valid_flags = false;
+        }
+
+        float sx, sy, sz;
+        if(!parseThreeCommaList(size_arg, sx, sy, sz)) {
+            std::cerr << "Could not parse .cif size argument: " << size_arg << std::endl;
+            valid_flags = false;
+        }
+
+        float zu, zv, zw;
+        if(!parseThreeCommaList(zone_arg, zu, zv, zw)) {
+            std::cerr << "Could not parse .cif size argument: " << zone_arg << std::endl;
+            valid_flags = false;
+        }
+
+        float nu, nv, nw;
+        if (!normal_arg.empty()) {
+            if(!parseThreeCommaList(normal_arg, nu, nv, nw)) {
+                std::cerr << "Could not parse .cif normal argument: " << normal_arg << std::endl;
+                valid_flags = false;
+            }
+        }
+
+        float tx, ty, tz;
+        if (!tilt_arg.empty()) {
+            if(!parseThreeCommaList(tilt_arg, tx, ty, tz)) {
+                std::cerr << "Could not parse .cif tilt argument: " << tilt_arg << std::endl;
+                valid_flags = false;
+            }
+        }
+
+        // TODO: check these default to 0?
+        if (valid_flags) {
+            sc_info.setWidths(sx, sy, sz);
+            sc_info.setZoneAxis(zu, zv, zw);
+            sc_info.setHorizontalAxis(nu, nv, nw);
+            sc_info.setTilts(tx, ty, tz);
+        }
+
+    } else {
+        if (!size_arg.empty() || !zone_arg.empty() || !normal_arg.empty() || !tilt_arg.empty()) {
+            std::cerr << "WARNING: .cif options have been set for .xyz file, these will be ignored" << std::endl;
+    }
+
+    if (!valid_flags)
+        return 1;
 
     //
     // Set up the logging
@@ -400,7 +510,10 @@ int main(int argc, char *argv[])
     // try to open the structure file...
     std::cout << "Structure file: " << input_struct << std::endl;
     try {
-        man_ptr->setStructure(input_struct);
+        if (iscif)
+            man_ptr->setStructure(input_struct, sc_info);
+        else
+            man_ptr->setStructure(input_struct);
     } catch (...) {
         std::cout << "Error opening structure file. Exiting..." << std::endl;
         CLOG(ERROR, "cmd") << "Error opening structure file";
