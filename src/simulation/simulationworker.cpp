@@ -448,21 +448,13 @@ void SimulationWorker::initialiseSimulation() {
     }
 
     // Find maximum frequency for bandwidth limiting rule
-    float bandwidthkmax;
+
 
     // TODO: not sure I want the -1 here
-    auto kmaxx = (float) std::pow((k0x[imidx - 1]), 2);
-    auto kmaxy = (float) std::pow((k0y[imidy - 1]), 2);
+    float kmaxx = std::abs(k0x[imidx]);
+    float kmaxy = std::abs(k0y[imidy]);
 
-    // we are only dealing with squares so far, so this accounts for that
-    // I don't think it is really necessary, as the resolution is always the same and the pixelscale already
-    // accounts for the image padding (?)
-    bandwidthkmax = std::min(kmaxy, kmaxx);
-
-    // k not k^2.
-    // previously had limited to 1/2, but Kirkland pg 159 says 2/3
-    // Kirkland's code seems to use 1/2 however...
-    bandwidthkmax = std::sqrt(bandwidthkmax) * job->simManager->getInverseLimitFactor();
+    float bandwidthkmax = std::min(kmaxy, kmaxx) * job->simManager->getInverseLimitFactor();
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
     // write our frequencies to OpenCL buffers

@@ -254,7 +254,7 @@ int CrystalStructure::getAtomCountInRange(float xs, float xf, float ys, float yf
 
     int count = 0;
     for (auto a : Atoms)
-        if (a.x-MinX > xs && a.x-MinX < xf && a.y-MinY > ys && a.y-MinY < yf)
+        if (a.x-MinX >= xs && a.x-MinX <= xf && a.y-MinY >= ys && a.y-MinY <= yf)
             ++count;
 
     return count;
@@ -322,6 +322,9 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<f
             addAtom(thisAtom); // for occ, this all happens in the processOccupancyList method
         }
     }
+
+    if (!prevAtoms.empty())
+        processOccupancyList(prevAtoms);
 }
 
 
