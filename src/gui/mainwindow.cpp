@@ -776,7 +776,7 @@ void MainWindow::updateGuiFromManager() {
 
     ui->tTem->setSimImageCheck( Manager->getSimulateCtemImage() );
 
-    ui->twMode->setCurrentIndex( (int) Manager->getMode() );
+    ui->twMode->setCurrentIndex( (int) Manager->getMode()-1 ); // -1 due to the 0 element being a null value
 
     // set resolution last, this should update the structure area stuff if it needs to be
     ui->tSim->setResolution( Manager->getResolution() );
