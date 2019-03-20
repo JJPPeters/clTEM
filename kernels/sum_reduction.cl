@@ -27,9 +27,9 @@ __kernel void clSumReduction( __global const float* input,
 
 	float sum = 0.0f;
 	if(!idx) {
-		for(size_t i = 1; i < get_local_size(0); ++i)
-			sum += M_SQRT2_F * fabs(buffer[i]);
+		for(size_t i = 0; i < get_local_size(0); ++i)
+			sum += fabs(buffer[i]);
 
-		output[get_group_id(0)] = sum;
+		output[get_group_id(0)] = sum * M_SQRT2_F;
 	}
 }
