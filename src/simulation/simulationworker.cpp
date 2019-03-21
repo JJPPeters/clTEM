@@ -9,7 +9,8 @@
 #include "kernels.h"
 #include "ccdparams.h"
 
-void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
+template <class T>
+void SimulationWorker<T>::Run(const std::shared_ptr<SimulationJob> &_job) {
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
     int p_num = ctx.GetContextDevice().GetPlatformNumber();
@@ -65,22 +66,23 @@ void SimulationWorker::Run(const std::shared_ptr<SimulationJob> &_job) {
     job->promise.set_value();
 }
 
-void SimulationWorker::sortAtoms(bool doTds) {
+template <class T>
+void SimulationWorker<T>::sortAtoms(bool doTds) {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
     auto atoms = job->simManager->getStructure()->getAtoms();
     auto atom_count = (unsigned int) atoms.size(); // Needs to be cast to int as opencl kernel expects that size
 
     std::vector<int> AtomANum(atom_count);
-    std::vector<float> AtomXPos(atom_count);
-    std::vector<float> AtomYPos(atom_count);
-    std::vector<float> AtomZPos(atom_count);
+    std::vector<T> AtomXPos(atom_count);
+    std::vector<T> AtomYPos(atom_count);
+    std::vector<T> AtomZPos(atom_count);
 
     CLOG(DEBUG, "sim") << "Getting atom positions";
     if (doTds)
         CLOG(DEBUG, "sim") << "Using TDS";
 
     for(int i = 0; i < atom_count; i++) {
-        float dx = 0.0f, dy = 0.0f, dz = 0.0f;
+        T dx = 0.0f, dy = 0.0f, dz = 0.0f;
         if (doTds) {
             // TODO: need a log guard here or in the structure file?
             dx = job->simManager->generateTdsFactor(atoms[i], 0);
@@ -221,7 +223,8 @@ void SimulationWorker::sortAtoms(bool doTds) {
     ctx.WaitForQueueFinish();
 }
 
-void SimulationWorker::doCtem(bool simImage)
+template <class T>
+void SimulationWorker<T>::doCtem(bool simImage)
 {
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
@@ -239,7 +242,7 @@ void SimulationWorker::doCtem(bool simImage)
     CLOG(DEBUG, "sim") << "Getting return images";
 
     unsigned int resolution = job->simManager->getResolution();
-    typedef std::map<std::string, Image<float>> return_map;
+    typedef std::map<std::string, Image<T>> return_map;
     return_map Images;
 
     float real_scale = job->simManager->getRealScale();
@@ -258,8 +261,8 @@ void SimulationWorker::doCtem(bool simImage)
     auto crop_r = (unsigned int) crop_lr_total - crop_l;
     auto crop_t = (unsigned int) crop_tb_total - crop_b;
 
-    auto ew = Image<float>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
-    auto diff = Image<float>(resolution, resolution, getDiffractionImage());
+    auto ew = Image<T>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
+    auto diff = Image<T>(resolution, resolution, getDiffractionImage());
 
     // get the images we need
     Images.insert(return_map::value_type("EW", ew));
@@ -279,20 +282,22 @@ void SimulationWorker::doCtem(bool simImage)
             scale *= scale; // square it to get area of pixel
             float dose_per_pix = dose * scale;
 
+            // Error here is because of dqe and ntf vectors
             simulateCtemImage(dqe, ntf, binning, dose_per_pix);
         }
         else {
             simulateCtemImage();
         }
 
-        auto ctem_im = Image<float>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
+        auto ctem_im = Image<T>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
         Images.insert(return_map::value_type("Image", ctem_im));
     }
 
     job->simManager->updateImages(Images, 1);
 }
 
-void SimulationWorker::doCbed()
+template <class T>
+void SimulationWorker<T>::doCbed()
 {
     auto pos = job->simManager->getCBedPosition();
 
@@ -313,17 +318,18 @@ void SimulationWorker::doCbed()
     CLOG(DEBUG, "sim") << "Getting return images";
     // get images and return them...
     unsigned int resolution = job->simManager->getResolution();
-    typedef std::map<std::string, Image<float>> return_map;
+    typedef std::map<std::string, Image<T>> return_map;
     return_map Images;
 
-    auto diff = Image<float>(resolution, resolution, getDiffractionImage());
+    auto diff = Image<T>(resolution, resolution, getDiffractionImage());
 
     Images.insert(return_map::value_type("Diff", diff));
 
     job->simManager->updateImages(Images, 1); // Update this if we ever do more than one TDS in a job
 }
 
-void SimulationWorker::doStem()
+template <class T>
+void SimulationWorker<T>::doStem()
 {
     CLOG(DEBUG, "sim") << "Parallel pixels: " << job->pixels.size();
 
@@ -384,7 +390,8 @@ void SimulationWorker::doStem()
     job->simManager->updateImages(Images, 1);
 }
 
-void SimulationWorker::initialiseSimulation() {
+template <class T>
+void SimulationWorker<T>::initialiseSimulation() {
     CLOG(DEBUG, "sim") << "Initialising all buffers";
     initialiseBuffers();
 
@@ -423,8 +430,8 @@ void SimulationWorker::initialiseSimulation() {
     // This basically is all to create OpenCL buffers (1D) that let us know the frequency value of the pixels in the FFT
     // Not that this already accounts for the un-shifted nature of the FFT (i.e. 0 frequency is at 0, 0)
     // We also calculate our limit for low pass filtering the wavefunctions
-    std::vector<float> k0x(resolution);
-    std::vector<float> k0y(resolution);
+    std::vector<T> k0x(resolution);
+    std::vector<T> k0y(resolution);
 
     auto imidx = (unsigned int) std::floor((float) resolution / 2.0 + 0.5);
     auto imidy = (unsigned int) std::floor((float) resolution / 2.0 + 0.5);
@@ -563,7 +570,8 @@ void SimulationWorker::initialiseSimulation() {
         initialiseCtem();
 }
 
-void SimulationWorker::initialiseCtem()
+template <class T>
+void SimulationWorker<T>::initialiseCtem()
 {
 
     CLOG(DEBUG, "sim") << "Starting CTEM initialisation";
@@ -589,7 +597,8 @@ void SimulationWorker::initialiseCtem()
 }
 
 // n_parallel is the index (from 0) of the current parallel pixel
-void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_parallel) {
+template <class T>
+void SimulationWorker<T>::initialiseProbeWave(T posx, T posy, int n_parallel) {
     CLOG(DEBUG, "sim") << "Initialising probe wavefunction";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
@@ -657,7 +666,8 @@ void SimulationWorker::initialiseProbeWave(float posx, float posy, int n_paralle
     ctx.WaitForQueueFinish();
 }
 
-void SimulationWorker::doMultiSliceStep(int slice)
+template <class T>
+void SimulationWorker<T>::doMultiSliceStep(int slice)
 {
     CLOG(DEBUG, "sim") << "Start multislice step " << slice;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -753,7 +763,8 @@ void SimulationWorker::doMultiSliceStep(int slice)
     }
 }
 
-void SimulationWorker::simulateCtemImage()
+template <class T>
+void SimulationWorker<T>::simulateCtemImage()
 {
     CLOG(DEBUG, "sim") << "Start CTEM image simulation (no dose calculation)";
     unsigned int resolution = job->simManager->getResolution();
@@ -808,9 +819,9 @@ void SimulationWorker::simulateCtemImage()
 
 // TODO: what should be done with the conversion factor?
 // I think it might be like an amplification thing - as in if the detector gets n electrons, it will 'detect' n*conversion factor?
-void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vector<float> ntf_data, int binning,
-                                         float doseperpix,
-                                         float conversionfactor)
+template <class T>
+void SimulationWorker<T>::simulateCtemImage(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning,
+                                         T doseperpix, T conversionfactor)
 {
     // all the NTF, DQE stuff can be found here: 10.1016/j.jsb.2013.05.008
     CLOG(DEBUG, "sim") << "Start CTEM image simulation (with calculation)";
@@ -858,7 +869,7 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
 
     CLOG(DEBUG, "sim") << "Read from buffer";
     float N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
-    std::vector<cl_float2> compdata = clImageWaveFunction.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clImageWaveFunction.CreateLocalCopy();
 
     CLOG(DEBUG, "sim") << "Add noise";
 
@@ -870,11 +881,11 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
         // see: https://stackoverflow.com/questions/19944111/creating-a-gaussian-random-generator-with-a-mean-and-standard-deviation
 
         // use the built in stuff for ease
-        std::poisson_distribution<int> dist(N_tot * compdata[i].x); // TODO: here we are assuming this function is only real?
+        std::poisson_distribution<int> dist(N_tot * compdata[i].real()); // TODO: here we are assuming this function is only real?
         auto poiss = (float) dist(rng);
 
-        compdata[i].x = conversionfactor * poiss;
-        compdata[i].y = 0;
+        compdata[i].real(conversionfactor * poiss);
+        compdata[i].imag(0);
     }
 
     CLOG(DEBUG, "sim") << "Write back to buffer";
@@ -904,11 +915,12 @@ void SimulationWorker::simulateCtemImage(std::vector<float> dqe_data, std::vecto
     ctx.WaitForQueueFinish();
 }
 
-std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
+template <class T>
+std::vector<T> SimulationWorker<T>::getDiffractionImage(int parallel_ind)
 {
     CLOG(DEBUG, "sim") << "Getting diffraction image";
     unsigned int resolution = job->simManager->getResolution();
-    std::vector<float> data_out(resolution*resolution);
+    std::vector<T> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
     clWorkGroup Work(resolution, resolution, 1);
@@ -918,24 +930,25 @@ std::vector<float> SimulationWorker::getDiffractionImage(int parallel_ind)
     fftShift.run(Work);
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<cl_float2> compdata = clWaveFunction3.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clWaveFunction3.CreateLocalCopy();
 
     // TODO: this could be done on GPU?
     CLOG(DEBUG, "sim") << "Calculating absolute squared value";
     for (int i = 0; i < resolution * resolution; i++)
         // Get absolute value for display...
-        data_out[i] += (compdata[i].x * compdata[i].x + compdata[i].y * compdata[i].y);
+        data_out[i] += std::norm(compdata[i]);// (compdata[i].x * compdata[i].x + compdata[i].y * compdata[i].y);
 
     return data_out;
 }
 
-std::vector<float> SimulationWorker::getExitWaveImage(unsigned int t, unsigned int l, unsigned int b, unsigned int r) {
+template <class T>
+std::vector<T> SimulationWorker<T>::getExitWaveImage(unsigned int t, unsigned int l, unsigned int b, unsigned int r) {
     CLOG(DEBUG, "sim") << "Getting exit wave image";
     unsigned int resolution = job->simManager->getResolution();
-    std::vector<float> data_out(2*((resolution - t - b) * (resolution - l - r)));
+    std::vector<T> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<cl_float2> compdata = clWaveFunction1[0].CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clWaveFunction1[0].CreateLocalCopy();
 
     CLOG(DEBUG, "sim") << "Process complex data";
     int cnt = 0;
@@ -944,32 +957,34 @@ std::vector<float> SimulationWorker::getExitWaveImage(unsigned int t, unsigned i
             for (int i = 0; i < resolution; ++i)
                 if (i >= l && i < (resolution - r)) {
                     int k = i + j * resolution;
-                    data_out[cnt] = compdata[k].x;
-                    data_out[cnt + 1] = compdata[k].y;
+                    data_out[cnt] = compdata[k].real();
+                    data_out[cnt + 1] = compdata[k].imag();
                     cnt += 2;
                 }
 
     return data_out;
 }
 
-std::vector<float> SimulationWorker::getCtemImage()
+template <class T>
+std::vector<T> SimulationWorker<T>::getCtemImage()
 {
     CLOG(DEBUG, "sim") << "Getting CTEM image image";
     unsigned int resolution = job->simManager->getResolution();
-    std::vector<float> data_out(resolution*resolution);
+    std::vector<T> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<cl_float2> compdata = clImageWaveFunction.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clImageWaveFunction.CreateLocalCopy();
 
     CLOG(DEBUG, "sim") << "Getting only real part";
     for (int i = 0; i < resolution * resolution; i++)
-        data_out[i] = compdata[i].x; // already abs in simulateCTEM function (but is still 'complex' type?)
+        data_out[i] = compdata[i].real(); // already abs in simulateCTEM function (but is still 'complex' type?)
 
     return data_out;
 }
 
-float SimulationWorker::doSumReduction(clMemory<float, Manual> data, clWorkGroup globalSizeSum,
+template <class T>
+T SimulationWorker<T>::doSumReduction(clMemory<T, Manual> data, clWorkGroup globalSizeSum,
                                        clWorkGroup localSizeSum, unsigned int nGroups, int totalSize)
 {
     CLOG(DEBUG, "sim") << "Starting sum reduction";
@@ -982,7 +997,7 @@ float SimulationWorker::doSumReduction(clMemory<float, Manual> data, clWorkGroup
     // Only really need to do these 3 once... (but we make a local 'outArray' so can't do that)
     SumReduction.SetArg(1, clReductionBuffer);
     SumReduction.SetArg(2, totalSize);
-    SumReduction.SetLocalMemoryArg<float>(3, 256);
+    SumReduction.SetLocalMemoryArg<T>(3, 256);
 
     SumReduction.run(globalSizeSum, localSizeSum);
 
@@ -990,17 +1005,18 @@ float SimulationWorker::doSumReduction(clMemory<float, Manual> data, clWorkGroup
 
     // Now copy back
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<float> sums = clReductionBuffer.CreateLocalCopy();
+    std::vector<T> sums = clReductionBuffer.CreateLocalCopy();
 
     CLOG(DEBUG, "sim") << "Doing final sum on CPU (" << nGroups << " parts)";
     // Find out which numbers to read back
-    float sum = 0;
+    T sum = 0;
     for (int i = 0; i < nGroups; i++)
         sum += sums[i];
     return sum;
 }
 
-float SimulationWorker::getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind)
+template <class T>
+T SimulationWorker<T>::getStemPixel(T inner, T outer, T xc, T yc, int parallel_ind)
 {
     CLOG(DEBUG, "sim") << "Getting STEM pixel";
     unsigned int resolution = job->simManager->getResolution();
@@ -1041,7 +1057,8 @@ float SimulationWorker::getStemPixel(float inner, float outer, float xc, float y
     return doSumReduction(clTDSMaskDiff, globalSizeSum, localSizeSum, nGroups, totalSize);
 }
 
-void SimulationWorker::initialiseBuffers() {
+template <class T>
+void SimulationWorker<T>::initialiseBuffers() {
 
     auto sm = job->simManager;
 
@@ -1052,9 +1069,9 @@ void SimulationWorker::initialiseBuffers() {
     // these need to change if the atom_count changes
     if (size_t as = sm->getStructure()->getAtoms().size(); as != ClAtomA.GetSize()) {
         ClAtomA = clMemory<int, Manual>(ctx, as);
-        ClAtomX = clMemory<float, Manual>(ctx, as);
-        ClAtomY = clMemory<float, Manual>(ctx, as);
-        ClAtomZ = clMemory<float, Manual>(ctx, as);
+        ClAtomX = clMemory<T, Manual>(ctx, as);
+        ClAtomY = clMemory<T, Manual>(ctx, as);
+        ClAtomZ = clMemory<T, Manual>(ctx, as);
 
         ClBlockIds = clMemory<int, Manual>(ctx, as);
         ClZIds = clMemory<int, Manual>(ctx, as);
@@ -1065,11 +1082,11 @@ void SimulationWorker::initialiseBuffers() {
     // change when the resolution does
     unsigned int rs = sm->getResolution();
     if (rs != clXFrequencies.GetSize()) {
-        clXFrequencies = clMemory<float, Manual>(ctx, rs);
-        clYFrequencies = clMemory<float, Manual>(ctx, rs);
-        clPropagator = clMemory<cl_float2, Manual>(ctx, rs * rs);
-        clPotential = clMemory<cl_float2, Manual>(ctx, rs * rs);
-        clWaveFunction3 = clMemory<cl_float2, Manual>(ctx, rs * rs);
+        clXFrequencies = clMemory<T, Manual>(ctx, rs);
+        clYFrequencies = clMemory<T, Manual>(ctx, rs);
+        clPropagator = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        clPotential = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        clWaveFunction3 = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
 
         clWaveFunction1.clear();
         clWaveFunction2.clear();
@@ -1097,22 +1114,23 @@ void SimulationWorker::initialiseBuffers() {
     // when resolution changes (or if enabled)
     auto sim_mode = sm->getMode();
     if (sim_mode == SimulationMode::CTEM && (sim_mode != last_mode || rs*rs != clImageWaveFunction.GetSize())) {
-        clImageWaveFunction = clMemory<cl_float2, Manual>(ctx, rs * rs);
+        clImageWaveFunction = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
 
         // TODO: I can further split these up, but they aren't a huge issue
-        clTempBuffer = clMemory<cl_float2, Manual>(ctx, rs * rs);
-        clCcdBuffer = clMemory<cl_float, Manual>(ctx, 725);
+        clTempBuffer = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        clCcdBuffer = clMemory<T, Manual>(ctx, 725);
     }
 
     if (sim_mode == SimulationMode::STEM && (sim_mode != last_mode || rs*rs != clTDSMaskDiff.GetSize())) {
-        clTDSMaskDiff = clMemory<cl_float, Manual>(ctx, rs * rs);
-        clReductionBuffer = clMemory<float, Manual>(ctx, rs*rs/256); // STEM only
+        clTDSMaskDiff = clMemory<T, Manual>(ctx, rs * rs);
+        clReductionBuffer = clMemory<T, Manual>(ctx, rs*rs/256); // STEM only
     }
 
     // TODO: could clear unneeded buffers when sim type switches, but there aren't many of them... (the main ones are the wavefunction vectors)
 }
 
-void SimulationWorker::initialiseKernels() {
+template <class T>
+void SimulationWorker<T>::initialiseKernels() {
     auto sm = job->simManager;
 
     unsigned int rs = sm->getResolution();
@@ -1146,3 +1164,6 @@ void SimulationWorker::initialiseKernels() {
 
     do_initialise = false;
 }
+
+template class SimulationWorker<float>;
+template class SimulationWorker<double>;

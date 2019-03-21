@@ -7,12 +7,13 @@
 #ifndef CLTEM_SIMULATIONWORKER_H
 #define CLTEM_SIMULATIONWORKER_H
 
+#include <complex>
 
 #include "threadworker.h"
 #include "clwrapper.h"
 #include "utilities/logging.h"
 
-
+template <class T>
 class SimulationWorker : public ThreadWorker
 {
 private:
@@ -49,48 +50,48 @@ private:
 
     void initialiseCtem();
 
-    void initialiseProbeWave(float posx, float posy, int n_parallel = 0);
+    void initialiseProbeWave(T posx, T posy, int n_parallel = 0);
 
     void doMultiSliceStep(int slice);
 
     void simulateCtemImage();
 
-    void simulateCtemImage(std::vector<float> dqe_data, std::vector<float> ntf_data, int binning, float doseperpix,
-                           float conversionfactor = 1);
+    void simulateCtemImage(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning, T doseperpix,
+                           T conversionfactor = 1);
 
-    std::vector<float> getDiffractionImage(int parallel_ind = 0);
+    std::vector<T> getDiffractionImage(int parallel_ind = 0);
 
-    std::vector<float> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
+    std::vector<T> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
 
-    std::vector<float> getCtemImage();
+    std::vector<T> getCtemImage();
 
-    float doSumReduction(clMemory<float, Manual> data, clWorkGroup globalSizeSum,
+    T doSumReduction(clMemory<T, Manual> data, clWorkGroup globalSizeSum,
                          clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
-    float getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind);
+    T getStemPixel(T inner, T outer, T xc, T yc, int parallel_ind);
 
     // OpenCL stuff
     clMemory<float, Manual> ClParameterisation;
 
-    clMemory<float, Manual> ClAtomX;
-    clMemory<float, Manual> ClAtomY;
-    clMemory<float, Manual> ClAtomZ;
+    clMemory<T, Manual> ClAtomX;
+    clMemory<T, Manual> ClAtomY;
+    clMemory<T, Manual> ClAtomZ;
     clMemory<int, Manual> ClAtomA;
 
     clMemory<int, Manual> ClBlockStartPositions;
     clMemory<int, Manual> ClBlockIds;
     clMemory<int, Manual> ClZIds;
 
-    std::vector<clMemory<cl_float2, Manual>> clWaveFunction1;
-    std::vector<clMemory<cl_float2, Manual>> clWaveFunction2;
-    clMemory<cl_float2, Manual> clWaveFunction3;
-    std::vector<clMemory<cl_float2, Manual>> clWaveFunction4;
+    std::vector<clMemory<std::complex<T>, Manual>> clWaveFunction1;
+    std::vector<clMemory<std::complex<T>, Manual>> clWaveFunction2;
+    clMemory<std::complex<T>, Manual> clWaveFunction3;
+    std::vector<clMemory<std::complex<T>, Manual>> clWaveFunction4;
 
-    clMemory<float, Manual> clXFrequencies;
-    clMemory<float, Manual> clYFrequencies;
-    clMemory<cl_float2, Manual> clPropagator;
-    clMemory<cl_float2, Manual> clPotential;
-    clMemory<cl_float2, Manual> clImageWaveFunction;
+    clMemory<T, Manual> clXFrequencies;
+    clMemory<T, Manual> clYFrequencies;
+    clMemory<std::complex<T>, Manual> clPropagator;
+    clMemory<std::complex<T>, Manual> clPotential;
+    clMemory<std::complex<T>, Manual> clImageWaveFunction;
 
     // General kernels
     clFourier FourierTrans;
@@ -107,17 +108,17 @@ private:
     clKernel ABS2;
     clKernel NtfKernel;
     clKernel DqeKernel;
-    clMemory<float, Manual> clCcdBuffer;
-    clMemory<cl_float2, Manual> clTempBuffer;
+    clMemory<T, Manual> clCcdBuffer;
+    clMemory<std::complex<T>, Manual> clTempBuffer;
 
     // CBED
     clKernel InitProbeWavefunction;
-    clMemory<float, Manual> clTDSMaskDiff;
+    clMemory<T, Manual> clTDSMaskDiff;
 
     // STEM
     clKernel TDSMaskingAbsKernel;
     clKernel SumReduction;
-    clMemory<float, Manual> clReductionBuffer;
+    clMemory<T, Manual> clReductionBuffer;
 };
 
 

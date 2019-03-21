@@ -33,6 +33,7 @@ public:
 
 private:
     friend class ThreadWorker;
+    template <class T>
     friend class SimulationWorker;
 
     std::vector<std::thread> workers;
