@@ -43,9 +43,9 @@ void CbedAreaFrame::valuesChanged(QString dud) {
 }
 
 CbedPosition CbedAreaFrame::getCbedPos() {
-    float xp = ui->edtPosX->text().toFloat();
-    float yp = ui->edtPosY->text().toFloat();
-    float padding = ui->edtPadding->text().toFloat();
+    double xp = ui->edtPosX->text().toDouble();
+    double yp = ui->edtPosY->text().toDouble();
+    double padding = ui->edtPadding->text().toDouble();
     return CbedPosition(xp, yp, padding);
 }
 
@@ -62,7 +62,7 @@ void CbedAreaFrame::on_btnDefault_clicked() {
     if (Structure) {
         auto xLims = Structure->getLimitsX();
         auto yLims = Structure->getLimitsY();
-        float padding = 0.f;
+        double padding = 0.f;
 
         ui->edtPosX->setText(Utils_Qt::numToQString((xLims[0] + xLims[1]) / 2));
         ui->edtPosY->setText(Utils_Qt::numToQString((yLims[0] + yLims[1]) / 2));
@@ -77,6 +77,6 @@ void CbedAreaFrame::on_btnDefault_clicked() {
 void CbedAreaFrame::editing_finished() {
     auto* sndr = (QLineEdit*) sender();
 
-    auto val = sndr->text().toFloat();
+    auto val = sndr->text().toDouble();
     sndr->setText(Utils_Qt::numToQString( val ));
 }

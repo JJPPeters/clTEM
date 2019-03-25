@@ -17,7 +17,7 @@ SimulationFrame::~SimulationFrame()
     delete ui;
 }
 
-void SimulationFrame::updateStructureInfo(std::tuple<float, float, float, int> ranges)
+void SimulationFrame::updateStructureInfo(std::tuple<double, double, double, int> ranges)
 {
     ui->lblWidth->setText(Utils_Qt::numToQString(std::get<0>(ranges), 2, true) + " Å");
     ui->lblHeight->setText(Utils_Qt::numToQString(std::get<1>(ranges), 2, true) + " Å");
@@ -25,7 +25,7 @@ void SimulationFrame::updateStructureInfo(std::tuple<float, float, float, int> r
     ui->lblAtoms->setText(Utils_Qt::numToQString(std::get<3>(ranges)));
 }
 
-void SimulationFrame::updateResolutionInfo(float pixScale, float invScale, float invMax)
+void SimulationFrame::updateResolutionInfo(double pixScale, double invScale, double invMax)
 {
     //TODO: find way of stopping the program using scientific notation, particularly for the inverse scale
 

@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // register types for our image returns!!
     qRegisterMetaType< std::map<std::string, Image<float>> >( "std::map<std::string, Image<float>>" );
+    qRegisterMetaType< std::map<std::string, Image<double>> >( "std::map<std::string, Image<double>>" );
     qRegisterMetaType< SimulationManager >( "SimulationManager" );
 
     QSettings settings;
@@ -357,12 +358,12 @@ void MainWindow::on_actionSimulate_EW_triggered()
     SimThread->start();
 }
 
-void MainWindow::sliceProgressChanged(float prog)
+void MainWindow::sliceProgressChanged(double prog)
 {
     StatusBar->setSliceProgress(prog);
 }
 
-void MainWindow::totalProgressChanged(float prog)
+void MainWindow::totalProgressChanged(double prog)
 {
     StatusBar->setTotalProgress(prog);
 }
@@ -543,8 +544,8 @@ void MainWindow::cancel_simulation()
 
     setUiActive(true);
 
-    sliceProgressChanged(0.0f);
-    totalProgressChanged(0.0f);
+    sliceProgressChanged(0.0);
+    totalProgressChanged(0.0);
 }
 
 void MainWindow::loadExternalSources()
@@ -828,7 +829,7 @@ void MainWindow::on_actionThermal_scattering_triggered() {
     myDialog->exec();
 }
 
-void MainWindow::updateVoltageMrad(float voltage) {
+void MainWindow::updateVoltageMrad(double voltage) {
     if (!Manager->haveStructure() || !Manager->haveResolution())
         return;
 

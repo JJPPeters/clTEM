@@ -27,7 +27,7 @@ void TemFrame::on_edtDose_textChanged(const QString &arg1)
     (void)arg1; // don't want this.
     auto v = ui->edtDose->text();
 
-    if(v.toFloat() < 0)
+    if(v.toDouble() < 0)
         ui->edtDose->setStyleSheet("color: #FF8C00");
     else
         ui->edtDose->setStyleSheet("");
@@ -70,7 +70,7 @@ void TemFrame::setBinningIndex(int index) {
     ui->cmbBinning->setCurrentIndex(index);
 }
 
-void TemFrame::setDose(float dose)
+void TemFrame::setDose(double dose)
 {
     ui->edtDose->setText(Utils_Qt::numToQString((int) dose));
 }
@@ -87,12 +87,12 @@ bool TemFrame::getSimImage() {
     return ui->chkSimImage->isChecked();
 }
 
-float TemFrame::getDose() {
-    return ui->edtDose->text().toFloat();
+double TemFrame::getDose() {
+    return ui->edtDose->text().toDouble();
 }
 
 void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
-    float dse = sm->getCcdDose();
+    double dse = sm->getCcdDose();
     auto nm = sm->getCcdName();
     int bn = sm->getCcdBinning();
 
