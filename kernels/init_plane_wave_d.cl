@@ -9,17 +9,17 @@
 /// height - height of output
 /// value - value for the real part of the generate wave function
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clInitialiseWavefunction( global float2* output,
+__kernel void init_plane_wave_d( global double2* output,
 										unsigned int width,
 										unsigned int height,
-										float value)
+										double value)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
 	if(xid < width && yid < height)
 	{
-		int Index = xid + width*yid;
-		output[Index].x = value;
-		output[Index].y = 0.0f;
+		int id = xid + width*yid;
+		output[id].x = value;
+		output[id].y = 0.0;
 	}
 }

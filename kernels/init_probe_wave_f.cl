@@ -46,7 +46,7 @@ float2 cPow(float2 a, int n)
 	}
 	return temp;
 }
-__kernel void clInitialiseSTEMWavefunction( __global float2* output,
+__kernel void init_probe_wave_f( __global float2* output,
 											unsigned int width,
 											unsigned int height,
 											__global const float* k_x,
@@ -67,9 +67,9 @@ __kernel void clInitialiseSTEMWavefunction( __global float2* output,
 	int yid = get_global_id(1);
 	if(xid < width && yid < height)
 	{
-		int Index = xid + yid*width;
+		int id = xid + yid*width;
 		float cond_ap2 = (cond_ap * 0.001f) / wavelength;
-        float k = sqrt( (k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]) );
+        float k = native_sqrt( (k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]) );
 		if (k < cond_ap2)
 		{
 			// this term is easier to calculate once before it is put into the exponential
@@ -96,13 +96,13 @@ __kernel void clInitialiseSTEMWavefunction( __global float2* output,
 			float cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			float chi = 2.0f * M_PI_F * cchi / wavelength;
 
-			output[Index].x = native_cos(chi) * native_cos(posTerm) + native_sin(chi) * native_sin(posTerm);
-			output[Index].y = native_cos(chi) * native_sin(posTerm) - native_sin(chi) * native_cos(posTerm);
+			output[id].x = native_cos(chi) * native_cos(posTerm) + native_sin(chi) * native_sin(posTerm);
+			output[id].y = native_cos(chi) * native_sin(posTerm) - native_sin(chi) * native_cos(posTerm);
 		}
 		else
 		{
-			output[Index].x = 0.0f;
-			output[Index].y = 0.0f;
+			output[id].x = 0.0f;
+			output[id].y = 0.0f;
 		}
 	}
 }

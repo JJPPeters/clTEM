@@ -22,7 +22,8 @@
 /// dz - slice thickness
 /// n_slices - number of slices
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clAtomSort( __global const float* x_input,
+
+__kernel void atom_sort_f( __global const float* x_input,
 						  __global const float* y_input,
 						  __global const float* z_input,
 						  int n_atoms,

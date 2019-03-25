@@ -16,7 +16,7 @@ class SimulationRunner
 {
 public:
 
-    SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs);
+    SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs, bool double_precision);
 
     ~SimulationRunner() {cancelSimulation();}
 
@@ -39,6 +39,8 @@ private:
     std::vector<clDevice> dev_list;
 
     std::unique_ptr<ThreadPool> t_pool;
+
+    bool use_double_precision;
 
     std::vector<std::shared_ptr<SimulationJob>> SplitJobs(std::shared_ptr<SimulationManager> simManager);
 };

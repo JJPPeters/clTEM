@@ -17,6 +17,9 @@ namespace JSONUtils {
         SimulationManager man;
         area_set = false;
         // not sure there is a particularly easy way to go about this. Just go through all the options...
+        try { man.setDoDoublePrecision( readJsonEntry<bool>(j, "double precision") );
+        } catch (json::out_of_range& e) {}
+
         try {
             auto mode = readJsonEntry<SimulationMode>(j, "mode", "id");
             if (mode == SimulationMode::None)
@@ -300,6 +303,8 @@ namespace JSONUtils {
         json j;
 
         // no file input here as it is not always needed
+
+        j["double precision"] = man.getDoDoublePrecision();
 
         auto mode = man.getMode();
         j["mode"]["id"] = mode;

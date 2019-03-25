@@ -52,125 +52,125 @@
 /// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float kirkland(__constant float* params, int ZNum, float rad) {
+double kirkland(__constant double* params, int ZNum, double rad) {
     int i;
-    float suml, sumg, x;
-    suml = 0.0f;
-    sumg = 0.0f;
+    double suml, sumg, x;
+    suml = 0.0;
+    sumg = 0.0;
     //
     // Lorentzians
     //
-    x = 2.0f * M_PI_F * rad;
+    x = 2.0 * M_PI * rad;
 
     // Loop through our parameters (a and b)
     for(i=0; i<6; i+=2) {
-        float a = params[(ZNum-1)*12+i];
-        float b = params[(ZNum-1)*12+i+1];
+        double a = params[(ZNum-1)*12+i];
+        double b = params[(ZNum-1)*12+i+1];
         suml += a * native_exp(-x * native_sqrt(b) );
     }
 
     //
     // Gaussians
     //
-    x = M_PI_F * rad;
+    x = M_PI * rad;
     x = x * x;
 
     // Loop through our parameters (a and b)
     for(i=6; i<12; i+=2) {
-        float c = params[(ZNum-1)*12+i];
-        float d = params[(ZNum-1)*12+i+1];
-        float d_inv_root = native_rsqrt(d);
+        double c = params[(ZNum-1)*12+i];
+        double d = params[(ZNum-1)*12+i+1];
+        double d_inv_root = native_rsqrt(d);
         sumg += c * (d_inv_root*d_inv_root*d_inv_root) * native_exp(-x * native_recip(d));
     }
 
-    // The funny floats are from the remaining constants in equation C.20
+    // The funny doubles are from the remaining constants in equation C.20
     // Not that they use the fundamental charge as 14.4 Volt-Angstroms
-    return 150.4121417f * native_recip(rad) * suml + 266.5157269f * sumg;
+    return 150.4121417 * native_recip(rad) * suml + 266.5157269 * sumg;
  }
 
-float lobato(__constant float* params, int ZNum, float rad) {
+double lobato(__constant double* params, int ZNum, double rad) {
     int i;
-    float sum, x;
-    sum = 0.0f;
+    double sum, x;
+    sum = 0.0;
 
-    x = M_PI_F * rad;
+    x = M_PI * rad;
 
     for(i=0; i < 5; ++i) {
-        float a = params[(ZNum-1)*10+i];
-        float b = params[(ZNum-1)*10+i+5];
-        float b_inv_root = native_rsqrt(b);
-        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-2.0f * x * b_inv_root) * (native_sqrt(b) * native_recip(x) + 1.0f);
+        double a = params[(ZNum-1)*10+i];
+        double b = params[(ZNum-1)*10+i+5];
+        double b_inv_root = native_rsqrt(b);
+        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-2.0 * x * b_inv_root) * (native_sqrt(b) * native_recip(x) + 1.0);
     }
 
-    return 472.545072199968f * sum;
+    return 472.545072199968 * sum;
 }
 
-float peng(__constant float* params, int ZNum, float rad) {
+double peng(__constant double* params, int ZNum, double rad) {
     int i;
-    float sum, x;
-    sum = 0.0f;
+    double sum, x;
+    sum = 0.0;
 
-    x = M_PI_F * rad;
+    x = M_PI * rad;
     x = x * x;
 
     for(i=0; i<5; ++i) {
-        float a = params[(ZNum-1)*10+i];
-        float b = params[(ZNum-1)*10+i+5];
+        double a = params[(ZNum-1)*10+i];
+        double b = params[(ZNum-1)*10+i+5];
 
         sum += a * native_exp(-x * native_recip(b));
     }
 
-    return 1844.76074609315f * sum;
+    return 1844.76074609315 * sum;
 }
 
-__kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
-										  __global const float* restrict pos_x,
-										  __global const float* restrict pos_y,
-										  __global const float* restrict pos_z,
+__kernel void potential_full_3d_d( __global double2* potential,
+										  __global const double* restrict pos_x,
+										  __global const double* restrict pos_y,
+										  __global const double* restrict pos_z,
 										  __global const int* restrict atomic_num,
-										  __constant float* params,
+										  __constant double* params,
                                           unsigned int param_selector,
 										  __global const int* restrict block_start_pos,
 										  unsigned int width,
 										  unsigned int height,
 										  int current_slice,
 										  int total_slices,
-										  float z,
-										  float dz,
-										  float pixel_scale,
+										  double z,
+										  double dz,
+										  double pixel_scale,
 										  int blocks_x,
 										  int blocks_y,
-										  float max_x,
-										  float min_x,
-										  float max_y,
-										  float min_y,
+										  double max_x,
+										  double min_x,
+										  double max_y,
+										  double min_y,
 										  int block_load_x,
 										  int block_load_y,
 										  int slice_load_z,
-										  float sigma,
-										  float startx,
-										  float starty,
+										  double sigma,
+										  double startx,
+										  double starty,
 										  int integrals)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
 	int lid = get_local_id(0) + get_local_size(0)*get_local_id(1);
-	int Index = xid + width * yid;
+	int id = xid + width * yid;
 	int topz = current_slice - slice_load_z;
 	int bottomz = current_slice + slice_load_z;
-	float sumz = 0.0f;
+	double sumz = 0.0;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
-	float int_r = native_recip(integrals);
+	double int_r = native_recip(integrals);
 
 	if(topz < 0 )
 		topz = 0;
 	if(bottomz >= total_slices )
 		bottomz = total_slices-1;
 
-	__local float atx[256];
-	__local float aty[256];
-	__local float atz[256];
+	__local double atx[256];
+	__local double aty[256];
+	__local double atz[256];
 	__local int atZ[256];
 
 	int startj = fmax(floor( (starty - min_y +  gy    * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) - block_load_y, 0) ;
@@ -195,24 +195,24 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 
 			barrier(CLK_LOCAL_MEM_FENCE);
 
-			float p2=0.0f;
+			double p2=0.0;
 			for (int l = 0; l < end-start; l++) {
-				float xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
+				double xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
 
 				for (int h = 0; h <= integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
-					float rad = native_sqrt(xyrad2 + (z - h * dz * int_r - atz[l])*(z - h * dz * int_r - atz[l]));
+					double rad = native_sqrt(xyrad2 + (z - h * dz * int_r - atz[l])*(z - h * dz * int_r - atz[l]));
 
-					if(rad < 0.25f * pixel_scale)
-						rad = 0.25f * pixel_scale;
+					if(rad < 0.25 * pixel_scale)
+						rad = 0.25 * pixel_scale;
 
-					float p1 = 0.0f;
+					double p1 = 0.0;
 
-					if( rad < 3.0f) { // Should also make sure is not too small
+					if( rad < 3.0) { // Should also make sure is not too small
 						// note that all the funny numbers are just pre-calculated groups of constants
-						float p1;
+						double p1;
 						if (param_selector == 0)
 						    p1 = kirkland(params, atZ[l], rad);
                         else if (param_selector == 1)
@@ -223,7 +223,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 						// why make sure h!=0 when we can just remove it from the loop?
 						// surely h == 0 will be in the previous slice??
 						// because p1 is used in the next iteration (why it is set to p2)
-						sumz += (h!=0) * (p1+p2)*0.5f;
+						sumz += (h!=0) * (p1+p2)*0.5;
 						p2 = p1;
 					}
 				}
@@ -233,7 +233,7 @@ __kernel void clBinnedAtomicPotentialOpt( __global float2* potential,
 		}
 	}
 	if(xid < width && yid < height) {
-		potential[Index].x = native_cos((dz * int_r) * sigma * sumz);
-		potential[Index].y = native_sin((dz * int_r) * sigma * sumz);
+		potential[id].x = cos((dz * int_r) * sigma * sumz);
+		potential[id].y = sin((dz * int_r) * sigma * sumz);
 	}
 }

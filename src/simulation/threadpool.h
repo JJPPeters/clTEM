@@ -22,7 +22,7 @@ class ThreadWorker;
 class ThreadPool
 {
 public:
-    ThreadPool(std::vector<clDevice> devList, int num_jobs);
+    ThreadPool(std::vector<clDevice> devList, int num_jobs, bool double_precision);
 
     ~ThreadPool();
 

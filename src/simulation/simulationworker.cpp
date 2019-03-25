@@ -440,7 +440,7 @@ void SimulationWorker<T>::initialiseSimulation() {
     auto imidx = (unsigned int) std::floor(static_cast<double>(resolution) / 2.0 + 0.5);
     auto imidy = (unsigned int) std::floor(static_cast<double>(resolution) / 2.0 + 0.5);
 
-    float temp;
+    double temp;
 
     for (int i = 0; i < resolution; i++) {
         if (i >= imidx)
@@ -1042,10 +1042,10 @@ double SimulationWorker<T>::getStemPixel(double inner, double outer, double xc, 
     TDSMaskingAbsKernel.SetArg(1, clTDSMaskDiff, ArgumentType::Output);
     TDSMaskingAbsKernel.SetArg(2, resolution);
     TDSMaskingAbsKernel.SetArg(3, resolution);
-    TDSMaskingAbsKernel.SetArg(4, static_cast<float>(innerPx));
-    TDSMaskingAbsKernel.SetArg(5, static_cast<float>(outerPx));
-    TDSMaskingAbsKernel.SetArg(6, static_cast<float>(xcPx));
-    TDSMaskingAbsKernel.SetArg(7, static_cast<float>(ycPx));
+    TDSMaskingAbsKernel.SetArg(4, static_cast<T>(innerPx));
+    TDSMaskingAbsKernel.SetArg(5, static_cast<T>(outerPx));
+    TDSMaskingAbsKernel.SetArg(6, static_cast<T>(xcPx));
+    TDSMaskingAbsKernel.SetArg(7, static_cast<T>(ycPx));
 
     TDSMaskingAbsKernel.run(WorkSize);
 
@@ -1133,37 +1133,73 @@ void SimulationWorker<T>::initialiseBuffers() {
     // TODO: could clear unneeded buffers when sim type switches, but there aren't many of them... (the main ones are the wavefunction vectors)
 }
 
-template <class T>
-void SimulationWorker<T>::initialiseKernels() {
+template <>
+void SimulationWorker<float>::initialiseKernels() {
     auto sm = job->simManager;
 
     unsigned int rs = sm->getResolution();
     if (rs != FourierTrans.GetWidth() || rs != FourierTrans.GetHeight())
-        FourierTrans = clFourier<T>(ctx, rs, rs);
+        FourierTrans = clFourier<float>(ctx, rs, rs);
     
     bool isFull3D = sm->isFull3d();
     if (do_initialise || isFull3D != last_do_3d) {
         if (isFull3D)
-            BinnedAtomicPotential = Kernels::opt2source.BuildToKernel(ctx);
+            BinnedAtomicPotential = Kernels::potential_full_3d_f.BuildToKernel(ctx);
         else
-            BinnedAtomicPotential = Kernels::conv2source.BuildToKernel(ctx);
+            BinnedAtomicPotential = Kernels::potential_projected_f.BuildToKernel(ctx);
     }
     last_do_3d = isFull3D;
     
     if (do_initialise) {
-        AtomSort = Kernels::atom_sort.BuildToKernel(ctx);
-        fftShift = Kernels::fftShiftSource.BuildToKernel(ctx);
-        BandLimit = Kernels::BandLimitSource.BuildToKernel(ctx);
-        GeneratePropagator = Kernels::propsource.BuildToKernel(ctx);
-        ComplexMultiply = Kernels::multisource.BuildToKernel(ctx);
-        InitPlaneWavefunction = Kernels::InitialiseWavefunctionSource.BuildToKernel(ctx);
-        ImagingKernel = Kernels::imagingKernelSource.BuildToKernel(ctx);
-        ABS2 = Kernels::SqAbsSource.BuildToKernel(ctx);
-        InitProbeWavefunction = Kernels::InitialiseSTEMWavefunctionSourceTest.BuildToKernel(ctx);
-        SumReduction = Kernels::floatSumReductionsource2.BuildToKernel(ctx);
-        TDSMaskingAbsKernel = Kernels::floatabsbandPassSource.BuildToKernel(ctx);
-        NtfKernel = Kernels::NtfSource.BuildToKernel(ctx);
-        DqeKernel = Kernels::DqeSource.BuildToKernel(ctx);
+        AtomSort = Kernels::atom_sort_f.BuildToKernel(ctx);
+        fftShift = Kernels::fft_shift_f.BuildToKernel(ctx);
+        BandLimit = Kernels::band_limit_f.BuildToKernel(ctx);
+        GeneratePropagator = Kernels::propogator_f.BuildToKernel(ctx);
+        ComplexMultiply = Kernels::complex_multiply_f.BuildToKernel(ctx);
+        InitPlaneWavefunction = Kernels::init_plane_wave_f.BuildToKernel(ctx);
+        ImagingKernel = Kernels::ctem_image_f.BuildToKernel(ctx);
+        ABS2 = Kernels::sqabs_f.BuildToKernel(ctx);
+        InitProbeWavefunction = Kernels::init_probe_wave_f.BuildToKernel(ctx);
+        SumReduction = Kernels::sum_reduction_f.BuildToKernel(ctx);
+        TDSMaskingAbsKernel = Kernels::band_pass_f.BuildToKernel(ctx);
+        NtfKernel = Kernels::ccd_ntf_f.BuildToKernel(ctx);
+        DqeKernel = Kernels::ccd_dqe_f.BuildToKernel(ctx);
+    }
+
+    do_initialise = false;
+}
+
+template <>
+void SimulationWorker<double>::initialiseKernels() {
+    auto sm = job->simManager;
+
+    unsigned int rs = sm->getResolution();
+    if (rs != FourierTrans.GetWidth() || rs != FourierTrans.GetHeight())
+        FourierTrans = clFourier<double>(ctx, rs, rs);
+
+    bool isFull3D = sm->isFull3d();
+    if (do_initialise || isFull3D != last_do_3d) {
+        if (isFull3D)
+            BinnedAtomicPotential = Kernels::potential_full_3d_d.BuildToKernel(ctx);
+        else
+            BinnedAtomicPotential = Kernels::potential_projected_d.BuildToKernel(ctx);
+    }
+    last_do_3d = isFull3D;
+
+    if (do_initialise) {
+        AtomSort = Kernels::atom_sort_d.BuildToKernel(ctx);
+        fftShift = Kernels::fft_shift_d.BuildToKernel(ctx);
+        BandLimit = Kernels::band_limit_d.BuildToKernel(ctx);
+        GeneratePropagator = Kernels::propogator_d.BuildToKernel(ctx);
+        ComplexMultiply = Kernels::complex_multiply_d.BuildToKernel(ctx);
+        InitPlaneWavefunction = Kernels::init_plane_wave_d.BuildToKernel(ctx);
+        ImagingKernel = Kernels::ctem_image_d.BuildToKernel(ctx);
+        ABS2 = Kernels::sqabs_d.BuildToKernel(ctx);
+        InitProbeWavefunction = Kernels::init_probe_wave_d.BuildToKernel(ctx);
+        SumReduction = Kernels::sum_reduction_d.BuildToKernel(ctx);
+        TDSMaskingAbsKernel = Kernels::band_pass_d.BuildToKernel(ctx);
+        NtfKernel = Kernels::ccd_ntf_d.BuildToKernel(ctx);
+        DqeKernel = Kernels::ccd_dqe_d.BuildToKernel(ctx);
     }
 
     do_initialise = false;

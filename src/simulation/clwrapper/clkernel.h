@@ -68,33 +68,6 @@ public:
         clError::Throw(status, Name + "\nBuild log:\n" + buildlog_str);
     }
 
-//    clKernel& operator=(clKernel Copy){ //TODO: i had to change the copy from a reference (&) to not, why?
-//        if(this!=&Copy) {
-//            Context = Copy.Context;
-//            NumberOfArgs = Copy.NumberOfArgs;
-//            Name = Copy.Name;
-//            CodeString = Copy.CodeString;
-//            ArgType.clear();
-//            ArgType.resize(NumberOfArgs);
-//            Callbacks.clear();
-//            Callbacks.resize(NumberOfArgs);
-//            // why do we need to rebuild this?
-//            BuildKernelFromString();
-//        }
-//        return *this;
-//    }
-//
-//    clKernel(const clKernel& Copy)//: Context(Copy.Context), NumberOfArgs(Copy.NumberOfArgs), Name(Copy.Name)
-//            : NumberOfArgs(Copy.NumberOfArgs), status(Copy.status), Context(Copy.Context), Program(nullptr), Kernel(nullptr),
-//            CodeString(Copy.CodeString), Name(Copy.Name) {
-//        ArgType.clear();
-//        Callbacks.clear();
-//        ArgType.resize(NumberOfArgs);
-//        Callbacks.resize(NumberOfArgs);
-//
-//        BuildKernelFromString();
-//    }
-
     template <class T, template <class> class AutoPolicy>
     void SetArg(cl_uint index, clMemory<T, AutoPolicy>& arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified) {
         ArgType[index] = ArgumentType;

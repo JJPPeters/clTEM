@@ -344,13 +344,15 @@ void MainWindow::on_actionSimulate_EW_triggered()
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
+    bool use_double_precision = Manager->getDoDoublePrecision();
+
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
     man_list.push_back(temp);
 
     std::vector<clDevice> &d = Devices;
 
-    SimThread = std::make_shared<SimulationThread>(man_list, d);
+    SimThread = std::make_shared<SimulationThread>(man_list, d, use_double_precision);
 
     SimThread->start();
 }
@@ -548,22 +550,38 @@ void MainWindow::cancel_simulation()
 void MainWindow::loadExternalSources()
 {
     // Populate the kernels from files...
-    Kernels::atom_sort = Utils_Qt::kernelToChar("atom_sort.cl");
-    Kernels::floatSumReductionsource2 = Utils_Qt::kernelToChar("sum_reduction.cl");
-    Kernels::BandLimitSource = Utils_Qt::kernelToChar("low_pass.cl");
-    Kernels::fftShiftSource = Utils_Qt::kernelToChar("post_fft_shift.cl");
-    Kernels::opt2source = Utils_Qt::kernelToChar("potential_full_3d.cl");
-    Kernels::conv2source = Utils_Qt::kernelToChar("potential_conventional.cl");
-    Kernels::propsource = Utils_Qt::kernelToChar("generate_propagator.cl");
-    Kernels::multisource = Utils_Qt::kernelToChar("complex_multiply.cl");
-    Kernels::InitialiseWavefunctionSource = Utils_Qt::kernelToChar("initialise_plane.cl");
-    Kernels::imagingKernelSource = Utils_Qt::kernelToChar("generate_tem_image.cl");
-    Kernels::InitialiseSTEMWavefunctionSourceTest = Utils_Qt::kernelToChar("initialise_probe.cl");
-    Kernels::floatabsbandPassSource = Utils_Qt::kernelToChar("band_pass.cl");
-    Kernels::SqAbsSource = Utils_Qt::kernelToChar("square_absolute.cl");
-    Kernels::DqeSource = Utils_Qt::kernelToChar("dqe.cl");
-    Kernels::NtfSource = Utils_Qt::kernelToChar("ntf.cl");
+    Kernels::atom_sort_f = Utils_Qt::kernelToChar("atom_sort_f.cl");
+    Kernels::band_limit_f = Utils_Qt::kernelToChar("band_limit_f.cl");
+    Kernels::band_pass_f = Utils_Qt::kernelToChar("band_pass_f.cl");
+    Kernels::ccd_dqe_f = Utils_Qt::kernelToChar("ccd_dqe_f.cl");
+    Kernels::ccd_ntf_f = Utils_Qt::kernelToChar("ccd_ntf_f.cl");
+    Kernels::complex_multiply_f = Utils_Qt::kernelToChar("complex_multiply_f.cl");
+    Kernels::ctem_image_f = Utils_Qt::kernelToChar("ctem_image_f.cl");
+    Kernels::fft_shift_f = Utils_Qt::kernelToChar("fft_shift_f.cl");
+    Kernels::init_plane_wave_f = Utils_Qt::kernelToChar("init_plane_wave_f.cl");
+    Kernels::init_probe_wave_f = Utils_Qt::kernelToChar("init_probe_wave_f.cl");
+    Kernels::potential_full_3d_f = Utils_Qt::kernelToChar("potential_full_3d_f.cl");
+    Kernels::potential_projected_f = Utils_Qt::kernelToChar("potential_projected_f.cl");
+    Kernels::propogator_f = Utils_Qt::kernelToChar("propagator_f.cl");
+    Kernels::sqabs_f = Utils_Qt::kernelToChar("sqabs_f.cl");
+    Kernels::sum_reduction_f = Utils_Qt::kernelToChar("sum_reduction_f.cl");
 
+    Kernels::atom_sort_d = Utils_Qt::kernelToChar("atom_sort_d.cl");
+    Kernels::band_limit_d = Utils_Qt::kernelToChar("band_limit_d.cl");
+    Kernels::band_pass_d = Utils_Qt::kernelToChar("band_pass_d.cl");
+    Kernels::ccd_dqe_d = Utils_Qt::kernelToChar("ccd_dqe_d.cl");
+    Kernels::ccd_ntf_d = Utils_Qt::kernelToChar("ccd_ntf_d.cl");
+    Kernels::complex_multiply_d = Utils_Qt::kernelToChar("complex_multiply_d.cl");
+    Kernels::ctem_image_d = Utils_Qt::kernelToChar("ctem_image_d.cl");
+    Kernels::fft_shift_d = Utils_Qt::kernelToChar("fft_shift_d.cl");
+    Kernels::init_plane_wave_d = Utils_Qt::kernelToChar("init_plane_wave_d.cl");
+    Kernels::init_probe_wave_d = Utils_Qt::kernelToChar("init_probe_wave_d.cl");
+    Kernels::potential_full_3d_d = Utils_Qt::kernelToChar("potential_full_3d_d.cl");
+    Kernels::potential_projected_d = Utils_Qt::kernelToChar("potential_projected_d.cl");
+    Kernels::propogator_d = Utils_Qt::kernelToChar("propagator_d.cl");
+    Kernels::sqabs_d = Utils_Qt::kernelToChar("sqabs_d.cl");
+    Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
+    
     // load parameters
     // get all the files in the parameters folder
     auto params_path = qApp->applicationDirPath() + "/params/";

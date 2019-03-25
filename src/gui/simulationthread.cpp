@@ -1,9 +1,9 @@
 #include "simulationthread.h"
 
-SimulationThread::SimulationThread(std::vector<std::shared_ptr<SimulationManager>> managers, std::vector<clDevice> devs)
+SimulationThread::SimulationThread(std::vector<std::shared_ptr<SimulationManager>> managers, std::vector<clDevice> devs, bool double_precision)
 {
     //TODO: does this part need mutexing or making thread safe?
-    simRunner = std::make_shared<SimulationRunner>(managers, devs);
+    simRunner = std::make_shared<SimulationRunner>(managers, devs, double_precision);
 }
 
 void SimulationThread::run()

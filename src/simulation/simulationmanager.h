@@ -35,7 +35,7 @@ public:
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
               slice_offset(sm.slice_offset), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
-              rng(std::mt19937(std::random_device()())), dist(std::normal_distribution<>(0, 1))
+              rng(std::mt19937(std::random_device()())), dist(std::normal_distribution<>(0, 1)), use_double_precision(false)
     {
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
@@ -49,6 +49,7 @@ public:
 
     SimulationManager& operator=(const SimulationManager& sm)
     {
+        use_double_precision = sm.use_double_precision;
         Resolution = sm.Resolution;
         TdsRunsStem = sm.TdsRunsStem;
         TdsRunsCbed = sm.TdsRunsCbed;
@@ -273,7 +274,12 @@ public:
     void setMaintainAreas(bool maintain) {maintain_area = maintain;}
     bool getMaintainAreas() {return maintain_area;}
 
+    bool getDoDoublePrecision() {return use_double_precision;}
+    void setDoDoublePrecision(bool ddp) {use_double_precision = ddp;}
+
 private:
+    bool use_double_precision;
+
     std::valarray<double> default_xy_padding;
     std::valarray<double> default_z_padding;
 

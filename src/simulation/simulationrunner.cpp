@@ -7,8 +7,8 @@
 #include <utility>
 #include "simulationrunner.h"
 
-SimulationRunner::SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs) : managers(
-        std::move(mans)), start(true)
+SimulationRunner::SimulationRunner(std::vector<std::shared_ptr<SimulationManager>> mans, std::vector<clDevice> devs, bool double_precision) : managers(
+        std::move(mans)), start(true), use_double_precision(double_precision)
 {
     dev_list = std::move(devs);
 }
@@ -27,7 +27,7 @@ void SimulationRunner::runSingle(std::shared_ptr<SimulationManager> sim_pointer)
     auto jobs = SplitJobs(std::move(sim_pointer));
 
     CLOG(DEBUG, "gui") << "Making threadpool";
-    t_pool = std::make_unique<ThreadPool>(dev_list, jobs.size());
+    t_pool = std::make_unique<ThreadPool>(dev_list, jobs.size(), use_double_precision);
 
     if (!start)
         return;

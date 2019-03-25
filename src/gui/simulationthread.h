@@ -13,7 +13,7 @@ class SimulationThread : public QThread
     Q_OBJECT
 
 public:
-    SimulationThread(std::vector<std::shared_ptr<SimulationManager>> managers, std::vector<clDevice> devs);
+    SimulationThread(std::vector<std::shared_ptr<SimulationManager>> managers, std::vector<clDevice> devs, bool double_precision);
 
     void cancelSimulation();
 

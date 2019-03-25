@@ -10,7 +10,7 @@ SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), default
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(true),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
                                          slice_offset(0.0), structure_parameters_name("kirkland"), maintain_area(false), rng(std::mt19937(std::random_device()())),
-                                         dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM)
+                                         dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM), use_double_precision(false)
 {
     // Here is where the default values are set!
     MicroParams = std::make_shared<MicroscopeParameters>();

@@ -28,6 +28,8 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     int three_d_int = simManager->getFull3dInts();
     int num_parallel = simManager->getParallelPixels();
 
+    ui->chkDoublePrec->setChecked(simManager->getDoDoublePrecision());
+
     ui->edt3dIntegrals->setText(QString::number(three_d_int));
     ui->edtParallelPx->setText(QString::number(num_parallel));
 
@@ -69,14 +71,16 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     unsigned int n_3d = ui->edt3dIntegrals->text().toUInt();
     unsigned int n_parallel = ui->edtParallelPx->text().toUInt();
     std::string param_name = ui->cmbParams->currentText().toStdString();
-    float pad_xy = ui->edtPaddingXY->text().toFloat();
-    float pad_z = ui->edtPaddingZ->text().toFloat();
+    double pad_xy = ui->edtPaddingXY->text().toDouble();
+    double pad_z = ui->edtPaddingZ->text().toDouble();
+    bool do_double = ui->chkDoublePrec->isChecked();
 
     Manager->setFull3dInts(n_3d);
     Manager->setParallelPixels(n_parallel);
     Manager->setStructureParameters(param_name);
     Manager->setDefaultPaddingXY({-pad_xy, pad_xy});
     Manager->setDefaultPaddingZ({-pad_z, pad_z});
+    Manager->setDoDoublePrecision(do_double);
 }
 
 void GlobalSimSettingsFrame::populateParamsCombo() {

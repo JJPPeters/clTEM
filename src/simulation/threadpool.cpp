@@ -6,11 +6,14 @@
 #include "simulationworker.h"
 
 // the constructor just launches some amount of workers
-ThreadPool::ThreadPool(std::vector<clDevice> devList, int num_jobs) : stop(false)
+ThreadPool::ThreadPool(std::vector<clDevice> devList, int num_jobs, bool double_precision) : stop(false)
 {
     size_t n_threads = std::min(devList.size(), (size_t) num_jobs);
     for(unsigned int i = 0; i < n_threads; ++i) { // TODO: depends what is lower, n jobs or n devices
-        workers.emplace_back(std::thread(std::move(SimulationWorker<float>(*this, i, OpenCL::MakeContext(devList[i])))));
+        if (double_precision)
+            workers.emplace_back(std::thread(std::move(SimulationWorker<double>(*this, i, OpenCL::MakeContext(devList[i])))));
+        else
+            workers.emplace_back(std::thread(std::move(SimulationWorker<float>(*this, i, OpenCL::MakeContext(devList[i])))));
     }
 }
 

@@ -13,7 +13,7 @@
 #include "clwrapper.h"
 #include "utilities/logging.h"
 
-template <class T>
+template <class GPU_Type>
 class SimulationWorker : public ThreadWorker
 {
 private:
@@ -56,7 +56,7 @@ private:
 
     void simulateCtemImage();
 
-    void simulateCtemImage(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
+    void simulateCtemImage(std::vector<GPU_Type> dqe_data, std::vector<GPU_Type> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
 
     std::vector<double> getDiffractionImage(int parallel_ind = 0);
 
@@ -64,36 +64,36 @@ private:
 
     std::vector<double> getCtemImage();
 
-    double doSumReduction(clMemory<T, Manual> data, clWorkGroup globalSizeSum,
+    double doSumReduction(clMemory<GPU_Type, Manual> data, clWorkGroup globalSizeSum,
                          clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
     double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind);
 
     // OpenCL stuff
-    clMemory<T, Manual> ClParameterisation;
+    clMemory<GPU_Type, Manual> ClParameterisation;
 
-    clMemory<T, Manual> ClAtomX;
-    clMemory<T, Manual> ClAtomY;
-    clMemory<T, Manual> ClAtomZ;
+    clMemory<GPU_Type, Manual> ClAtomX;
+    clMemory<GPU_Type, Manual> ClAtomY;
+    clMemory<GPU_Type, Manual> ClAtomZ;
     clMemory<int, Manual> ClAtomA;
 
     clMemory<int, Manual> ClBlockStartPositions;
     clMemory<int, Manual> ClBlockIds;
     clMemory<int, Manual> ClZIds;
 
-    std::vector<clMemory<std::complex<T>, Manual>> clWaveFunction1;
-    std::vector<clMemory<std::complex<T>, Manual>> clWaveFunction2;
-    clMemory<std::complex<T>, Manual> clWaveFunction3;
-    std::vector<clMemory<std::complex<T>, Manual>> clWaveFunction4;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction1;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction2;
+    clMemory<std::complex<GPU_Type>, Manual> clWaveFunction3;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction4;
 
-    clMemory<T, Manual> clXFrequencies;
-    clMemory<T, Manual> clYFrequencies;
-    clMemory<std::complex<T>, Manual> clPropagator;
-    clMemory<std::complex<T>, Manual> clPotential;
-    clMemory<std::complex<T>, Manual> clImageWaveFunction;
+    clMemory<GPU_Type, Manual> clXFrequencies;
+    clMemory<GPU_Type, Manual> clYFrequencies;
+    clMemory<std::complex<GPU_Type>, Manual> clPropagator;
+    clMemory<std::complex<GPU_Type>, Manual> clPotential;
+    clMemory<std::complex<GPU_Type>, Manual> clImageWaveFunction;
 
     // General kernels
-    clFourier<T> FourierTrans;
+    clFourier<GPU_Type> FourierTrans;
     clKernel AtomSort;
     clKernel BandLimit;
     clKernel fftShift;
@@ -107,17 +107,17 @@ private:
     clKernel ABS2;
     clKernel NtfKernel;
     clKernel DqeKernel;
-    clMemory<T, Manual> clCcdBuffer;
-    clMemory<std::complex<T>, Manual> clTempBuffer;
+    clMemory<GPU_Type, Manual> clCcdBuffer;
+    clMemory<std::complex<GPU_Type>, Manual> clTempBuffer;
 
     // CBED
     clKernel InitProbeWavefunction;
-    clMemory<T, Manual> clTDSMaskDiff;
+    clMemory<GPU_Type, Manual> clTDSMaskDiff;
 
     // STEM
     clKernel TDSMaskingAbsKernel;
     clKernel SumReduction;
-    clMemory<T, Manual> clReductionBuffer;
+    clMemory<GPU_Type, Manual> clReductionBuffer;
 };
 
 

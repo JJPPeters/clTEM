@@ -47,7 +47,7 @@ float2 cPow(float2 a, int n)
 	}
 	return temp;
 }
-__kernel void clImagingKernel( __global const float2* input,
+__kernel void ctem_image_f( __global const float2* input,
 							   __global float2* output,
 							   unsigned int width,
 							   unsigned int height,
@@ -68,18 +68,18 @@ __kernel void clImagingKernel( __global const float2* input,
     int yid = get_global_id(1);
 	if(xid < width && yid < height)
 	{
-		int Index = xid + yid*width;
+		int id = xid + yid*width;
 		float obj_ap2 = (obj_ap * 0.001f) / wavelength;
 		float beta2 = (beta * 0.001f) / wavelength;
-		float k = sqrt((k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]));
+		float k = native_sqrt((k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]));
 		if (k < obj_ap2)
 		{
 			float2 w = (float2)(wavelength*k_x[xid], wavelength*k_y[yid]);
 			float2 wc = cConj(w);
 
 			// TODO: check the 0.25 factor here is correct (it was 0.5, but Kirkland 2nd ed. eq. 3.42 disagrees)
-			float temporalCoh = exp( -0.25f * M_PI_F*M_PI_F  * delta*delta * cModSq(w)*cModSq(w) / (wavelength*wavelength) );
-			float spatialCoh = exp( -1.0f * M_PI_F*M_PI_F * beta2*beta2 * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2)  / (wavelength*wavelength) );
+			float temporalCoh = native_exp( -0.25f * M_PI_F*M_PI_F  * delta*delta * cModSq(w)*cModSq(w) / (wavelength*wavelength) );
+			float spatialCoh = native_exp( -1.0f * M_PI_F*M_PI_F * beta2*beta2 * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2)  / (wavelength*wavelength) );
 			float tC10 = 0.5f * C10 * cModSq(w);
 			float2 tC12 = 0.5f * cMult(C12, cPow(wc, 2));
 			float2 tC21 = cMult(C21, cMult(cPow(wc, 2), w)) / 3.0f;
@@ -98,13 +98,13 @@ __kernel void clImagingKernel( __global const float2* input,
 
 			float cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			float chi = 2.0f * M_PI_F * cchi / wavelength;
-			output[Index].x = temporalCoh * spatialCoh * ( input[Index].x * cos(chi) + input[Index].y * sin(chi) );
-			output[Index].y = temporalCoh * spatialCoh * ( input[Index].y * cos(chi) - input[Index].x * sin(chi) );
+			output[id].x = temporalCoh * spatialCoh * ( input[id].x * native_cos(chi) + input[id].y * native_sin(chi) );
+			output[id].y = temporalCoh * spatialCoh * ( input[id].y * native_cos(chi) - input[id].x * native_sin(chi) );
 		}
 		else
 		{
-			output[Index].x = 0.0f;
-			output[Index].y = 0.0f;
+			output[id].x = 0.0f;
+			output[id].y = 0.0f;
 		}
 	}
 }

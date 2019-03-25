@@ -1,0 +1,27 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Get the squared absolute value of a complex image
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Takes an input image, calculates the squared absolute value to be returned in a separate output image
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// input_a - image to square absolute
+/// output - output result
+/// width - width of the inputs
+/// height - height of the outputs
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+__kernel void sqabs_f( __global const float2* input,
+					   __global float2* output,
+					   unsigned int width,
+					   unsigned int height)
+{
+	//Get the work items ID
+	int xid = get_global_id(0);
+	int yid = get_global_id(1);
+
+	if(xid < width && yid < height) {
+		int id = xid + yid*width;
+		float real = input[id].x;
+		float imag = input[id].y;
+		output[id].x = real*real + imag*imag;
+		output[id].y = 0.0f;
+	}
+}
