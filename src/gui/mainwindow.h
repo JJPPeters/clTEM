@@ -49,8 +49,8 @@ public:
 
     void updateRanges();
 
-    void updateSlicesProgress(float prog);
-    void updateTotalProgress(float prog);
+    void updateSlicesProgress(double prog);
+    void updateTotalProgress(double prog);
 
     void updateImages(SimulationManager sm);
 

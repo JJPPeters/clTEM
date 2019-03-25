@@ -215,10 +215,10 @@ private:
 
     ShowComplex complex_type;
 
-    std::vector<std::complex<float>> data_complex; // only used when we have a complex image
+    std::vector<std::complex<double>> data_complex; // only used when we have a complex image
 
-    std::vector<float> calculateComplexData() {
-        std::vector<float> im_d(data_complex.size());
+    std::vector<double> calculateComplexData() {
+        std::vector<double> im_d(data_complex.size());
 
         if (complex_type == ShowComplex::Real) {
             for (int i = 0; i < data_complex.size(); ++i)

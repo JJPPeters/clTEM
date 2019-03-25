@@ -43,7 +43,7 @@ namespace Utils {
 
         // TODO: dose sim for TEM checks
         if (Manager->getMode() == SimulationMode::CTEM)
-            if (Manager->getCcdDose() <= 0.0f)
+            if (Manager->getCcdDose() <= 0.0)
                 errorList.emplace_back("CCD dose cannot be 0.");
 
         // TODO: warnings option (stem detector radius checks...

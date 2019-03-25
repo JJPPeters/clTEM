@@ -50,28 +50,27 @@ private:
 
     void initialiseCtem();
 
-    void initialiseProbeWave(T posx, T posy, int n_parallel = 0);
+    void initialiseProbeWave(double posx, double posy, int n_parallel = 0);
 
     void doMultiSliceStep(int slice);
 
     void simulateCtemImage();
 
-    void simulateCtemImage(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning, T doseperpix,
-                           T conversionfactor = 1);
+    void simulateCtemImage(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
 
-    std::vector<T> getDiffractionImage(int parallel_ind = 0);
+    std::vector<double> getDiffractionImage(int parallel_ind = 0);
 
-    std::vector<T> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
+    std::vector<double> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
 
-    std::vector<T> getCtemImage();
+    std::vector<double> getCtemImage();
 
-    T doSumReduction(clMemory<T, Manual> data, clWorkGroup globalSizeSum,
+    double doSumReduction(clMemory<T, Manual> data, clWorkGroup globalSizeSum,
                          clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
-    T getStemPixel(T inner, T outer, T xc, T yc, int parallel_ind);
+    double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind);
 
     // OpenCL stuff
-    clMemory<float, Manual> ClParameterisation;
+    clMemory<T, Manual> ClParameterisation;
 
     clMemory<T, Manual> ClAtomX;
     clMemory<T, Manual> ClAtomY;
@@ -94,7 +93,7 @@ private:
     clMemory<std::complex<T>, Manual> clImageWaveFunction;
 
     // General kernels
-    clFourier FourierTrans;
+    clFourier<T> FourierTrans;
     clKernel AtomSort;
     clKernel BandLimit;
     clKernel fftShift;

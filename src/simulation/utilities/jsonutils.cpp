@@ -27,10 +27,10 @@ namespace JSONUtils {
         try { man.setResolution( readJsonEntry<unsigned int>(j, "resolution") );
         } catch (json::out_of_range& e) {}
 
-        try { man.setSliceThickness( readJsonEntry<float>(j, "slice thickness", "val") );
+        try { man.setSliceThickness( readJsonEntry<double>(j, "slice thickness", "val") );
         } catch (json::out_of_range& e) {}
 
-        try { man.setSliceOffset( readJsonEntry<float>(j, "slice offset", "val") );
+        try { man.setSliceOffset( readJsonEntry<double>(j, "slice offset", "val") );
         } catch (json::out_of_range& e) {}
 
         try { man.setFull3d( readJsonEntry<bool>(j, "full 3d", "state") );
@@ -46,12 +46,12 @@ namespace JSONUtils {
         } catch (json::out_of_range& e) {}
 
         try {
-            auto p_xy_val = readJsonEntry<float>(j, "default padding", "xy", "val");
+            auto p_xy_val = readJsonEntry<double>(j, "default padding", "xy", "val");
             man.setDefaultPaddingXY({-p_xy_val, p_xy_val});
         } catch (json::out_of_range& e) {}
 
         try {
-            auto p_z_val = readJsonEntry<float>(j, "default padding", "z", "val");
+            auto p_z_val = readJsonEntry<double>(j, "default padding", "z", "val");
             man.setDefaultPaddingZ({-p_z_val, p_z_val});
         } catch (json::out_of_range& e) {}
 
@@ -61,80 +61,80 @@ namespace JSONUtils {
 
         auto mp = man.getMicroscopeParams();
 
-        try { mp->Voltage = readJsonEntry<float>(j, "microscope", "voltage", "val");
+        try { mp->Voltage = readJsonEntry<double>(j, "microscope", "voltage", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->Aperture = readJsonEntry<float>(j, "microscope", "aperture", "val");
+        try { mp->Aperture = readJsonEntry<double>(j, "microscope", "aperture", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->Alpha = readJsonEntry<float>(j, "microscope", "alpha", "val");
+        try { mp->Alpha = readJsonEntry<double>(j, "microscope", "alpha", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->Delta = 10 * readJsonEntry<float>(j, "microscope", "delta", "val");
+        try { mp->Delta = 10 * readJsonEntry<double>(j, "microscope", "delta", "val");
         } catch (json::out_of_range& e) {}
 
-        try { mp->C10 = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C10", "val");
-        } catch (json::out_of_range& e) {}
-
-        try {
-            mp->C12.Mag = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C12", "mag");
-            mp->C12.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C12", "ang");
+        try { mp->C10 = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C10", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C21.Mag = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C21", "mag");
-            mp->C21.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C21", "ang");
+            mp->C12.Mag = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C12", "mag");
+            mp->C12.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C12", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C23.Mag = 10 * readJsonEntry<float>(j, "microscope", "aberrations", "C23", "mag");
-            mp->C23.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C23", "ang");
-        } catch (json::out_of_range& e) {}
-
-        try { mp->C30 = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C30", "val");
+            mp->C21.Mag = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C21", "mag");
+            mp->C21.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C21", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C32.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C32", "mag");
-            mp->C32.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C32", "ang");
+            mp->C23.Mag = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C23", "mag");
+            mp->C23.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C23", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try { mp->C30 = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C30", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C34.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C34", "mag");
-            mp->C34.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C34", "ang");
+            mp->C32.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C32", "mag");
+            mp->C32.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C32", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C41.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C41", "mag");
-            mp->C41.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C41", "ang");
+            mp->C34.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C34", "mag");
+            mp->C34.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C34", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C43.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C43", "mag");
-            mp->C43.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C43", "ang");
+            mp->C41.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C41", "mag");
+            mp->C41.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C41", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C45.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C45", "mag");
-            mp->C45.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C45", "ang");
-        } catch (json::out_of_range& e) {}
-
-        try { mp->C50 = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C50", "val");
+            mp->C43.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C43", "mag");
+            mp->C43.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C43", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C52.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C52", "mag");
-            mp->C52.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C52", "ang");
+            mp->C45.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C45", "mag");
+            mp->C45.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C45", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try { mp->C50 = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C50", "val");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C54.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C54", "mag");
-            mp->C54.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C54", "ang");
+            mp->C52.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C52", "mag");
+            mp->C52.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C52", "ang");
         } catch (json::out_of_range& e) {}
 
         try {
-            mp->C56.Mag = 10000 * readJsonEntry<float>(j, "microscope", "aberrations", "C56", "mag");
-            mp->C56.Ang = (Constants::Pi / 180) * readJsonEntry<float>(j, "microscope", "aberrations", "C56", "ang");
+            mp->C54.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C54", "mag");
+            mp->C54.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C54", "ang");
+        } catch (json::out_of_range& e) {}
+
+        try {
+            mp->C56.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C56", "mag");
+            mp->C56.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C56", "ang");
         } catch (json::out_of_range& e) {}
 
         //
@@ -144,18 +144,18 @@ namespace JSONUtils {
         try { man.setCcdName(readJsonEntry<std::string>(j, "ctem", "ccd", "name"));
         } catch (json::out_of_range& e) {}
 
-        try { man.setCcdDose(readJsonEntry<float>(j, "ctem", "ccd", "dose", "val"));
+        try { man.setCcdDose(readJsonEntry<double>(j, "ctem", "ccd", "dose", "val"));
         } catch (json::out_of_range& e) {}
 
         try { man.setCcdBinning(readJsonEntry<int>(j, "ctem", "ccd", "binning"));
         } catch (json::out_of_range& e) {}
 
         try {
-            auto xs = readJsonEntry<float>(j, "ctem", "area", "x", "start");
-            auto xf = readJsonEntry<float>(j, "ctem", "area", "x", "finish");
+            auto xs = readJsonEntry<double>(j, "ctem", "area", "x", "start");
+            auto xf = readJsonEntry<double>(j, "ctem", "area", "x", "finish");
 
-            auto ys = readJsonEntry<float>(j, "ctem", "area", "y", "start");
-            auto yf = readJsonEntry<float>(j, "ctem", "area", "y", "finish");
+            auto ys = readJsonEntry<double>(j, "ctem", "area", "y", "start");
+            auto yf = readJsonEntry<double>(j, "ctem", "area", "y", "finish");
 
             SimulationArea ar(xs, xf, ys, yf);
             auto area = man.getSimulationArea();
@@ -169,15 +169,15 @@ namespace JSONUtils {
         //
 
         try {
-            auto xs = readJsonEntry<float>(j, "stem", "area", "x", "start");
-            auto xf = readJsonEntry<float>(j, "stem", "area", "x", "finish");
+            auto xs = readJsonEntry<double>(j, "stem", "area", "x", "start");
+            auto xf = readJsonEntry<double>(j, "stem", "area", "x", "finish");
             auto xp = readJsonEntry<int>(j, "stem", "scan", "x", "pixels");
 
-            auto ys = readJsonEntry<float>(j, "stem", "area", "y", "start");
-            auto yf = readJsonEntry<float>(j, "stem", "area", "y", "finish");
+            auto ys = readJsonEntry<double>(j, "stem", "area", "y", "start");
+            auto yf = readJsonEntry<double>(j, "stem", "area", "y", "finish");
             auto yp = readJsonEntry<int>(j, "stem", "scan", "y", "pixels");
 
-            auto pad = readJsonEntry<float>(j, "stem", "area", "padding", "val");
+            auto pad = readJsonEntry<double>(j, "stem", "area", "padding", "val");
 
             StemArea ar(xs, xf, ys, yf, xp, yp, pad);
             auto area = man.getStemArea();
@@ -221,9 +221,9 @@ namespace JSONUtils {
         //
 
         try {
-            auto x = readJsonEntry<float>(j, "cbed", "position", "x");
-            auto y = readJsonEntry<float>(j, "cbed", "position", "y");
-            auto pad = readJsonEntry<float>(j, "cbed", "position", "padding");
+            auto x = readJsonEntry<double>(j, "cbed", "position", "x");
+            auto y = readJsonEntry<double>(j, "cbed", "position", "y");
+            auto pad = readJsonEntry<double>(j, "cbed", "position", "padding");
 
             CbedPosition ar(x, y, pad);
             auto area = man.getCBedPosition();
@@ -249,9 +249,9 @@ namespace JSONUtils {
 
         bool force_default = false;
         bool override_file = false;
-        float def = 0.0f;
+        double def = 0.0;
 
-        std::vector<float> vibs;
+        std::vector<double> vibs;
         std::vector<int> els;
 
         try { force_default = readJsonEntry<bool>(j, "thermal parameters", "force default");
@@ -260,7 +260,7 @@ namespace JSONUtils {
         try { override_file = readJsonEntry<bool>(j, "thermal parameters", "override file");
         } catch (json::out_of_range& e) {}
 
-        try { def = readJsonEntry<float>(j, "thermal parameters", "default");
+        try { def = readJsonEntry<double>(j, "thermal parameters", "default");
         } catch (json::out_of_range& e) {}
 
         try {
@@ -268,7 +268,7 @@ namespace JSONUtils {
             for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
                 std::string element = it.key();
                 try{
-                    auto v = readJsonEntry<float>(element_section, element);
+                    auto v = readJsonEntry<double>(element_section, element);
                     els.emplace_back( Utils::ElementSymbolToNumber(element) );
                     vibs.emplace_back(v);
                 } catch (json::out_of_range& e) {}

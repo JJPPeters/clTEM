@@ -4,9 +4,9 @@
 
 #include "ccdparams.h"
 
-std::vector<std::vector<float>> CCDParams::dqes;
+std::vector<std::vector<double>> CCDParams::dqes;
 
-std::vector<std::vector<float>> CCDParams::ntfs;
+std::vector<std::vector<double>> CCDParams::ntfs;
 
 std::vector<std::string> CCDParams::names;
 

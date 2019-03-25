@@ -23,13 +23,13 @@ namespace Utils_Qt
         return Utils::resourceToChar(full_path, kernelName);
     }
 
-    static std::vector<float> paramsToVector(const std::string &paramsName, unsigned int &row_count, std::string folder = "params")
+    static std::vector<double> paramsToVector(const std::string &paramsName, unsigned int &row_count, std::string folder = "params")
     {
         std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
         return Utils::paramsToVector(exe_path + "/" + folder, paramsName, row_count);
     }
 
-    static void ccdToDqeNtf(std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io, std::string folder = "ccds")
+    static void ccdToDqeNtf(std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io, std::string folder = "ccds")
     {
         std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
         std::ifstream inStream(exe_path + "/" + folder + "/" + fileName);

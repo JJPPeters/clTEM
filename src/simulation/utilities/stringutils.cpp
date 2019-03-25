@@ -86,7 +86,7 @@ namespace Utils
         return fileContents;
     }
 
-    std::vector<float> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count)
+    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count)
     {
         std::ifstream inStream(full_directory + "/" + fileName);
 
@@ -104,8 +104,8 @@ namespace Utils
         inStream.clear();
         inStream.seekg(0, std::ifstream::beg);
 
-        std::vector<float> out;
-        float p;
+        std::vector<double> out;
+        double p;
 
         while (inStream >> p)
             out.push_back(p);
@@ -115,7 +115,7 @@ namespace Utils
         return out;
     }
 
-    void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io)
+    void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io)
     {
         std::ifstream inStream(full_directory + "/" + fileName);
 
@@ -124,10 +124,10 @@ namespace Utils
 
         std::string header_temp;
         std::string data_temp;
-        float tmp;
+        double tmp;
 
-        dqe_io = std::vector<float>();
-        ntf_io = std::vector<float>();
+        dqe_io = std::vector<double>();
+        ntf_io = std::vector<double>();
 
         bool found_dqe = false;
         bool found_ntf = false;

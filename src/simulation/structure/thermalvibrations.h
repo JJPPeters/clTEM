@@ -14,10 +14,10 @@ class ThermalVibrations {
 
     // this default is not used for the calculations, but is just a record of what we have set it as
     // the defaults will be filled into the vector of displacements
-    float u_default;
+    double u_default;
 
     // this is where all the parameters are set
-    std::vector<float> u_squareds;
+    std::vector<double> u_squareds;
 
     std::vector<int> set_elements;
 
@@ -31,17 +31,17 @@ public:
     // if this is set, then the values defined here override values set by the file
     bool force_defined;
 
-    std::vector<float> getDefinedVibrations();
+    std::vector<double> getDefinedVibrations();
 
     std::vector<int> getDefinedElements() {
         return set_elements;
     }
 
-    void setVibrations(float def, std::vector<int> elements, std::vector<float> vibs);
+    void setVibrations(double def, std::vector<int> elements, std::vector<double> vibs);
 
-    float getVibrations(unsigned int element);
+    double getVibrations(unsigned int element);
 
-    float getDefault(){
+    double getDefault(){
         return u_default;
     }
 };

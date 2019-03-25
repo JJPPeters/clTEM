@@ -13,9 +13,9 @@
 class CCDParams
 {
 private:
-    static std::vector<std::vector<float>> ntfs;
+    static std::vector<std::vector<double>> ntfs;
 
-    static std::vector<std::vector<float>> dqes;
+    static std::vector<std::vector<double>> dqes;
 
     static std::vector<std::string> names;
 
@@ -33,7 +33,7 @@ public:
         return std::find(names.begin(), names.end(), name) != names.end();
     }
 
-    static void addCCD(std::string name, std::vector<float> dqe, std::vector<float>ntf)
+    static void addCCD(std::string name, std::vector<double> dqe, std::vector<double> ntf)
     {
         std::lock_guard<std::mutex> lck(mtx);
 
@@ -51,15 +51,13 @@ public:
         return names;
     }
 
-    static std::vector<float> getDQE(std::string name)
-    {
+    static std::vector<double> getDQE(std::string name) {
         std::lock_guard<std::mutex> lck(mtx);
         long ind = getIndexFromName(name);
         return dqes[ind];
     }
 
-    static std::vector<float> getNTF(std::string name)
-    {
+    static std::vector<double> getNTF(std::string name) {
         std::lock_guard<std::mutex> lck(mtx);
         long ind = getIndexFromName(name);
         return ntfs[ind];

@@ -285,13 +285,13 @@ void MainWindow::on_twMode_currentChanged(int index)
     updateScales();
 }
 
-void MainWindow::updateSlicesProgress(float prog)
+void MainWindow::updateSlicesProgress(double prog)
 {
     QMutexLocker locker(&Progress_Mutex);
     emit sliceProgressUpdated(prog);
 }
 
-void MainWindow::updateTotalProgress(float prog)
+void MainWindow::updateTotalProgress(double prog)
 {
     QMutexLocker locker(&Progress_Mutex);
     emit totalProgressUpdated(prog);
@@ -309,8 +309,8 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
 
-    StatusBar->setSliceProgress(0.f);
-    StatusBar->setTotalProgress(0.f);
+    StatusBar->setSliceProgress(0.0);
+    StatusBar->setTotalProgress(0.0);
 
     // Set some variables that aren't auto updates
 
@@ -396,10 +396,10 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     settings["microscope"].erase("delta");
 
                     // convert our float data to complex
-                    std::vector<std::complex<float>> comp_data(im.height*im.width);
+                    std::vector<std::complex<double>> comp_data(im.height*im.width);
                     for (int i = 0; i < comp_data.size(); ++i)
-                        comp_data[i] = std::complex<float>(im.data[2*i], im.data[2*i+1]);
-                    Image<std::complex<float>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
+                        comp_data[i] = std::complex<double>(im.data[2*i], im.data[2*i+1]);
+                    Image<std::complex<double>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
 
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
@@ -577,7 +577,7 @@ void MainWindow::loadExternalSources()
 
     for (int k = 0; k < params_files.size(); ++k) {
         unsigned int row_count;
-        std::vector<float> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
+        std::vector<double> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
         std::string p_name = params_files[k].toStdString();
         p_name.erase(p_name.find(".dat"), 4);
         StructureParameters::setParams(params, p_name, row_count);
@@ -591,7 +591,7 @@ void MainWindow::loadExternalSources()
     ccd_filt << "*.dat";
     QStringList ccd_files = ccd_dir.entryList(ccd_filt);
 
-    std::vector<float> dqe, ntf;
+    std::vector<double> dqe, ntf;
     std::string name;
     for (int k = 0; k < ccd_files.size(); ++k) {
         Utils_Qt::ccdToDqeNtf(ccd_files[k].toStdString(), name, dqe, ntf);

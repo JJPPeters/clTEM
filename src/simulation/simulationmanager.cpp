@@ -5,11 +5,11 @@
 #include <memory>
 #include <utilities/fileio.h>
 
-SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), default_xy_padding({-8.0f, 8.0f}), default_z_padding({-3.0f, 3.0f}), padding_x(default_xy_padding),
-                                         padding_y(default_xy_padding), padding_z(default_z_padding), slice_dz(1.0f),
-                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0f / 3.0f), numParallelPixels(1), simulateCtemImage(true),
-                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0f), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
-                                         slice_offset(0.0f), structure_parameters_name("kirkland"), maintain_area(false), rng(std::mt19937(std::random_device()())),
+SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), default_xy_padding({-8.0, 8.0}), default_z_padding({-3.0, 3.0}), padding_x(default_xy_padding),
+                                         padding_y(default_xy_padding), padding_z(default_z_padding), slice_dz(1.0),
+                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(true),
+                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
+                                         slice_offset(0.0), structure_parameters_name("kirkland"), maintain_area(false), rng(std::mt19937(std::random_device()())),
                                          dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM)
 {
     // Here is where the default values are set!
@@ -74,18 +74,18 @@ void SimulationManager::setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info
     }
 }
 
-std::tuple<float, float, float, int> SimulationManager::getSimRanges()
+std::tuple<double, double, double, int> SimulationManager::getSimRanges()
 {
-    float xRange = getPaddedSimLimitsX()[1] - getPaddedSimLimitsX()[0];
-    float yRange = getPaddedSimLimitsY()[1] - getPaddedSimLimitsY()[0];
-    float zRange = getPaddedStructLimitsZ()[1] - getPaddedStructLimitsZ()[0];
+    double xRange = getPaddedSimLimitsX()[1] - getPaddedSimLimitsX()[0];
+    double yRange = getPaddedSimLimitsY()[1] - getPaddedSimLimitsY()[0];
+    double zRange = getPaddedStructLimitsZ()[1] - getPaddedStructLimitsZ()[0];
     int numAtoms = Structure->getAtomCountInRange(getPaddedSimLimitsX()[0], getPaddedSimLimitsX()[1],
                                                   getPaddedSimLimitsY()[0], getPaddedSimLimitsY()[1]);
 
     return std::make_tuple(xRange, yRange, zRange, numAtoms);
 }
 
-float SimulationManager::getRealScale()
+double SimulationManager::getRealScale()
 {
     if(!Structure || !haveResolution())
         throw std::runtime_error("Can't calculate scales without resolution and structure");
@@ -95,31 +95,31 @@ float SimulationManager::getRealScale()
     return std::max(x_r, y_r) / Resolution;
 }
 
-float SimulationManager::getInverseScale()
+double SimulationManager::getInverseScale()
 {
     if(!Structure || !haveResolution())
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
-    return 1.0f / (getRealScale() * Resolution);
+    return 1.0 / (getRealScale() * Resolution);
 }
 
-float SimulationManager::getInverseScaleAngle() {
+double SimulationManager::getInverseScaleAngle() {
     if(!Structure || !haveResolution() || !(MicroParams && MicroParams->Voltage > 0))
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
-    float inv_scale = getInverseScale();
-    return 1000.0f * inv_scale * MicroParams->Wavelength();
+    double inv_scale = getInverseScale();
+    return 1000.0 * inv_scale * MicroParams->Wavelength();
 }
 
-float SimulationManager::getInverseMaxAngle()
+double SimulationManager::getInverseMaxAngle()
 {
     // need to do this in mrad, eventually should also pass inverse Angstrom for hover text?
     if(!Structure || !haveResolution() || !(MicroParams && MicroParams->Voltage > 0))
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     // this is the max reciprocal space scale for the entire image
-    float angle_scale = getInverseScaleAngle(); // apply cut off here, because we can
-    return 0.5f * angle_scale * Resolution * getInverseLimitFactor(); // half because we have a centered 0, 1000 to be in mrad
+    double angle_scale = getInverseScaleAngle(); // apply cut off here, because we can
+    return 0.5 * angle_scale * Resolution * getInverseLimitFactor(); // half because we have a centered 0, 1000 to be in mrad
 }
 
 unsigned long SimulationManager::getTotalParts()
@@ -127,21 +127,21 @@ unsigned long SimulationManager::getTotalParts()
     if (Mode == SimulationMode::CTEM)
         return 1;
     else if (Mode == SimulationMode::CBED)
-        return (unsigned long) getTdsRuns();
+        return static_cast<unsigned long>(getTdsRuns());
     else if (Mode == SimulationMode::STEM)
         // round up as still need to complete that 'fraction of a job'
-        return (unsigned long) (getTdsRuns() * std::ceil((float) getStemArea()->getNumPixels() / numParallelPixels));
+        return static_cast<unsigned long>(getTdsRuns() * std::ceil(static_cast<double>(getStemArea()->getNumPixels()) / numParallelPixels));
 
     return 0;
 }
 
-void SimulationManager::updateImages(std::map<std::string, Image<float>> &ims, int jobCount)
+void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, int jobCount)
 {
     CLOG(DEBUG, "sim") << "Updating images";
     std::lock_guard<std::mutex> lck(image_update_mtx);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    auto average_factor = (float) getTdsRuns();
+    auto average_factor = static_cast<double>(getTdsRuns());
 
     for (auto const& i : ims)
     {
@@ -161,9 +161,9 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> &ims, i
         } else {
             CLOG(DEBUG, "sim") << "Adding to existing image";
             auto new_averaged = i.second;
-            for (float &d : new_averaged.data)
+            for (double &d : new_averaged.data)
                 d /= average_factor; // need to average this as the image is created (if TDS)
-            Images.insert(std::map<std::string, Image<float>>::value_type(i.first, new_averaged));
+            Images.insert(std::map<std::string, Image<double>>::value_type(i.first, new_averaged));
         }
     }
 
@@ -177,7 +177,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<float>> &ims, i
         throw std::runtime_error("Simulation received more parts than it expected");
     }
 
-    auto prgrss = (float) completeJobs / (float) getTotalParts();
+    auto prgrss = static_cast<double>(completeJobs) / getTotalParts();
 
     CLOG(DEBUG, "sim") << "Report progress: " << prgrss*100 << "%";
 
@@ -198,25 +198,25 @@ void SimulationManager::failedSimulation() {
 }
 
 
-void SimulationManager::reportTotalProgress(float prog)
+void SimulationManager::reportTotalProgress(double prog)
 {
     if (progressTotalReporter)
         progressTotalReporter(prog);
 }
 
-void SimulationManager::reportSliceProgress(float prog)
+void SimulationManager::reportSliceProgress(double prog)
 {
     if (progressSliceReporter)
         progressSliceReporter(prog);
 }
 
-float SimulationManager::getBlockScaleX()
+double SimulationManager::getBlockScaleX()
 {
     auto r = getPaddedStructLimitsX();
     return (r[1] - r[0]) / getBlocksX();
 }
 
-float SimulationManager::getBlockScaleY() {
+double SimulationManager::getBlockScaleY() {
     auto r = getPaddedStructLimitsY();
     return (r[1] - r[0]) / getBlocksY();
 }
@@ -240,8 +240,8 @@ void SimulationManager::calculate_blocks()
     // arrays a bit convoluted) TODO: test if this matters
     auto x_lims_2 = getPaddedSimLimitsX();
     auto y_lims_2 = getPaddedSimLimitsY();
-    float xr = x_lims_2[1] - x_lims_2[0];
-    float yr = y_lims_2[1] - y_lims_2[0];
+    double xr = x_lims_2[1] - x_lims_2[0];
+    double yr = y_lims_2[1] - y_lims_2[0];
 
     // always using x and y as same size (for now) so find the larger dimension
     // floor so blocks will be slightly larger than 4 Angstroms
@@ -257,16 +257,16 @@ void SimulationManager::round_Z_padding()
     auto p_z = SimulationManager::default_z_padding;
 
     auto pad_slices_pre = (int) std::ceil((std::abs(p_z[1]) - slice_offset) / slice_dz);
-    float pre_pad = slice_offset + pad_slices_pre * slice_dz;
+    double pre_pad = slice_offset + pad_slices_pre * slice_dz;
 
-    float zw = getStructLimitsZ()[1] - getStructLimitsZ()[0];
+    double zw = getStructLimitsZ()[1] - getStructLimitsZ()[0];
     auto struct_slices = (int) std::ceil((zw + slice_offset) / slice_dz); // slice offset needed here?
-    float struct_slice_thick = struct_slices * slice_dz;
+    double struct_slice_thick = struct_slices * slice_dz;
 
-    float left_over = struct_slice_thick - slice_offset - zw;
+    double left_over = struct_slice_thick - slice_offset - zw;
 
     auto pad_slices_post = (int) std::ceil((std::abs(p_z[0]) - left_over) / slice_dz);
-    float post_pad = pad_slices_post * slice_dz + left_over;
+    double post_pad = pad_slices_post * slice_dz + left_over;
 
     // The simulation works from LARGEST z to SMALLEST. So the pre padding is actually on top of the z structure.
     padding_z = {-post_pad, pre_pad};
@@ -274,7 +274,7 @@ void SimulationManager::round_Z_padding()
 
 unsigned int SimulationManager::getNumberofSlices() {
     auto z_lims = getPaddedStructLimitsZ();
-    float z_range = z_lims[1] - z_lims[0];
+    double z_range = z_lims[1] - z_lims[0];
 
     // the 0.000001 is for errors in the float
     auto n_slices = (unsigned int) std::ceil((z_range / getSliceThickness()) - 0.000001);
@@ -302,7 +302,7 @@ unsigned int SimulationManager::getStoredTdsRuns() {
     return 1;
 }
 
-float SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
+double SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
     if (direction < 0 || direction > 2)
         throw std::runtime_error("Error trying to apply thermal displacement to axis: " + std::to_string(direction));
 
@@ -311,7 +311,7 @@ float SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
     // TODO: check this behaves as expected, may want to reset the random stuff
     // sqrt as we have the mean squared displacement (variance), but want the standard deviation
 
-    float u = 0.0f;
+    double u = 0.0;
 
     if ( thermal_vibrations->force_default )
         u = thermal_vibrations->getDefault();
@@ -330,7 +330,7 @@ float SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
     }
 
 
-    float randNormal = std::sqrt(u) * (float) dist(rng);
+    double randNormal = std::sqrt(u) * dist(rng);
 
     return randNormal;
 }

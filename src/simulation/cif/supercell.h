@@ -31,19 +31,19 @@ namespace CIF {
         void setTilts(double alpha, double beta, double gamma) { tilts << alpha, beta, gamma; }
     };
 
-    void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<float> &x,
-                       std::vector<float> &y, std::vector<float> &z, std::vector<float> &occ, std::vector<float> &ux,
-                       std::vector<float> &uy, std::vector<float> &uz);
+    void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<double> &x,
+                       std::vector<double> &y, std::vector<double> &z, std::vector<double> &occ, std::vector<double> &ux,
+                       std::vector<double> &uy, std::vector<double> &uz);
 
     void makeSuperCell(CIFReader cif, Eigen::Vector3d uvw, Eigen::Vector3d abc, Eigen::Vector3d widths,
-                       Eigen::Vector3d tilts, std::vector<std::string> &A, std::vector<float> &x, std::vector<float> &y,
-                       std::vector<float> &z, std::vector<float> &occ, std::vector<float> &ux, std::vector<float> &uy,
-                       std::vector<float> &uz);
+                       Eigen::Vector3d tilts, std::vector<std::string> &A, std::vector<double> &x, std::vector<double> &y,
+                       std::vector<double> &z, std::vector<double> &occ, std::vector<double> &ux, std::vector<double> &uy,
+                       std::vector<double> &uz);
 
     void calculateTiling(std::vector<Eigen::Vector3d> &basis, double x_width, double y_width, double z_width,
                          Eigen::Vector3i &mins, Eigen::Vector3i &maxs);
 
-    bool testInRange(Eigen::Vector3d pos, float xmin, float xmax, float ymin, float ymax, float zmin, float zmax);
+    bool testInRange(Eigen::Vector3d pos, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
 
     template<typename T>
     int sgn(T val) {
