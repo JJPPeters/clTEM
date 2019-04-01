@@ -48,7 +48,7 @@ private:
     void parseKernelString() {
         // This is designed to try and gather the information directly from the source using regex
         // This may not be perfect for all kernels, but works for the ones I have ever used
-        std::regex name_regex(R"(__kernel(?:.|\s)+?\s+([a-zA-z]+)\s*\()");
+        std::regex name_regex(R"(__kernel(?:.|\s)+?\s+(.+)\s*\()"); //__kernel\s+?[a-zA-Z]+\s+?(.+?)\(
         std::regex args_regex(R"(__kernel(?:.|\s)+?\(((?:.|\s)*?)\))");
         std::smatch matches;
 
