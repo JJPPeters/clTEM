@@ -29,14 +29,16 @@ __kernel void propogator_f( __global float2* propagator,
 
 	if(xid < width && yid < height) {
 		int id = xid + width * yid;
-		float k0x = k_x[xid];
-		float k0y = k_y[yid];
+		float k0x = k_x[xid] * k_x[xid];
+		float k0y = k_y[yid] * k_y[yid];
 
-		k0x *= k0x;
-		k0y *= k0y;
-
-		propagator[id].x = native_cos(M_PI_F * dz * wavelength * (k0x+k0y));
-		propagator[id].y = -1.0f * native_sin(M_PI_F * dz * wavelength * (k0x+k0y));
+        if (k0x+k0y < k_max*k_max) {
+		    propagator[id].x = native_cos(M_PI_F * dz * wavelength * (k0x+k0y));
+		    propagator[id].y = -1.0f * native_sin(M_PI_F * dz * wavelength * (k0x+k0y));
+		} else {
+		    propagator[id].x = 0.0f;
+		    propagator[id].y = 0.0f;
+		}
 	}
 }
 

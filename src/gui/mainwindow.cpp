@@ -377,8 +377,8 @@ void MainWindow::imagesChanged(SimulationManager sm)
         simulationFailed();
     }
 
-    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
-    settings["filename"] = sm.getStructure()->getFileName();
+    nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
+    original_settings["filename"] = sm.getStructure()->getFileName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -394,6 +394,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW") {
+                    auto settings = original_settings;
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
@@ -418,6 +419,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
+                    auto settings = original_settings;
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
                     double sc = sm.getRealScale();
@@ -432,6 +434,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
             {
                 ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
                 if (tab->getTabName() == "Diffraction") {
+                    auto settings = original_settings;
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
@@ -457,6 +460,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == name) {
                     // add the specific detector info here!
+                    auto settings = original_settings;
                     for (auto d : sm.getDetectors())
                         if (d.name == name)
                             settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);

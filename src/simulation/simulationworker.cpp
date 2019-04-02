@@ -689,7 +689,7 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     clWorkGroup LocalWork(16, 16, 1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Get our potentials for the current sim
+    /// Get our *transmission* function for the current slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     unsigned int numberOfSlices = job->simManager->getNumberofSlices();
 
@@ -711,6 +711,7 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //TODO: this can just be in the atomic potential kernel
     CLOG(DEBUG, "sim") << "FFT potentials";
     FourierTrans.run(clPotential, clWaveFunction3, Direction::Forwards);
     ctx.WaitForQueueFinish();
@@ -727,18 +728,8 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     for (int i = 1; i <= n_parallel; i++)
     {
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
-        // Apply low pass filter to wavefunction
-        CLOG(DEBUG, "sim") << "FFT incoming wavefunction";
-        FourierTrans.run(clWaveFunction1[i - 1], clWaveFunction3, Direction::Forwards);
-        ctx.WaitForQueueFinish();
-        CLOG(DEBUG, "sim") << "Band limit incoming wavefunction";
-        BandLimit.run(Work);
-        ctx.WaitForQueueFinish();
-        CLOG(DEBUG, "sim") << "IFFT band limited incoming wavefunction";
-        FourierTrans.run(clWaveFunction3, clWaveFunction1[i - 1], Direction::Inverse);
-        ctx.WaitForQueueFinish();
 
-        //Multiply potential with wavefunction
+        //Multiply transmission function with wavefunction
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);

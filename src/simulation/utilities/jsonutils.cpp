@@ -18,45 +18,45 @@ namespace JSONUtils {
         area_set = false;
         // not sure there is a particularly easy way to go about this. Just go through all the options...
         try { man.setDoDoublePrecision( readJsonEntry<bool>(j, "double precision") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             auto mode = readJsonEntry<SimulationMode>(j, "mode", "id");
             if (mode == SimulationMode::None)
                 mode = SimulationMode::CTEM;
             man.setMode( mode );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setResolution( readJsonEntry<unsigned int>(j, "resolution") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setSliceThickness( readJsonEntry<double>(j, "slice thickness", "val") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setSliceOffset( readJsonEntry<double>(j, "slice offset", "val") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setFull3d( readJsonEntry<bool>(j, "full 3d", "state") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setFull3dInts( readJsonEntry<unsigned int>(j, "full 3d", "integrals") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setMaintainAreas( readJsonEntry<bool>(j, "maintain areas") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setStructureParameters( readJsonEntry<std::string>(j, "potentials") );
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             auto p_xy_val = readJsonEntry<double>(j, "default padding", "xy", "val");
             man.setDefaultPaddingXY({-p_xy_val, p_xy_val});
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             auto p_z_val = readJsonEntry<double>(j, "default padding", "z", "val");
             man.setDefaultPaddingZ({-p_z_val, p_z_val});
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         //
         // Do all the microscope parameters stuff...
@@ -65,93 +65,93 @@ namespace JSONUtils {
         auto mp = man.getMicroscopeParams();
 
         try { mp->Voltage = readJsonEntry<double>(j, "microscope", "voltage", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { mp->Aperture = readJsonEntry<double>(j, "microscope", "aperture", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { mp->Alpha = readJsonEntry<double>(j, "microscope", "alpha", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { mp->Delta = 10 * readJsonEntry<double>(j, "microscope", "delta", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { mp->C10 = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C10", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C12.Mag = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C12", "mag");
             mp->C12.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C12", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C21.Mag = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C21", "mag");
             mp->C21.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C21", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C23.Mag = 10 * readJsonEntry<double>(j, "microscope", "aberrations", "C23", "mag");
             mp->C23.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C23", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { mp->C30 = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C30", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C32.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C32", "mag");
             mp->C32.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C32", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C34.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C34", "mag");
             mp->C34.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C34", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C41.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C41", "mag");
             mp->C41.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C41", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C43.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C43", "mag");
             mp->C43.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C43", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C45.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C45", "mag");
             mp->C45.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C45", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { mp->C50 = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C50", "val");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C52.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C52", "mag");
             mp->C52.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C52", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C54.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C54", "mag");
             mp->C54.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C54", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             mp->C56.Mag = 10000 * readJsonEntry<double>(j, "microscope", "aberrations", "C56", "mag");
             mp->C56.Ang = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "aberrations", "C56", "ang");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         //
         // Phew, Ctem now
         //
 
         try { man.setCcdName(readJsonEntry<std::string>(j, "ctem", "ccd", "name"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setCcdDose(readJsonEntry<double>(j, "ctem", "ccd", "dose", "val"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setCcdBinning(readJsonEntry<int>(j, "ctem", "ccd", "binning"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             auto xs = readJsonEntry<double>(j, "ctem", "area", "x", "start");
@@ -165,7 +165,7 @@ namespace JSONUtils {
             *area = ar;
             if (man.getMode() == SimulationMode::CTEM)
                 area_set = true;
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         //
         // STEM
@@ -187,16 +187,16 @@ namespace JSONUtils {
             *area = ar;
             if (man.getMode() == SimulationMode::STEM)
                 area_set = true;
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setTdsRunsStem(readJsonEntry<unsigned int>(j, "stem", "tds", "configurations"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setTdsEnabledStem(readJsonEntry<bool>(j, "stem", "tds", "enabled"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setParallelPixels(readJsonEntry<unsigned int>(j, "stem", "concurrent pixels"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         // detectors...
 
@@ -214,10 +214,10 @@ namespace JSONUtils {
 
                     man.getDetectors().push_back(d);
 
-                } catch (json::out_of_range& e) {}
+                } catch (std::exception& e) {}
             }
 
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         //
         // CBED
@@ -233,13 +233,13 @@ namespace JSONUtils {
             *area = ar;
             if (man.getMode() == SimulationMode::CBED)
                 area_set = true; // I don't know if this one matters...
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setTdsRunsCbed(readJsonEntry<unsigned int>(j, "cbed", "tds", "configurations"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         *(man.getThermalVibrations()) = JsonToThermalVibrations(j);
 
@@ -258,13 +258,13 @@ namespace JSONUtils {
         std::vector<int> els;
 
         try { force_default = readJsonEntry<bool>(j, "thermal parameters", "force default");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { override_file = readJsonEntry<bool>(j, "thermal parameters", "override file");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try { def = readJsonEntry<double>(j, "thermal parameters", "default");
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         try {
             json element_section = readJsonEntry<json>(j, "thermal parameters", "values");
@@ -274,10 +274,10 @@ namespace JSONUtils {
                     auto v = readJsonEntry<double>(element_section, element);
                     els.emplace_back( Utils::ElementSymbolToNumber(element) );
                     vibs.emplace_back(v);
-                } catch (json::out_of_range& e) {}
+                } catch (std::exception& e) {}
             }
 
-        } catch (json::out_of_range& e) {}
+        } catch (std::exception& e) {}
 
         out_therms.setVibrations(def, els, vibs);
         out_therms.force_defined = override_file;
