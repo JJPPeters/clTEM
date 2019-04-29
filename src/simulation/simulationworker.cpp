@@ -729,7 +729,7 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     {
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
 
-        //Multiply transmission function with wavefunction
+        // Multiply transmission function with wavefunction
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);

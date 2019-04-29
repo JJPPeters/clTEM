@@ -96,8 +96,8 @@ __kernel void init_probe_wave_d( __global double2* output,
 			double cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			double chi = 2.0 * M_PI * cchi / wavelength;
 
-			output[id].x = cos(chi) * cos(posTerm) + sin(chi) * sin(posTerm);
-			output[id].y = cos(chi) * sin(posTerm) - sin(chi) * cos(posTerm);
+			output[id].x = cos(posTerm - chi);
+            output[id].y = sin(posTerm - chi);
 		}
 		else
 		{
