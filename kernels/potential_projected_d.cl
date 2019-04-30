@@ -303,17 +303,18 @@ __kernel void potential_projected_d( __global double2* potential,
 				// calculate the radius from the current position in space (i.e. pixel?)
 				double rad = native_sqrt((startx + xid*pixelscale-atx[l])*(startx + xid*pixelscale-atx[l]) + (starty + yid*pixelscale-aty[l])*(starty + yid*pixelscale-aty[l]));
 
-				if(rad < 0.25 * pixelscale) // is this sensible?
-					rad = 0.25 * pixelscale;
+                double r_min = 1.0e-10;
+				if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
+					rad = r_min;
 
-				if( rad < 3.0) { // Should also make sure is not too small
+				//if( rad < 3.0) {
 					if (param_selector == 0)
                         sumz += kirkland(params, atZ[l], rad);
                     else if (param_selector == 1)
                         sumz += peng(params, atZ[l], rad);
                     else if (param_selector == 2)
                         sumz += lobato(params, atZ[l], rad);
-				}
+				//}
 			}
 
 			barrier(CLK_LOCAL_MEM_FENCE);

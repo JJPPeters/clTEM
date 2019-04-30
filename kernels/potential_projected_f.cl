@@ -97,7 +97,7 @@ float bessi1(float x) {
     } else {
         x2 = 3.75f / ax;
         sum = i1b[8];
-        for(i = 2; i >= 0; --i)
+        for(i = 7; i >= 0; --i)
             sum = sum*x2 + i1b[i];
         sum = native_exp(ax) * sum * native_rsqrt(ax);
     }
@@ -303,17 +303,18 @@ __kernel void potential_projected_f( __global float2* potential,
 				// calculate the radius from the current position in space (i.e. pixel?)
 				float rad = native_sqrt((startx + xid*pixelscale-atx[l])*(startx + xid*pixelscale-atx[l]) + (starty + yid*pixelscale-aty[l])*(starty + yid*pixelscale-aty[l]));
 
-				if(rad < 0.25f * pixelscale) // is this sensible?
-					rad = 0.25f * pixelscale;
+                float r_min = 1.0e-10;
+				if(rad < r_min) // is this sensible?
+					rad = r_min;
 
-				if( rad < 3.0f) { // Should also make sure is not too small
+				//if( rad < 3.0f) { // Should also make sure is not too small
 					if (param_selector == 0)
                         sumz += kirkland(params, atZ[l], rad);
                     else if (param_selector == 1)
                         sumz += peng(params, atZ[l], rad);
                     else if (param_selector == 2)
                         sumz += lobato(params, atZ[l], rad);
-				}
+				//}
 			}
 
 			barrier(CLK_LOCAL_MEM_FENCE);

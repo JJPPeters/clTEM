@@ -205,27 +205,27 @@ __kernel void potential_full_3d_d( __global double2* potential,
 					// just building our single slice potential from them
 					double rad = native_sqrt(xyrad2 + (z - h * dz * int_r - atz[l])*(z - h * dz * int_r - atz[l]));
 
-					if(rad < 0.25 * pixel_scale)
-						rad = 0.25 * pixel_scale;
+					double r_min = 1.0e-10;
+                    if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
+                        rad = r_min;
 
 					double p1 = 0.0;
 
-					if( rad < 3.0) { // Should also make sure is not too small
-						// note that all the funny numbers are just pre-calculated groups of constants
-						double p1;
-						if (param_selector == 0)
-						    p1 = kirkland(params, atZ[l], rad);
-                        else if (param_selector == 1)
-                            p1 = peng(params, atZ[l], rad);
-                        else if (param_selector == 2)
-                            p1 = lobato(params, atZ[l], rad);
+					//if( rad < 3.0) {
+					double p1;
+					if (param_selector == 0)
+					    p1 = kirkland(params, atZ[l], rad);
+                    else if (param_selector == 1)
+                        p1 = peng(params, atZ[l], rad);
+                    else if (param_selector == 2)
+                        p1 = lobato(params, atZ[l], rad);
 
-						// why make sure h!=0 when we can just remove it from the loop?
-						// surely h == 0 will be in the previous slice??
-						// because p1 is used in the next iteration (why it is set to p2)
-						sumz += (h!=0) * (p1+p2)*0.5;
-						p2 = p1;
-					}
+					// why make sure h!=0 when we can just remove it from the loop?
+					// surely h == 0 will be in the previous slice??
+					// because p1 is used in the next iteration (why it is set to p2)
+					sumz += (h!=0) * (p1+p2)*0.5;
+					p2 = p1;
+					//}
 				}
 			}
 
