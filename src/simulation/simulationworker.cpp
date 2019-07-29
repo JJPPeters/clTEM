@@ -224,7 +224,7 @@ void SimulationWorker<T>::sortAtoms(bool doTds) {
 }
 
 template <class T>
-void SimulationWorker<T>::doCtem(bool simImage)
+void SimulationWorker<T>::doCtem()
 {
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
@@ -235,9 +235,6 @@ void SimulationWorker<T>::doCtem(bool simImage)
             return;
         job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
     }
-
-    if (simImage)
-        simulateCtemImage();
 
     CLOG(DEBUG, "sim") << "Getting return images";
 
@@ -708,6 +705,37 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
 
     ctx.WaitForQueueFinish();
 
+
+
+
+
+//    {
+//        // save our transmission function
+//        auto loc = clPotential.CreateLocalCopy();
+//
+//        std::vector<T> loc_r(loc.size());
+//        std::vector<T> loc_i(loc.size());
+//
+//        for (int ii = 0; ii < loc.size(); ++ii) {
+//            loc_r[ii] = std::real(loc[ii]);
+//            loc_i[ii] = std::imag(loc[ii]);
+//        }
+//
+//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_real.tif", loc_r, resolution, resolution);
+//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_imag.tif", loc_i, resolution, resolution);
+//
+//    }
+
+
+
+
+
+
+
+
+
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -722,12 +750,46 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     FourierTrans.run(clWaveFunction3, clPotential, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
+//    {
+//        // save our transmission function
+//        auto loc = clPotential.CreateLocalCopy();
+//
+//        std::vector<T> loc_r(loc.size());
+//        std::vector<T> loc_i(loc.size());
+//
+//        for (int ii = 0; ii < loc.size(); ++ii) {
+//            loc_r[ii] = std::real(loc[ii]);
+//            loc_i[ii] = std::imag(loc[ii]);
+//        }
+//
+//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_limited_real.tif", loc_r, resolution, resolution);
+//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_limited_imag.tif", loc_i, resolution, resolution);
+//
+//    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     for (int i = 1; i <= n_parallel; i++)
     {
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
+
+//        {
+//            // save our transmission function
+//            auto loc = clWaveFunction1[i - 1].CreateLocalCopy();
+//
+//            std::vector<T> loc_r(loc.size());
+//            std::vector<T> loc_i(loc.size());
+//
+//            for (int ii = 0; ii < loc.size(); ++ii) {
+//                loc_r[ii] = std::real(loc[ii]);
+//                loc_i[ii] = std::imag(loc[ii]);
+//            }
+//
+//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_in_real.tif", loc_r, resolution, resolution);
+//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_in_imag.tif", loc_i, resolution, resolution);
+//
+//        }
 
         // Multiply transmission function with wavefunction
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
@@ -736,6 +798,23 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
         CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
         ComplexMultiply.run(Work);
         ctx.WaitForQueueFinish();
+
+//        {
+//            // save our transmission function
+//            auto loc = clWaveFunction2[i - 1].CreateLocalCopy();
+//
+//            std::vector<T> loc_r(loc.size());
+//            std::vector<T> loc_i(loc.size());
+//
+//            for (int ii = 0; ii < loc.size(); ++ii) {
+//                loc_r[ii] = std::real(loc[ii]);
+//                loc_i[ii] = std::imag(loc[ii]);
+//            }
+//
+//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_trans_real.tif", loc_r, resolution, resolution);
+//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_trans_imag.tif", loc_i, resolution, resolution);
+//
+//        }
 
         // go to reciprocal space
         CLOG(DEBUG, "sim") << "FFT to reciprocal space";
@@ -754,6 +833,23 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
         CLOG(DEBUG, "sim") << "IFFT to real space";
         FourierTrans.run(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
         ctx.WaitForQueueFinish();
+
+//        {
+//            // save our transmission function
+//            auto loc = clWaveFunction1[i - 1].CreateLocalCopy();
+//
+//            std::vector<T> loc_r(loc.size());
+//            std::vector<T> loc_i(loc.size());
+//
+//            for (int ii = 0; ii < loc.size(); ++ii) {
+//                loc_r[ii] = std::real(loc[ii]);
+//                loc_i[ii] = std::imag(loc[ii]);
+//            }
+//
+//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_out_real.tif", loc_r, resolution, resolution);
+//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_out_imag.tif", loc_i, resolution, resolution);
+//
+//        }
     }
 }
 

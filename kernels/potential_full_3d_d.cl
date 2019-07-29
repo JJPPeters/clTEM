@@ -211,21 +211,21 @@ __kernel void potential_full_3d_d( __global double2* potential,
 
 					double p1 = 0.0;
 
-					//if( rad < 3.0) {
-					double p1;
-					if (param_selector == 0)
-					    p1 = kirkland(params, atZ[l], rad);
-                    else if (param_selector == 1)
-                        p1 = peng(params, atZ[l], rad);
-                    else if (param_selector == 2)
-                        p1 = lobato(params, atZ[l], rad);
+					if( rad < 3.0) {
+    					double p1;
+    					if (param_selector == 0)
+    					    p1 = kirkland(params, atZ[l], rad);
+                        else if (param_selector == 1)
+                            p1 = peng(params, atZ[l], rad);
+                        else if (param_selector == 2)
+                            p1 = lobato(params, atZ[l], rad);
 
-					// why make sure h!=0 when we can just remove it from the loop?
-					// surely h == 0 will be in the previous slice??
-					// because p1 is used in the next iteration (why it is set to p2)
-					sumz += (h!=0) * (p1+p2)*0.5;
-					p2 = p1;
-					//}
+    					// why make sure h!=0 when we can just remove it from the loop?
+    					// surely h == 0 will be in the previous slice??
+    					// because p1 is used in the next iteration (why it is set to p2)
+    					sumz += (h!=0) * (p1+p2)*0.5;
+    					p2 = p1;
+    					}
 				}
 			}
 

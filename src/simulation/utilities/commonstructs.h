@@ -116,7 +116,7 @@ struct MicroscopeParameters {
 
     ComplexAberration C56;
 
-    // Voltaage (kV) == (kg m^2 C^-1 s^-2)
+    // Voltage (kV) == (kg m^2 C^-1 s^-2)
     double Voltage;
     //Condenser aperture size (mrad)
     double Aperture;

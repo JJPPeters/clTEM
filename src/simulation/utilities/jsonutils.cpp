@@ -144,6 +144,9 @@ namespace JSONUtils {
         // Phew, Ctem now
         //
 
+        try { man.setSimulateCtemImage(readJsonEntry<bool>(j, "ctem", "simulate image"));
+        } catch (std::exception& e) {}
+
         try { man.setCcdName(readJsonEntry<std::string>(j, "ctem", "ccd", "name"));
         } catch (std::exception& e) {}
 
@@ -436,13 +439,19 @@ namespace JSONUtils {
         {
             // cropped padding entry will be added at the time of saving
 
-            if (CCDParams::nameExists(man.getCcdName()) || force_all) {
-                j["ctem"]["ccd"]["name"] = man.getCcdName();
-                j["ctem"]["ccd"]["dose"]["val"] = man.getCcdDose();
-                j["ctem"]["ccd"]["dose"]["units"] = "e- per square Å";
-                j["ctem"]["ccd"]["binning"] = man.getCcdBinning();
-            } else {
-                j["ctem"]["ccd"] = "Perfect";
+            bool do_ctem_im = man.getSimulateCtemImage();
+
+            j["ctem"]["simulate image"] = do_ctem_im;
+
+            if (do_ctem_im) {
+                if (CCDParams::nameExists(man.getCcdName()) || force_all) {
+                    j["ctem"]["ccd"]["name"] = man.getCcdName();
+                    j["ctem"]["ccd"]["dose"]["val"] = man.getCcdDose();
+                    j["ctem"]["ccd"]["dose"]["units"] = "e- per square Å";
+                    j["ctem"]["ccd"]["binning"] = man.getCcdBinning();
+                } else {
+                    j["ctem"]["ccd"] = "Perfect";
+                }
             }
 
             j["ctem"]["area"]["x"]["start"] = man.getCtemArea().getRawLimitsX()[0];

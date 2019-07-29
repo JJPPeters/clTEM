@@ -40,7 +40,7 @@ private:
 
     void sortAtoms(bool doTds = false);
 
-    void doCtem(bool simImage = false);
+    void doCtem();
 
     void doCbed();
 

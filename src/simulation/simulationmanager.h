@@ -194,7 +194,7 @@ public:
     SimulationMode getMode(){return Mode;}
     std::string getModeString() {return Utils::simModeToString(Mode);}
 
-    bool haveResolution() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096;}
+    bool haveResolution() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096 || Resolution == 8192;}
 
     /// Get the simulation scale in Angstroms per pixel
     double getRealScale();

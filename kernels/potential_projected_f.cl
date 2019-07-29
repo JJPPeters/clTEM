@@ -170,10 +170,10 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
-    for(i=0; i<6; i+=2) {
+    for(i=0; i<2; i+=2) {
         float a = params[(ZNum-1)*12+i];
         float b = params[(ZNum-1)*12+i+1];
-        suml += a * bessk0( x*native_sqrt(b) );
+        suml += a * bessk0( x * native_sqrt(b) );
     }
 
     //
@@ -183,7 +183,7 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     x = x * x;
 
     // Loop through our parameters (a and b)
-    for(i=6; i<12; i+=2) {
+    for(i=6; i<8; i+=2) {
         float c = params[(ZNum-1)*12+i];
         float d = params[(ZNum-1)*12+i+1];
         float d_inv = native_recip(d);
@@ -307,14 +307,14 @@ __kernel void potential_projected_f( __global float2* potential,
 				if(rad < r_min) // is this sensible?
 					rad = r_min;
 
-				//if( rad < 3.0f) { // Should also make sure is not too small
+				if( rad < 3.0f) { // Should also make sure is not too small
 					if (param_selector == 0)
                         sumz += kirkland(params, atZ[l], rad);
                     else if (param_selector == 1)
                         sumz += peng(params, atZ[l], rad);
                     else if (param_selector == 2)
                         sumz += lobato(params, atZ[l], rad);
-				//}
+				}
 			}
 
 			barrier(CLK_LOCAL_MEM_FENCE);

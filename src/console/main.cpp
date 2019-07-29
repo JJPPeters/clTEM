@@ -353,20 +353,23 @@ int main(int argc, char *argv[])
         if(!parseThreeCommaList(size_arg, sx, sy, sz)) {
             std::cerr << "Could not parse .cif size argument: " << size_arg << std::endl;
             valid_flags = false;
-        }
+        } else
+            sc_info.setWidths(sx, sy, sz);
 
         double zu, zv, zw;
         if(!parseThreeCommaList(zone_arg, zu, zv, zw)) {
             std::cerr << "Could not parse .cif size argument: " << zone_arg << std::endl;
             valid_flags = false;
-        }
+        } else
+            sc_info.setZoneAxis(zu, zv, zw);
 
         double nu, nv, nw;
         if (!normal_arg.empty()) {
             if(!parseThreeCommaList(normal_arg, nu, nv, nw)) {
                 std::cerr << "Could not parse .cif normal argument: " << normal_arg << std::endl;
                 valid_flags = false;
-            }
+            } else
+                sc_info.setHorizontalAxis(nu, nv, nw);
         }
 
         double tx, ty, tz;
@@ -374,15 +377,8 @@ int main(int argc, char *argv[])
             if(!parseThreeCommaList(tilt_arg, tx, ty, tz)) {
                 std::cerr << "Could not parse .cif tilt argument: " << tilt_arg << std::endl;
                 valid_flags = false;
-            }
-        }
-
-        // TODO: check these default to 0?
-        if (valid_flags) {
-            sc_info.setWidths(sx, sy, sz);
-            sc_info.setZoneAxis(zu, zv, zw);
-            sc_info.setHorizontalAxis(nu, nv, nw);
-            sc_info.setTilts(tx, ty, tz);
+            } else
+                sc_info.setTilts(tx, ty, tz);
         }
 
     } else {
@@ -512,8 +508,8 @@ int main(int argc, char *argv[])
             man_ptr->setStructure(input_struct, sc_info);
         else
             man_ptr->setStructure(input_struct);
-    } catch (...) {
-        std::cout << "Error opening structure file. Exiting..." << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "Error opening structure file: " << e.what() << std::endl;
         CLOG(ERROR, "cmd") << "Error opening structure file";
         return 1;
     }
@@ -635,11 +631,10 @@ int main(int argc, char *argv[])
         Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");
     }
 
-    std::string ccds_path = exe_path_string + sep + "ccds";
+    auto ccd_name = man_ptr->getCcdName();
 
-    auto ccd_name = JSONUtils::readJsonEntry<std::string>(j, "ctem", "ccd", "name");
-
-    if (ccd_name != "Perfect") {
+    if (ccd_name != "" && ccd_name != "Perfect") {
+        std::string ccds_path = exe_path_string + sep + "ccds";
         std::vector<double> dqe, ntf;
         std::string name;
         Utils::ccdToDqeNtf(ccds_path, ccd_name + ".dat", name, dqe, ntf);
