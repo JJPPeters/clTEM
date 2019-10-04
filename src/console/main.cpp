@@ -159,8 +159,10 @@ void imageReturned(SimulationManager sm)
             settings["microscope"].erase("alpha");
             settings["microscope"].erase("delta");
         }
-        else
-        {
+        else if (name == "Image") {
+            // Nothing to do here?
+        }
+        else {
             // add the specific detector info here!
             for (const auto &d : sm.getDetectors())
                 if (d.name == name)
