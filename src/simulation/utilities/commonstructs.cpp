@@ -98,10 +98,10 @@ void StemArea::forcePxRangeY(double start, double finish, int yp)
 
 double StemArea::getScaleX()
 {
-    return (xFinish - xStart) / (xPixels - 1);
+    return (xFinish - xStart) / xPixels;
 }
 
 double StemArea::getScaleY()
 {
-    return (yFinish - yStart) / (yPixels - 1);
+    return (yFinish - yStart) / yPixels;
 }
