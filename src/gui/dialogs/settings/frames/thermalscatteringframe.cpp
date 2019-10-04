@@ -84,18 +84,18 @@ void ThermalScatteringFrame::dlgOk_clicked()
 bool ThermalScatteringFrame::dlgApply_clicked()
 {
     // get our default, easy...
-    float def = ui->edtDefault->text().toFloat();
+    double def = ui->edtDefault->text().toDouble();
 
     // create vectors of our explicitly defined elements
     int nRows = ui->tblDisplacements->rowCount();
 
     std::vector<int> elements(nRows);
-    std::vector<float> displacements(nRows);
+    std::vector<double> displacements(nRows);
 
     for (int i = 0; i < nRows; ++i) {
         std::string temp_el = ui->tblDisplacements->item(i, 0)->text().toStdString();
         elements[i] = Utils::ElementSymbolToNumber(temp_el);
-        displacements[i] = ui->tblDisplacements->item(i, 1)->text().toFloat();
+        displacements[i] = ui->tblDisplacements->item(i, 1)->text().toDouble();
     }
 
     Manager->getThermalVibrations()->setVibrations(def, elements, displacements);
@@ -106,7 +106,7 @@ bool ThermalScatteringFrame::dlgApply_clicked()
     return true;
 }
 
-void ThermalScatteringFrame::addItemToList(std::string el, float vib) {
+void ThermalScatteringFrame::addItemToList(std::string el, double vib) {
     int n = ui->tblDisplacements->rowCount();
 
     bool found = false;
@@ -135,7 +135,7 @@ void ThermalScatteringFrame::addItemToList(std::string el, float vib) {
 void ThermalScatteringFrame::on_btnAdd_clicked() {
     std::string el = ui->cmbElement->currentText().toStdString();
 
-    float vib = ui->edtDisplacement->text().toFloat();
+    double vib = ui->edtDisplacement->text().toDouble();
 
     addItemToList(el, vib);
 }

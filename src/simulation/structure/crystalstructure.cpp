@@ -109,18 +109,18 @@ void CrystalStructure::openXyz(std::string fPath) {
     // TODO: report warning on unused headers?
 
     std::vector<std::string> A(atom_count);
-    std::vector<float> x(atom_count);
-    std::vector<float> y(atom_count);
-    std::vector<float> z(atom_count);
+    std::vector<double> x(atom_count);
+    std::vector<double> y(atom_count);
+    std::vector<double> z(atom_count);
 
     // These are only resized when we have the headers as a way of calculating if they are used or not
-    std::vector<float> occ;
+    std::vector<double> occ;
     if (h_occ != -1)
         occ.resize(atom_count);
 
-    std::vector<float> ux;
-    std::vector<float> uy;
-    std::vector<float> uz;
+    std::vector<double> ux;
+    std::vector<double> uy;
+    std::vector<double> uz;
     bool defined_thermals = h_u != -1 || h_ux != -1 || h_uy != -1 || h_uz != -1;
     if (defined_thermals) {
         ux.resize(atom_count);
@@ -184,7 +184,7 @@ void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {
 
     // need to create the vectors the data will be put into
     std::vector<std::string> A;
-    std::vector<float> x, y, z, occ, ux, uy, uz;
+    std::vector<double> x, y, z, occ, ux, uy, uz;
 
 
     CIF::makeSuperCell(cif, info, A, x, y, z, occ, ux, uy, uz);
@@ -201,7 +201,7 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
         addAtom(aList[0]);
     } else {
         double r = dist(rng);
-        float totalOcc = 0.0;
+        double totalOcc = 0.0;
 
         for(auto a : aList) {
             if((r >= totalOcc && r < totalOcc+a.occ) || (r == 1.0 && totalOcc+a.occ == 1.0))
@@ -237,17 +237,17 @@ void CrystalStructure::updateLimits(const Atom &a)
 
 void CrystalStructure::resetLimits()
 {
-    MinX = std::numeric_limits<float>::max();
-    MaxX = std::numeric_limits<float>::min();
+    MinX = std::numeric_limits<double>::max();
+    MaxX = std::numeric_limits<double>::min();
 
-    MinY = std::numeric_limits<float>::max();
-    MaxY = std::numeric_limits<float>::min();
+    MinY = std::numeric_limits<double>::max();
+    MaxY = std::numeric_limits<double>::min();
 
-    MinZ = std::numeric_limits<float>::max();
-    MaxZ = std::numeric_limits<float>::min();
+    MinZ = std::numeric_limits<double>::max();
+    MaxZ = std::numeric_limits<double>::min();
 }
 
-int CrystalStructure::getAtomCountInRange(float xs, float xf, float ys, float yf)
+int CrystalStructure::getAtomCountInRange(double xs, double xf, double ys, double yf)
 {
     // this might be stupidly slow, but it's nice to know how many atoms you are actually simulating through
     // TODO: could subtract the min values when first opening the structure somehow???
@@ -270,7 +270,7 @@ void CrystalStructure::addAtom(AtomSite a) {
 //        AtomTypes.push_back(a.A);
 }
 
-void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<float> occ, std::vector<float> ux, std::vector<float> uy, std::vector<float> uz) {
+void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz) {
 
     // TODO: error is sizes not all the same
     size_t count = A.size();

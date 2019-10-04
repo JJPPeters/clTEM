@@ -6,14 +6,16 @@
 
 #include <cmath>
 
-clFourier::~clFourier() {
+template <class T>
+clFourier<T>::~clFourier() {
     if (fftplan) {
         fftStatus = clfftDestroyPlan(&fftplan);
         clFftError::Throw(fftStatus, "clFourier");
     }
 }
 
-void clFourier::Setup(unsigned int _width, unsigned int _height) {
+template <class T>
+void clFourier<T>::Setup(unsigned int _width, unsigned int _height) {
     // Perform setup for FFT's
     fftStatus = clfftInitSetupData(&fftSetupData);
     clFftError::Throw(fftStatus);
@@ -49,7 +51,13 @@ void clFourier::Setup(unsigned int _width, unsigned int _height) {
     //	Default plan creates a plan that expects an inPlace transform with interleaved complex numbers
     fftStatus = clfftSetResultLocation( fftplan, place );
     clFftError::Throw(fftStatus, "clFourier");
-    fftStatus = clfftSetPlanPrecision(fftplan,CLFFT_SINGLE);
+    if (sizeof(T) == 4) // This only works because I have limited my template types to float and double
+        fftStatus = clfftSetPlanPrecision(fftplan, CLFFT_SINGLE);
+    else if (sizeof(T) == 8)
+        fftStatus = clfftSetPlanPrecision(fftplan, CLFFT_DOUBLE);
+    else
+        throw std::runtime_error("clFourier: Unknown bit depth");
+
     clFftError::Throw(fftStatus, "clFourier");
     fftStatus = clfftSetLayout( fftplan, inLayout, outLayout );
     clFftError::Throw(fftStatus, "clFourier");
@@ -81,7 +89,11 @@ void clFourier::Setup(unsigned int _width, unsigned int _height) {
     }
 }
 
-clFourier::clFourier(clContext Context, unsigned int _width, unsigned int _height): Context(Context), width(_width), height(_height), buffersize(0), fftplan(0) {
+template <class T>
+clFourier<T>::clFourier(clContext Context, unsigned int _width, unsigned int _height): Context(Context), width(_width), height(_height), buffersize(0), fftplan(0) {
     Setup(_width,_height);
     AutoTeardownFFT::GetInstance();
-};
+}
+
+template class clFourier<float>;
+template class clFourier<double>;

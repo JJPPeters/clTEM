@@ -23,9 +23,9 @@ public:
 
     void assignMainWindow(MainWindow* m);
 
-    void updateStructureInfo(std::tuple<float, float, float, int> ranges);
+    void updateStructureInfo(std::tuple<double, double, double, int> ranges);
 
-    void updateResolutionInfo(float pixScale, float invScale, float invMax);
+    void updateResolutionInfo(double pixScale, double invScale, double invMax);
 
     void setResolutionIndex(int ind = 0);
 

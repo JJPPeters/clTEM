@@ -112,7 +112,7 @@ void AreaLayoutFrame::areasChanged() {
     // should probably be it's own slot
     emit modeChanged(mode);
 
-    float realScale = 0.0f;
+    double realScale = 0.0f;
 
     auto pd = SimManager->getPaddingX();
     auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
@@ -163,8 +163,8 @@ void AreaLayoutFrame::areasChanged() {
     ui->lblAngleScale->setText(Utils_Qt::numToQString(angleScale) + " mrad");
     ui->lblAngleMax->setText(Utils_Qt::numToQString(angleMax) + " mrad");
 
-    float dz = SimManager->getSliceThickness();
-    float oz = SimManager->getSliceOffset();
+    double dz = SimManager->getSliceThickness();
+    double oz = SimManager->getSliceOffset();
 
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
     connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
@@ -202,8 +202,8 @@ void AreaLayoutFrame::dlgApply_clicked()
 
 bool AreaLayoutFrame::apply_pressed() {
 
-    float dz = ui->edtSliceThickness->text().toFloat();
-    float oz = ui->edtSliceOffset->text().toFloat();
+    double dz = ui->edtSliceThickness->text().toDouble();
+    double oz = ui->edtSliceOffset->text().toDouble();
 
     bool valid = true;
     std::vector<std::string> errors;
@@ -297,12 +297,12 @@ bool AreaLayoutFrame::getErrorStringStem() {
 }
 
 void AreaLayoutFrame::checkEditZero(QString txt) {
-    if (ui->edtSliceThickness->text().toFloat() > 0)
+    if (ui->edtSliceThickness->text().toDouble() > 0)
         ui->edtSliceThickness->setStyleSheet("");
     else
         ui->edtSliceThickness->setStyleSheet("color: #FF8C00");
 
-    if (ui->edtSliceOffset->text().toFloat() >= 0)
+    if (ui->edtSliceOffset->text().toDouble() >= 0)
         ui->edtSliceOffset->setStyleSheet("");
     else
         ui->edtSliceOffset->setStyleSheet("color: #FF8C00");
@@ -325,10 +325,10 @@ void AreaLayoutFrame::slicesChanged() {
     if (!SimManager->getStructure())
         return;
 
-    float dz = ui->edtSliceThickness->text().toFloat();
+    double dz = ui->edtSliceThickness->text().toDouble();
 
     auto z_lims = SimManager->getPaddedStructLimitsZ();
-    float z_range = z_lims[1] - z_lims[0];
+    double z_range = z_lims[1] - z_lims[0];
 
     auto n_slices = (unsigned int) std::ceil(z_range / dz);
     n_slices += (n_slices == 0);

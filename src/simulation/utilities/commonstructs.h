@@ -9,21 +9,21 @@
 
 struct Constants
 {
-    static const float Pi;
+    static const double Pi;
     // electron mass (kg)
-    static const float eMass;
+    static const double eMass;
     // electron mass (keV)
-    static const float eMassEnergy;
+    static const double eMassEnergy;
     // electron charge (C)
-    static const float eCharge;
+    static const double eCharge;
     // Planck's constant (Js)
-    static const float h;
+    static const double h;
     // speed of light (m/s)
-    static const float c;
+    static const double c;
     // Bohr radius (m)
-    static const float a0;
+    static const double a0;
     // Bohr radius (Angstrom)
-    static const float a0A;
+    static const double a0A;
 };
 
 template<class T>
@@ -77,18 +77,18 @@ struct Image
 
 struct ComplexAberration {
     ComplexAberration() : Mag(0.0f), Ang(0.0f) {}
-    ComplexAberration(float m, float a) : Mag(m), Ang(a) {}
+    ComplexAberration(double m, double a) : Mag(m), Ang(a) {}
 
-    float Mag, Ang;
+    double Mag, Ang;
 
-    std::complex<float> getComplex() {return std::polar(Mag, Ang);}
+    std::complex<double> getComplex() {return std::polar(Mag, Ang);}
 };
 
 struct MicroscopeParameters {
     MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), Alpha(1.0f), Delta(1.0f) {}
 
     // Defocus
-    float C10;
+    double C10;
     //Two-fold astigmatism
     ComplexAberration C12;
     //Coma
@@ -96,7 +96,7 @@ struct MicroscopeParameters {
     //Three-fold astigmatism
     ComplexAberration C23;
     //Spherical
-    float C30;
+    double C30;
 
     ComplexAberration C32;
 
@@ -108,7 +108,7 @@ struct MicroscopeParameters {
 
     ComplexAberration C45;
     //Fifth order spherical
-    float C50;
+    double C50;
 
     ComplexAberration C52;
 
@@ -116,73 +116,73 @@ struct MicroscopeParameters {
 
     ComplexAberration C56;
 
-    // Voltaage (kV) == (kg m^2 C^-1 s^-2)
-    float Voltage;
+    // Voltage (kV) == (kg m^2 C^-1 s^-2)
+    double Voltage;
     //Condenser aperture size (mrad)
-    float Aperture;
+    double Aperture;
 
     //Convergence angle (?)
-    float Alpha;
+    double Alpha;
     //Defocus spread (?)
-    float Delta;
+    double Delta;
 
     //Calculate wavelength (Angstroms)
-    float Wavelength() {
-        return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000.0f) * (2.0f * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000.0f ) ) ) * 1e+10f;
+    double Wavelength() {
+        return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000) * (2 * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000 ) ) ) * 1e+10;
     }
 
     // Interaction parameter (see Kirkland Eq. 5.6) (s^2 C m^-2 kg^-1 Angstrom^-1])
-    float Sigma() {
-        return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000.0f))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000.0f)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000.0f));
+    double Sigma() {
+        return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000));
     }
 };
 
 struct SimulationArea {
-    SimulationArea() : xStart(0.0f), xFinish(10.0f), yStart(0.0f), yFinish(10.0f), padding(0.f) {}
+    SimulationArea() : xStart(0.0), xFinish(10.0), yStart(0.0), yFinish(10.0), padding(0.0) {}
 
-    SimulationArea(float xs, float xf, float ys, float yf, float pd = 0.f) : xStart(xs), xFinish(xf),
+    SimulationArea(double xs, double xf, double ys, double yf, double pd = 0.f) : xStart(xs), xFinish(xf),
                                                                              yStart(ys), yFinish(yf),
                                                                              padding(pd) {}
 
-    std::valarray<float> getRawLimitsX();
-    std::valarray<float> getRawLimitsY();
+    std::valarray<double> getRawLimitsX();
+    std::valarray<double> getRawLimitsY();
 
-    void setRawLimitsX(float start, float finish);
-    void setRawLimitsY(float start, float finish);
+    void setRawLimitsX(double start, double finish);
+    void setRawLimitsY(double start, double finish);
 
-    std::valarray<float> getCorrectedLimitsX();
-    std::valarray<float> getCorrectedLimitsY();
+    std::valarray<double> getCorrectedLimitsX();
+    std::valarray<double> getCorrectedLimitsY();
 
-    void setPadding(float pd) {padding = pd;}
+    void setPadding(double pd) {padding = pd;}
 
 protected:
-    float xStart, xFinish, yStart, yFinish, padding;
+    double xStart, xFinish, yStart, yFinish, padding;
 };
 
 struct StemDetector {
-    StemDetector() : name("--"), inner(0.0f), outer(1.0f), xcentre(0.0f), ycentre(0.0f) {}
-    StemDetector(std::string nm, float in, float out, float xc, float yc) : name(std::move(nm)),
+    StemDetector() : name("--"), inner(0.0), outer(1.0), xcentre(0.0), ycentre(0.0) {}
+    StemDetector(std::string nm, double in, double out, double xc, double yc) : name(std::move(nm)),
             inner(in), outer(out), xcentre(xc), ycentre(yc) {}
 
     std::string name;
 
-    float inner, outer, xcentre, ycentre;
+    double inner, outer, xcentre, ycentre;
 };
 
 // TODO: is this class necessary, can we not just use the sim area one with the start and end points the same?
 struct CbedPosition {
-    CbedPosition() : xPos(0.0f), yPos(0.0f), padding(0.0f) {}
-    CbedPosition(float _x, float _y, float _pd = 0.0f) : xPos(_x), yPos(_y), padding(_pd) {}
+    CbedPosition() : xPos(0.0), yPos(0.0), padding(0.0) {}
+    CbedPosition(double _x, double _y, double _pd = 0.0) : xPos(_x), yPos(_y), padding(_pd) {}
 
-    float getXPos() {return xPos;}
-    float getYPos() {return yPos;}
-    float getPadding() {return padding;}
+    double getXPos() {return xPos;}
+    double getYPos() {return yPos;}
+    double getPadding() {return padding;}
 
-    void setXPos(float xp) {xPos = xp;}
-    void setYPos(float yp) {yPos = yp;}
-    void setPaddding(float pd) {padding = pd;}
+    void setXPos(double xp) {xPos = xp;}
+    void setYPos(double yp) {yPos = yp;}
+    void setPaddding(double pd) {padding = pd;}
 
-    void setPos(float xp, float yp) {
+    void setPos(double xp, double yp) {
         xPos = xp;
         yPos = yp;
     }
@@ -193,34 +193,34 @@ struct CbedPosition {
     }
 
 private:
-    float xPos, yPos, padding;
+    double xPos, yPos, padding;
 };
 
 struct StemArea : public SimulationArea {
-    static const float DefaultScale;
+    static const double DefaultScale;
 
     StemArea() : SimulationArea(), xPixels(64), yPixels(64) {}
-    StemArea(float xs, float xf, float ys, float yf, unsigned int xp, unsigned int yp, float pd = 0.0f) : SimulationArea(xs, xf, ys, yf, pd),
+    StemArea(double xs, double xf, double ys, double yf, unsigned int xp, unsigned int yp, double pd = 0.0) : SimulationArea(xs, xf, ys, yf, pd),
                                                                                  xPixels(xp), yPixels(yp) {}
 
-    bool setPxRangeX(float start, float finish, int px);
-    bool setPxRangeY(float start, float finish, int px);
+    bool setPxRangeX(double start, double finish, int px);
+    bool setPxRangeY(double start, double finish, int px);
 
-    void forcePxRangeX(float start, float finish, int px);
-    void forcePxRangeY(float start, float finish, int px);
+    void forcePxRangeX(double start, double finish, int px);
+    void forcePxRangeY(double start, double finish, int px);
 
     void setPixelsX(unsigned int px) {xPixels = px;}
     void setPixelsY(unsigned int px) {yPixels = px;}
 
-    float getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
-    float getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}
+    double getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
+    double getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}
 
     unsigned int getPixelsX() {return xPixels;}
     unsigned int getPixelsY() {return yPixels;}
-    float getPadding() {return padding;}
+    double getPadding() {return padding;}
 
-    float getScaleX();
-    float getScaleY();
+    double getScaleX();
+    double getScaleY();
 
     unsigned int getNumPixels() {return xPixels * yPixels;}
 

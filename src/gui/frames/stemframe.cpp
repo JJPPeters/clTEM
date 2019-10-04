@@ -64,8 +64,8 @@ void StemFrame::updateScaleLabels()
     if (Main == nullptr)
         throw std::runtime_error("Error connecting STEM frame to main window.");
 
-    float scaleX = Main->getStemArea()->getScaleX();
-    float scaleY = Main->getStemArea()->getScaleY();
+    double scaleX = Main->getStemArea()->getScaleX();
+    double scaleY = Main->getStemArea()->getScaleY();
 
     ui->lblStemScaleX->setText( "x: " + Utils_Qt::numToQString(scaleX, 2) + " Å" );
     ui->lblStemScaleY->setText( "y: " + Utils_Qt::numToQString(scaleY, 2) + " Å" );

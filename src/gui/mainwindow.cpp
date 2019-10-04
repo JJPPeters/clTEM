@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // register types for our image returns!!
     qRegisterMetaType< std::map<std::string, Image<float>> >( "std::map<std::string, Image<float>>" );
+    qRegisterMetaType< std::map<std::string, Image<double>> >( "std::map<std::string, Image<double>>" );
     qRegisterMetaType< SimulationManager >( "SimulationManager" );
 
     QSettings settings;
@@ -285,13 +286,13 @@ void MainWindow::on_twMode_currentChanged(int index)
     updateScales();
 }
 
-void MainWindow::updateSlicesProgress(float prog)
+void MainWindow::updateSlicesProgress(double prog)
 {
     QMutexLocker locker(&Progress_Mutex);
     emit sliceProgressUpdated(prog);
 }
 
-void MainWindow::updateTotalProgress(float prog)
+void MainWindow::updateTotalProgress(double prog)
 {
     QMutexLocker locker(&Progress_Mutex);
     emit totalProgressUpdated(prog);
@@ -309,8 +310,8 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // Start by stopping the user attempting to run the simulation again
     setUiActive(false);
 
-    StatusBar->setSliceProgress(0.f);
-    StatusBar->setTotalProgress(0.f);
+    StatusBar->setSliceProgress(0.0);
+    StatusBar->setTotalProgress(0.0);
 
     // Set some variables that aren't auto updates
 
@@ -344,23 +345,25 @@ void MainWindow::on_actionSimulate_EW_triggered()
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
+    bool use_double_precision = Manager->getDoDoublePrecision();
+
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
     man_list.push_back(temp);
 
     std::vector<clDevice> &d = Devices;
 
-    SimThread = std::make_shared<SimulationThread>(man_list, d);
+    SimThread = std::make_shared<SimulationThread>(man_list, d, use_double_precision);
 
     SimThread->start();
 }
 
-void MainWindow::sliceProgressChanged(float prog)
+void MainWindow::sliceProgressChanged(double prog)
 {
     StatusBar->setSliceProgress(prog);
 }
 
-void MainWindow::totalProgressChanged(float prog)
+void MainWindow::totalProgressChanged(double prog)
 {
     StatusBar->setTotalProgress(prog);
 }
@@ -374,8 +377,8 @@ void MainWindow::imagesChanged(SimulationManager sm)
         simulationFailed();
     }
 
-    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
-    settings["filename"] = sm.getStructure()->getFileName();
+    nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
+    original_settings["filename"] = sm.getStructure()->getFileName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -391,15 +394,16 @@ void MainWindow::imagesChanged(SimulationManager sm)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "EW") {
+                    auto settings = original_settings;
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
 
                     // convert our float data to complex
-                    std::vector<std::complex<float>> comp_data(im.height*im.width);
+                    std::vector<std::complex<double>> comp_data(im.height*im.width);
                     for (int i = 0; i < comp_data.size(); ++i)
-                        comp_data[i] = std::complex<float>(im.data[2*i], im.data[2*i+1]);
-                    Image<std::complex<float>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
+                        comp_data[i] = std::complex<double>(im.data[2*i], im.data[2*i+1]);
+                    Image<std::complex<double>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
 
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
@@ -415,6 +419,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
             {
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
+                    auto settings = original_settings;
                     double lx = sm.getPaddedSimLimitsX()[0];
                     double ly = sm.getPaddedSimLimitsY()[0];
                     double sc = sm.getRealScale();
@@ -429,6 +434,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
             {
                 ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
                 if (tab->getTabName() == "Diffraction") {
+                    auto settings = original_settings;
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
@@ -454,6 +460,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == name) {
                     // add the specific detector info here!
+                    auto settings = original_settings;
                     for (auto d : sm.getDetectors())
                         if (d.name == name)
                             settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
@@ -541,29 +548,45 @@ void MainWindow::cancel_simulation()
 
     setUiActive(true);
 
-    sliceProgressChanged(0.0f);
-    totalProgressChanged(0.0f);
+    sliceProgressChanged(0.0);
+    totalProgressChanged(0.0);
 }
 
 void MainWindow::loadExternalSources()
 {
     // Populate the kernels from files...
-    Kernels::atom_sort = Utils_Qt::kernelToChar("atom_sort.cl");
-    Kernels::floatSumReductionsource2 = Utils_Qt::kernelToChar("sum_reduction.cl");
-    Kernels::BandLimitSource = Utils_Qt::kernelToChar("low_pass.cl");
-    Kernels::fftShiftSource = Utils_Qt::kernelToChar("post_fft_shift.cl");
-    Kernels::opt2source = Utils_Qt::kernelToChar("potential_full_3d.cl");
-    Kernels::conv2source = Utils_Qt::kernelToChar("potential_conventional.cl");
-    Kernels::propsource = Utils_Qt::kernelToChar("generate_propagator.cl");
-    Kernels::multisource = Utils_Qt::kernelToChar("complex_multiply.cl");
-    Kernels::InitialiseWavefunctionSource = Utils_Qt::kernelToChar("initialise_plane.cl");
-    Kernels::imagingKernelSource = Utils_Qt::kernelToChar("generate_tem_image.cl");
-    Kernels::InitialiseSTEMWavefunctionSourceTest = Utils_Qt::kernelToChar("initialise_probe.cl");
-    Kernels::floatabsbandPassSource = Utils_Qt::kernelToChar("band_pass.cl");
-    Kernels::SqAbsSource = Utils_Qt::kernelToChar("square_absolute.cl");
-    Kernels::DqeSource = Utils_Qt::kernelToChar("dqe.cl");
-    Kernels::NtfSource = Utils_Qt::kernelToChar("ntf.cl");
+    Kernels::atom_sort_f = Utils_Qt::kernelToChar("atom_sort_f.cl");
+    Kernels::band_limit_f = Utils_Qt::kernelToChar("band_limit_f.cl");
+    Kernels::band_pass_f = Utils_Qt::kernelToChar("band_pass_f.cl");
+    Kernels::ccd_dqe_f = Utils_Qt::kernelToChar("ccd_dqe_f.cl");
+    Kernels::ccd_ntf_f = Utils_Qt::kernelToChar("ccd_ntf_f.cl");
+    Kernels::complex_multiply_f = Utils_Qt::kernelToChar("complex_multiply_f.cl");
+    Kernels::ctem_image_f = Utils_Qt::kernelToChar("ctem_image_f.cl");
+    Kernels::fft_shift_f = Utils_Qt::kernelToChar("fft_shift_f.cl");
+    Kernels::init_plane_wave_f = Utils_Qt::kernelToChar("init_plane_wave_f.cl");
+    Kernels::init_probe_wave_f = Utils_Qt::kernelToChar("init_probe_wave_f.cl");
+    Kernels::potential_full_3d_f = Utils_Qt::kernelToChar("potential_full_3d_f.cl");
+    Kernels::potential_projected_f = Utils_Qt::kernelToChar("potential_projected_f.cl");
+    Kernels::propogator_f = Utils_Qt::kernelToChar("propagator_f.cl");
+    Kernels::sqabs_f = Utils_Qt::kernelToChar("sqabs_f.cl");
+    Kernels::sum_reduction_f = Utils_Qt::kernelToChar("sum_reduction_f.cl");
 
+    Kernels::atom_sort_d = Utils_Qt::kernelToChar("atom_sort_d.cl");
+    Kernels::band_limit_d = Utils_Qt::kernelToChar("band_limit_d.cl");
+    Kernels::band_pass_d = Utils_Qt::kernelToChar("band_pass_d.cl");
+    Kernels::ccd_dqe_d = Utils_Qt::kernelToChar("ccd_dqe_d.cl");
+    Kernels::ccd_ntf_d = Utils_Qt::kernelToChar("ccd_ntf_d.cl");
+    Kernels::complex_multiply_d = Utils_Qt::kernelToChar("complex_multiply_d.cl");
+    Kernels::ctem_image_d = Utils_Qt::kernelToChar("ctem_image_d.cl");
+    Kernels::fft_shift_d = Utils_Qt::kernelToChar("fft_shift_d.cl");
+    Kernels::init_plane_wave_d = Utils_Qt::kernelToChar("init_plane_wave_d.cl");
+    Kernels::init_probe_wave_d = Utils_Qt::kernelToChar("init_probe_wave_d.cl");
+    Kernels::potential_full_3d_d = Utils_Qt::kernelToChar("potential_full_3d_d.cl");
+    Kernels::potential_projected_d = Utils_Qt::kernelToChar("potential_projected_d.cl");
+    Kernels::propogator_d = Utils_Qt::kernelToChar("propagator_d.cl");
+    Kernels::sqabs_d = Utils_Qt::kernelToChar("sqabs_d.cl");
+    Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
+    
     // load parameters
     // get all the files in the parameters folder
     auto params_path = qApp->applicationDirPath() + "/params/";
@@ -577,7 +600,7 @@ void MainWindow::loadExternalSources()
 
     for (int k = 0; k < params_files.size(); ++k) {
         unsigned int row_count;
-        std::vector<float> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
+        std::vector<double> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
         std::string p_name = params_files[k].toStdString();
         p_name.erase(p_name.find(".dat"), 4);
         StructureParameters::setParams(params, p_name, row_count);
@@ -591,7 +614,7 @@ void MainWindow::loadExternalSources()
     ccd_filt << "*.dat";
     QStringList ccd_files = ccd_dir.entryList(ccd_filt);
 
-    std::vector<float> dqe, ntf;
+    std::vector<double> dqe, ntf;
     std::string name;
     for (int k = 0; k < ccd_files.size(); ++k) {
         Utils_Qt::ccdToDqeNtf(ccd_files[k].toStdString(), name, dqe, ntf);
@@ -810,7 +833,7 @@ void MainWindow::on_actionThermal_scattering_triggered() {
     myDialog->exec();
 }
 
-void MainWindow::updateVoltageMrad(float voltage) {
+void MainWindow::updateVoltageMrad(double voltage) {
     if (!Manager->haveStructure() || !Manager->haveResolution())
         return;
 

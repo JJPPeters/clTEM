@@ -128,7 +128,7 @@ void FullAberrationFrame::checkEditZero(QString dud)
     if(edt == nullptr)
         return;
 
-    float val = edt->text().toFloat();
+    double val = edt->text().toDouble();
 
     if (val <= 0)
         edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
@@ -158,10 +158,10 @@ bool FullAberrationFrame::dlgApply_clicked()
     // then just copy all the aberrations to a new class and send it off...
     // woo!
 
-    float voltage = ui->edtVoltage->text().toFloat();
-    float dfSpread = ui->edtDefocusSpread->text().toFloat() * 10;
-    float apert = ui->edtAperture->text().toFloat();
-    float converge = ui->edtConverge->text().toFloat();
+    double voltage = ui->edtVoltage->text().toDouble();
+    double dfSpread = ui->edtDefocusSpread->text().toDouble() * 10;
+    double apert = ui->edtAperture->text().toDouble();
+    double converge = ui->edtConverge->text().toDouble();
 
     // TODO: show error here or just when simulation is started
 //    if (voltage <= 0 || dfSpread <= 0 || apert <= 0 || converge <= 0)
@@ -170,35 +170,35 @@ bool FullAberrationFrame::dlgApply_clicked()
 //        return false;
 //    }
 
-    float C10 = ui->edtC10->text().toFloat() * 10;
-    float C12m = ui->edtC12Mag->text().toFloat() * 10;
-    float C12a = ui->edtC12Ang->text().toFloat() * Constants::Pi / 180;
+    double C10 = ui->edtC10->text().toDouble() * 10;
+    double C12m = ui->edtC12Mag->text().toDouble() * 10;
+    double C12a = ui->edtC12Ang->text().toDouble() * Constants::Pi / 180;
 
-    float C21m = ui->edtC21Mag->text().toFloat() * 10;
-    float C21a = ui->edtC21Ang->text().toFloat() * Constants::Pi / 180;
-    float C23m = ui->edtC23Mag->text().toFloat() * 10;
-    float C23a = ui->edtC23Ang->text().toFloat() * Constants::Pi / 180;
+    double C21m = ui->edtC21Mag->text().toDouble() * 10;
+    double C21a = ui->edtC21Ang->text().toDouble() * Constants::Pi / 180;
+    double C23m = ui->edtC23Mag->text().toDouble() * 10;
+    double C23a = ui->edtC23Ang->text().toDouble() * Constants::Pi / 180;
 
-    float C30 = ui->edtC30->text().toFloat() * 10000;
-    float C32m = ui->edtC32Mag->text().toFloat() * 10000;
-    float C32a = ui->edtC32Ang->text().toFloat() * Constants::Pi / 180;
-    float C34m = ui->edtC34Mag->text().toFloat() * 10000;
-    float C34a = ui->edtC34Ang->text().toFloat() * Constants::Pi / 180;
+    double C30 = ui->edtC30->text().toDouble() * 10000;
+    double C32m = ui->edtC32Mag->text().toDouble() * 10000;
+    double C32a = ui->edtC32Ang->text().toDouble() * Constants::Pi / 180;
+    double C34m = ui->edtC34Mag->text().toDouble() * 10000;
+    double C34a = ui->edtC34Ang->text().toDouble() * Constants::Pi / 180;
 
-    float C41m = ui->edtC41Mag->text().toFloat() * 10000;
-    float C41a = ui->edtC41Ang->text().toFloat() * Constants::Pi / 180;
-    float C43m = ui->edtC43Mag->text().toFloat() * 10000;
-    float C43a = ui->edtC43Ang->text().toFloat() * Constants::Pi / 180;
-    float C45m = ui->edtC45Mag->text().toFloat() * 10000;
-    float C45a = ui->edtC45Ang->text().toFloat() * Constants::Pi / 180;
+    double C41m = ui->edtC41Mag->text().toDouble() * 10000;
+    double C41a = ui->edtC41Ang->text().toDouble() * Constants::Pi / 180;
+    double C43m = ui->edtC43Mag->text().toDouble() * 10000;
+    double C43a = ui->edtC43Ang->text().toDouble() * Constants::Pi / 180;
+    double C45m = ui->edtC45Mag->text().toDouble() * 10000;
+    double C45a = ui->edtC45Ang->text().toDouble() * Constants::Pi / 180;
 
-    float C50 = ui->edtC50->text().toFloat() * 10000;
-    float C52m = ui->edtC52Mag->text().toFloat() * 10000;
-    float C52a = ui->edtC52Ang->text().toFloat() * Constants::Pi / 180;
-    float C54m = ui->edtC54Mag->text().toFloat() * 10000;
-    float C54a = ui->edtC54Ang->text().toFloat() * Constants::Pi / 180;
-    float C56m = ui->edtC56Mag->text().toFloat() * 10000;
-    float C56a = ui->edtC56Ang->text().toFloat() * Constants::Pi / 180;
+    double C50 = ui->edtC50->text().toDouble() * 10000;
+    double C52m = ui->edtC52Mag->text().toDouble() * 10000;
+    double C52a = ui->edtC52Ang->text().toDouble() * Constants::Pi / 180;
+    double C54m = ui->edtC54Mag->text().toDouble() * 10000;
+    double C54a = ui->edtC54Ang->text().toDouble() * Constants::Pi / 180;
+    double C56m = ui->edtC56Mag->text().toDouble() * 10000;
+    double C56a = ui->edtC56Ang->text().toDouble() * Constants::Pi / 180;
 
     // now we have all the data, assign it to our class storing everything
 

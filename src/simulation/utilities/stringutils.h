@@ -31,9 +31,9 @@ namespace Utils
 
     std::string resourceToChar(std::string full_directory, std::string fileName);
 
-    std::vector<float> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count);
+    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count);
 
-    void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<float>& dqe_io, std::vector<float>& ntf_io);
+    void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io);
 }
 
 #endif // STRINGUTILS_H

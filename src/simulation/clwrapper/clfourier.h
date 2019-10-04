@@ -5,8 +5,10 @@
 #ifndef CLWRAPPER_MAIN_CLFOURIER_H
 #define CLWRAPPER_MAIN_CLFOURIER_H
 
-#include "CL/cl.hpp"
 #include "clFFT.h"
+
+#include <complex>
+#include "CL/cl.hpp"
 
 #include "clstatic.h"
 #include "clcontext.h"
@@ -25,8 +27,9 @@ namespace Direction
         Forwards,
         Inverse
     };
-};
+}
 
+template <class T>
 class clFourier
 {
     clContext Context;
@@ -69,8 +72,9 @@ public:
 
     ~clFourier();
 
-    template <class T, template <class> class AutoPolicy, template <class> class AutoPolicy2>
-    clEvent Do(clMemory<T,AutoPolicy2>& input, clMemory<T,AutoPolicy>& output, Direction::TransformDirection Direction)
+    template <template <class> class AutoPolicy, template <class> class AutoPolicy2>
+    clEvent run(clMemory<std::complex<T>, AutoPolicy2> &input, clMemory<std::complex<T>, AutoPolicy> &output,
+                Direction::TransformDirection Direction)
     {
         clfftDirection Dir = (Direction == Direction::Forwards) ? CLFFT_FORWARD : CLFFT_BACKWARD;
 

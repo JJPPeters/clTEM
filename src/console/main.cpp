@@ -108,7 +108,7 @@ bool parseThreeCommaList(std::string lst, T& a, T& b, T& c)
     return true;
 }
 
-void reportSliceProgress(float frac)
+void reportSliceProgress(double frac)
 {
     std::lock_guard<std::mutex> lock(out_mtx);
     // currently only updates once hte simulation has finished...
@@ -116,18 +116,18 @@ void reportSliceProgress(float frac)
 
 
     std::cout << "Slice progress: " << slice_pcnt << "%, total progress: " << total_pcnt << "%          \r" << std::flush;
-    if (total_pcnt >= 100.0f)
+    if (total_pcnt >= 100.0)
         std::cout << std::endl;
 }
 
-void reportTotalProgress(float frac)
+void reportTotalProgress(double frac)
 {
     std::lock_guard<std::mutex> lock(out_mtx);
     total_pcnt = (int) (frac*100);
 
 
     std::cout << "Slice progress: " << slice_pcnt << "%, total progress: " << total_pcnt << "%          \r" << std::flush;
-    if (total_pcnt >= 100.0f)
+    if (total_pcnt >= 100.0)
         std::cout << std::endl;
 }
 
@@ -159,8 +159,10 @@ void imageReturned(SimulationManager sm)
             settings["microscope"].erase("alpha");
             settings["microscope"].erase("delta");
         }
-        else
-        {
+        else if (name == "Image") {
+            // Nothing to do here?
+        }
+        else {
             // add the specific detector info here!
             for (const auto &d : sm.getDetectors())
                 if (d.name == name)
@@ -349,40 +351,36 @@ int main(int argc, char *argv[])
             valid_flags = false;
         }
 
-        float sx, sy, sz;
+        double sx, sy, sz;
         if(!parseThreeCommaList(size_arg, sx, sy, sz)) {
             std::cerr << "Could not parse .cif size argument: " << size_arg << std::endl;
             valid_flags = false;
-        }
+        } else
+            sc_info.setWidths(sx, sy, sz);
 
-        float zu, zv, zw;
+        double zu, zv, zw;
         if(!parseThreeCommaList(zone_arg, zu, zv, zw)) {
             std::cerr << "Could not parse .cif size argument: " << zone_arg << std::endl;
             valid_flags = false;
-        }
+        } else
+            sc_info.setZoneAxis(zu, zv, zw);
 
-        float nu, nv, nw;
+        double nu, nv, nw;
         if (!normal_arg.empty()) {
             if(!parseThreeCommaList(normal_arg, nu, nv, nw)) {
                 std::cerr << "Could not parse .cif normal argument: " << normal_arg << std::endl;
                 valid_flags = false;
-            }
+            } else
+                sc_info.setHorizontalAxis(nu, nv, nw);
         }
 
-        float tx, ty, tz;
+        double tx, ty, tz;
         if (!tilt_arg.empty()) {
             if(!parseThreeCommaList(tilt_arg, tx, ty, tz)) {
                 std::cerr << "Could not parse .cif tilt argument: " << tilt_arg << std::endl;
                 valid_flags = false;
-            }
-        }
-
-        // TODO: check these default to 0?
-        if (valid_flags) {
-            sc_info.setWidths(sx, sy, sz);
-            sc_info.setZoneAxis(zu, zv, zw);
-            sc_info.setHorizontalAxis(nu, nv, nw);
-            sc_info.setTilts(tx, ty, tz);
+            } else
+                sc_info.setTilts(tx, ty, tz);
         }
 
     } else {
@@ -486,8 +484,6 @@ int main(int argc, char *argv[])
     // now have all our files/folders
     // need to check that they are all valid!
 
-    std::vector<std::shared_ptr<SimulationManager>> man_list;
-
     // read the config file in
     nlohmann::json j;
 
@@ -514,8 +510,8 @@ int main(int argc, char *argv[])
             man_ptr->setStructure(input_struct, sc_info);
         else
             man_ptr->setStructure(input_struct);
-    } catch (...) {
-        std::cout << "Error opening structure file. Exiting..." << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "Error opening structure file: " << e.what() << std::endl;
         CLOG(ERROR, "cmd") << "Error opening structure file";
         return 1;
     }
@@ -589,7 +585,7 @@ int main(int argc, char *argv[])
     std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
     unsigned int row_count;
-    std::vector<float> params = Utils::paramsToVector(params_path, p_name+ ".dat", row_count);
+    std::vector<double> params = Utils::paramsToVector(params_path, p_name+ ".dat", row_count);
     StructureParameters::setParams(params, p_name, row_count);
     man_ptr->setStructureParameters(p_name);
 
@@ -600,32 +596,48 @@ int main(int argc, char *argv[])
         std::cout << e.what() << std::endl;
     }
 
-    man_list.emplace_back(man_ptr);
-
     // open the kernels
     std::string kernel_path = exe_path_string + sep + "kernels";
-    Kernels::atom_sort = Utils::resourceToChar(kernel_path, "atom_sort.cl");
-    Kernels::floatSumReductionsource2 = Utils::resourceToChar(kernel_path, "sum_reduction.cl");
-    Kernels::BandLimitSource = Utils::resourceToChar(kernel_path, "low_pass.cl");
-    Kernels::fftShiftSource = Utils::resourceToChar(kernel_path, "post_fft_shift.cl");
-    Kernels::opt2source = Utils::resourceToChar(kernel_path, "potential_full_3d.cl");
-    Kernels::conv2source = Utils::resourceToChar(kernel_path, "potential_conventional.cl");
-    Kernels::propsource = Utils::resourceToChar(kernel_path, "generate_propagator.cl");
-    Kernels::multisource = Utils::resourceToChar(kernel_path, "complex_multiply.cl");
-    Kernels::InitialiseWavefunctionSource = Utils::resourceToChar(kernel_path, "initialise_plane.cl");
-    Kernels::imagingKernelSource = Utils::resourceToChar(kernel_path, "generate_tem_image.cl");
-    Kernels::InitialiseSTEMWavefunctionSourceTest = Utils::resourceToChar(kernel_path, "initialise_probe.cl");
-    Kernels::floatabsbandPassSource = Utils::resourceToChar(kernel_path, "band_pass.cl");
-    Kernels::SqAbsSource = Utils::resourceToChar(kernel_path, "square_absolute.cl");
-    Kernels::DqeSource = Utils::resourceToChar(kernel_path, "dqe.cl");
-    Kernels::NtfSource = Utils::resourceToChar(kernel_path, "ntf.cl");
 
-    std::string ccds_path = exe_path_string + sep + "ccds";
+    if (man_ptr->getDoDoublePrecision()) {
+        Kernels::atom_sort_d = Utils::resourceToChar(kernel_path, "atom_sort_d.cl");
+        Kernels::band_limit_d = Utils::resourceToChar(kernel_path, "band_limit_d.cl");
+        Kernels::band_pass_d = Utils::resourceToChar(kernel_path, "band_pass_d.cl");
+        Kernels::ccd_dqe_d = Utils::resourceToChar(kernel_path, "ccd_dqe_d.cl");
+        Kernels::ccd_ntf_d = Utils::resourceToChar(kernel_path, "ccd_ntf_d.cl");
+        Kernels::complex_multiply_d = Utils::resourceToChar(kernel_path, "complex_multiply_d.cl");
+        Kernels::ctem_image_d = Utils::resourceToChar(kernel_path, "ctem_image_d.cl");
+        Kernels::fft_shift_d = Utils::resourceToChar(kernel_path, "fft_shift_d.cl");
+        Kernels::init_plane_wave_d = Utils::resourceToChar(kernel_path, "init_plane_wave_d.cl");
+        Kernels::init_probe_wave_d = Utils::resourceToChar(kernel_path, "init_probe_wave_d.cl");
+        Kernels::potential_full_3d_d = Utils::resourceToChar(kernel_path, "potential_full_3d_d.cl");
+        Kernels::potential_projected_d = Utils::resourceToChar(kernel_path, "potential_projected_d.cl");
+        Kernels::propogator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
+        Kernels::sqabs_d = Utils::resourceToChar(kernel_path, "sqabs_d.cl");
+        Kernels::sum_reduction_d = Utils::resourceToChar(kernel_path, "sum_reduction_d.cl");
+    } else {
+        Kernels::atom_sort_f = Utils::resourceToChar(kernel_path, "atom_sort_f.cl");
+        Kernels::band_limit_f = Utils::resourceToChar(kernel_path, "band_limit_f.cl");
+        Kernels::band_pass_f = Utils::resourceToChar(kernel_path, "band_pass_f.cl");
+        Kernels::ccd_dqe_f = Utils::resourceToChar(kernel_path, "ccd_dqe_f.cl");
+        Kernels::ccd_ntf_f = Utils::resourceToChar(kernel_path, "ccd_ntf_f.cl");
+        Kernels::complex_multiply_f = Utils::resourceToChar(kernel_path, "complex_multiply_f.cl");
+        Kernels::ctem_image_f = Utils::resourceToChar(kernel_path, "ctem_image_f.cl");
+        Kernels::fft_shift_f = Utils::resourceToChar(kernel_path, "fft_shift_f.cl");
+        Kernels::init_plane_wave_f = Utils::resourceToChar(kernel_path, "init_plane_wave_f.cl");
+        Kernels::init_probe_wave_f = Utils::resourceToChar(kernel_path, "init_probe_wave_f.cl");
+        Kernels::potential_full_3d_f = Utils::resourceToChar(kernel_path, "potential_full_3d_f.cl");
+        Kernels::potential_projected_f = Utils::resourceToChar(kernel_path, "potential_projected_f.cl");
+        Kernels::propogator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
+        Kernels::sqabs_f = Utils::resourceToChar(kernel_path, "sqabs_f.cl");
+        Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");
+    }
 
-    auto ccd_name = JSONUtils::readJsonEntry<std::string>(j, "ctem", "ccd", "name");
+    auto ccd_name = man_ptr->getCcdName();
 
-    if (ccd_name != "Perfect") {
-        std::vector<float> dqe, ntf;
+    if (ccd_name != "" && ccd_name != "Perfect") {
+        std::string ccds_path = exe_path_string + sep + "ccds";
+        std::vector<double> dqe, ntf;
         std::string name;
         Utils::ccdToDqeNtf(ccds_path, ccd_name + ".dat", name, dqe, ntf);
         CCDParams::addCCD(name, dqe, ntf);
@@ -634,8 +646,11 @@ int main(int argc, char *argv[])
     // global because I am lazy (or smart?)
     out_path = output_dir;
 
+    std::vector<std::shared_ptr<SimulationManager>> man_list;
 
-    auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list);
+    man_list.emplace_back(man_ptr);
+
+    auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list, man_ptr->getDoDoublePrecision());
 
     simRunner->runSimulations();
 

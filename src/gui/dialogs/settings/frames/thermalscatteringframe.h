@@ -34,7 +34,7 @@ private:
 
     std::shared_ptr<SimulationManager> Manager;
 
-    void addItemToList(std::string el, float vib);
+    void addItemToList(std::string el, double vib);
 
 };
 

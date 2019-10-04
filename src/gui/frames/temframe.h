@@ -27,12 +27,12 @@ public:
     void setSimImageCheck(bool state);
     void setCcdIndex(int index);
     void setBinningIndex(int index);
-    void setDose(float dose);
+    void setDose(double dose);
 
     int getBinning();
     std::string getCcd();
     bool getSimImage();
-    float getDose();
+    double getDose();
 
     void populateCcdCombo(std::vector<std::string> names);
 

@@ -290,7 +290,7 @@ void CifCreatorFrame::previewStructure(bool dummy) {
         pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
+        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
     }
 
     pltPreview->PlotAtoms(pos, col, getViewDirection(), xr[0]+1, xr[1]-1, yr[0]+1, yr[1]-1, zr[0]+1, zr[1]-1);

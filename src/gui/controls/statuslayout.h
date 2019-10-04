@@ -15,8 +15,8 @@ public:
     explicit StatusLayout(QWidget *parent = 0);
     ~StatusLayout();
 
-    void setSliceProgress(float prog);
-    void setTotalProgress(float prog);
+    void setSliceProgress(double prog);
+    void setTotalProgress(double prog);
     void setFileLabel(const QString &lbl);
 
 private:

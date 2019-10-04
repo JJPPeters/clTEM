@@ -9,7 +9,7 @@
 /// width - width of input
 /// height - height of input
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clfftShift( __global const float2* input,
+__kernel void fft_shift_f( __global const float2* input,
                           __global float2* output,
                           unsigned int width,
                           unsigned int height)
@@ -19,30 +19,30 @@ __kernel void clfftShift( __global const float2* input,
     int yid = get_global_id(1);
     if(xid < width && yid < height)
     {
-        int Index = xid + yid * width;
+        int id = xid + yid * width;
         int Yshift = width * height / 2;
         int Xshift = width / 2;
         int Xmid = width / 2;
         int Ymid = height / 2;
         if( xid < Xmid && yid < Ymid )
         {
-            output[Index+Yshift+Xshift].x = input[Index].x;
-            output[Index+Yshift+Xshift].y = input[Index].y;
+            output[id+Yshift+Xshift].x = input[id].x;
+            output[id+Yshift+Xshift].y = input[id].y;
         }
         else if( xid >= Xmid && yid < Ymid )
         {
-            output[Index+Yshift-Xshift].x = input[Index].x;
-            output[Index+Yshift-Xshift].y = input[Index].y;
+            output[id+Yshift-Xshift].x = input[id].x;
+            output[id+Yshift-Xshift].y = input[id].y;
         }
         else if( xid < Xmid && yid >= Ymid )
         {
-            output[Index-Yshift+Xshift].x = input[Index].x;
-            output[Index-Yshift+Xshift].y = input[Index].y;
+            output[id-Yshift+Xshift].x = input[id].x;
+            output[id-Yshift+Xshift].y = input[id].y;
         }
         else if( xid >= Xmid && yid >= Ymid )
         {
-            output[Index-Yshift-Xshift].x = input[Index].x;
-            output[Index-Yshift-Xshift].y = input[Index].y;
+            output[id-Yshift-Xshift].x = input[id].x;
+            output[id-Yshift-Xshift].y = input[id].y;
         }
     }
 }

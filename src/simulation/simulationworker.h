@@ -7,12 +7,13 @@
 #ifndef CLTEM_SIMULATIONWORKER_H
 #define CLTEM_SIMULATIONWORKER_H
 
+#include <complex>
 
 #include "threadworker.h"
 #include "clwrapper.h"
 #include "utilities/logging.h"
 
-
+template <class GPU_Type>
 class SimulationWorker : public ThreadWorker
 {
 private:
@@ -39,7 +40,7 @@ private:
 
     void sortAtoms(bool doTds = false);
 
-    void doCtem(bool simImage = false);
+    void doCtem();
 
     void doCbed();
 
@@ -49,51 +50,50 @@ private:
 
     void initialiseCtem();
 
-    void initialiseProbeWave(float posx, float posy, int n_parallel = 0);
+    void initialiseProbeWave(double posx, double posy, int n_parallel = 0);
 
     void doMultiSliceStep(int slice);
 
     void simulateCtemImage();
 
-    void simulateCtemImage(std::vector<float> dqe_data, std::vector<float> ntf_data, int binning, float doseperpix,
-                           float conversionfactor = 1);
+    void simulateCtemImage(std::vector<GPU_Type> dqe_data, std::vector<GPU_Type> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
 
-    std::vector<float> getDiffractionImage(int parallel_ind = 0);
+    std::vector<double> getDiffractionImage(int parallel_ind = 0);
 
-    std::vector<float> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
+    std::vector<double> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
 
-    std::vector<float> getCtemImage();
+    std::vector<double> getCtemImage();
 
-    float doSumReduction(clMemory<float, Manual> data, clWorkGroup globalSizeSum,
+    double doSumReduction(clMemory<GPU_Type, Manual> data, clWorkGroup globalSizeSum,
                          clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
-    float getStemPixel(float inner, float outer, float xc, float yc, int parallel_ind);
+    double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind);
 
     // OpenCL stuff
-    clMemory<float, Manual> ClParameterisation;
+    clMemory<GPU_Type, Manual> ClParameterisation;
 
-    clMemory<float, Manual> ClAtomX;
-    clMemory<float, Manual> ClAtomY;
-    clMemory<float, Manual> ClAtomZ;
+    clMemory<GPU_Type, Manual> ClAtomX;
+    clMemory<GPU_Type, Manual> ClAtomY;
+    clMemory<GPU_Type, Manual> ClAtomZ;
     clMemory<int, Manual> ClAtomA;
 
     clMemory<int, Manual> ClBlockStartPositions;
     clMemory<int, Manual> ClBlockIds;
     clMemory<int, Manual> ClZIds;
 
-    std::vector<clMemory<cl_float2, Manual>> clWaveFunction1;
-    std::vector<clMemory<cl_float2, Manual>> clWaveFunction2;
-    clMemory<cl_float2, Manual> clWaveFunction3;
-    std::vector<clMemory<cl_float2, Manual>> clWaveFunction4;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction1;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction2;
+    clMemory<std::complex<GPU_Type>, Manual> clWaveFunction3;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction4;
 
-    clMemory<float, Manual> clXFrequencies;
-    clMemory<float, Manual> clYFrequencies;
-    clMemory<cl_float2, Manual> clPropagator;
-    clMemory<cl_float2, Manual> clPotential;
-    clMemory<cl_float2, Manual> clImageWaveFunction;
+    clMemory<GPU_Type, Manual> clXFrequencies;
+    clMemory<GPU_Type, Manual> clYFrequencies;
+    clMemory<std::complex<GPU_Type>, Manual> clPropagator;
+    clMemory<std::complex<GPU_Type>, Manual> clPotential;
+    clMemory<std::complex<GPU_Type>, Manual> clImageWaveFunction;
 
     // General kernels
-    clFourier FourierTrans;
+    clFourier<GPU_Type> FourierTrans;
     clKernel AtomSort;
     clKernel BandLimit;
     clKernel fftShift;
@@ -107,17 +107,17 @@ private:
     clKernel ABS2;
     clKernel NtfKernel;
     clKernel DqeKernel;
-    clMemory<float, Manual> clCcdBuffer;
-    clMemory<cl_float2, Manual> clTempBuffer;
+    clMemory<GPU_Type, Manual> clCcdBuffer;
+    clMemory<std::complex<GPU_Type>, Manual> clTempBuffer;
 
     // CBED
     clKernel InitProbeWavefunction;
-    clMemory<float, Manual> clTDSMaskDiff;
+    clMemory<GPU_Type, Manual> clTDSMaskDiff;
 
     // STEM
     clKernel TDSMaskingAbsKernel;
     clKernel SumReduction;
-    clMemory<float, Manual> clReductionBuffer;
+    clMemory<GPU_Type, Manual> clReductionBuffer;
 };
 
 

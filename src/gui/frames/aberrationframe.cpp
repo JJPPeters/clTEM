@@ -60,7 +60,7 @@ void AberrationFrame::checkEditZero(QString dud)
         return;
 
     auto t = edt->text().toStdString();
-    float val = edt->text().toFloat();
+    double val = edt->text().toDouble();
 
     if (val <= 0)
         edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
@@ -114,16 +114,16 @@ void AberrationFrame::updateAberrations()
     auto params = Main->getMicroscopeParams();
 
     auto test = ui->edtDefocus->text().toStdString();
-    float C10 = ui->edtDefocus->text().toFloat() * 10; // Angstrom
-    float C30 = ui->edtSphere->text().toFloat() * 10000; // Angstrom
+    double C10 = ui->edtDefocus->text().toDouble() * 10; // Angstrom
+    double C30 = ui->edtSphere->text().toDouble() * 10000; // Angstrom
 
-    float delt = ui->edtDelta->text().toFloat() * 10; // Angstrom
-    float apert = ui->edtAperture->text().toFloat(); // mrad
-    float conv = ui->edtConverge->text().toFloat(); // mrad
-    float volt = ui->edtVoltage->text().toFloat(); // kV
+    double delt = ui->edtDelta->text().toDouble() * 10; // Angstrom
+    double apert = ui->edtAperture->text().toDouble(); // mrad
+    double conv = ui->edtConverge->text().toDouble(); // mrad
+    double volt = ui->edtVoltage->text().toDouble(); // kV
 
-    float C12m = ui->edtStigMag->text().toFloat() * 10; // Angstrom
-    float C12a = ui->edtStigAng->text().toFloat() * Constants::Pi / 180; // radians
+    double C12m = ui->edtStigMag->text().toDouble() * 10; // Angstrom
+    double C12a = ui->edtStigAng->text().toDouble() * Constants::Pi / 180; // radians
 
     params->Voltage = volt;
     params->Aperture = apert;
@@ -140,6 +140,6 @@ void AberrationFrame::on_edtVoltage_textChanged(const QString &arg1) {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
 
-    float volt = ui->edtVoltage->text().toFloat();
+    double volt = ui->edtVoltage->text().toDouble();
     Main->updateVoltageMrad( volt );
 }

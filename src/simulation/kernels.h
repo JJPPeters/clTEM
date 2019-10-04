@@ -48,7 +48,7 @@ private:
     void parseKernelString() {
         // This is designed to try and gather the information directly from the source using regex
         // This may not be perfect for all kernels, but works for the ones I have ever used
-        std::regex name_regex(R"(__kernel(?:.|\s)+?\s+([a-zA-z]+)\s*\()");
+        std::regex name_regex(R"(__kernel(?:.|\s)+?\s+(.+)\s*\()"); //__kernel\s+?[a-zA-Z]+\s+?(.+?)\(
         std::regex args_regex(R"(__kernel(?:.|\s)+?\(((?:.|\s)*?)\))");
         std::smatch matches;
 
@@ -69,21 +69,38 @@ private:
 
 struct Kernels
 {
-    static KernelSource atom_sort;
-    static KernelSource floatSumReductionsource2;
-    static KernelSource BandLimitSource;
-    static KernelSource fftShiftSource;
-    static KernelSource opt2source;
-    static KernelSource conv2source;
-    static KernelSource propsource;
-    static KernelSource multisource;
-    static KernelSource InitialiseWavefunctionSource;
-    static KernelSource imagingKernelSource;
-    static KernelSource InitialiseSTEMWavefunctionSourceTest;
-    static KernelSource floatabsbandPassSource;
-    static KernelSource SqAbsSource;
-    static KernelSource NtfSource;
-    static KernelSource DqeSource;
+    static KernelSource atom_sort_f;
+    static KernelSource band_limit_f;
+    static KernelSource band_pass_f;
+    static KernelSource ccd_dqe_f;
+    static KernelSource ccd_ntf_f;
+    static KernelSource complex_multiply_f;
+    static KernelSource ctem_image_f;
+    static KernelSource fft_shift_f;
+    static KernelSource init_plane_wave_f;
+    static KernelSource init_probe_wave_f;
+    static KernelSource potential_full_3d_f;
+    static KernelSource potential_projected_f;
+    static KernelSource propogator_f;
+    static KernelSource sqabs_f;
+    static KernelSource sum_reduction_f;
+
+    static KernelSource atom_sort_d;
+    static KernelSource band_limit_d;
+    static KernelSource band_pass_d;
+    static KernelSource ccd_dqe_d;
+    static KernelSource ccd_ntf_d;
+    static KernelSource complex_multiply_d;
+    static KernelSource ctem_image_d;
+    static KernelSource fft_shift_d;
+    static KernelSource init_plane_wave_d;
+    static KernelSource init_probe_wave_d;
+    static KernelSource potential_full_3d_d;
+    static KernelSource potential_projected_d;
+    static KernelSource propogator_d;
+    static KernelSource sqabs_d;
+    static KernelSource sum_reduction_d;
+
 };
 
 #endif //CLTEM_KERNELS_H

@@ -44,7 +44,7 @@ void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
     if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    float v = ui->edtPosY->text().toFloat();
+    double v = ui->edtPosY->text().toDouble();
 
     Main->Manager->getCBedPosition()->setYPos(v);
 }
@@ -56,7 +56,7 @@ void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
     if (Main == nullptr)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    float v = ui->edtPosX->text().toFloat();
+    double v = ui->edtPosX->text().toDouble();
 
     Main->Manager->getCBedPosition()->setXPos(v);
 }

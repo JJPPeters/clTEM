@@ -22,7 +22,7 @@ class ThreadWorker;
 class ThreadPool
 {
 public:
-    ThreadPool(std::vector<clDevice> devList, int num_jobs);
+    ThreadPool(std::vector<clDevice> devList, int num_jobs, bool double_precision);
 
     ~ThreadPool();
 
@@ -33,6 +33,7 @@ public:
 
 private:
     friend class ThreadWorker;
+    template <class T>
     friend class SimulationWorker;
 
     std::vector<std::thread> workers;

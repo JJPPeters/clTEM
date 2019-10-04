@@ -28,8 +28,8 @@ class MainWindow : public BorderlessWindow
     Q_OBJECT
 
 signals:
-    void sliceProgressUpdated(float);
-    void totalProgressUpdated(float);
+    void sliceProgressUpdated(double);
+    void totalProgressUpdated(double);
 
     void imagesReturned(SimulationManager);
 
@@ -49,8 +49,8 @@ public:
 
     void updateRanges();
 
-    void updateSlicesProgress(float prog);
-    void updateTotalProgress(float prog);
+    void updateSlicesProgress(double prog);
+    void updateTotalProgress(double prog);
 
     void updateImages(SimulationManager sm);
 
@@ -64,7 +64,7 @@ public:
 public slots:
     void updateScales();
 
-    void updateVoltageMrad(float voltage);
+    void updateVoltageMrad(double voltage);
 
     void set_active_mode(int mode);
 
@@ -103,9 +103,9 @@ private slots:
 
     void on_twMode_currentChanged(int index);
 
-    void sliceProgressChanged(float prog);
+    void sliceProgressChanged(double prog);
 
-    void totalProgressChanged(float prog);
+    void totalProgressChanged(double prog);
 
     void imagesChanged(SimulationManager sm);
 

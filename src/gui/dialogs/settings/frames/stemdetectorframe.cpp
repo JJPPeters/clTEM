@@ -59,10 +59,10 @@ void StemDetectorFrame::on_btnAdd_clicked()
     if(!checkNameValid(name))
         return;
 
-    float inner = ui->edtInner->text().toFloat();
-    float outer = ui->edtOuter->text().toFloat();
-    float xc = ui->edtCentreX->text().toFloat();
-    float yc = ui->edtCentreY->text().toFloat();
+    double inner = ui->edtInner->text().toDouble();
+    double outer = ui->edtOuter->text().toDouble();
+    double xc = ui->edtCentreX->text().toDouble();
+    double yc = ui->edtCentreY->text().toDouble();
 
     StemDetector d(name, inner, outer, xc, yc);
 
@@ -115,7 +115,7 @@ bool StemDetectorFrame::checkNameValid(std::string name)
 
 bool StemDetectorFrame::checkRadiiValid()
 {
-    return ui->edtInner->text().toFloat() < ui->edtOuter->text().toFloat();
+    return ui->edtInner->text().toDouble() < ui->edtOuter->text().toDouble();
 }
 
 void StemDetectorFrame::addItemToList(StemDetector det)
@@ -172,10 +172,10 @@ bool StemDetectorFrame::dlgApply_clicked()
     for (int i = 0; i < nRows; ++i)
     {
         std::string name = ui->tblDetectors->item(i, 0)->text().toStdString();
-        float inner = ui->tblDetectors->item(i, 1)->text().toFloat();
-        float outer = ui->tblDetectors->item(i, 2)->text().toFloat();
-        float xc = ui->tblDetectors->item(i, 3)->text().toFloat();
-        float yc = ui->tblDetectors->item(i, 4)->text().toFloat();
+        double inner = ui->tblDetectors->item(i, 1)->text().toDouble();
+        double outer = ui->tblDetectors->item(i, 2)->text().toDouble();
+        double xc = ui->tblDetectors->item(i, 3)->text().toDouble();
+        double yc = ui->tblDetectors->item(i, 4)->text().toDouble();
 
         chosenDetectors[i] = StemDetector(name, inner, outer, xc, yc);
     }

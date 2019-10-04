@@ -37,15 +37,15 @@ private:
     bool file_defined_thermals;
 
     /// Use to conver the structure/file units to Angstrom
-    float ScaleFactor;
+    double ScaleFactor;
 
     /// Spacial ;imits of our structure
-    float MaxX;
-    float MinX;
-    float MaxY;
-    float MinY;
-    float MaxZ;
-    float MinZ;
+    double MaxX;
+    double MinX;
+    double MaxY;
+    double MinY;
+    double MaxZ;
+    double MinZ;
 
     /// MAx atomic number - used to see our parameterisation covers this (assumes parameterisation does not have gaps)
     unsigned int MaxAtomicNumber;
@@ -61,7 +61,7 @@ private:
 
     void addAtom(AtomSite a);
 
-    void processAtomList(std::vector<std::string> A, std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<float> occ, std::vector<float> ux, std::vector<float> uy, std::vector<float> uz);
+    void processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz);
 
 public:
     // mostly for opening .xyz files, but will handle .cif
@@ -81,13 +81,13 @@ public:
 
     std::vector<AtomSite> getAtoms() {return Atoms;}
 
-    int getAtomCountInRange(float xs, float xf, float ys, float yf);
+    int getAtomCountInRange(double xs, double xf, double ys, double yf);
 
-    std::valarray<float> getLimitsX() {return {MinX, MaxX};}
+    std::valarray<double> getLimitsX() {return {MinX, MaxX};}
 
-    std::valarray<float> getLimitsY() {return {MinY, MaxY};}
+    std::valarray<double> getLimitsY() {return {MinY, MaxY};}
 
-    std::valarray<float> getLimitsZ() {return {MinZ, MaxZ};}
+    std::valarray<double> getLimitsZ() {return {MinZ, MaxZ};}
 
     unsigned int getMaxAtomicNumber() {return MaxAtomicNumber;}
 

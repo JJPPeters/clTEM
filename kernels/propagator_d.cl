@@ -15,27 +15,31 @@
 /// wavelength - wavelength of the electron beam (units...)
 /// k_max - maximum k value to allow through the low pass filter
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void clGeneratePropagator( __global float2* propagator,
-									__global float* k_x,
-									__global float* k_y,
+__kernel void propogator_d( __global double2* propagator,
+									__global double* k_x,
+									__global double* k_y,
 									unsigned int width,
 									unsigned int height,
-									float dz,
-									float wavelength,
-									float k_max)
+									double dz,
+									double wavelength,
+									double k_max)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
+
 	if(xid < width && yid < height) {
-		int Index = xid + width*yid;
-		float k0x = k_x[xid];
-		float k0y = k_y[yid];
+		int id = xid + width * yid;
+		double k0x = k_x[xid] * k_x[xid];
+        double k0y = k_y[yid] * k_y[yid];
 
-		k0x *= k0x;
-		k0y *= k0y;
+        if (k0x+k0y < k_max*k_max) {
+            propagator[id].x = native_cos(M_PI * dz * wavelength * (k0x+k0y));
+            propagator[id].y = -1.0 * native_sin(M_PI * dz * wavelength * (k0x+k0y));
+        } else {
+            propagator[id].x = 0.0;
+            propagator[id].y = 0.0;
+        }
 
-		propagator[Index].x = native_cos(M_PI_F * dz * wavelength * (k0x+k0y));
-		propagator[Index].y = -1.0f * native_sin(M_PI_F * dz * wavelength * (k0x+k0y));
 	}
 }
 

@@ -17,12 +17,12 @@ StatusLayout::~StatusLayout()
     delete ui;
 }
 
-void StatusLayout::setSliceProgress(float prog)
+void StatusLayout::setSliceProgress(double prog)
 {
     ui->progressBar->setValue(static_cast<int>(prog*100));
 }
 
-void StatusLayout::setTotalProgress(float prog)
+void StatusLayout::setTotalProgress(double prog)
 {
     ui->progressBar_2->setValue(static_cast<int>(prog*100));
 }
