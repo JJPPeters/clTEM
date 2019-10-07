@@ -25,14 +25,15 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(4, 0); // sets opengl version
 
-        pltPreview = new OGLViewWidget(this);
+        pltPreview = new PGL::PlotWidget(this);
         pltPreview->setFormat(format);
         ui->vPlotLayout->addWidget(pltPreview, 1);
         pltPreview->setMinimumHeight(400);
         pltPreview->setMinimumWidth(400);
 
         pltPreview->setAttribute(Qt::WA_TransparentForMouseEvents);
-        connect(pltPreview, &OGLViewWidget::initError, this, &CifCreatorFrame::processOpenGLError);
+        // TODO: add this back in
+//        connect(pltPreview, &OGLViewWidget::initError, this, &CifCreatorFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
@@ -293,7 +294,8 @@ void CifCreatorFrame::previewStructure(bool dummy) {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
     }
 
-    pltPreview->PlotAtoms(pos, col, getViewDirection(), xr[0]+1, xr[1]-1, yr[0]+1, yr[1]-1, zr[0]+1, zr[1]-1);
+    // TODO: add this back in
+//    pltPreview->PlotAtoms(pos, col, getViewDirection(), xr[0]+1, xr[1]-1, yr[0]+1, yr[1]-1, zr[0]+1, zr[1]-1);
 }
 
 View::Direction CifCreatorFrame::getViewDirection(){
@@ -318,7 +320,8 @@ void CifCreatorFrame::viewDirectionChanged() {
     if (!pltPreview)
         return;
 
-    pltPreview->SetViewDirection(getViewDirection());
+    // TODO: add this back in
+//    pltPreview->SetViewDirection(getViewDirection());
 
     pltPreview->repaint();
 }

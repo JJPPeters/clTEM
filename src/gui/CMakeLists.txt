@@ -19,7 +19,7 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 add_definitions ( -Wall )
 
-add_subdirectory(controls/oglviewwidget)
+add_subdirectory(controls/glplot)
 
 include_directories(simulation)
 

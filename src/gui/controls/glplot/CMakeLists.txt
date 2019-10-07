@@ -53,30 +53,31 @@ endif(EIGEN3_FOUND)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
 
 set ( glViewWidget_HDRS
-        oglbillboardtechnique.h
-        oglcamera.h
-        oglcamerapipeline.h
-        oglstatic.h
+        techniques/scattertechnique.h
+        camera.h
+        camerapipeline.h
+        error.h
         oglmaths.h
-        oglrectangletechnique.h
-        ogltechnique.h
-        ogltexture.h
-        oglarraybuffer.h
-        oglviewwidget.h
+        techniques/rectangletechnique.h
+        techniques/technique.h
+        arraybuffer.h
+        plotwidget.h
+        attributebuffer.h
+        framebuffer.h
         )
 
 set ( glViewWidget_SRCS
-        oglbillboardtechnique.cpp
-        oglcamera.cpp
-        oglcamerapipeline.cpp
-        oglstatic.cpp
+        techniques/scattertechnique.cpp
+        camera.cpp
+        camerapipeline.cpp
+        error.cpp
         oglmaths.cpp
-        oglrectangletechnique.cpp
-        ogltechnique.cpp
-        ogltexture.cpp
-        oglarraybuffer.cpp
-        oglviewwidget.cpp
-        oglattributebuffer.cpp oglattributebuffer.h)
+        techniques/rectangletechnique.cpp
+        techniques/technique.cpp
+        arraybuffer.cpp
+        plotwidget.cpp
+        attributebuffer.cpp
+        framebuffer.cpp)
 
 add_library ( glViewWidget STATIC ${glViewWidget_HDRS} ${glViewWidget_SRCS} ${RSCS})
 target_include_directories(glViewWidget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR})

@@ -6,7 +6,7 @@
 #include "ctemareaframe.h"
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
-#include "controls/oglviewwidget/oglviewwidget.h"
+#include "controls/glplot/plotwidget.h"
 #include "utilities/logging.h"
 
 namespace Ui {
@@ -72,7 +72,7 @@ private:
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
 
-    OGLViewWidget *pltStructure;
+    PGL::PlotWidget *pltStructure;
 
     bool getErrorStringCtem();
     bool getErrorStringStem();
