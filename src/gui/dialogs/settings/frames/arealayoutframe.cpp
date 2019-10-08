@@ -366,7 +366,7 @@ void AreaLayoutFrame::plotStructure() {
 //    pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
     auto scatter = std::make_shared<PGL::Scatter>(pos, col);
 
-    pltStructure->addItem(scatter);
+    pltStructure->addItem(std::dynamic_pointer_cast<PGL::Technique>(scatter));
     pltStructure->SetViewDirection(View::Direction::Top);
 
     pltStructure->FitView();

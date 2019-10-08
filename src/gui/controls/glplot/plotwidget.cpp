@@ -4,6 +4,7 @@
 #include <limits>
 
 #include <iostream>
+#include <techniques/scattertechnique.h>
 
 namespace PGL {
     PlotWidget::PlotWidget(QWidget *parent) : QOpenGLWidget(parent) {
@@ -24,7 +25,7 @@ namespace PGL {
 
 //    _technique = std::make_shared<OGLBillBoardTechnique>();
 
-//    connect(this, &PlotWidget::customContextMenuRequested, this, &PlotWidget::contextMenuRequest);
+        connect(this, &PlotWidget::customContextMenuRequested, this, &PlotWidget::contextMenuRequest);
     }
 
     bool PlotWidget::event(QEvent *event) {
@@ -41,6 +42,9 @@ namespace PGL {
 
     void PlotWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode) {
         Vector3f origin(0.0f, 0.0f, 0.0f);
+        Vector3f rotation_offset(0.0f, 0.0f, 0.0f);
+
+        _camera = std::make_shared<PGL::Camera>(position, target, up, origin, rot, rotation_offset, mode);
 
         _camera->setOrthoProjection(10, -10, -10, 10, -100, 10000);
 
@@ -86,7 +90,8 @@ namespace PGL {
         glDepthFunc(GL_GEQUAL); // this is odd, see reference in paintGL()
 
         _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, 1);
-        _camera = std::make_shared<PGL::Camera>();
+        //_camera = std::make_shared<PGL::Camera>();
+        SetViewDirection(View::Top);
 
         for (auto &technique: _techniques)
             technique->Init();
@@ -100,22 +105,22 @@ namespace PGL {
         GLint default_framebuffer = 0;
         glFuncs->glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &default_framebuffer);
 
-        _framebuffer->Bind();
+//        _framebuffer->Bind();
 
         glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Do some camera crap
         Matrix4f MV = _camera->getMV();
-//    Matrix4f P = _camera->getP();
-        auto P = _camera->getP();
+        Matrix4f P = _camera->getP();
 
         Vector2f screen_size(_width, _height);
 
         for (auto &technique: _techniques)
-            technique->Render(MV, P, screen_size);
+            //technique->Render(MV, P, screen_size);
+            std::dynamic_pointer_cast<PGL::Scatter>(technique)->Render(MV, P, screen_size);
 
-        _framebuffer->Blit(default_framebuffer);
-        _framebuffer->Unbind();
+//        _framebuffer->Blit(default_framebuffer);
+//        _framebuffer->Unbind();
     }
 
     void PlotWidget::resizeGL(int width, int height) {
@@ -125,15 +130,15 @@ namespace PGL {
 //    if (_camera) // TODO: is this check needed really??
         _camera->setWidthHeight(width, height);
 
-        _framebuffer->Resize(_width, _height, _camera->getPixelRatio());
+//        _framebuffer->Resize(_width, _height, _camera->getPixelRatio());
     }
 
     Eigen::Matrix<float, 3, 2> PlotWidget::GetSceneLimits() {
         // Using rows as x, y, z and columns and min, max
         Eigen::Matrix<float, 3, 2> limits;
-        limits << std::numeric_limits<float>::min(), std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::min(), std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::min(), std::numeric_limits<float>::max();
+        limits << std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::max(), std::numeric_limits<float>::min();
 
         for (auto &technique: _techniques) {
             // TODO: is there a nice way to do this in Eigen?
@@ -160,6 +165,7 @@ namespace PGL {
 
     void PlotWidget::FitView(float extend) {
         FitOrthoView(extend);
+        update();
     }
 
     void PlotWidget::FitOrthoView(float extend) {
@@ -168,8 +174,8 @@ namespace PGL {
 
         // TODO: need to form a 'cube' from our limits, apply the modelview matrix and get the limits from that
 
-        float w = limits(3) - limits(1);
-        float h = limits(0) - limits(2);
+        float w = limits(0, 1) - limits(0, 0);
+        float h = limits(1, 1) - limits(1, 0);
 
         float aspect = _width / _height;
 
@@ -183,78 +189,78 @@ namespace PGL {
             view_width = view_height * aspect;
         }
 
-        float mid_x = (limits(3) + limits(1)) / 2.0f;
-        float mid_y = (limits(0) + limits(2)) / 2.0f;
+        float mid_x = (limits(0, 1) + limits(0, 0)) / 2.0f;
+        float mid_y = (limits(1, 1) + limits(1, 0)) / 2.0f;
 
         _camera->setOrthoProjection(mid_y + view_height / 2.0f, mid_x - view_width / 2.0f, mid_y - view_height / 2.0f,
                                     mid_x + view_width / 2.0f);
     }
 
-//
-//void PlotWidget::mousePressEvent(QMouseEvent *event) {
-//    _lastPos = event->pos();
-//}
-//
-//void PlotWidget::mouseMoveEvent(QMouseEvent *event) {
-//    if (!_camera)
-//        return;
-//
-//    // y swapped to avoid inverted axis
-//    int dx = event->x() - _lastPos.x();
-//    int dy = event->y() - _lastPos.y();
-//
-//    auto test = QGuiApplication::queryKeyboardModifiers();
-//
-//    // mouse right is pan, mouse left is rotate
-//    if (event->buttons() & Qt::LeftButton) {
-//        _camera->OnMousePan(dx, dy);
-//        update();
-//    } else if (event->buttons() & Qt::RightButton && QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier) {
-//        _camera->OnMouseRotate(dx, dy);
-//        update();
-//    }
-//
-//    _lastPos = event->pos();
-//}
-//
-//void PlotWidget::keyPressEvent(QKeyEvent *event) {
-//    if (!_camera)
-//        return;
-//
-//    switch (event->key()) {
-//        case Qt::Key_Up : {
-//            _camera->OnKeyboardNudge(KeyPress::Up);
-//            update();
-//        }
-//            break;
-//        case Qt::Key_Down : {
-//            _camera->OnKeyboardNudge(KeyPress::Down);
-//            update();
-//        }
-//            break;
-//        case Qt::Key_Left : {
-//            _camera->OnKeyboardNudge(KeyPress::Left);
-//            update();
-//        }
-//            break;
-//        case Qt::Key_Right : {
-//            _camera->OnKeyboardNudge(KeyPress::Right);
-//            update();
-//        }
-//            break;
-//        default:break;
-//    }
-//}
-//
-//void PlotWidget::wheelEvent(QWheelEvent *event) {
-//    if (!_camera)
-//        return;
-//
-//    if (event->delta() != 0) {
-//        _camera->OnScroll(event->delta());
-//        update();
-//    }
-//}
+
+    void PlotWidget::mousePressEvent(QMouseEvent *event) {
+        _lastPos = event->pos();
+    }
+
+    void PlotWidget::mouseMoveEvent(QMouseEvent *event) {
+        if (!_camera)
+            return;
+
+        // y swapped to avoid inverted axis
+        int dx = event->x() - _lastPos.x();
+        int dy = event->y() - _lastPos.y();
+
+        auto test = QGuiApplication::queryKeyboardModifiers();
+
+        // mouse right is pan, mouse left is rotate
+        if (event->buttons() & Qt::LeftButton) {
+            _camera->OnMousePan(dx, dy);
+            update();
+        } else if (event->buttons() & Qt::RightButton && QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier) {
+            _camera->OnMouseRotate(dx, dy);
+            update();
+        }
+
+        _lastPos = event->pos();
+    }
+
+    void PlotWidget::keyPressEvent(QKeyEvent *event) {
+        if (!_camera)
+            return;
+
+        switch (event->key()) {
+            case Qt::Key_Up : {
+                _camera->OnKeyboardNudge(KeyPress::Up);
+                update();
+            }
+                break;
+            case Qt::Key_Down : {
+                _camera->OnKeyboardNudge(KeyPress::Down);
+                update();
+            }
+                break;
+            case Qt::Key_Left : {
+                _camera->OnKeyboardNudge(KeyPress::Left);
+                update();
+            }
+                break;
+            case Qt::Key_Right : {
+                _camera->OnKeyboardNudge(KeyPress::Right);
+                update();
+            }
+                break;
+            default:break;
+        }
+    }
+
+    void PlotWidget::wheelEvent(QWheelEvent *event) {
+        if (!_camera)
+            return;
+
+        if (event->delta() != 0) {
+            _camera->OnScroll(event->delta());
+            update();
+        }
+    }
 
     Vector3f PlotWidget::directionEnumToVector(View::Direction d) {
         if (d == View::Direction::Front) {
@@ -271,27 +277,6 @@ namespace PGL {
             return Vector3f(0.0f, 0.0f, -1000.0f);
         }
     }
-
-//void PlotWidget::SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max) {
-//
-//    std::vector<Vector3f> cc = {Vector3f(x_min, y_min, z_min),
-//                                Vector3f(x_max, y_min, z_min),
-//                                Vector3f(x_min, y_max, z_min),
-//                                Vector3f(x_max, y_max, z_min),
-//                                Vector3f(x_min, y_min, z_max),
-//                                Vector3f(x_max, y_min, z_max),
-//                                Vector3f(x_min, y_max, z_max),
-//                                Vector3f(x_max, y_max, z_max)};
-//
-//    SetCube(cc);
-//}
-
-//void PlotWidget::SetCube(std::vector<Vector3f> Cube) {
-//    makeCurrent();
-//    _cubeCoords = std::move(Cube);
-//    doneCurrent();
-//}
-
 
 //void PlotWidget::PlotAtoms(std::vector<Vector3f> pos, std::vector<Vector3f> cols, View::Direction view_dir,
 //                           float x_min,
@@ -341,24 +326,15 @@ namespace PGL {
         SetCamera(v_d * -1, v_d, n_d, ViewMode::Orthographic);
 
         // cube coords need to be defined for this to work
-        FitView(1.0);
+//        FitView(1.0);
     }
 
-//void PlotWidget::MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours) {
-//    if (positions.size() != colours.size())
-//        throw std::runtime_error("OpenGL: Scatter position vector size does not match scatter colour vector size");
-//
-//    makeCurrent();
-//    _technique->MakeBuffers(positions, colours);
-//    doneCurrent();
-//}
-//
-//void PlotWidget::contextMenuRequest(QPoint pos) {
-//    if(QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier)
-//        return;
-//
-//    auto menu = new QMenu(this);
-//    menu->addAction("Reset view", this, &PlotWidget::resetPressed);
-//    menu->popup(mapToGlobal(pos));
-//}
+    void PlotWidget::contextMenuRequest(QPoint pos) {
+        if(QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier)
+            return;
+
+        auto menu = new QMenu(this);
+       // menu->addAction("Reset view", this, &PlotWidget::resetPressed);
+        menu->popup(mapToGlobal(pos));
+    }
 }

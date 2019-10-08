@@ -6,30 +6,37 @@
 
 #include <iostream>
 
-namespace PGL {
-    Technique::Technique() {
+
+PGL::Technique::Technique() {
+    _shaderProg = 0;
+
+    _limits << std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
+            std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
+            std::numeric_limits<float>::max(), std::numeric_limits<float>::min();
+
+    AutoShaderResource::GetInstance();
+}
+
+PGL::Technique::~Technique() {
+    auto con = QOpenGLContext::currentContext();
+    if (!con)
+        return;
+
+    QOpenGLFunctions *glFuncs = con->functions();
+    glFuncs->initializeOpenGLFunctions();
+
+    for (unsigned int &sh : _shaderObjectList)
+        glFuncs->glDeleteShader(sh);
+
+    _shaderObjectList.clear();
+
+    if (_shaderProg != 0) {
+        glFuncs->glDeleteProgram(_shaderProg);
         _shaderProg = 0;
     }
+}
 
-    Technique::~Technique() {
-        auto con = QOpenGLContext::currentContext();
-        if (!con)
-            return;
-
-        QOpenGLFunctions *glFuncs = con->functions();
-        glFuncs->initializeOpenGLFunctions();
-
-        for (unsigned int &sh : _shaderObjectList)
-            glFuncs->glDeleteShader(sh);
-
-        _shaderObjectList.clear();
-
-        if (_shaderProg != 0) {
-            glFuncs->glDeleteProgram(_shaderProg);
-            _shaderProg = 0;
-        }
-    }
-
+namespace PGL {
     void Technique::Init() {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
@@ -110,21 +117,21 @@ namespace PGL {
         return glFuncs->glGetAttribLocation(_shaderProg, name.c_str());
     }
 
-void Technique::SetModelView(const Matrix4f& MV)
-{
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-    glFuncs->initializeOpenGLFunctions();
+    void Technique::SetModelView(const Matrix4f& MV)
+    {
+        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+        glFuncs->initializeOpenGLFunctions();
 
-    glFuncs->glUniformMatrix4fv(_MVLocation, 1, GL_TRUE, (const GLfloat*)MV.m);
-}
+        glFuncs->glUniformMatrix4fv(_MVLocation, 1, GL_TRUE, (const GLfloat*)MV.m);
+    }
 
-void Technique::SetProj(const Matrix4f& P)
-{
-    QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-    glFuncs->initializeOpenGLFunctions();
+    void Technique::SetProj(const Matrix4f& P)
+    {
+        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+        glFuncs->initializeOpenGLFunctions();
 
-    glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_TRUE, (const GLfloat*)P.m);
-}
+        glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_TRUE, (const GLfloat*)P.m);
+    }
 
     void Technique::CompileShaderFromString(GLenum ShaderType, std::string shader) {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
@@ -164,7 +171,7 @@ void Technique::SetProj(const Matrix4f& P)
     void Technique::CompileShaderFromFile(GLenum ShaderType, std::string filepath) {
         QFile f_vert(QString::fromStdString(filepath));
         if (!f_vert.open(QFile::ReadOnly | QFile::Text))
-            throw std::runtime_error("Error, failed to open shader file");
+            throw std::runtime_error("Error, failed to open shader file: " + filepath);
 
         auto s_vert = QTextStream(&f_vert).readAll().toStdString();
         CompileShaderFromString(ShaderType, s_vert);

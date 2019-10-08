@@ -45,9 +45,9 @@ namespace PGL {
     class PlotWidget : public QOpenGLWidget {
     signals:
 
-        void resetView();
+//        void resetView();
 
-        void initError(std::string);
+//        void initError(std::string);
 
     public:
         explicit PlotWidget(QWidget *parent);
@@ -97,13 +97,13 @@ namespace PGL {
 
         void resizeGL(int width, int height) override;
 
-//    void mousePressEvent(QMouseEvent *event) override;
-//
-//    void mouseMoveEvent(QMouseEvent *event) override;
-//
-//    void wheelEvent(QWheelEvent *event) override;
-//
-//    void keyPressEvent(QKeyEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    void wheelEvent(QWheelEvent *event) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
 
     private:
         void FitOrthoView(float extend = 1.0);
@@ -133,15 +133,15 @@ namespace PGL {
 
 //    void MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
 
-    void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
+        void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
 
-    void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
+        void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
 
-//    void contextMenuRequest(QPoint pos);
+        void contextMenuRequest(QPoint pos);
 
     private slots:
 
-        void resetPressed() { emit resetView(); }
+//        void resetPressed() { emit resetView(); }
     };
 }
 

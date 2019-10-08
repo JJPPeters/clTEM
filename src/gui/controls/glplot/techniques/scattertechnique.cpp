@@ -5,8 +5,6 @@
 #include <iostream>
 #include "scattertechnique.h"
 
-#include <limits>
-
 namespace PGL {
 
     Scatter::Scatter()
@@ -14,11 +12,6 @@ namespace PGL {
         _posBufLocation = 0xffffffff;
         _colBufLocation = 0xffffffff;
         _haveBuffers = false;
-
-        _limits << std::numeric_limits<float>::min(), std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::min(), std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::min(), std::numeric_limits<float>::max();
-//        Q_INIT_RESOURCE(shaders);
     }
 
     Scatter::Scatter(std::vector<Vector3f> pos, std::vector<Vector3f> col)
@@ -27,9 +20,8 @@ namespace PGL {
         _colBufLocation = 0xffffffff;
         _haveBuffers = false;
 
-        _limits << std::numeric_limits<float>::min(), std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::min(), std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::min(), std::numeric_limits<float>::max();
+        Init();
+
         MakeBuffers(pos, col);
     }
 
@@ -38,15 +30,15 @@ namespace PGL {
 
     //    OGLCheckErrors("OpenGL: BillBoard: Initialising technique");
 
-        CompileShaderFromFile(GL_VERTEX_SHADER, ":/OGL/Shaders/billboard.vs");
+        CompileShaderFromFile(GL_VERTEX_SHADER, ":/PGL/Shaders/scatter.vs");
 
     //    OGLCheckErrors("OpenGL: BillBoard: Creating vertex shader");
 
-        CompileShaderFromFile(GL_GEOMETRY_SHADER, ":/OGL/Shaders/billboard.gs");
+        CompileShaderFromFile(GL_GEOMETRY_SHADER, ":/PGL/Shaders/scatter.gs");
 
     //    OGLCheckErrors("OpenGL: BillBoard: Creating geometry shader");
 
-        CompileShaderFromFile(GL_FRAGMENT_SHADER, ":/OGL/Shaders/billboard.fs");
+        CompileShaderFromFile(GL_FRAGMENT_SHADER, ":/PGL/Shaders/scatter.fs");
 
     //    OGLCheckErrors("OpenGL: BillBoard: Creating fragment shader");
 
@@ -96,8 +88,6 @@ namespace PGL {
 
     void Scatter::Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize)
     {
-        if (!_haveBuffers)
-            return;
 
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();

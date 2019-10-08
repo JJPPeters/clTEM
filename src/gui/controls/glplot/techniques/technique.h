@@ -10,6 +10,8 @@
 
 #include <Eigen/Dense>
 
+class AutoShaderResource;
+
 namespace PGL {
     class Technique {
     public:
@@ -53,5 +55,20 @@ namespace PGL {
         ShaderObjectList _shaderObjectList;
     };
 }
+
+
+//// Singleton to auto call clfftteardown on program termination
+class AutoShaderResource
+{
+public:
+    AutoShaderResource() {Q_INIT_RESOURCE(shaders);};
+    AutoShaderResource &operator=(AutoShaderResource const &rhs) = delete;
+
+    AutoShaderResource(AutoShaderResource const& copy) = delete;
+
+    ~AutoShaderResource() { Q_CLEANUP_RESOURCE(shaders); }
+    inline static AutoShaderResource& GetInstance() { static AutoShaderResource instance; return instance; }
+};
+
 
 #endif //CLTEM_TECHNIQUE_H
