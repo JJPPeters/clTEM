@@ -89,8 +89,8 @@ namespace PGL {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_GEQUAL); // this is odd, see reference in paintGL()
 
-        _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, 1);
-        //_camera = std::make_shared<PGL::Camera>();
+        _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, 8);
+        //_camera is created in the set viewdirection method!
         SetViewDirection(View::Top);
 
         for (auto &technique: _techniques)
@@ -102,11 +102,13 @@ namespace PGL {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
-        GLint default_framebuffer = 0;
-        glFuncs->glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &default_framebuffer);
+        GLint def_framebuffer_signed = 0;
+        glFuncs->glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &def_framebuffer_signed);
+        GLuint def_framebuffer = static_cast<GLuint>(def_framebuffer_signed);
 
-//        _framebuffer->Bind();
+        _framebuffer->Bind();
 
+        glClearColor(_background.x, _background.y, _background.z, 1.0f);
         glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Do some camera crap
@@ -119,8 +121,8 @@ namespace PGL {
             //technique->Render(MV, P, screen_size);
             std::dynamic_pointer_cast<PGL::Scatter>(technique)->Render(MV, P, screen_size);
 
-//        _framebuffer->Blit(default_framebuffer);
-//        _framebuffer->Unbind();
+        _framebuffer->Blit(def_framebuffer);
+        _framebuffer->Unbind();
     }
 
     void PlotWidget::resizeGL(int width, int height) {
@@ -130,7 +132,7 @@ namespace PGL {
 //    if (_camera) // TODO: is this check needed really??
         _camera->setWidthHeight(width, height);
 
-//        _framebuffer->Resize(_width, _height, _camera->getPixelRatio());
+        _framebuffer->Resize(_width, _height, _camera->getPixelRatio());
     }
 
     Eigen::Matrix<float, 3, 2> PlotWidget::GetSceneLimits() {

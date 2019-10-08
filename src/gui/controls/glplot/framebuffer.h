@@ -25,8 +25,8 @@ namespace PGL {
         void Blit(GLuint destination_buffer);
 
     private:
-        int _width, _height;
-        unsigned int _multisampling;
+        GLint _width, _height;
+        GLint _multisampling;
         float _scaling;
 
         GLuint _fbo, _rbo_c, _rbo_d;

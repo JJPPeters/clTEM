@@ -29,13 +29,14 @@ namespace PGL {
         QOpenGLExtraFunctions *glFuncsExtra = QOpenGLContext::currentContext()->extraFunctions();
         glFuncsExtra->initializeOpenGLFunctions();
 
+        Bind();
+
         glFuncs->glBindRenderbuffer(GL_RENDERBUFFER, _rbo_c);
         if (_multisampling > 1)
             glFuncsExtra->glRenderbufferStorageMultisample(GL_RENDERBUFFER, _multisampling, GL_RGB, _width, _height);
         else
             glFuncs->glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, _width, _height);
         glFuncs->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo_c);
-
 
         glFuncs->glBindRenderbuffer(GL_RENDERBUFFER, _rbo_d);
         if (_multisampling > 1)
@@ -49,6 +50,8 @@ namespace PGL {
         GLenum status = glFuncs->glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE)
             throw std::runtime_error("Error setting framebuffer size: " + PGL::ErrorToString(status));
+
+        Unbind();
     }
 
     void Framebuffer::Bind() {
@@ -75,7 +78,8 @@ namespace PGL {
         glFuncs->glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
         glFuncs->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination_buffer);
 
-        glFuncsExtra->glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        glFuncsExtra->glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height,
+                                        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 
         glFuncs->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         glFuncs->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
