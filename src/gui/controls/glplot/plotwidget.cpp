@@ -259,7 +259,10 @@ namespace PGL {
             return;
 
         if (event->delta() != 0) {
-            _camera->OnScroll(event->delta());
+            float px = event->pos().x() / _width;
+            float py = 1.0f - event->pos().y() / _height;
+
+            _camera->OnScroll(event->delta(), px, py);
             update();
         }
     }

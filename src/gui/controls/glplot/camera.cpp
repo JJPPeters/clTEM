@@ -6,7 +6,8 @@
 
 #include <iostream>
 
-const static float SCROLL_STEP_SCALE = 0.05f;
+const static float SCROLL_STEP_SCALE = 0.002f;
+const static float ZOOM_LIMIT = 0.05f;
 const static float STEP_SCALE = 1.0f;
 
 namespace PGL {
@@ -66,11 +67,15 @@ namespace PGL {
     }
 
     void Camera::OnMousePan(float dx, float dy) {
-        float scaling;
+        float scaling_x, scaling_y;
 
         if (_projMode == ViewMode::Orthographic) {
-            float fov = _orthoProjInfo.t;
-            scaling = 2.0f * fov * _aspect_ratio / _height;
+            float w = _orthoProjInfo.r - _orthoProjInfo.l;
+            float h = _orthoProjInfo.t - _orthoProjInfo.b;
+
+            scaling_x = w / _width;
+            scaling_y = h / _height;
+
         } else {
 
             Vector4f p = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -79,9 +84,10 @@ namespace PGL {
             Vector4f right4(getCameraRight(), 1.0f);
             Vector4f p2 = getMVP() * right4;
 
-            if (p1.w == 0 || p2.w == 0)
-                scaling = 0;
-            else {
+            if (p1.w == 0 || p2.w == 0) {
+                scaling_x = 0;
+                scaling_y = 0;
+            } else {
                 // here we calculate the "pixel positions" of the origin and origin + right
                 // (not true pixel position as we would need the window x,y coords to add to them)
                 // we are only taking the difference so it is all good :D
@@ -106,32 +112,50 @@ namespace PGL {
 
                 ff = 0.8f / ff;
 
-                scaling = ff;
+                // TODO: this will not work? (need different x and y scalings)
+                scaling_x = ff;
+                scaling_y = ff;
             }
         }
 
         // need to calculate right dir from up and target
 
-        Vector3f dx_dir = _camRight * dx * scaling * STEP_SCALE;
-        Vector3f dy_dir = _camUp * dy * scaling * STEP_SCALE;
+        Vector3f dx_dir = _camRight * dx * scaling_x * STEP_SCALE;
+        Vector3f dy_dir = _camUp * dy * scaling_y * STEP_SCALE;
 
         _worldTrans += dx_dir - dy_dir;
     }
 
-
-    void Camera::OnScroll(float delta) {
+    void Camera::OnScroll(float delta, float pos_frac_x, float pos_frac_y) {
         if (_projMode == ViewMode::Orthographic) {
+            float w = _orthoProjInfo.r - _orthoProjInfo.l;
+            float h = _orthoProjInfo.t - _orthoProjInfo.b;
+
             float aspect = _width / _height;
-            // scroll out gives bigger fov so subtract
-            float fov = _orthoProjInfo.t - delta * SCROLL_STEP_SCALE;
 
-            if (fov < 2)
-                fov = 2;
+            float scaling = std::max(w, h) * SCROLL_STEP_SCALE;
 
-            _orthoProjInfo.t = fov;
-            _orthoProjInfo.b = -fov;
-            _orthoProjInfo.l = -fov * aspect;
-            _orthoProjInfo.r = fov * aspect;
+            float new_w, new_h;
+            if (aspect > 1.0f) {
+                new_w = w - scaling * delta;
+                if (new_w < ZOOM_LIMIT)
+                    new_w = ZOOM_LIMIT;
+
+                new_h = new_w / aspect;
+            } else {
+                new_h = h - scaling * delta;
+                if (new_h < ZOOM_LIMIT)
+                    new_h = ZOOM_LIMIT;
+
+                new_w = new_h * aspect;
+            }
+
+            _orthoProjInfo.l += (w - new_w) * pos_frac_x;
+            _orthoProjInfo.r = _orthoProjInfo.l + new_w;
+
+            _orthoProjInfo.b += (h - new_h) * pos_frac_y;
+            _orthoProjInfo.t = _orthoProjInfo.b + new_h;
+
         } else
             _worldTrans.x -= (delta * SCROLL_STEP_SCALE);
     }

@@ -29,7 +29,7 @@ namespace PGL {
 
         void OnMousePan(float dx, float dy);
 
-        void OnScroll(float delta);
+        void OnScroll(float delta, float pos_frac_x, float pos_frac_y);
 
         bool OnKeyboardNudge(KeyPress pressed);
 
