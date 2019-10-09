@@ -15,15 +15,18 @@ class AutoShaderResource;
 namespace PGL {
     class Technique {
     public:
-        Technique();
+        explicit Technique(bool visible = true);
 
         virtual ~Technique();
 
-        virtual void Init();
+        void Init();
 
         void Enable();
 
         void Disable();
+
+        void setVisible(bool visible) { _visible = visible; }
+        bool getVisible() { return _visible; }
 
         virtual void Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize) = 0;
 
@@ -53,6 +56,8 @@ namespace PGL {
     private:
         typedef std::list<GLuint> ShaderObjectList;
         ShaderObjectList _shaderObjectList;
+
+        bool _visible;
     };
 }
 

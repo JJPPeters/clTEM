@@ -17,8 +17,44 @@ namespace PGL {
     public:
         // TODO: add update functions
 
+        ArrayBuffer(std::vector<unsigned int> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
+            _data_type = GL_UNSIGNED_INT;
+
+            InitBuffer(BufferData, buffer_target);
+        }
+
+        ArrayBuffer(std::vector<int> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
+            _data_type = GL_INT;
+
+            InitBuffer(BufferData, buffer_target);
+        }
+
+        ArrayBuffer(std::vector<float> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
+            _data_type = GL_FLOAT;
+
+            InitBuffer(BufferData, buffer_target);
+        }
+
+        ArrayBuffer(std::vector<Vector3f> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
+            _data_type = GL_FLOAT;
+
+            InitBuffer(BufferData, buffer_target);
+        }
+
+        void Delete();
+
+        void Bind();
+
+        void Unbind();
+
+        unsigned int getSize() { return _size; }
+
+        GLenum getType() {return _data_type;}
+
+    protected:
+
         template<typename T>
-        ArrayBuffer(std::vector<T> BufferData, GLenum data_type, GLenum buffer_target = GL_ARRAY_BUFFER) {
+        void InitBuffer(std::vector<T> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
             QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
             glFuncs->initializeOpenGLFunctions();
 
@@ -39,17 +75,13 @@ namespace PGL {
             glFuncs->glBindBuffer(_buffer_target, 0);
         }
 
-        void Delete();
-
-        unsigned int getSize() { return _size; }
-
-    protected:
-
         GLuint _buffer_ptr;
 
         GLenum _buffer_target;
 
         unsigned int _size, _size_per;
+
+        GLenum _data_type;
 
         bool Exists();
 

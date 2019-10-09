@@ -14,19 +14,25 @@
 #include <memory>
 
 namespace PGL {
+    enum Plane {
+        x,
+        y,
+        z
+    };
+}
+
+namespace PGL {
     class RectangleTechnique : public PGL::Technique {
 
     public:
-        RectangleTechnique();
+        RectangleTechnique(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl);
 
         ~RectangleTechnique() override {
             if (_positionBuffer)
                 _positionBuffer->Delete();
-
-            Q_CLEANUP_RESOURCE(shaders);
         }
 
-        void Init() override;
+        void Init();
 
         void MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col, Vector3f &mins, Vector3f &maxs);
 

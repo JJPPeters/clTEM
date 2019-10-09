@@ -43,7 +43,7 @@ namespace PGL {
 
         void setPerspProjection(float fov, float width, float height, float n, float f);
 
-        void setOrthoProjection(float t, float l, float b, float r, float n = 1.0f, float f = 1000.0f);
+        void setOrthoProjection(float t, float l, float b, float r, float n = -100.0f, float f = 10000.0f);
 
         const Matrix4f getV();
 

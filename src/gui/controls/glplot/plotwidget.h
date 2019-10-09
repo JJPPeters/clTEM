@@ -33,19 +33,12 @@ namespace View {
     };
 }
 
-namespace OGL {
-    enum Plane {
-        x,
-        y,
-        z
-    };
-}
-
 namespace PGL {
     class PlotWidget : public QOpenGLWidget {
-    signals:
+        Q_OBJECT
 
-//        void resetView();
+    signals:
+        void resetView();
 
 //        void initError(std::string);
 
@@ -54,39 +47,25 @@ namespace PGL {
 
         Eigen::Matrix<float, 3, 2> GetSceneLimits();
 
-        void FitView(float extend = 1.0);
+        void FitView(float extend = 1.1);
 
         void SetViewDirection(View::Direction view_dir);
 
         void addItem(std::shared_ptr<PGL::Technique> technique) {
-            _techniques.push_back(technique);
+            auto position = std::find(_techniques.begin(), _techniques.end(), technique);
+            if (position == _techniques.end()) // i.e. element does not already exist
+                _techniques.push_back(technique);
         }
 
-//    void setDrawRects(bool v) { _drawRects = v; }
-
-//    bool getDrawRects() { return _drawRects; }
-
-//    void clearRectBuffers() { _recSlices.clear(); }
-
-//    void PlotAtoms(std::vector<Vector3f> pos, std::vector<Vector3f> cols, View::Direction view_dir,
-//                   float x_min,
-//                   float x_max,
-//                   float y_min,
-//                   float y_max,
-//                   float z_min,
-//                   float z_max);
-
-//    void AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour, OGL::Plane pl);
+        void removeItem(std::shared_ptr<PGL::Technique> technique) {
+            auto position = std::find(_techniques.begin(), _techniques.end(), technique);
+            if (position != _techniques.end())
+                _techniques.erase(position);
+        }
 
 //    void SetViewDirection(View::Direction view_dir);
 
 //    std::shared_ptr<OGLCamera> GetCamera() { return _camera; }
-
-//    void SetCube(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
-
-//    void SetCube(std::vector<Vector3f> Cube);
-
-//    void fitView(float extend = 1.0);
 
     protected:
         bool event(QEvent *event) override;
@@ -97,13 +76,13 @@ namespace PGL {
 
         void resizeGL(int width, int height) override;
 
-    void mousePressEvent(QMouseEvent *event) override;
+        void mousePressEvent(QMouseEvent *event) override;
 
-    void mouseMoveEvent(QMouseEvent *event) override;
+        void mouseMoveEvent(QMouseEvent *event) override;
 
-    void wheelEvent(QWheelEvent *event) override;
+        void wheelEvent(QWheelEvent *event) override;
 
-    void keyPressEvent(QKeyEvent *event) override;
+        void keyPressEvent(QKeyEvent *event) override;
 
     private:
         void FitOrthoView(float extend = 1.0);
@@ -112,7 +91,7 @@ namespace PGL {
 
         std::shared_ptr<PGL::Framebuffer> _framebuffer;
 
-    Vector3f directionEnumToVector(View::Direction d);
+        Vector3f directionEnumToVector(View::Direction d);
 
 //    std::shared_ptr<OGLBillBoardTechnique> _technique;
 //    std::vector<std::shared_ptr<OGLRectangleTechnique>> _recSlices;
@@ -140,8 +119,7 @@ namespace PGL {
         void contextMenuRequest(QPoint pos);
 
     private slots:
-
-//        void resetPressed() { emit resetView(); }
+        void resetPressed() { emit resetView(); }
     };
 }
 

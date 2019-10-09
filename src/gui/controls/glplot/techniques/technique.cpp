@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-PGL::Technique::Technique() {
+PGL::Technique::Technique(bool visible) {
     _shaderProg = 0;
 
     _limits << std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
@@ -15,6 +15,8 @@ PGL::Technique::Technique() {
             std::numeric_limits<float>::max(), std::numeric_limits<float>::min();
 
     AutoShaderResource::GetInstance();
+
+    _visible = visible;
 }
 
 PGL::Technique::~Technique() {

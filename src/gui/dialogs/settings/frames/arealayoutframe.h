@@ -6,8 +6,11 @@
 #include "ctemareaframe.h"
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
-#include "controls/glplot/plotwidget.h"
 #include "utilities/logging.h"
+
+#include "controls/glplot/plotwidget.h"
+#include "controls/glplot/techniques/scattertechnique.h"
+#include "controls/glplot/techniques/rectangletechnique.h"
 
 namespace Ui {
 class AreaLayoutFrame;
@@ -71,6 +74,8 @@ private:
     CtemAreaFrame *CtemFrame;
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
+
+    std::vector<std::shared_ptr<PGL::RectangleTechnique>> _plot_rects;
 
     PGL::PlotWidget *pltStructure;
 

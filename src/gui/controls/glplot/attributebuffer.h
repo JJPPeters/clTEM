@@ -35,13 +35,13 @@ namespace PGL {
             _offset = 0;
         }
 
-    void Bind();
+        void Bind();
 
-    void Unbind();
+        void Unbind();
 
     private:
         GLuint _buffer_location, _stride, _offset;
-        GLenum _data_type;
+
     };
 
 }

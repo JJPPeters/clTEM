@@ -13,8 +13,6 @@ namespace PGL {
 
         _camera = nullptr;
         _framebuffer = nullptr;
-//    _rotation_offset = Vector3f(0.f, 0.f, 0.f);
-//    _drawRects = true;
 
         _width = width();
         _height = height();
@@ -22,8 +20,6 @@ namespace PGL {
         // use system colours
         auto bk_col = qApp->palette().brush(QPalette::Background).color();
         _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
-
-//    _technique = std::make_shared<OGLBillBoardTechnique>();
 
         connect(this, &PlotWidget::customContextMenuRequested, this, &PlotWidget::contextMenuRequest);
     }
@@ -117,9 +113,12 @@ namespace PGL {
 
         Vector2f screen_size(_width, _height);
 
+        // TODO: handle order of objects (or will 3d-ness handle this nicely?)
+
         for (auto &technique: _techniques)
             //technique->Render(MV, P, screen_size);
-            std::dynamic_pointer_cast<PGL::Scatter>(technique)->Render(MV, P, screen_size);
+            if (technique->getVisible())
+                technique->Render(MV, P, screen_size);
 
         _framebuffer->Blit(def_framebuffer);
         _framebuffer->Unbind();
@@ -129,7 +128,7 @@ namespace PGL {
         _width = width;
         _height = height;
 
-//    if (_camera) // TODO: is this check needed really??
+        // if (_camera) // TODO: is this check needed really??
         _camera->setWidthHeight(width, height);
 
         _framebuffer->Resize(_width, _height, _camera->getPixelRatio());
@@ -283,45 +282,6 @@ namespace PGL {
         }
     }
 
-//void PlotWidget::PlotAtoms(std::vector<Vector3f> pos, std::vector<Vector3f> cols, View::Direction view_dir,
-//                           float x_min,
-//                           float x_max,
-//                           float y_min,
-//                           float y_max,
-//                           float z_min,
-//                           float z_max) {
-//    MakeScatterBuffers(pos, cols);
-//
-//    auto x_offset = -(x_max + x_min) / 2;
-//    auto y_offset = -(y_max + y_min) / 2;
-//    auto z_offset = -(z_max + z_min) / 2;
-//    _rotation_offset = Vector3f(x_offset, y_offset, z_offset);
-//
-//    SetCube(x_min, x_max, y_min, y_max, z_min, z_max);
-//
-//    SetViewDirection(view_dir);
-//}
-//
-//void PlotWidget::AddRectBuffer(float t, float l, float b, float r, float z, Vector4f &colour, OGL::Plane pl) {
-//    makeCurrent();
-//    auto rec = std::make_shared<OGLRectangleTechnique>();
-//    rec->Init();
-//
-//    std::vector<Vector3f> pos;
-//
-//    if (pl == OGL::Plane::x)
-//        pos = {Vector3f(z, l, t), Vector3f(z, l, b), Vector3f(z, r, b), Vector3f(z, r, t)};
-//    else if (pl == OGL::Plane::y)
-//        pos = {Vector3f(l, z, t), Vector3f(l, z, b), Vector3f(r, z, b), Vector3f(r, z, t)};
-//    else if (pl == OGL::Plane::z)
-//        pos = {Vector3f(l, t, z), Vector3f(l, b, z), Vector3f(r, b, z), Vector3f(r, t, z)};
-//
-//    rec->MakeBuffers(pos, colour, pos[0], pos[2]);
-//
-//    _recSlices.push_back(rec);
-//    doneCurrent();
-//}
-
     void PlotWidget::SetViewDirection(View::Direction view_dir) {
         auto v_d = directionEnumToVector(view_dir);
         auto n_d = directionEnumToVector(View::Direction::Top);
@@ -339,7 +299,7 @@ namespace PGL {
             return;
 
         auto menu = new QMenu(this);
-       // menu->addAction("Reset view", this, &PlotWidget::resetPressed);
+        menu->addAction("Reset view", this, &PlotWidget::resetPressed);
         menu->popup(mapToGlobal(pos));
     }
 }

@@ -10,7 +10,8 @@ namespace PGL {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
-        glFuncs->glBindBuffer(_buffer_target, _buffer_ptr);
+        ArrayBuffer::Bind();
+
         glFuncs->glEnableVertexAttribArray(_buffer_location);
 
         glFuncs->glVertexAttribPointer(_buffer_location, _size_per, _data_type, GL_FALSE, 4 * _stride, (GLvoid*)(4 * _offset));
@@ -20,7 +21,8 @@ namespace PGL {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
-        glFuncs->glBindBuffer(_buffer_target, 0);
+        ArrayBuffer::Unbind();
         glFuncs->glDisableVertexAttribArray(_buffer_location);
     }
+
 }

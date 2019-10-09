@@ -21,4 +21,18 @@ namespace PGL {
         return _buffer_ptr != 0xffffffff;
     }
 
+    void ArrayBuffer::Bind() {
+        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+        glFuncs->initializeOpenGLFunctions();
+
+        glFuncs->glBindBuffer(_buffer_target, _buffer_ptr);
+    }
+
+    void ArrayBuffer::Unbind() {
+        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+        glFuncs->initializeOpenGLFunctions();
+
+        glFuncs->glBindBuffer(_buffer_target, 0);
+    }
+
 }

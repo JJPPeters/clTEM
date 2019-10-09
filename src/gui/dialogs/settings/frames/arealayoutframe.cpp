@@ -2,7 +2,6 @@
 #include <dialogs/settings/settingsdialog.h>
 #include "arealayoutframe.h"
 #include "ui_arealayoutframe.h"
-#include "controls/glplot/techniques/scattertechnique.h"
 
 AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan) :
     QWidget(parent), ui(new Ui::AreaLayoutFrame), SimManager(simMan)
@@ -25,7 +24,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         ui->vPlotLayout->addWidget(pltStructure, 1);
         pltStructure->setMinimumWidth(400);
         // TODO: add this back in
-//        connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
+        connect(pltStructure, &PGL::PlotWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
 //        connect(pltStructure, &OGLViewWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
@@ -362,8 +361,6 @@ void AreaLayoutFrame::plotStructure() {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
-    // TODO: add this back in
-//    pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
     auto scatter = std::make_shared<PGL::Scatter>(pos, col);
 
     pltStructure->addItem(std::dynamic_pointer_cast<PGL::Technique>(scatter));
@@ -382,7 +379,6 @@ void AreaLayoutFrame::showEvent(QShowEvent *event) {
 
     plotStructure();
     updatePlotRects();
-    // TODO: add this back in
     if (!pltStructure)
         pltStructure->FitView();
 }
@@ -396,8 +392,6 @@ void AreaLayoutFrame::viewDirectionChanged() {
         return;
 
     QString view_text = ui->cmbViewDirection->currentText();
-
-    // TODO: add this back in
 
     // set the view direcion of the plot
     if (view_text == "Top")
@@ -413,6 +407,8 @@ void AreaLayoutFrame::viewDirectionChanged() {
     else if (view_text == "Left")
         pltStructure->SetViewDirection(View::Direction::Left);
 
+    pltStructure->FitView();
+
     pltStructure->repaint();
 }
 
@@ -420,8 +416,9 @@ void AreaLayoutFrame::showRectChanged(int arg1) {
     if (!pltStructure)
         return;
 
-    // TODO: add this back in
-//    pltStructure->setDrawRects(arg1 != 0);
+    for(auto &rect: _plot_rects)
+        pltStructure->setVisible(arg1 != 0);
+
     pltStructure->repaint();
 }
 
@@ -432,9 +429,11 @@ void AreaLayoutFrame::updatePlotRects() {
     if (!SimManager->getStructure() || !pltStructure)
         return;
 
-    // TODO: add this back in
     // clear the old stuff first
-//    pltStructure->clearRectBuffers();
+    for (auto &rect: _plot_rects)
+        pltStructure->removeItem(rect);
+
+    _plot_rects.clear();
 
     auto test = SimManager->getSimulationArea();
 
@@ -447,18 +446,16 @@ void AreaLayoutFrame::updatePlotRects() {
     // TODO: add this back in
 //    pltStructure->SetCube(sxr[0], sxr[1], syr[0], syr[1], szr[0], szr[1]);
 //
-//    // first the sim area + padding
-//    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
-//
-//    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, OGL::Plane::z);
-//    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, OGL::Plane::z);
-//
+    // first the sim area + padding
+    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
+    _plot_rects.emplace_back(std::make_shared<PGL::RectangleTechnique>(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, PGL::Plane::z));
+    _plot_rects.emplace_back(std::make_shared<PGL::RectangleTechnique>(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, PGL::Plane::z));
+
 //    // now the sim area
-//    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
-//
-//    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, OGL::Plane::z);
-//    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, OGL::Plane::z);
-//
+    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
+    _plot_rects.emplace_back(std::make_shared<PGL::RectangleTechnique>(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, PGL::Plane::z));
+    _plot_rects.emplace_back(std::make_shared<PGL::RectangleTechnique>(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
+
 //    // add the sides of the sim area
 //    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[0], col_2, OGL::Plane::x);
 //    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[1], col_2, OGL::Plane::x);
@@ -484,6 +481,11 @@ void AreaLayoutFrame::updatePlotRects() {
 //
 //        current_z += dz;
 //    }
+
+    for(auto &rect: _plot_rects) {
+        rect->setVisible(ui->chkShowRect->isChecked());
+        pltStructure->addItem(rect);
+    }
 
     pltStructure->repaint();
 }

@@ -27,11 +27,9 @@ namespace PGL {
                 _positionBuffer->Delete();
             if (_colourBuffer)
                 _colourBuffer->Delete();
-
-//            Q_CLEANUP_RESOURCE(shaders);
         }
 
-        void Init() override;
+        void Init();
 
         void MakeBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
 
