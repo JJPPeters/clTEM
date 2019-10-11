@@ -11,6 +11,8 @@
 #include "arraybuffer.h"
 #include "attributebuffer.h"
 
+#include <Eigen/Dense>
+
 #include <memory>
 
 namespace PGL {
@@ -22,25 +24,21 @@ namespace PGL {
 }
 
 namespace PGL {
-    class RectangleTechnique : public PGL::Technique {
+    class Rectangle : public PGL::Technique {
 
     public:
-        RectangleTechnique(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl);
+        Rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl);
 
-        ~RectangleTechnique() override {
+        ~Rectangle() override {
             if (_positionBuffer)
                 _positionBuffer->Delete();
         }
 
         void Init();
 
-        void MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col, Vector3f &mins, Vector3f &maxs);
+        void MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col);
 
-        void Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize);
-
-        void SetLims(const Vector3f &mins, const Vector3f &maxs);
-
-        void SetCol(const Vector4f &col);
+        void Render(const Matrix4f &MV, const Matrix4f &P, float pix_size);
 
     private:
         std::shared_ptr<AttributeBuffer> _positionBuffer;
@@ -52,7 +50,7 @@ namespace PGL {
         Vector3f _mins, _maxs;
 
 //    GLuint
-        GLint _posBufLocation, _colLocation, _minsLocation, _maxsLocation;
+        GLint _posBufLocation, _colLocation, _minsLocation, _maxsLocation, _pixelSizeLocation;
     };
 }
 

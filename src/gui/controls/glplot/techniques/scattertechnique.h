@@ -33,7 +33,7 @@ namespace PGL {
 
         void MakeBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
 
-        void Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize);
+        void Render(const Matrix4f &MV, const Matrix4f &P, float pix_size);
 
     private:
         std::shared_ptr<AttributeBuffer> _positionBuffer, _colourBuffer;

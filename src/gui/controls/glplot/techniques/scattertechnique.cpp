@@ -86,7 +86,7 @@ namespace PGL {
         _haveBuffers = true;
     }
 
-    void Scatter::Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize)
+    void Scatter::Render(const Matrix4f &MV, const Matrix4f &P, float pix_size)
     {
 
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();

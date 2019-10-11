@@ -190,15 +190,45 @@ namespace PGL {
     }
 
     void Camera::setWidthHeight(float width, float height) {
+        if (_projMode == ViewMode::Orthographic) {
+
+            float aspect_new = width / height;
+
+            float w = _orthoProjInfo.r - _orthoProjInfo.l;
+            float h = _orthoProjInfo.t - _orthoProjInfo.b;
+
+            // special case for when the aspect ratio crosses 1
+            if (aspect_new <= 1 and getAspectRatio() >= 1)
+                w = h;
+            else if (aspect_new > 1 and getAspectRatio() <= 1)
+                h = w;
+
+            float view_width, view_height;
+
+            if (aspect_new <= 1) {
+                view_width = w;
+                view_height = view_width / aspect_new;
+            } else {
+                view_height = h;
+                view_width = view_height * aspect_new;
+            }
+
+            float mid_x = (_orthoProjInfo.r + _orthoProjInfo.l) / 2.0f;
+            float mid_y = (_orthoProjInfo.t + _orthoProjInfo.b) / 2.0f;
+
+            float t = mid_y + view_height / 2.0f;
+            float l = mid_x - view_width / 2.0f;
+            float b = mid_y - view_height / 2.0f;
+            float r = mid_x + view_width / 2.0f;
+
+            setOrthoProjection(t, l, b, r);
+
+        } else {
+            _persProjInfo.Width = _width;
+            _persProjInfo.Height = _height;
+        }
+
         _width = width;
         _height = height;
-
-        _persProjInfo.Width = _width;
-        _persProjInfo.Height = _height;
-
-        float t = _orthoProjInfo.t;
-        float aspect = width / height;
-        _orthoProjInfo.l = -t * aspect;
-        _orthoProjInfo.r = t * aspect;
     }
 }

@@ -28,9 +28,14 @@ namespace PGL {
         void setVisible(bool visible) { _visible = visible; }
         bool getVisible() { return _visible; }
 
-        virtual void Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize) = 0;
+        virtual void Render(const Matrix4f &MV, const Matrix4f &P, float pix_size) = 0;
 
-        Eigen::Matrix<float, 3, 2> GetLimits() { return _limits; }
+        Eigen::Matrix<float, 3, 2> GetLimits() {
+            if (_visible)
+                return _limits;
+            else
+                return Eigen::Matrix<float, 3, 2>::Zero();
+        }
 
     protected:
         void CompileShaderFromString(GLenum ShaderType, std::string shader);

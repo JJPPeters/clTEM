@@ -118,7 +118,7 @@ namespace PGL {
         for (auto &technique: _techniques)
             //technique->Render(MV, P, screen_size);
             if (technique->getVisible())
-                technique->Render(MV, P, screen_size);
+                technique->Render(MV, P, _camera->getPixelSize());
 
         _framebuffer->Blit(def_framebuffer);
         _framebuffer->Unbind();
@@ -164,6 +164,23 @@ namespace PGL {
         return limits;
     }
 
+    std::vector<Vector3f> PlotWidget::GetBoundingCube() {
+        Eigen::Matrix<float, 3, 2> limits = GetSceneLimits();
+        std::vector<Vector3f> bounding_cube(8);
+
+        bounding_cube[0] = Vector3f(limits(0,0), limits(1,0), limits(2,0));
+        bounding_cube[1] = Vector3f(limits(0,1), limits(1,0), limits(2,0));
+        bounding_cube[2] = Vector3f(limits(0,1), limits(1,1), limits(2,0));
+        bounding_cube[3] = Vector3f(limits(0,0), limits(1,1), limits(2,0));
+
+        bounding_cube[4] = Vector3f(limits(0,0), limits(1,0), limits(2,1));
+        bounding_cube[5] = Vector3f(limits(0,1), limits(1,0), limits(2,1));
+        bounding_cube[6] = Vector3f(limits(0,1), limits(1,1), limits(2,1));
+        bounding_cube[7] = Vector3f(limits(0,0), limits(1,1), limits(2,1));
+
+        return bounding_cube;
+    }
+
     void PlotWidget::FitView(float extend) {
         FitOrthoView(extend);
         update();
@@ -171,12 +188,32 @@ namespace PGL {
 
     void PlotWidget::FitOrthoView(float extend) {
 
-        Eigen::Matrix<float, 3, 2> limits = GetSceneLimits();
+        auto bounding_cube = GetBoundingCube();
 
-        // TODO: need to form a 'cube' from our limits, apply the modelview matrix and get the limits from that
+        float min_x = std::numeric_limits<float>::max();
+        float min_y = std::numeric_limits<float>::max();
+        float max_x = std::numeric_limits<float>::min();
+        float max_y = std::numeric_limits<float>::min();
 
-        float w = limits(0, 1) - limits(0, 0);
-        float h = limits(1, 1) - limits(1, 0);
+        auto MV = _camera->getMV();
+
+        for (auto coord : bounding_cube) {
+            Vector4f coord4(coord, 1.0f);
+            Vector4f MV_coord = MV * coord4;
+
+            if (MV_coord.x < min_x)
+                min_x = MV_coord.x;
+            if (MV_coord.y < min_y)
+                min_y = MV_coord.y;
+
+            if (MV_coord.x > max_x)
+                max_x = MV_coord.x;
+            if (MV_coord.y > max_y)
+                max_y = MV_coord.y;
+        }
+
+        float w = max_x - min_x;
+        float h = max_y - min_y;
 
         float aspect = _width / _height;
 
@@ -190,13 +227,16 @@ namespace PGL {
             view_width = view_height * aspect;
         }
 
-        float mid_x = (limits(0, 1) + limits(0, 0)) / 2.0f;
-        float mid_y = (limits(1, 1) + limits(1, 0)) / 2.0f;
+        float mid_x = (min_x + max_x) / 2.0f;
+        float mid_y = (min_y + max_y) / 2.0f;
 
-        _camera->setOrthoProjection(mid_y + view_height / 2.0f, mid_x - view_width / 2.0f, mid_y - view_height / 2.0f,
-                                    mid_x + view_width / 2.0f);
+        float t = mid_y + view_height / 2.0f;
+        float l = mid_x - view_width / 2.0f;
+        float b = mid_y - view_height / 2.0f;
+        float r = mid_x + view_width / 2.0f;
+
+        _camera->setOrthoProjection(t, l, b,r);
     }
-
 
     void PlotWidget::mousePressEvent(QMouseEvent *event) {
         _lastPos = event->pos();
@@ -210,7 +250,7 @@ namespace PGL {
         int dx = event->x() - _lastPos.x();
         int dy = event->y() - _lastPos.y();
 
-        auto test = QGuiApplication::queryKeyboardModifiers();
+        //auto test = QGuiApplication::queryKeyboardModifiers();
 
         // mouse right is pan, mouse left is rotate
         if (event->buttons() & Qt::LeftButton) {
@@ -291,7 +331,7 @@ namespace PGL {
         SetCamera(v_d * -1, v_d, n_d, ViewMode::Orthographic);
 
         // cube coords need to be defined for this to work
-//        FitView(1.0);
+        // FitView(1.0);
     }
 
     void PlotWidget::contextMenuRequest(QPoint pos) {

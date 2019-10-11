@@ -75,7 +75,7 @@ private:
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
 
-    std::vector<std::shared_ptr<PGL::RectangleTechnique>> _plot_rects;
+    std::vector<std::shared_ptr<PGL::Rectangle>> _plot_rects;
 
     PGL::PlotWidget *pltStructure;
 

@@ -250,6 +250,8 @@ void CifCreatorFrame::previewStructure(bool dummy) {
     if (!pltPreview)
         return;
 
+    pltPreview->clearItems();
+
     CIF::SuperCellInfo preview_info;
 
     // get all the values we need
@@ -276,7 +278,6 @@ void CifCreatorFrame::previewStructure(bool dummy) {
 
     CrystalStructure temp(cif, preview_info);
 
-
     // get ranges (needed to define out 'cube'
     auto xr = temp.getLimitsX();
     auto yr = temp.getLimitsY();
@@ -294,8 +295,14 @@ void CifCreatorFrame::previewStructure(bool dummy) {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
     }
 
-    // TODO: add this back in
-//    pltPreview->PlotAtoms(pos, col, getViewDirection(), xr[0]+1, xr[1]-1, yr[0]+1, yr[1]-1, zr[0]+1, zr[1]-1);
+    auto scatter = std::make_shared<PGL::Scatter>(pos, col);
+
+    pltPreview->addItem(std::dynamic_pointer_cast<PGL::Technique>(scatter));
+    pltPreview->SetViewDirection(View::Direction::Top);
+
+    pltPreview->FitView(1.1);
+
+    pltPreview->repaint();
 }
 
 View::Direction CifCreatorFrame::getViewDirection(){
@@ -320,8 +327,7 @@ void CifCreatorFrame::viewDirectionChanged() {
     if (!pltPreview)
         return;
 
-    // TODO: add this back in
-//    pltPreview->SetViewDirection(getViewDirection());
+    pltPreview->SetViewDirection(getViewDirection());
 
     pltPreview->repaint();
 }

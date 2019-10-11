@@ -9,7 +9,7 @@
 
 namespace PGL {
 
-    RectangleTechnique::RectangleTechnique(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) {
+    Rectangle::Rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) {
         _haveBuffers = false;
 
         Init();
@@ -23,10 +23,12 @@ namespace PGL {
         else if (pl == PGL::Plane::z)
             pos = {Vector3f(l, t, z), Vector3f(l, b, z), Vector3f(r, b, z), Vector3f(r, t, z)};
 
-        MakeBuffers(pos, colour, pos[0], pos[2]);
+        MakeBuffers(pos, colour);
+
+        _col = colour;
     }
 
-    void RectangleTechnique::Init() {
+    void Rectangle::Init() {
         Technique::Init();
 
 //    OGLCheckErrors("OpenGL: Rectangle: Initialising technique");
@@ -47,9 +49,14 @@ namespace PGL {
         _PLocation = GetUniformLocation("Proj");
         _minsLocation = GetUniformLocation("RectMins");
         _maxsLocation = GetUniformLocation("RectMaxs");
+
+        _pixelSizeLocation = GetUniformLocation("pixel_size");
+
         _colLocation = GetUniformLocation("RectCol");
 
-        if (_MVLocation == 0xffffffff || _PLocation == 0xffffffff || _minsLocation == 0xffffffff || _maxsLocation == 0xffffffff || _colLocation == 0xffffffff)
+        if (_MVLocation == 0xffffffff || _PLocation == 0xffffffff || _colLocation == 0xffffffff
+            || _minsLocation == 0xffffffff || _maxsLocation == 0xffffffff
+            || _pixelSizeLocation == 0xffffffff)
             throw std::runtime_error("OpenGL: Rectangle: Failed to initialise uniform locations");
 
         _posBufLocation = GetAttribLocation("PosBuf");
@@ -58,22 +65,21 @@ namespace PGL {
             throw std::runtime_error("OpenGL: Rectangle: Failed to initialise buffer locations");
     }
 
-    void
-    RectangleTechnique::MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col, Vector3f &mins, Vector3f &maxs) {
+    void Rectangle::MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col) {
         _haveBuffers = false;
         _positionBuffer = std::make_shared<AttributeBuffer>(positions, static_cast<GLuint>(_posBufLocation));
         std::vector<unsigned int> els = {0, 1, 2, 2, 3, 0}; // TODO: this could be user defined...
         _indexBuffer = std::make_shared<ArrayBuffer>(els, GL_ELEMENT_ARRAY_BUFFER);
 
-        // TODO: this should be set when the square is defined
-        _mins = mins;
-        _maxs = maxs;
-        _col = col;
+        _mins = positions[0];
+        _maxs = positions[2];
+
+        _limits << positions[0].x, positions[2].x, positions[2].y, positions[0].y, positions[2].z, positions[0].z;
 
         _haveBuffers = true;
     }
 
-    void RectangleTechnique::Render(const Matrix4f &MV, const Matrix4f &P, const Vector2f &ScreenSize) {
+    void Rectangle::Render(const Matrix4f &MV, const Matrix4f &P, float pix_size) {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
@@ -81,8 +87,13 @@ namespace PGL {
         SetModelView(MV);
         SetProj(P);
 
-        SetLims(_mins, _maxs);
-        SetCol(_col);
+        // Set the limits of the rectangle
+        glFuncs->glUniform3f(_minsLocation, _mins.x, _mins.y, _mins.z);
+        glFuncs->glUniform3f(_maxsLocation, _maxs.x, _maxs.y, _maxs.z);
+        //
+        glFuncs->glUniform1f(_pixelSizeLocation, pix_size);
+        // Set the colour
+        glFuncs->glUniform4f(_colLocation, _col.x, _col.y, _col.z, _col.w);
 
         _positionBuffer->Bind();
         _indexBuffer->Bind();
@@ -93,21 +104,6 @@ namespace PGL {
         _indexBuffer->Unbind();
 
         Disable();
-    }
-
-    void RectangleTechnique::SetLims(const Vector3f &mins, const Vector3f &maxs) {
-        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-        glFuncs->initializeOpenGLFunctions();
-
-        glFuncs->glUniform3f(_minsLocation, mins.x, mins.y, mins.z);
-        glFuncs->glUniform3f(_maxsLocation, maxs.x, maxs.y, maxs.z);
-    }
-
-    void RectangleTechnique::SetCol(const Vector4f &col) {
-        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-        glFuncs->initializeOpenGLFunctions();
-
-        glFuncs->glUniform4f(_colLocation, col.x, col.y, col.z, col.w);
     }
 
 }

@@ -14,9 +14,7 @@
 
 #include "arraybuffer.h"
 #include "techniques/technique.h"
-//#include "scattertechnique.h"
 #include "camera.h"
-//#include "oglrectangletechnique.h"
 
 #include <Eigen/Dense>
 
@@ -47,7 +45,9 @@ namespace PGL {
 
         Eigen::Matrix<float, 3, 2> GetSceneLimits();
 
-        void FitView(float extend = 1.1);
+        std::vector<Vector3f> GetBoundingCube();
+
+        void FitView(float extend = 1.0);
 
         void SetViewDirection(View::Direction view_dir);
 
@@ -63,9 +63,7 @@ namespace PGL {
                 _techniques.erase(position);
         }
 
-//    void SetViewDirection(View::Direction view_dir);
-
-//    std::shared_ptr<OGLCamera> GetCamera() { return _camera; }
+        void clearItems() { _techniques.clear(); }
 
     protected:
         bool event(QEvent *event) override;
@@ -93,24 +91,14 @@ namespace PGL {
 
         Vector3f directionEnumToVector(View::Direction d);
 
-//    std::shared_ptr<OGLBillBoardTechnique> _technique;
-//    std::vector<std::shared_ptr<OGLRectangleTechnique>> _recSlices;
-
         std::shared_ptr<PGL::Camera> _camera;
-
-//    std::vector<Vector3f> _cubeCoords;
 
         // width of the openGL window
         float _width, _height;
 
-        // Structure limits
-        // Vector3f _rotation_offset;
-
         Vector3f _background;
 
         QPoint _lastPos;
-
-//    void MakeScatterBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
 
         void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
 

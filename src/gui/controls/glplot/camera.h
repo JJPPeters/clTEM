@@ -8,6 +8,7 @@
 
 #include "camerapipeline.h"
 #include <QOpenGLFunctions>
+#include <iostream>
 
 enum KeyPress
 {
@@ -52,6 +53,16 @@ namespace PGL {
 
         void setPixelRatio(float ratio) { _pixel_ratio = ratio; }
         float getPixelRatio() { return _pixel_ratio; }
+
+        float getPixelSize() {
+            float px = (_orthoProjInfo.r - _orthoProjInfo.l) / _width;
+            float py = (_orthoProjInfo.t - _orthoProjInfo.b) / _height;
+
+            if (px - py > 0.00001)
+                throw std::runtime_error("Error, pixel ratio is not equal (" + std::to_string(px) + " to " + std::to_string(py) + ")");
+
+            return px;
+        }
 
 //        void ResetViewPort() {
 //            QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
