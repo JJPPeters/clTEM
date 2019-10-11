@@ -7,12 +7,14 @@
 #include <techniques/scattertechnique.h>
 
 namespace PGL {
-    PlotWidget::PlotWidget(QWidget *parent) : QOpenGLWidget(parent) {
+    PlotWidget::PlotWidget(QWidget *parent, int msaa) : QOpenGLWidget(parent) {
         setFocusPolicy(Qt::StrongFocus);
         setContextMenuPolicy(Qt::CustomContextMenu);
 
         _camera = nullptr;
         _framebuffer = nullptr;
+
+        _msaa = msaa;
 
         _width = width();
         _height = height();
@@ -85,7 +87,7 @@ namespace PGL {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_GEQUAL); // this is odd, see reference in paintGL()
 
-        _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, 8);
+        _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, _msaa);
         //_camera is created in the set viewdirection method!
         SetViewDirection(View::Top);
 

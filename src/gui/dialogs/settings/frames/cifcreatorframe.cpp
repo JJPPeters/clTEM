@@ -25,7 +25,10 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(4, 0); // sets opengl version
 
-        pltPreview = new PGL::PlotWidget(this);
+        QSettings settings;
+        int msaa = settings.value("MSAA", 1).toInt();
+
+        pltPreview = new PGL::PlotWidget(this, msaa);
         pltPreview->setFormat(format);
         ui->vPlotLayout->addWidget(pltPreview, 1);
         pltPreview->setMinimumHeight(400);

@@ -19,9 +19,12 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 //        format.setSamples(32); // sets MSAA samples
         format.setVersion(4, 0); // sets opengl version
 
+        QSettings settings;
+        int msaa = settings.value("MSAA", 1).toInt();
+
         pltStructure = new PGL::PlotWidget(this);
         pltStructure->setFormat(format);
-        ui->vPlotLayout->addWidget(pltStructure, 1);
+        ui->vPlotLayout->addWidget(pltStructure, msaa);
         pltStructure->setMinimumWidth(400);
 
         // TODO: add this back in

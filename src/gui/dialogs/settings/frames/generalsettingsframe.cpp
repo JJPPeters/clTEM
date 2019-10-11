@@ -18,6 +18,16 @@ GeneralSettingsFrame::GeneralSettingsFrame(QWidget *parent) :
     else
         ui->cmbTheme->setCurrentText("Native");
 
+    QSettings settings;
+    int msaa = settings.value("MSAA", 1).toInt();
+
+    QString ms = QString::number(msaa);
+    if (ms != "2" && ms != "4" && ms != "8")
+        ms = "None";
+
+    int ind = ui->cmbMultisampling->findText( ms );
+    ui->cmbMultisampling->setCurrentIndex(ind);
+
     ui->chkLogging->setChecked(el::Loggers::getLogger("default")->configurations()->get(el::Level::Debug, el::ConfigurationType::ToFile)->value() == "true");
 
     auto parent_dlg = dynamic_cast<ThemeDialog*>(parentWidget());
@@ -63,6 +73,11 @@ void GeneralSettingsFrame::dlgApply_clicked()
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, state_str);
     el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToFile, "true");// ensure this is always logged
 
+    int msaa = 1;
+    if (ui->cmbMultisampling->currentText() != "None")
+        msaa = std::stoi(ui->cmbMultisampling->currentText().toStdString());
+
     QSettings settings;
     settings.setValue("logging", state);
+    settings.setValue("MSAA", msaa);
 }

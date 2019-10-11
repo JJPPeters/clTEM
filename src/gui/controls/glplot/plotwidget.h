@@ -41,7 +41,7 @@ namespace PGL {
 //        void initError(std::string);
 
     public:
-        explicit PlotWidget(QWidget *parent);
+        explicit PlotWidget(QWidget *parent, int msaa=1);
 
         Eigen::Matrix<float, 3, 2> GetSceneLimits();
 
@@ -95,6 +95,8 @@ namespace PGL {
 
         // width of the openGL window
         float _width, _height;
+
+        int _msaa;
 
         Vector3f _background;
 
