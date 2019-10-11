@@ -27,9 +27,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         ui->vPlotLayout->addWidget(pltStructure, 1);
         pltStructure->setMinimumWidth(400);
 
-        // TODO: add this back in
         connect(pltStructure, &PGL::PlotWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
-//        connect(pltStructure, &OGLViewWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
+        connect(pltStructure, &PGL::PlotWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);

@@ -38,7 +38,7 @@ namespace PGL {
     signals:
         void resetView();
 
-//        void initError(std::string);
+        void initError(std::string);
 
     public:
         explicit PlotWidget(QWidget *parent, int msaa=1);

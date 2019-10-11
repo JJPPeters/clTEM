@@ -55,44 +55,50 @@ namespace PGL {
     }
 
     void PlotWidget::initializeGL() {
-        // I don't quite understand why we need this, but
-        // without this get errors with "glVertexAttribPointer"
-        // TODO: use non Qt version of this (for slightly easier portability later?
-        auto _vao = new QOpenGLVertexArrayObject(this);
-        _vao->create();
-        _vao->bind(); // TODO: Do I need to release this somewhere?
+        try {
+            // I don't quite understand why we need this, but
+            // without this get errors with "glVertexAttribPointer"
+            // TODO: use non Qt version of this (for slightly easier portability later?
+            auto _vao = new QOpenGLVertexArrayObject(this);
+            _vao->create();
+            _vao->bind(); // TODO: Do I need to release this somewhere?
 
-        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
-        glFuncs->initializeOpenGLFunctions();
+            QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+            glFuncs->initializeOpenGLFunctions();
 
-        QOpenGLExtraFunctions *glFuncsExtra = QOpenGLContext::currentContext()->extraFunctions();
-        glFuncsExtra->initializeOpenGLFunctions();
+            QOpenGLExtraFunctions *glFuncsExtra = QOpenGLContext::currentContext()->extraFunctions();
+            glFuncsExtra->initializeOpenGLFunctions();
 
-        // this is the background colour...
-        // see for depth stuff
-        // https://stackoverflow.com/questions/4189831/depth-test-inverted-by-default-in-opengl-or-did-i-get-it-wrong
-        glClearColor(_background.x, _background.y, _background.z, 1.0f);
-        glClearDepth(0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // this is the background colour...
+            // see for depth stuff
+            // https://stackoverflow.com/questions/4189831/depth-test-inverted-by-default-in-opengl-or-did-i-get-it-wrong
+            glClearColor(_background.x, _background.y, _background.z, 1.0f);
+            glClearDepth(0.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glEnable(GL_MULTISAMPLE);
-        glEnable(GL_SAMPLE_COVERAGE);
-        glEnable(GL_SAMPLE_SHADING);
-        glFuncsExtra->glMinSampleShading(1.0);
+            glEnable(GL_MULTISAMPLE);
+            glEnable(GL_SAMPLE_COVERAGE);
+            glEnable(GL_SAMPLE_SHADING);
+            glFuncsExtra->glMinSampleShading(1.0);
 
-        // this is for alpha stuff
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            // this is for alpha stuff
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_GEQUAL); // this is odd, see reference in paintGL()
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_GEQUAL); // this is odd, see reference in paintGL()
 
-        _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, _msaa);
-        //_camera is created in the set viewdirection method!
-        SetViewDirection(View::Top);
+            _framebuffer = std::make_shared<PGL::Framebuffer>(_width, _height, 1.0, _msaa);
+            //_camera is created in the set viewdirection method!
+            SetViewDirection(View::Top);
 
-        for (auto &technique: _techniques)
-            technique->Init();
+            for (auto &technique: _techniques)
+                technique->Init();
+
+        } catch (std::exception &e) {
+            emit initError(e.what());
+        }
+
     }
 
     void PlotWidget::paintGL() {

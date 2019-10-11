@@ -35,8 +35,7 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
         pltPreview->setMinimumWidth(400);
 
         pltPreview->setAttribute(Qt::WA_TransparentForMouseEvents);
-        // TODO: add this back in
-//        connect(pltPreview, &OGLViewWidget::initError, this, &CifCreatorFrame::processOpenGLError);
+        connect(pltPreview, &PGL::PlotWidget::initError, this, &CifCreatorFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
