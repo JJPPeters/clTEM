@@ -32,13 +32,16 @@ namespace PGL {
         ~Rectangle() override {
             if (_positionBuffer)
                 _positionBuffer->Delete();
+
+            if (_indexBuffer)
+                _indexBuffer->Delete();
         }
 
-        void Init();
+        void Init() override;
 
         void MakeBuffers(std::vector<Vector3f> &positions, Vector4f &col);
 
-        void Render(const Matrix4f &MV, const Matrix4f &P, float pix_size);
+        void Render(const Matrix4f &MV, const Matrix4f &P, float pix_size) override;
 
     private:
         std::shared_ptr<AttributeBuffer> _positionBuffer;

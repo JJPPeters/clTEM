@@ -1,5 +1,7 @@
 #include <dialogs/settings/settingsdialog.h>
+#ifdef _WIN32
 #include <theme/thememanager.h>
+#endif
 #include "generalsettingsframe.h"
 #include "ui_generalsettingsframe.h"
 #include "utilities/logging.h"
@@ -11,12 +13,19 @@ GeneralSettingsFrame::GeneralSettingsFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
+#ifdef _WIN32
     if (ThemeManager::CurrentTheme == ThemeManager::Theme::Dark)
         ui->cmbTheme->setCurrentText("Dark");
     else if (ThemeManager::CurrentTheme == ThemeManager::Theme::Light)
         ui->cmbTheme->setCurrentText("Light");
     else
         ui->cmbTheme->setCurrentText("Native");
+#else
+    ui->cmbTheme->setVisible(false);
+    ui->lblTheme->setVisible(false);
+    ui->cmbTheme->setEnabled(false);
+    ui->lblTheme->setEnabled(false);
+#endif
 
     QSettings settings;
     int msaa = settings.value("MSAA", 1).toInt();
@@ -56,6 +65,7 @@ void GeneralSettingsFrame::dlgOk_clicked()
 
 void GeneralSettingsFrame::dlgApply_clicked()
 {
+#ifdef _WIN32
     // Theme
     if (ui->cmbTheme->currentText() == "Dark")
         ThemeManager::setTheme(ThemeManager::Theme::Dark);
@@ -63,6 +73,7 @@ void GeneralSettingsFrame::dlgApply_clicked()
         ThemeManager::setTheme(ThemeManager::Theme::Light);
     else
         ThemeManager::setTheme(ThemeManager::Theme::Native);
+#endif
 
     // logging
     std::string state_str = "false";

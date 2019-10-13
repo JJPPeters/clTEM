@@ -87,7 +87,8 @@ set ( clTEM_SRCS
         utils/guiutils.cpp
         controls/editunitsbox.cpp
         controls/borderlesswindow.cpp
-        controls/borderlessdialog.cpp)
+        controls/borderlessdialog.cpp
+        dialogs/settings/frames/generalsettingsframe.cpp)
 
 set ( clTEM_UIS
         mainwindow.ui
@@ -109,12 +110,13 @@ set ( clTEM_UIS
         dialogs/settings/frames/cbedareaframe.ui
         dialogs/settings/frames/arealayoutframe.ui
         dialogs/settings/frames/thermalscatteringframe.ui
+        dialogs/settings/frames/generalsettingsframe.ui
         )
 
 IF(WIN32)
     # add the ui stuff for themes, if we can set them (aka on windows)
-    set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/generalsettingsframe.ui )
-    set ( clTEM_SRCS ${clTEM_SRCS} dialogs/settings/frames/generalsettingsframe.cpp theme/thememanager.cpp controls/flattitlebar.cpp)
+    # set ( clTEM_UIS ${clTEM_UIS} dialogs/settings/frames/generalsettingsframe.ui )
+    set ( clTEM_SRCS ${clTEM_SRCS} theme/thememanager.cpp controls/flattitlebar.cpp)
     #    # add the theme resources if they are needed
     set ( clTEM_RSCS theme/theme.qrc )
     QT5_ADD_RESOURCES(RSCS ${clTEM_RSCS})

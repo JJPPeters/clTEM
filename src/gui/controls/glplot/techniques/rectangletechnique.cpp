@@ -9,7 +9,7 @@
 
 namespace PGL {
 
-    Rectangle::Rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) {
+    Rectangle::Rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) : Technique() {
         _haveBuffers = false;
 
         Init();

@@ -31,9 +31,9 @@ public:
     explicit AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan);
     ~AreaLayoutFrame();
 
-    void closeEvent(QCloseEvent *event) {
-        delete pltStructure;
-    }
+//    void closeEvent(QCloseEvent *event) {
+////        delete pltStructure;
+//    }
 
 private slots:
     void areasChanged();
@@ -76,8 +76,9 @@ private:
     CbedAreaFrame *CbedFrame;
 
     std::vector<std::shared_ptr<PGL::Rectangle>> _plot_rects;
+    std::shared_ptr<PGL::Scatter> _plot_scatter;
 
-    PGL::PlotWidget *pltStructure;
+    std::shared_ptr<PGL::PlotWidget> pltStructure;
 
     bool getErrorStringCtem();
     bool getErrorStringStem();

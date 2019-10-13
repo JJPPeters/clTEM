@@ -27,11 +27,6 @@ PGL::Technique::~Technique() {
     QOpenGLFunctions *glFuncs = con->functions();
     glFuncs->initializeOpenGLFunctions();
 
-    for (unsigned int &sh : _shaderObjectList)
-        glFuncs->glDeleteShader(sh);
-
-    _shaderObjectList.clear();
-
     if (_shaderProg != 0) {
         glFuncs->glDeleteProgram(_shaderProg);
         _shaderProg = 0;
@@ -69,6 +64,13 @@ namespace PGL {
             std::string error_log_string(error_log.begin(), error_log.end());
             throw std::runtime_error("Error finalising technique: " + error_log_string);
         }
+
+        for (auto &shader: _shaderObjectList) {
+            glFuncs->glDetachShader(_shaderProg, shader); // not really needed
+            glFuncs->glDeleteShader(shader);
+        }
+
+        _shaderObjectList.clear();
 
         glFuncs->glValidateProgram(_shaderProg);
         glFuncs->glGetProgramiv(_shaderProg, GL_VALIDATE_STATUS, &Success);
@@ -139,22 +141,23 @@ namespace PGL {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
-        auto _shaderObj = glFuncs->glCreateShader(ShaderType);
+        GLuint _shaderObj = glFuncs->glCreateShader(ShaderType);
 
         if (_shaderObj == 0)
             throw std::runtime_error("Error creating shader object");
 
-        const GLchar *p[1] = {shader.c_str()};
-        GLint Lengths[1] = {(GLint) shader.size()};
+//        const GLchar *p[1] = {shader.c_str()};
+        std::vector<const GLchar *> p = {shader.c_str()};
+        auto Lengths = (GLint) shader.size();
 
-        glFuncs->glShaderSource(_shaderObj, 1, p, Lengths);
+        glFuncs->glShaderSource(_shaderObj, 1, &p[0], &Lengths);
 
         glFuncs->glCompileShader(_shaderObj);
 
         GLint success;
         glFuncs->glGetShaderiv(_shaderObj, GL_COMPILE_STATUS, &success);
 
-        if (!success) {
+        if (success == GL_FALSE) {
             int log_length = 0;
             glFuncs->glGetShaderiv(_shaderObj, GL_INFO_LOG_LENGTH, &log_length);
 

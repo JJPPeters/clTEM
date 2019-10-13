@@ -22,13 +22,13 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
         QSettings settings;
         int msaa = settings.value("MSAA", 1).toInt();
 
-        pltStructure = new PGL::PlotWidget(this, msaa);
+        pltStructure = std::make_shared<PGL::PlotWidget>(this, msaa);
         pltStructure->setFormat(format);
-        ui->vPlotLayout->addWidget(pltStructure, 1);
+        ui->vPlotLayout->addWidget(pltStructure.get(), 1);
         pltStructure->setMinimumWidth(400);
 
-        connect(pltStructure, &PGL::PlotWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
-        connect(pltStructure, &PGL::PlotWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
+        connect(pltStructure.get(), &PGL::PlotWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
+        connect(pltStructure.get(), &PGL::PlotWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
@@ -103,7 +103,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
 AreaLayoutFrame::~AreaLayoutFrame()
 {
-    delete pltStructure;
+//    delete pltStructure;
+    pltStructure.reset();
     delete ui;
 }
 
@@ -347,6 +348,8 @@ void AreaLayoutFrame::plotStructure() {
     if (!SimManager->getStructure() || !pltStructure)
         return;
 
+    pltStructure->makeCurrent();
+
     // get ranges (needed to define out 'cube'
     auto xr = SimManager->getStructure()->getLimitsX();
     auto yr = SimManager->getStructure()->getLimitsY();
@@ -364,14 +367,16 @@ void AreaLayoutFrame::plotStructure() {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
-    auto scatter = std::make_shared<PGL::Scatter>(pos, col);
+    _plot_scatter = std::make_shared<PGL::Scatter>(pos, col);
 
-    pltStructure->addItem(std::dynamic_pointer_cast<PGL::Technique>(scatter));
+    pltStructure->addItem(std::dynamic_pointer_cast<PGL::Technique>(_plot_scatter));
     pltStructure->SetViewDirection(View::Direction::Top);
 
     pltStructure->FitView(1.1);
 
     pltStructure->repaint();
+
+    pltStructure->doneCurrent();
 }
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
@@ -428,6 +433,8 @@ void AreaLayoutFrame::showRectChanged(int arg1) {
 void AreaLayoutFrame::updatePlotRects() {
     // Add in the rectangles showing the simulation areas and slices
 
+    pltStructure->makeCurrent();
+
     // test if we have a structure to plot...
     if (!SimManager->getStructure() || !pltStructure)
         return;
@@ -480,6 +487,9 @@ void AreaLayoutFrame::updatePlotRects() {
 
     pltStructure->FitView(1.1);
     pltStructure->repaint();
+
+    pltStructure->doneCurrent();
+
 }
 
 void AreaLayoutFrame::on_btnApplyUpdate_clicked() {

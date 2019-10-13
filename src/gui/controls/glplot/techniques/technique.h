@@ -19,7 +19,7 @@ namespace PGL {
 
         virtual ~Technique();
 
-        void Init();
+        virtual void Init();
 
         void Enable();
 

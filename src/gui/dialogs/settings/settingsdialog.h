@@ -11,9 +11,7 @@
 #include "dialogs/settings/frames/openclframe.h"
 #include "dialogs/settings/frames/fullaberrationframe.h"
 #include "dialogs/settings/frames/cifcreatorframe.h"
-#ifdef _WIN32
 #include "dialogs/settings/frames/generalsettingsframe.h"
-#endif
 
 #include <structure/crystalstructure.h>
 #include <controls/borderlessdialog.h>
@@ -71,10 +69,8 @@ class ThemeDialog : public SettingsDialog
 {
 Q_OBJECT
 
-#ifdef _WIN32
 private:
     GeneralSettingsFrame* tFrame;
-#endif
 
 public:
     explicit ThemeDialog(QWidget *parent);

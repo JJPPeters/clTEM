@@ -14,7 +14,7 @@ namespace PGL {
     public:
         Framebuffer(int width, int height, float scaling = 1.0, unsigned int multisampling = 1);
 
-        ~Framebuffer() {};
+        ~Framebuffer();
 
         void Resize(int width, int height, float scaling);
 

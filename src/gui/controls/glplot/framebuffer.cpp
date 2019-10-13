@@ -84,4 +84,17 @@ namespace PGL {
         glFuncs->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         glFuncs->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
+
+    Framebuffer::~Framebuffer() {
+        auto con = QOpenGLContext::currentContext();
+        if (!con)
+            return;
+
+        QOpenGLFunctions *glFuncs = con->functions();
+        glFuncs->initializeOpenGLFunctions();
+
+        glFuncs->glDeleteFramebuffers(1, &_fbo);
+        glFuncs->glDeleteRenderbuffers(1, &_rbo_c);
+        glFuncs->glDeleteFramebuffers(1, &_rbo_d);
+    }
 }

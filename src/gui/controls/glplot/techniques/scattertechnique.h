@@ -25,6 +25,7 @@ namespace PGL {
         ~Scatter() override {
             if (_positionBuffer)
                 _positionBuffer->Delete();
+
             if (_colourBuffer)
                 _colourBuffer->Delete();
         }

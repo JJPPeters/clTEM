@@ -28,23 +28,23 @@ namespace PGL {
     void Scatter::Init() {
         Technique::Init();
 
-    //    OGLCheckErrors("OpenGL: BillBoard: Initialising technique");
+//        PGL::CheckErrors("OpenGL: BillBoard: Initialising technique");
 
         CompileShaderFromFile(GL_VERTEX_SHADER, ":/PGL/Shaders/scatter.vs");
 
-    //    OGLCheckErrors("OpenGL: BillBoard: Creating vertex shader");
+//        PGL::CheckErrors("OpenGL: BillBoard: Creating vertex shader");
 
         CompileShaderFromFile(GL_GEOMETRY_SHADER, ":/PGL/Shaders/scatter.gs");
 
-    //    OGLCheckErrors("OpenGL: BillBoard: Creating geometry shader");
+//        PGL::CheckErrors("OpenGL: BillBoard: Creating geometry shader");
 
         CompileShaderFromFile(GL_FRAGMENT_SHADER, ":/PGL/Shaders/scatter.fs");
 
-    //    OGLCheckErrors("OpenGL: BillBoard: Creating fragment shader");
+//        PGL::CheckErrors("OpenGL: BillBoard: Creating fragment shader");
 
         Finalise();
 
-    //    OGLCheckErrors("OpenGL: BillBoard: Finalising technique");
+//        PGL::CheckErrors("OpenGL: BillBoard: Finalising technique");
 
         _MVLocation = GetUniformLocation("ModelView");
         _PLocation = GetUniformLocation("Proj");
