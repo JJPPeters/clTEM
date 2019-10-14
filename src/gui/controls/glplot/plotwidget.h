@@ -50,13 +50,13 @@ namespace PGL {
 
         ~PlotWidget() override;
 
-        std::weak_ptr<PGL::Scatter> scatter(std::vector<Vector3f> positions, std::vector<Vector3f> colours);
+        std::weak_ptr<PGL::Scatter> scatter(std::vector<Eigen::Vector3f> positions, std::vector<Eigen::Vector3f> colours);
 
-        std::weak_ptr<PGL::Rectangle> rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl);
+        std::weak_ptr<PGL::Rectangle> rectangle(float t, float l, float b, float r, float z, Eigen::Vector4f &colour, PGL::Plane pl);
 
         Eigen::Matrix<float, 3, 2> GetSceneLimits();
 
-        std::vector<Vector3f> GetBoundingCube();
+        std::vector<Eigen::Vector3f> GetBoundingCube();
 
         void FitView(float extend = 1.0);
 
@@ -104,7 +104,7 @@ namespace PGL {
 
         std::shared_ptr<PGL::Framebuffer> _framebuffer;
 
-        Vector3f directionEnumToVector(View::Direction d);
+        Eigen::Vector3f directionEnumToVector(View::Direction d);
 
         std::shared_ptr<PGL::Camera> _camera;
 
@@ -113,13 +113,13 @@ namespace PGL {
 
         int _msaa;
 
-        Vector3f _background;
+        Eigen::Vector3f _background;
 
         QPoint _lastPos;
 
-        void SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode);
+        void SetCamera(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up, Eigen::Vector3f rot, ViewMode mode);
 
-        void SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode);
+        void SetCamera(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up, ViewMode mode);
 
         void contextMenuRequest(QPoint pos);
 

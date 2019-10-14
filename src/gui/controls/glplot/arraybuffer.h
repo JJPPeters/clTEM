@@ -5,11 +5,11 @@
 #ifndef CLTEM_OGLVERTEXBUFFER_H
 #define CLTEM_OGLVERTEXBUFFER_H
 
-
 #include <QtOpenGL>
 #include <QOpenGLFunctions>
 
-#include "oglmaths.h"
+#include <Eigen/Dense>
+
 
 namespace PGL {
 
@@ -35,7 +35,7 @@ namespace PGL {
             InitBuffer(BufferData, buffer_target);
         }
 
-        ArrayBuffer(std::vector<Vector3f> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
+        ArrayBuffer(std::vector<Eigen::Vector3f> BufferData, GLenum buffer_target = GL_ARRAY_BUFFER) {
             _data_type = GL_FLOAT;
 
             InitBuffer(BufferData, buffer_target);

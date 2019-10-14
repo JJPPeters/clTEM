@@ -57,7 +57,7 @@ set ( glViewWidget_HDRS
         camera.h
         camerapipeline.h
         error.h
-        oglmaths.h
+        static.h
         techniques/rectangletechnique.h
         techniques/technique.h
         arraybuffer.h
@@ -71,7 +71,7 @@ set ( glViewWidget_SRCS
         camera.cpp
         camerapipeline.cpp
         error.cpp
-        oglmaths.cpp
+        static.cpp
         techniques/rectangletechnique.cpp
         techniques/technique.cpp
         arraybuffer.cpp

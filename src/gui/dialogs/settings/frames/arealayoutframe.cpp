@@ -352,14 +352,14 @@ void AreaLayoutFrame::plotStructure() {
 
     auto atms = SimManager->getStructure()->getAtoms();
 
-    std::vector<Vector3f> pos(atms.size());
-    std::vector<Vector3f> col(atms.size());
+    std::vector<Eigen::Vector3f> pos(atms.size());
+    std::vector<Eigen::Vector3f> col(atms.size());
 
     for (int i = 0; i < atms.size(); ++i) {
-        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
+        pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
+        col[i] = Eigen::Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
     // here is where the data is actually plotted
@@ -454,18 +454,18 @@ void AreaLayoutFrame::updatePlotRects() {
     _plot_rects.reserve(rect_count);
 
     // first the sim area + padding
-    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
+    Eigen::Vector4f col_1 = Eigen::Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
     _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, PGL::Plane::z));
     _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, PGL::Plane::z));
 
     // now the sim area
-    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
+    Eigen::Vector4f col_2 = Eigen::Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
     _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, PGL::Plane::z));
     _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
 
     // now add the sides for slices
 
-    std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
+    std::vector<Eigen::Vector4f> cols_slice = {Eigen::Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Eigen::Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
 
     auto current_z = szr[0];
     for (int i = 0; i < nz; ++i) {

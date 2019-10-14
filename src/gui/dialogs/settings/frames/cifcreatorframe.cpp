@@ -287,14 +287,14 @@ void CifCreatorFrame::previewStructure(bool dummy) {
 
     auto atms = temp.getAtoms();
 
-    std::vector<Vector3f> pos(atms.size());
-    std::vector<Vector3f> col(atms.size());
+    std::vector<Eigen::Vector3f> pos(atms.size());
+    std::vector<Eigen::Vector3f> col(atms.size());
 
     for (int i = 0; i < atms.size(); ++i) {
-        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
+        pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
+        col[i] = Eigen::Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
     }
 
     pltPreview->scatter(pos, col);

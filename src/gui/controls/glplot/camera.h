@@ -23,8 +23,8 @@ namespace PGL {
     public:
         Camera(ViewMode Mode = ViewMode::Orthographic);
 
-        Camera(const Vector3f &Pos, const Vector3f &Target, const Vector3f &Up, const Vector3f &Origin,
-               const Vector3f &rot, const Vector3f &rot_cent, ViewMode Mode);
+        Camera(const Eigen::Vector3f &Pos, const Eigen::Vector3f &Target, const Eigen::Vector3f &Up, const Eigen::Vector3f &Origin,
+               const Eigen::Vector3f &rot, const Eigen::Vector3f &rot_cent, ViewMode Mode);
 
         void OnMouseRotate(float dx, float dy);
 
@@ -44,8 +44,8 @@ namespace PGL {
 
         float getHeight() { return _height; }
 
-        Vector2f GetScreenSize() {
-            return Vector2f(_width, _height);
+        Eigen::Vector2f GetScreenSize() {
+            return Eigen::Vector2f(_width, _height);
         }
 
         void setAspectRatio(float ratio) { _aspect_ratio = ratio; }

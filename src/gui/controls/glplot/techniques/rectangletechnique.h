@@ -12,7 +12,6 @@
 #include "rectangleshader.h"
 
 #include <Eigen/Dense>
-#include "oglmaths.h"
 
 #include <memory>
 
@@ -28,7 +27,7 @@ namespace PGL {
     class Rectangle : public PGL::Technique {
 
     public:
-        Rectangle(std::shared_ptr<RectangleShader> shdr, float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl);
+        Rectangle(std::shared_ptr<RectangleShader> shdr, float t, float l, float b, float r, float z, Eigen::Vector4f &colour, PGL::Plane pl);
 
         ~Rectangle() override {
             if (_positionBuffer)
@@ -38,9 +37,9 @@ namespace PGL {
                 _indexBuffer->Delete();
         }
 
-        void makeBuffers(std::vector<Vector3f> &positions, Vector4f &col);
+        void makeBuffers(std::vector<Eigen::Vector3f> &positions, Eigen::Vector4f &col);
 
-        void render(const Matrix4f &MV, const Matrix4f &P, float pix_size) override;
+        void render(const Eigen::Matrix4f &MV, const Eigen::Matrix4f &P, float pix_size) override;
 
     private:
         std::shared_ptr<RectangleShader> _shader;
@@ -48,8 +47,8 @@ namespace PGL {
         std::shared_ptr<AttributeBuffer> _positionBuffer;
         std::shared_ptr<ArrayBuffer> _indexBuffer;
 
-        Vector4f _col;
-        Vector3f _mins, _maxs;
+        Eigen::Vector4f _col;
+        Eigen::Vector3f _mins, _maxs;
     };
 }
 

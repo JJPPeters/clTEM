@@ -5,8 +5,8 @@
 #ifndef CLTEM_CAMERAPIPELINE_H
 #define CLTEM_CAMERAPIPELINE_H
 
-
-#include "oglmaths.h"
+#include "static.h"
+#include <Eigen/Dense>
 
 enum ViewMode
 {
@@ -29,45 +29,45 @@ namespace PGL {
     public:
         ViewMode getProjectionMode() { return _projMode; }
 
-        const Vector3f &getCameraPos() { return _camPos; }
+        const Eigen::Vector3f &getCameraPos() { return _camPos; }
 
-        const Vector3f &getCameraTarget() const { return _camTarget; }
+        const Eigen::Vector3f &getCameraTarget() const { return _camTarget; }
 
-        const Vector3f &getCameraUp() { return _camUp; }
+        const Eigen::Vector3f &getCameraUp() { return _camUp; }
 
-        const Vector3f &getCameraRight() { return _camRight; }
+        const Eigen::Vector3f &getCameraRight() { return _camRight; }
 
-        const Vector3f &getWorldRotation() { return _worldRot; }
+        const Eigen::Vector3f &getWorldRotation() { return _worldRot; }
 
-        void setCameraPos(Vector3f Pos) { _camPos = Pos; }
+        void setCameraPos(Eigen::Vector3f Pos) { _camPos = Pos; }
 
         void setPerspProjection(float fov, float width, float height, float n, float f);
 
         void setOrthoProjection(float t, float l, float b, float r, float n = -100.0f, float f = 10000.0f);
 
-        const Matrix4f getV();
+        const Eigen::Matrix4f getV();
 
-        const Matrix4f getM();
+        const Eigen::Matrix4f getM();
 
-        const Matrix4f getP();
+        const Eigen::Matrix4f getP();
 
-        const Matrix4f getOrthoP();
+        const Eigen::Matrix4f getOrthoP();
 
-        const Matrix4f getPerspP();
+        const Eigen::Matrix4f getPerspP();
 
-        const Matrix4f getMV();
+        const Eigen::Matrix4f getMV();
 
-        const Matrix4f getVP();
+        const Eigen::Matrix4f getVP();
 
-        const Matrix4f getPerspVP();
+        const Eigen::Matrix4f getPerspVP();
 
-        const Matrix4f getOrthoVP();
+        const Eigen::Matrix4f getOrthoVP();
 
-        const Matrix4f getMVP();
+        const Eigen::Matrix4f getMVP();
 
-        const Matrix4f getPerspMVP();
+        const Eigen::Matrix4f getPerspMVP();
 
-        const Matrix4f getOrthoMVP();
+        const Eigen::Matrix4f getOrthoMVP();
 
     protected:
         ViewMode _projMode;
@@ -75,15 +75,15 @@ namespace PGL {
         PersProjInfo _persProjInfo;
         OrthoProjInfo _orthoProjInfo;
 
-        Vector3f _camPos;
-        Vector3f _camTarget;
-        Vector3f _camUp;
-        Vector3f _camRight;
+        Eigen::Vector3f _camPos;
+        Eigen::Vector3f _camTarget;
+        Eigen::Vector3f _camUp;
+        Eigen::Vector3f _camRight;
 
-        Vector3f _worldScale;
-        Vector3f _worldTrans;
-        Vector3f _worldRot;
-        Vector3f _rotateCentre;
+        Eigen::Vector3f _worldScale;
+        Eigen::Vector3f _worldTrans;
+        Eigen::Vector3f _worldRot;
+        Eigen::Vector3f _rotateCentre;
     };
 }
 

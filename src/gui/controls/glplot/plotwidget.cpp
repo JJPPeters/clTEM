@@ -21,7 +21,7 @@ namespace PGL {
 
         // use system colours
         auto bk_col = qApp->palette().brush(QPalette::Background).color();
-        _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
+        _background = Eigen::Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 
         connect(this, &PlotWidget::customContextMenuRequested, this, &PlotWidget::contextMenuRequest);
     }
@@ -40,7 +40,7 @@ namespace PGL {
         // this might get spammed a bit, not sure if it is supposed to
         if (event->type() == QEvent::PaletteChange) {
             auto bk_col = qApp->palette().brush(QPalette::Background).color();
-            _background = Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
+            _background = Eigen::Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
             repaint();
         }
 
@@ -48,9 +48,9 @@ namespace PGL {
         return QOpenGLWidget::event(event);
     }
 
-    void PlotWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, Vector3f rot, ViewMode mode) {
-        Vector3f origin(0.0f, 0.0f, 0.0f);
-        Vector3f rotation_offset(0.0f, 0.0f, 0.0f);
+    void PlotWidget::SetCamera(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up, Eigen::Vector3f rot, ViewMode mode) {
+        Eigen::Vector3f origin(0.0f, 0.0f, 0.0f);
+        Eigen::Vector3f rotation_offset(0.0f, 0.0f, 0.0f);
 
         _camera = std::make_shared<PGL::Camera>(position, target, up, origin, rot, rotation_offset, mode);
 
@@ -60,8 +60,8 @@ namespace PGL {
         _camera->setPixelRatio(devicePixelRatio());
     }
 
-    void PlotWidget::SetCamera(Vector3f position, Vector3f target, Vector3f up, ViewMode mode) {
-        SetCamera(position, target, up, Vector3f(0.f, 0.f, 0.f), mode);
+    void PlotWidget::SetCamera(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up, ViewMode mode) {
+        SetCamera(position, target, up, Eigen::Vector3f(0.f, 0.f, 0.f), mode);
     }
 
     void PlotWidget::initializeGL() {
@@ -82,7 +82,7 @@ namespace PGL {
             // this is the background colour...
             // see for depth stuff
             // https://stackoverflow.com/questions/4189831/depth-test-inverted-by-default-in-opengl-or-did-i-get-it-wrong
-            glClearColor(_background.x, _background.y, _background.z, 1.0f);
+            glClearColor(_background[0], _background[1], _background[2], 1.0f);
             glClearDepth(0.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -128,14 +128,13 @@ namespace PGL {
 
         _framebuffer->Bind();
 
-        glClearColor(_background.x, _background.y, _background.z, 1.0f);
         glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Do some camera crap
-        Matrix4f MV = _camera->getMV();
-        Matrix4f P = _camera->getP();
+        Eigen::Matrix4f MV = _camera->getMV();
+        Eigen::Matrix4f P = _camera->getP();
 
-        Vector2f screen_size(_width, _height);
+        Eigen::Vector2f screen_size(_width, _height);
 
         // TODO: handle order of objects (or will 3d-ness handle this nicely?)
 
@@ -188,19 +187,19 @@ namespace PGL {
         return limits;
     }
 
-    std::vector<Vector3f> PlotWidget::GetBoundingCube() {
+    std::vector<Eigen::Vector3f> PlotWidget::GetBoundingCube() {
         Eigen::Matrix<float, 3, 2> limits = GetSceneLimits();
-        std::vector<Vector3f> bounding_cube(8);
+        std::vector<Eigen::Vector3f> bounding_cube(8);
 
-        bounding_cube[0] = Vector3f(limits(0,0), limits(1,0), limits(2,0));
-        bounding_cube[1] = Vector3f(limits(0,1), limits(1,0), limits(2,0));
-        bounding_cube[2] = Vector3f(limits(0,1), limits(1,1), limits(2,0));
-        bounding_cube[3] = Vector3f(limits(0,0), limits(1,1), limits(2,0));
+        bounding_cube[0] = Eigen::Vector3f(limits(0,0), limits(1,0), limits(2,0));
+        bounding_cube[1] = Eigen::Vector3f(limits(0,1), limits(1,0), limits(2,0));
+        bounding_cube[2] = Eigen::Vector3f(limits(0,1), limits(1,1), limits(2,0));
+        bounding_cube[3] = Eigen::Vector3f(limits(0,0), limits(1,1), limits(2,0));
 
-        bounding_cube[4] = Vector3f(limits(0,0), limits(1,0), limits(2,1));
-        bounding_cube[5] = Vector3f(limits(0,1), limits(1,0), limits(2,1));
-        bounding_cube[6] = Vector3f(limits(0,1), limits(1,1), limits(2,1));
-        bounding_cube[7] = Vector3f(limits(0,0), limits(1,1), limits(2,1));
+        bounding_cube[4] = Eigen::Vector3f(limits(0,0), limits(1,0), limits(2,1));
+        bounding_cube[5] = Eigen::Vector3f(limits(0,1), limits(1,0), limits(2,1));
+        bounding_cube[6] = Eigen::Vector3f(limits(0,1), limits(1,1), limits(2,1));
+        bounding_cube[7] = Eigen::Vector3f(limits(0,0), limits(1,1), limits(2,1));
 
         return bounding_cube;
     }
@@ -222,18 +221,18 @@ namespace PGL {
         auto MV = _camera->getMV();
 
         for (auto coord : bounding_cube) {
-            Vector4f coord4(coord, 1.0f);
-            Vector4f MV_coord = MV * coord4;
+            Eigen::Vector4f coord4(coord[0], coord[1], coord[2], 1.0f);
+            Eigen::Vector4f MV_coord = MV * coord4;
 
-            if (MV_coord.x < min_x)
-                min_x = MV_coord.x;
-            if (MV_coord.y < min_y)
-                min_y = MV_coord.y;
+            if (MV_coord[0] < min_x)
+                min_x = MV_coord[0];
+            if (MV_coord[1] < min_y)
+                min_y = MV_coord[1];
 
-            if (MV_coord.x > max_x)
-                max_x = MV_coord.x;
-            if (MV_coord.y > max_y)
-                max_y = MV_coord.y;
+            if (MV_coord[0] > max_x)
+                max_x = MV_coord[0];
+            if (MV_coord[1] > max_y)
+                max_y = MV_coord[1];
         }
 
         float w = max_x - min_x;
@@ -330,19 +329,19 @@ namespace PGL {
         }
     }
 
-    Vector3f PlotWidget::directionEnumToVector(View::Direction d) {
+    Eigen::Vector3f PlotWidget::directionEnumToVector(View::Direction d) {
         if (d == View::Direction::Front) {
-            return Vector3f(0.0f, -1000.0f, 0.0f);
+            return Eigen::Vector3f(0.0f, -1000.0f, 0.0f);
         } else if (d == View::Direction::Back) {
-            return Vector3f(0.0f, 1000.0f, 0.0f);
+            return Eigen::Vector3f(0.0f, 1000.0f, 0.0f);
         } else if (d == View::Direction::Left) {
-            return Vector3f(-1000.0f, 0.0f, 0.0f);
+            return Eigen::Vector3f(-1000.0f, 0.0f, 0.0f);
         } else if (d == View::Direction::Right) {
-            return Vector3f(1000.0f, 0.0f, 0.0f);
+            return Eigen::Vector3f(1000.0f, 0.0f, 0.0f);
         } else if (d == View::Direction::Top) {
-            return Vector3f(0.0f, 0.0f, 1000.0f);
+            return Eigen::Vector3f(0.0f, 0.0f, 1000.0f);
         } else {
-            return Vector3f(0.0f, 0.0f, -1000.0f);
+            return Eigen::Vector3f(0.0f, 0.0f, -1000.0f);
         }
     }
 
@@ -364,7 +363,7 @@ namespace PGL {
         menu->popup(mapToGlobal(pos));
     }
 
-    std::weak_ptr<PGL::Scatter> PlotWidget::scatter(std::vector<Vector3f> positions, std::vector<Vector3f> colours) {
+    std::weak_ptr<PGL::Scatter> PlotWidget::scatter(std::vector<Eigen::Vector3f> positions, std::vector<Eigen::Vector3f> colours) {
         makeCurrent();
 
         auto plot_item = std::make_shared<PGL::Scatter>(_scatter_shader, positions, colours);
@@ -376,7 +375,7 @@ namespace PGL {
         return plot_item;
     }
 
-    std::weak_ptr<PGL::Rectangle> PlotWidget::rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) {
+    std::weak_ptr<PGL::Rectangle> PlotWidget::rectangle(float t, float l, float b, float r, float z, Eigen::Vector4f &colour, PGL::Plane pl) {
         makeCurrent();
 
         auto plot_item = std::make_shared<PGL::Rectangle>(_rect_shader, t, l, b, r, z, colour, pl);

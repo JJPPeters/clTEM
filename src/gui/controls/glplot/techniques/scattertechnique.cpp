@@ -7,13 +7,13 @@
 
 namespace PGL {
 
-    Scatter::Scatter(std::shared_ptr<ScatterShader> shader, std::vector<Vector3f> pos, std::vector<Vector3f> col) {
+    Scatter::Scatter(std::shared_ptr<ScatterShader> shader, std::vector<Eigen::Vector3f> pos, std::vector<Eigen::Vector3f> col) {
         _shader = shader;
 
         makeBuffers(pos, col);
     }
 
-    void Scatter::makeBuffers(std::vector<Vector3f>& positions, std::vector<Vector3f>& colours)
+    void Scatter::makeBuffers(std::vector<Eigen::Vector3f>& positions, std::vector<Eigen::Vector3f>& colours)
     {
 
         for (auto &p: positions) {
@@ -37,7 +37,7 @@ namespace PGL {
         _positionBuffer = std::make_shared<AttributeBuffer>(AttributeBuffer(positions, static_cast<GLuint>(_shader->_posBufLocation)));
     }
 
-    void Scatter::render(const Matrix4f &MV, const Matrix4f &P, float pix_size)
+    void Scatter::render(const Eigen::Matrix4f &MV, const Eigen::Matrix4f &P, float pix_size)
     {
 
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();

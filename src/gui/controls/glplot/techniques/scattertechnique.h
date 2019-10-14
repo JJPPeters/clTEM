@@ -12,14 +12,13 @@
 #include "scattershader.h"
 
 #include "error.h"
-#include "oglmaths.h"
 
 #include <memory>
 
 namespace PGL {
     class Scatter : public PGL::Technique {
     public:
-        Scatter(std::shared_ptr<ScatterShader> shader, std::vector<Vector3f> pos, std::vector<Vector3f> col);
+        Scatter(std::shared_ptr<ScatterShader> shader, std::vector<Eigen::Vector3f> pos, std::vector<Eigen::Vector3f> col);
 
         ~Scatter() override {
             if (_positionBuffer)
@@ -29,9 +28,9 @@ namespace PGL {
                 _colourBuffer->Delete();
         }
 
-        void makeBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
+        void makeBuffers(std::vector<Eigen::Vector3f> &positions, std::vector<Eigen::Vector3f> &colours);
 
-        void render(const Matrix4f &MV, const Matrix4f &P, float pix_size);
+        void render(const Eigen::Matrix4f &MV, const Eigen::Matrix4f &P, float pix_size);
 
     private:
         std::shared_ptr<ScatterShader> _shader;

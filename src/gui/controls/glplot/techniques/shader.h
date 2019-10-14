@@ -8,9 +8,8 @@
 #include <QtOpenGL>
 
 #include "shaderresource.h"
-//#include <Eigen/Dense>
+#include <Eigen/Dense>
 
-#include "oglmaths.h"
 
 namespace PGL {
     class Shader {
@@ -25,8 +24,8 @@ namespace PGL {
         void disable();
 
         // these are convenience function, they are commonly used (by me)
-        void setProj(const Matrix4f& P);
-        void setModelView(const Matrix4f& MV);
+        void setProj(const Eigen::Matrix4f& P);
+        void setModelView(const Eigen::Matrix4f& MV);
 
     protected:
         void finalise();

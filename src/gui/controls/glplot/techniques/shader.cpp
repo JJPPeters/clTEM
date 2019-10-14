@@ -159,19 +159,19 @@ namespace PGL {
         return glFuncs->glGetAttribLocation(_shaderProg, name.c_str());
     }
 
-    void Shader::setModelView(const Matrix4f& MV)
+    void Shader::setModelView(const Eigen::Matrix4f& MV)
     {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
-        glFuncs->glUniformMatrix4fv(_MVLocation, 1, GL_TRUE, (const GLfloat*)MV.m);
+        glFuncs->glUniformMatrix4fv(_MVLocation, 1, GL_FALSE, (const GLfloat*)MV.data());
     }
 
-    void Shader::setProj(const Matrix4f& P)
+    void Shader::setProj(const Eigen::Matrix4f& P)
     {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
         glFuncs->initializeOpenGLFunctions();
 
-        glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_TRUE, (const GLfloat*)P.m);
+        glFuncs->glUniformMatrix4fv(_PLocation, 1, GL_FALSE, (const GLfloat*)P.data());
     }
 }

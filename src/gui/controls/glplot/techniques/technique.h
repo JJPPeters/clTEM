@@ -6,7 +6,6 @@
 #define CLTEM_TECHNIQUE_H
 
 #include <QtOpenGL>
-#include "oglmaths.h"
 
 #include <Eigen/Dense>
 
@@ -20,7 +19,7 @@ namespace PGL {
         void setVisible(bool visible) { _visible = visible; }
         bool getVisible() { return _visible; }
 
-        virtual void render(const Matrix4f &MV, const Matrix4f &P, float pix_size) = 0;
+        virtual void render(const Eigen::Matrix4f &MV, const Eigen::Matrix4f &P, float pix_size) = 0;
 
         Eigen::Matrix<float, 3, 2> getLimits() {
             if (_visible)

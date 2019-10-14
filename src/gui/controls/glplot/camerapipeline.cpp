@@ -5,70 +5,68 @@
 #include "camerapipeline.h"
 
 namespace PGL {
-    const Matrix4f CameraPipeline::getV() {
-        Matrix4f CameraTranslationTrans, CameraRotateTrans;
+    const Eigen::Matrix4f CameraPipeline::getV() {
+//        Eigen::Matrix4f CameraTranslationTrans, CameraRotateTrans;
+//
+//        CameraTranslationTrans.InitTranslationTransform(-_camPos.x, -_camPos.y, -_camPos.z);
+//        CameraRotateTrans.InitCameraTransform(_camTarget, _camUp);
 
-        CameraTranslationTrans.InitTranslationTransform(-_camPos.x, -_camPos.y, -_camPos.z);
-        CameraRotateTrans.InitCameraTransform(_camTarget, _camUp);
+        auto CameraTranslationTrans = PGL::initTranslationTransform(-_camPos[0], -_camPos[1], -_camPos[2]);
+        auto CameraRotateTrans = PGL::initCameraTransform(_camTarget, _camUp);
 
         return CameraRotateTrans * CameraTranslationTrans;
     }
 
-    const Matrix4f CameraPipeline::getM() {
-        Matrix4f ScaleTrans, RotateTrans, TranslationTrans;
+    const Eigen::Matrix4f CameraPipeline::getM() {
 
-        ScaleTrans.InitScaleTransform(_worldScale.x, _worldScale.y, _worldScale.z);
-        RotateTrans.InitRotateTransform(_worldRot.x, _worldRot.y, _worldRot.z, _rotateCentre.x, _rotateCentre.y,
-                                        _rotateCentre.z);
-        TranslationTrans.InitTranslationTransform(_worldTrans.x, _worldTrans.y, _worldTrans.z);
+        auto ScaleTrans = PGL::initScaleTransform(_worldScale[0], _worldScale[1], _worldScale[2]);
+        auto RotateTrans = PGL::initRotateTransform(_worldRot[0], _worldRot[1], _worldRot[2],
+                                                    _rotateCentre[0], _rotateCentre[1], _rotateCentre[2]);
+        auto TranslationTrans = PGL::initTranslationTransform(_worldTrans[0], _worldTrans[1], _worldTrans[2]);
 
         return TranslationTrans * RotateTrans * ScaleTrans;
     }
 
-    const Matrix4f CameraPipeline::getP() {
+    const Eigen::Matrix4f CameraPipeline::getP() {
         if (_projMode == ViewMode::Perspective)
             return getPerspP();
         else
             return getOrthoP();
     }
 
-    const Matrix4f CameraPipeline::getPerspP() {
-        Matrix4f ProjTrans;
-        ProjTrans.InitPersProjTransform(_persProjInfo);
-        return ProjTrans;
+    const Eigen::Matrix4f CameraPipeline::getPerspP() {
+        return PGL::initPersProjTransform(_persProjInfo);
     }
 
-    const Matrix4f CameraPipeline::getOrthoP() {
-        Matrix4f ProjTrans;
-        ProjTrans.InitOrthoProjTransform(_orthoProjInfo);
-        return ProjTrans;
+    const Eigen::Matrix4f CameraPipeline::getOrthoP() {
+        return PGL::initOrthoProjTransform(_orthoProjInfo);
     }
 
-    const Matrix4f CameraPipeline::getMV() {
+    const Eigen::Matrix4f CameraPipeline::getMV() {
         return getV() * getM();
     }
 
-    const Matrix4f CameraPipeline::getVP() {
+    const Eigen::Matrix4f CameraPipeline::getVP() {
         return getP() * getV();
     }
 
-    const Matrix4f CameraPipeline::getOrthoVP() {
+    const Eigen::Matrix4f CameraPipeline::getOrthoVP() {
         return getOrthoP() * getV();
     }
 
-    const Matrix4f CameraPipeline::getPerspVP() {
+    const Eigen::Matrix4f CameraPipeline::getPerspVP() {
         return getPerspP() * getV();
     }
 
-    const Matrix4f CameraPipeline::getMVP() {
+    const Eigen::Matrix4f CameraPipeline::getMVP() {
         return getP() * getMV();
     }
 
-    const Matrix4f CameraPipeline::getOrthoMVP() {
+    const Eigen::Matrix4f CameraPipeline::getOrthoMVP() {
         return getOrthoP() * getMV();
     }
 
-    const Matrix4f CameraPipeline::getPerspMVP() {
+    const Eigen::Matrix4f CameraPipeline::getPerspMVP() {
         return getPerspP() * getMV();
     }
 

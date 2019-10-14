@@ -27,7 +27,7 @@ namespace PGL {
             _offset = 0;
         }
 
-        AttributeBuffer(std::vector<Vector3f> BufferData, GLuint BufferLocation, GLenum BufferType = GL_ARRAY_BUFFER)
+        AttributeBuffer(std::vector<Eigen::Vector3f> BufferData, GLuint BufferLocation, GLenum BufferType = GL_ARRAY_BUFFER)
                 : ArrayBuffer(BufferData, BufferType) {
             _data_type = GL_FLOAT;
             _buffer_location = BufferLocation;
