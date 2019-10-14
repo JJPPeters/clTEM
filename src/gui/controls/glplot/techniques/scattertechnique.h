@@ -7,20 +7,19 @@
 
 
 #include "technique.h"
-#include "oglmaths.h"
 #include "arraybuffer.h"
-//#include "ogltexture.h"
 #include "attributebuffer.h"
+#include "scattershader.h"
+
 #include "error.h"
+#include "oglmaths.h"
 
 #include <memory>
 
 namespace PGL {
     class Scatter : public PGL::Technique {
     public:
-        Scatter();
-
-        Scatter(std::vector<Vector3f> pos, std::vector<Vector3f> col);
+        Scatter(std::shared_ptr<ScatterShader> shader, std::vector<Vector3f> pos, std::vector<Vector3f> col);
 
         ~Scatter() override {
             if (_positionBuffer)
@@ -30,19 +29,15 @@ namespace PGL {
                 _colourBuffer->Delete();
         }
 
-        void Init();
+        void makeBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
 
-        void MakeBuffers(std::vector<Vector3f> &positions, std::vector<Vector3f> &colours);
-
-        void Render(const Matrix4f &MV, const Matrix4f &P, float pix_size);
+        void render(const Matrix4f &MV, const Matrix4f &P, float pix_size);
 
     private:
+        std::shared_ptr<ScatterShader> _shader;
+
         std::shared_ptr<AttributeBuffer> _positionBuffer, _colourBuffer;
 
-        bool _haveBuffers;
-
-        GLint _posBufLocation;
-        GLint _colBufLocation;
     };
 }
 

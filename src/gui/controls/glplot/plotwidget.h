@@ -16,7 +16,10 @@
 #include "camera.h"
 #include "framebuffer.h"
 
-#include "techniques/technique.h"
+
+#include "techniques/rectangleshader.h"
+#include "techniques/scattershader.h"
+
 #include <techniques/scattertechnique.h>
 #include <techniques/rectangletechnique.h>
 
@@ -93,6 +96,9 @@ namespace PGL {
         }
 
         void FitOrthoView(float extend = 1.0);
+
+        std::shared_ptr<PGL::RectangleShader> _rect_shader;
+        std::shared_ptr<PGL::ScatterShader> _scatter_shader;
 
         std::vector<std::shared_ptr<PGL::Technique>> _techniques;
 

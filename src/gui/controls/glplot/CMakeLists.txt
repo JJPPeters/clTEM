@@ -77,7 +77,7 @@ set ( glViewWidget_SRCS
         arraybuffer.cpp
         plotwidget.cpp
         attributebuffer.cpp
-        framebuffer.cpp)
+        framebuffer.cpp techniques/rectangleshader.cpp techniques/rectangleshader.h techniques/shader.cpp techniques/shader.h techniques/shaderresource.h techniques/scattershader.cpp techniques/scattershader.h)
 
 add_library ( glViewWidget STATIC ${glViewWidget_HDRS} ${glViewWidget_SRCS} ${RSCS})
 target_include_directories(glViewWidget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR})

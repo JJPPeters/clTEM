@@ -445,6 +445,14 @@ void AreaLayoutFrame::updatePlotRects() {
     auto sxr = SimManager->getPaddedSimLimitsX();
     auto syr = SimManager->getPaddedSimLimitsY();
 
+    // get these now so we know how many we will have
+    auto dz = SimManager->getSliceThickness();
+    auto nz = SimManager->getNumberofSlices();
+
+    unsigned int rect_count = 4 * nz + 4;
+
+    _plot_rects.reserve(rect_count);
+
     // first the sim area + padding
     Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
     _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, PGL::Plane::z));
@@ -456,8 +464,7 @@ void AreaLayoutFrame::updatePlotRects() {
     _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
 
     // now add the sides for slices
-    auto dz = SimManager->getSliceThickness();
-    auto nz = SimManager->getNumberofSlices();
+
     std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
 
     auto current_z = szr[0];

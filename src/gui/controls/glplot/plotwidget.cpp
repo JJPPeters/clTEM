@@ -102,8 +102,14 @@ namespace PGL {
             //_camera is created in the set viewdirection method!
             SetViewDirection(View::Top);
 
-            for (auto &technique: _techniques)
-                technique->Init();
+//            for (auto &technique: _techniques)
+//                technique->Init();
+
+            _rect_shader = std::make_shared<PGL::RectangleShader>();
+            _scatter_shader = std::make_shared<PGL::ScatterShader>();
+
+            _rect_shader->initialise();
+            _scatter_shader->initialise();
 
         } catch (std::exception &e) {
             emit initError(e.what());
@@ -136,7 +142,7 @@ namespace PGL {
         for (auto &technique: _techniques)
             //technique->Render(MV, P, screen_size);
             if (technique->getVisible())
-                technique->Render(MV, P, _camera->getPixelSize());
+                technique->render(MV, P, _camera->getPixelSize());
 
         _framebuffer->Blit(def_framebuffer);
         _framebuffer->Unbind();
@@ -161,7 +167,7 @@ namespace PGL {
 
         for (auto &technique: _techniques) {
             // TODO: is there a nice way to do this in Eigen?
-            auto tl = technique->GetLimits();
+            auto tl = technique->getLimits();
             // x
             if (tl(0, 0) < limits(0, 0))
                 limits(0, 0) = tl(0, 0);
@@ -361,7 +367,7 @@ namespace PGL {
     std::weak_ptr<PGL::Scatter> PlotWidget::scatter(std::vector<Vector3f> positions, std::vector<Vector3f> colours) {
         makeCurrent();
 
-        auto plot_item = std::make_shared<PGL::Scatter>(positions, colours);
+        auto plot_item = std::make_shared<PGL::Scatter>(_scatter_shader, positions, colours);
 
         addItem(std::dynamic_pointer_cast<PGL::Technique>(plot_item));
 
@@ -373,7 +379,7 @@ namespace PGL {
     std::weak_ptr<PGL::Rectangle> PlotWidget::rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) {
         makeCurrent();
 
-        auto plot_item = std::make_shared<PGL::Rectangle>(t, l, b, r, z, colour, pl);
+        auto plot_item = std::make_shared<PGL::Rectangle>(_rect_shader, t, l, b, r, z, colour, pl);
 
         addItem(std::dynamic_pointer_cast<PGL::Technique>(plot_item));
 
