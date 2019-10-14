@@ -5,7 +5,7 @@
 #include <memory>
 #include <utilities/fileio.h>
 
-SimulationManager::SimulationManager() : Resolution(0), completeJobs(0), default_xy_padding({-8.0, 8.0}), default_z_padding({-3.0, 3.0}), padding_x(default_xy_padding),
+SimulationManager::SimulationManager() : Resolution(256), completeJobs(0), default_xy_padding({-8.0, 8.0}), default_z_padding({-3.0, 3.0}), padding_x(default_xy_padding),
                                          padding_y(default_xy_padding), padding_z(default_z_padding), slice_dz(1.0),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(false),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
