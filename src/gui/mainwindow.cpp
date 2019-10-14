@@ -140,8 +140,29 @@ void MainWindow::on_actionOpen_triggered()
         else if (temp_file.suffix() == "cif") {
             // open dialog to open cif
             // read the cif now so we can pass it to the dialog
+            bool try_fix = false;
 
-            auto cif = CIF::CIFReader(fileName.toStdString());
+            CIF::CIFReader cif;
+
+            try {
+                cif = CIF::CIFReader(fileName.toStdString(), false);
+            } catch (const std::exception &e) {
+                CLOG(ERROR, "gui") << "Could not open file: " << e.what() << ".";
+                QMessageBox msgBox(this);
+                msgBox.setText("Error:");
+                msgBox.setInformativeText(e.what());
+                msgBox.setIcon(QMessageBox::Critical);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setMinimumSize(160, 125);
+                msgBox.exec();
+
+                auto reply = QMessageBox::question(this, "Error:", "Would you like me to try and fix this cif?", QMessageBox::Yes|QMessageBox::No);
+                if (reply == QMessageBox::Yes)
+                    cif = CIF::CIFReader(fileName.toStdString(), true);
+                else
+                    return;
+            }
+
             auto info = std::make_shared<CIF::SuperCellInfo>();
 
             auto myDialog = new CifCreatorDialog(this, cif, info);

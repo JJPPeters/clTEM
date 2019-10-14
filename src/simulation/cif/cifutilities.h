@@ -16,54 +16,29 @@
 
 #include <Eigen/Dense>
 
-namespace CIF {
-    static struct Utilities {
+namespace CIF::Utilities {
 
+        extern const std::vector<std::string> AcceptedAtoms;
 
-        static std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
-            std::stringstream ss(s);
-            std::string item;
-            while (std::getline(ss, item, delim)) {
-                elems.push_back(item);
-            }
-            return elems;
-        }
+        bool isAcceptedAtom(const std::string& symbol);
 
-        static std::vector<std::string> split(const std::string &s, char delim) {
-            std::vector<std::string> elems;
-            split(s, delim, elems);
-            return elems;
-        }
+        std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
 
-        static double stod(std::string& s) {
-            if (s == ".")
-                return 0.0;
+        std::vector<std::string> split(const std::string &s, char delim);
 
-            return std::stod(s);
-        }
+        double stod(std::string& s);
 
         template<typename T>
-        static int vectorSearch(std::vector<T> vec, T value) {
+        int vectorSearch(std::vector<T> vec, T value) {
             int pos = std::find(vec.begin(), vec.end(), value) - vec.begin();
 
-//        if (pos >= vec.size())
-//            return 0; // TODO: throw an error here
-//        else
             return pos;
         }
 
-        static double regexFindDoubleTag(std::string input, std::string pattern) {
-            std::regex rgx(pattern);
-            std::smatch match;
-
-            if (!std::regex_search(input, match, rgx))
-                return 0.0; // TODO: throw error
-
-            return std::stod(std::string(match[1].str()));
-        }
+        double regexFindDoubleTag(std::string input, std::string pattern);
 
         template<typename T>
-        static Eigen::Matrix3d generateNormalisedRotationMatrix(const Eigen::Vector3d &A, const Eigen::Vector3d &B) {
+        Eigen::Matrix3d generateNormalisedRotationMatrix(const Eigen::Vector3d &A, const Eigen::Vector3d &B) {
             Eigen::Vector3d wm = A.cross(B);
 
             wm.normalize(); // I'm assuming that Eigen will handle the case of a zero vector...
@@ -80,7 +55,7 @@ namespace CIF {
         }
 
         template<typename T>
-        static Eigen::Matrix3d generateRotationMatrix(Eigen::Vector3d axis, double theta) {
+        Eigen::Matrix3d generateRotationMatrix(Eigen::Vector3d axis, double theta) {
             axis = axis / std::sqrt(axis.dot(axis));
             double a = std::cos(theta / 2);
             auto bcd = -1 * axis * std::sin(theta / 2);
@@ -100,22 +75,7 @@ namespace CIF {
             return Eigen::Matrix3d(data.data());
         }
 
-        static std::string stripComments(const std::string& input) {
+        std::string stripComments(const std::string& input);
 
-            std::string output = "";
-            std::istringstream iss(input);
-            for (std::string line; std::getline(iss, line); ) {
-                size_t comm = line.rfind('#');
-                std::string temp = line.substr(0, comm);
-                temp.erase(temp.find_last_not_of(R"( \n\r\t)")+1); // I don't really care about whitespace, but I don't want blank lines (i.e. only whitespace)
-
-                if (!temp.empty())
-                    output += line.substr(0, comm) + "\n";
-            }
-
-            return output;
-        }
-
-    } Utilities;
-}
+    }
 #endif //XYZ_UTILITIES_H

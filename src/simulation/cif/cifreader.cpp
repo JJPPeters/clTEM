@@ -6,7 +6,7 @@
 
 #include <iostream>
 namespace CIF {
-    CIFReader::CIFReader(std::string filePath) {
+    CIFReader::CIFReader(std::string filePath, bool attempt_fixes) {
         file_path = filePath;
 
         // http://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
@@ -21,14 +21,31 @@ namespace CIF {
 
         filecontents = Utilities::stripComments(filecontents);
 
+        std::string errors;
+
         // read in the symmetry elements
-        readSymmetryOperations(filecontents);
+        try {
+            readSymmetryOperations(filecontents);
+        } catch (std::runtime_error& e) {
+            errors += e.what();
+        }
 
         // read in atom positions
-        readAtoms(filecontents);
+        try {
+            readAtoms(filecontents);
+        } catch (std::runtime_error& e) {
+            errors += e.what();
+        }
 
         // read in unit cell parameters
-        readCellGeometry(filecontents);
+        try {
+            readCellGeometry(filecontents);
+        } catch (std::runtime_error& e) {
+            errors += e.what();
+        }
+
+        if (!errors.empty())
+            throw std::runtime_error(errors);
     }
 
     void CIFReader::readSymmetryOperations(const std::string &input) {
@@ -38,8 +55,20 @@ namespace CIF {
         std::regex rgxheaders("(?:loop_\\n)((?:_symmetry_equiv_pos_\\w+?\\n)+)");
         std::smatch match;
 
-        if (!std::regex_search(input, match, rgxheaders))
-            throw std::runtime_error("Cannot find _symmetry_equiv_pos_ block.");
+        std::string match_string = "";
+
+        if (!std::regex_search(input, match, rgxheaders)) {
+            if (fix) {
+                // this simple fix assumes we have a primitive cell if the symmetry is not defined
+                // could try and interpret the space group line, but that is a while other can of worms
+                auto temp_symmetry = Symmetry();
+                std::vector<std::string> temp_terms = {"x", "y", "z"};
+                temp_symmetry.setOperation(0, temp_terms);
+                symmetrylist = {temp_symmetry};
+                return;
+            } else
+                throw std::runtime_error("Cannot find _symmetry_equiv_pos_ block.");
+        }
 
         std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
 
@@ -214,23 +243,28 @@ namespace CIF {
         int occupancycol = Utilities::vectorSearch(headers, std::string("_atom_site_occupancy"));
         bool foundoccupancy = occupancycol != headers.size();
 
-//        std::string errors = "";
-//
-//        if(!foundlabel)
-//            errors += "Could not find _atom_site_label\n";
-//        if(!foundsymbol)
-//            errors += "Could not find _atom_site_fract_x\n";
-//        if(!foundx)
-//            errors += "Could not find _atom_site_type_symbol\n";
-//        if(!foundy)
-//            errors += "Could not find _atom_site_fract_y\n";
-//        if(!foundz)
-//            errors += "Could not find _atom_site_fract_z\n";
-//
-//        if (!errors.empty())
-//            throw std::runtime_error(errors);
-        if (!foundlabel || !foundsymbol || !foundx || !foundy || !foundz)
-            return;
+        // this fix will try to get a atom symbol from the atom label
+        // they are often just a type symbol with a number
+        if (fix && !foundsymbol && foundlabel) {
+            symbolcol = labelcol;
+            foundsymbol = true;
+        }
+
+        std::string errors = "";
+
+        if(!foundlabel)
+            errors += "Could not find _atom_site_label\n";
+        if(!foundsymbol)
+            errors += "Could not find _atom_site_fract_x\n";
+        if(!foundx)
+            errors += "Could not find _atom_site_type_symbol\n";
+        if(!foundy)
+            errors += "Could not find _atom_site_fract_y\n";
+        if(!foundz)
+            errors += "Could not find _atom_site_fract_z\n";
+
+        if (!errors.empty())
+            throw std::runtime_error(errors);
 
         std::smatch match;
         std::regex rgxcolumns("([^\\s]+)");
@@ -248,24 +282,71 @@ namespace CIF {
                 line = match.suffix().str();
             }
 
-            // the split here is to get rid of uncertainties in brackets
-            double x = Utilities::stod(Utilities::split(columns[xcol], '(')[0]);
-            double y = Utilities::stod(Utilities::split(columns[ycol], '(')[0]);
-            double z = Utilities::stod(Utilities::split(columns[zcol], '(')[0]);
-
+            // get the label (This can be anything, it is not the atom type)
             // this is the only simple one...
             std::string label = columns[labelcol];
 
-            // symbol can have valence etc attached to it (probably a safe, non-regex way to do this)
+            // type symbol can have valence etc attached to it
+            // There is probably a safe, non-regex way to do this
             std::string symbol = "";
             std::regex rgxname("([a-zA-Z]{1,2})");
             if (std::regex_search(columns[symbolcol], match, rgxname))
                 symbol = match[1];
+            else
+                errors += "Could not find acceptable format _atom_site_type_symbol (need 1-2 letters) in: " + columns[symbolcol] + "\n";
+
+            if (fix) {
+                // this fix deals with the case of the symbol string
+                symbol[0] = std::toupper(symbol[0]);
+                if (symbol.length() == 2)
+                    symbol[1] = std::tolower(symbol[1]);
+            }
+
+            if (!CIF::Utilities::isAcceptedAtom(symbol))
+                errors += "Could not detect valid atom from: " + columns[symbolcol] + " (sub string: " + symbol + ")\n";
+
+            // get the x, y, z positions of our atom site
+            // the split here is to get rid of uncertainties in brackets
+            double x, y, z;
+            try {
+                x = Utilities::stod(Utilities::split(columns[xcol], '(')[0]);
+            } catch (std::invalid_argument& e) {
+                errors += "Could not get number from position values (not a number): " + columns[xcol] + "\n";
+            } catch (std::out_of_range& e) {
+                errors += "Could not get number from position values (value too large): " + columns[xcol] + "\n";
+            }
+
+            try {
+                y = Utilities::stod(Utilities::split(columns[ycol], '(')[0]);
+            } catch (std::invalid_argument& e) {
+                errors += "Could not get number from position values (not a number): " + columns[ycol] + "\n";
+            } catch (std::out_of_range& e) {
+                errors += "Could not get number from position values (value too large): " + columns[ycol] + "\n";
+            }
+
+            try {
+                z = Utilities::stod(Utilities::split(columns[zcol], '(')[0]);
+            } catch (std::invalid_argument& e) {
+                errors += "Could not get number from position values (not a number): " + columns[zcol] + "\n";
+            } catch (std::out_of_range& e) {
+                errors += "Could not get number from position values (value too large): " + columns[zcol] + "\n";
+            }
+
 
             // default to 1.0
             double occupancy = 1.0;
             if (foundoccupancy)
-                occupancy = Utilities::stod(Utilities::split(columns[occupancycol], '(')[0]);
+                try {
+                    occupancy = Utilities::stod(Utilities::split(columns[occupancycol], '(')[0]);
+                } catch (std::invalid_argument& e) {
+                    errors += "Could not get number from occupancy value (not a number): " + columns[occupancycol] + "\n";
+                } catch (std::out_of_range& e) {
+                    errors += "Could not get number from occupancy (value too large): " + columns[occupancycol] + "\n";
+                }
+
+            // if we have errrors, now is when we quit!
+            if (!errors.empty())
+                continue;
 
             // here we are checking if the atom is on the same site
             std::vector<double> postemp({x, y, z});
@@ -283,9 +364,13 @@ namespace CIF {
                 }
             }
 
+
             if (isNew)
                 atomsites.emplace_back(symmetrylist, symbol, label, x, y, z, occupancy);
         }
+
+        if (!errors.empty())
+            throw std::runtime_error(errors);
     }
 
     void CIFReader::readThermalParameters(const std::vector<std::string> &headers, const std::vector<std::string> &entries){

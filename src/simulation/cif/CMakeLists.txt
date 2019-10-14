@@ -33,6 +33,7 @@ set(SOURCES
         atomsite.cpp
         cellgeometry.cpp
         cifreader.cpp
+        cifutilities.cpp
         symmetryoperation.cpp
         supercell.cpp
         )
