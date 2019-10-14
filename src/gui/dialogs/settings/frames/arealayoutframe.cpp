@@ -12,19 +12,20 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     // but it makes OpenGL work on my linux laptop (intel 4th gen)
     try {
         QSurfaceFormat format;
-//        format.setDepthBufferSize(24);
-//        format.setStencilBufferSize(8);
         format.setRenderableType(QSurfaceFormat::OpenGL);
         format.setProfile(QSurfaceFormat::CoreProfile);
-//        format.setSamples(32); // sets MSAA samples
         format.setVersion(4, 0); // sets opengl version
 
-        pltStructure = new OGLViewWidget(this);
+        QSettings settings;
+        int msaa = settings.value("MSAA", 1).toInt();
+
+        pltStructure = std::make_shared<PGL::PlotWidget>(this, msaa);
         pltStructure->setFormat(format);
-        ui->vPlotLayout->addWidget(pltStructure, 1);
+        ui->vPlotLayout->addWidget(pltStructure.get(), 1);
         pltStructure->setMinimumWidth(400);
-        connect(pltStructure, &OGLViewWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
-        connect(pltStructure, &OGLViewWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
+
+        connect(pltStructure.get(), &PGL::PlotWidget::resetView, this, &AreaLayoutFrame::viewDirectionChanged);
+        connect(pltStructure.get(), &PGL::PlotWidget::initError, this, &AreaLayoutFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
@@ -99,7 +100,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
 AreaLayoutFrame::~AreaLayoutFrame()
 {
-    delete pltStructure;
+//    delete pltStructure;
+    pltStructure.reset();
     delete ui;
 }
 
@@ -350,17 +352,22 @@ void AreaLayoutFrame::plotStructure() {
 
     auto atms = SimManager->getStructure()->getAtoms();
 
-    std::vector<Vector3f> pos(atms.size());
-    std::vector<Vector3f> col(atms.size());
+    std::vector<Eigen::Vector3f> pos(atms.size());
+    std::vector<Eigen::Vector3f> col(atms.size());
 
     for (int i = 0; i < atms.size(); ++i) {
-        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
+        pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
+        col[i] = Eigen::Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
-    pltStructure->PlotAtoms(pos, col, View::Direction::Top, xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]);
+    // here is where the data is actually plotted
+    _plot_scatter = pltStructure->scatter(pos, col);
+
+    pltStructure->SetViewDirection(View::Direction::Top);
+    pltStructure->FitView(1.1);
+    pltStructure->repaint();
 }
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
@@ -373,8 +380,6 @@ void AreaLayoutFrame::showEvent(QShowEvent *event) {
 
     plotStructure();
     updatePlotRects();
-    if (!pltStructure)
-        pltStructure->fitView();
 }
 
 void AreaLayoutFrame::on_cmbViewDirection_activated(const QString &arg1) {
@@ -401,6 +406,8 @@ void AreaLayoutFrame::viewDirectionChanged() {
     else if (view_text == "Left")
         pltStructure->SetViewDirection(View::Direction::Left);
 
+    pltStructure->FitView(1.1);
+
     pltStructure->repaint();
 }
 
@@ -408,7 +415,12 @@ void AreaLayoutFrame::showRectChanged(int arg1) {
     if (!pltStructure)
         return;
 
-    pltStructure->setDrawRects(arg1 != 0);
+    for(auto &rect: _plot_rects) {
+        auto r = rect.lock();
+        if (r)
+            r->setVisible(arg1 != 0);
+    }
+
     pltStructure->repaint();
 }
 
@@ -420,7 +432,10 @@ void AreaLayoutFrame::updatePlotRects() {
         return;
 
     // clear the old stuff first
-    pltStructure->clearRectBuffers();
+    for (auto &rect: _plot_rects)
+        pltStructure->removeItem(rect);
+
+    _plot_rects.clear();
 
     auto test = SimManager->getSimulationArea();
 
@@ -430,47 +445,43 @@ void AreaLayoutFrame::updatePlotRects() {
     auto sxr = SimManager->getPaddedSimLimitsX();
     auto syr = SimManager->getPaddedSimLimitsY();
 
-    pltStructure->SetCube(sxr[0], sxr[1], syr[0], syr[1], szr[0], szr[1]);
-
-    // first the sim area + padding
-    Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
-
-    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, OGL::Plane::z);
-    pltStructure->AddRectBuffer(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, OGL::Plane::z);
-
-    // now the sim area
-    Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
-
-    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, OGL::Plane::z);
-    pltStructure->AddRectBuffer(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, OGL::Plane::z);
-
-    // add the sides of the sim area
-    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[0], col_2, OGL::Plane::x);
-    pltStructure->AddRectBuffer(szr[0], iyr[0], szr[1], iyr[1], ixr[1], col_2, OGL::Plane::x);
-
-    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], iyr[0], col_2, OGL::Plane::y);
-    pltStructure->AddRectBuffer(szr[0], ixr[0], szr[1], ixr[1], iyr[1], col_2, OGL::Plane::y);
-
-
-    // now add the sides for slices
+    // get these now so we know how many we will have
     auto dz = SimManager->getSliceThickness();
     auto nz = SimManager->getNumberofSlices();
-    std::vector<Vector4f> cols_slice = {Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
+
+    unsigned int rect_count = 4 * nz + 4;
+
+    _plot_rects.reserve(rect_count);
+
+    // first the sim area + padding
+    Eigen::Vector4f col_1 = Eigen::Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
+    _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, PGL::Plane::z));
+    _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, PGL::Plane::z));
+
+    // now the sim area
+    Eigen::Vector4f col_2 = Eigen::Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
+    _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, PGL::Plane::z));
+    _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
+
+    // now add the sides for slices
+
+    std::vector<Eigen::Vector4f> cols_slice = {Eigen::Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Eigen::Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
 
     auto current_z = szr[0];
     for (int i = 0; i < nz; ++i) {
         auto current_col = cols_slice[i % 2];
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, PGL::Plane::x));
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, PGL::Plane::x));
 
-        pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, OGL::Plane::x);
-        pltStructure->AddRectBuffer(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, OGL::Plane::x);
-
-        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, OGL::Plane::y);
-        pltStructure->AddRectBuffer(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, OGL::Plane::y);
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, PGL::Plane::y));
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, PGL::Plane::y));
 
         current_z += dz;
     }
 
+    pltStructure->FitView(1.1);
     pltStructure->repaint();
+
 }
 
 void AreaLayoutFrame::on_btnApplyUpdate_clicked() {

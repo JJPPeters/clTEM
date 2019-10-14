@@ -1,9 +1,0 @@
-<!DOCTYPE RCC><RCC version="1.0">
-    <qresource prefix="/OGL/Shaders">
-        <file>billboard.vs</file>
-        <file>billboard.gs</file>
-        <file>billboard.fs</file>
-        <file>rectangle.vs</file>
-        <file>rectangle.fs</file>
-    </qresource>
-</RCC>

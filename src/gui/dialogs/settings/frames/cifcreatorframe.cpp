@@ -25,14 +25,17 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(4, 0); // sets opengl version
 
-        pltPreview = new OGLViewWidget(this);
+        QSettings settings;
+        int msaa = settings.value("MSAA", 1).toInt();
+
+        pltPreview = std::make_shared<PGL::PlotWidget>(this, msaa);
         pltPreview->setFormat(format);
-        ui->vPlotLayout->addWidget(pltPreview, 1);
+        ui->vPlotLayout->addWidget(pltPreview.get(), 1);
         pltPreview->setMinimumHeight(400);
         pltPreview->setMinimumWidth(400);
 
         pltPreview->setAttribute(Qt::WA_TransparentForMouseEvents);
-        connect(pltPreview, &OGLViewWidget::initError, this, &CifCreatorFrame::processOpenGLError);
+        connect(pltPreview.get(), &PGL::PlotWidget::initError, this, &CifCreatorFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
@@ -249,6 +252,8 @@ void CifCreatorFrame::previewStructure(bool dummy) {
     if (!pltPreview)
         return;
 
+    pltPreview->clearItems();
+
     CIF::SuperCellInfo preview_info;
 
     // get all the values we need
@@ -275,7 +280,6 @@ void CifCreatorFrame::previewStructure(bool dummy) {
 
     CrystalStructure temp(cif, preview_info);
 
-
     // get ranges (needed to define out 'cube'
     auto xr = temp.getLimitsX();
     auto yr = temp.getLimitsY();
@@ -283,17 +287,22 @@ void CifCreatorFrame::previewStructure(bool dummy) {
 
     auto atms = temp.getAtoms();
 
-    std::vector<Vector3f> pos(atms.size());
-    std::vector<Vector3f> col(atms.size());
+    std::vector<Eigen::Vector3f> pos(atms.size());
+    std::vector<Eigen::Vector3f> col(atms.size());
 
     for (int i = 0; i < atms.size(); ++i) {
-        pos[i] = Vector3f(atms[i].x, atms[i].y, atms[i].z);
+        pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
+        col[i] = Eigen::Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
     }
 
-    pltPreview->PlotAtoms(pos, col, getViewDirection(), xr[0]+1, xr[1]-1, yr[0]+1, yr[1]-1, zr[0]+1, zr[1]-1);
+    pltPreview->scatter(pos, col);
+    pltPreview->SetViewDirection(View::Direction::Top);
+
+    pltPreview->FitView(1.1);
+
+    pltPreview->repaint();
 }
 
 View::Direction CifCreatorFrame::getViewDirection(){

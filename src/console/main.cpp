@@ -447,6 +447,7 @@ int main(int argc, char *argv[])
         defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
         defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
         defaultConf.setGlobally(el::ConfigurationType::ToFile, "true");
+        defaultConf.setGlobally(el::ConfigurationType::MaxLogFileSize, "1073741824");
         defaultConf.setGlobally(el::ConfigurationType::Enabled, "true");
     }
 

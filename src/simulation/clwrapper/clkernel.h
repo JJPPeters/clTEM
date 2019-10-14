@@ -54,7 +54,7 @@ public:
         ArgType.resize(NumberOfArgs);
         Callbacks.resize(NumberOfArgs);
 
-        std::string options = "-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros";// -Werror";
+        std::string options = "";//-cl-finite-math-only -cl-unsafe-math-optimizations -cl-no-signed-zeros";// -Werror";
 
         cl_int status;
         Program = cl::Program(Context.GetContext(), codestring, false, &status);

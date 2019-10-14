@@ -51,12 +51,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle("clTEM");
 
-#ifndef _WIN32
-    // Hide our theme menu options if not on windows
-    ui->actionTheme->setEnabled(false);
-    ui->actionTheme->setVisible(false);
-#endif
-
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
     ImageTab* Diff = new ImageTab(ui->twRecip, "Diffraction", TabType::DIFF);
@@ -846,11 +840,9 @@ void MainWindow::updateVoltageMrad(double voltage) {
 
 
 void MainWindow::on_actionTheme_triggered() {
-#ifdef _WIN32
     // open out theme selector dialog
     ThemeDialog* myDialog = new ThemeDialog(this);
     myDialog->exec();
-#endif
 }
 
 void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {

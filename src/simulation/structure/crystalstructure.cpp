@@ -209,7 +209,7 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
             totalOcc += a.occ;
         }
 
-        if(totalOcc > 1.0)
+        if(totalOcc > 1.0000001) // decimal places to account for floating point errors
             throw std::runtime_error(".xyz has occupancies > 1.");
     }
 

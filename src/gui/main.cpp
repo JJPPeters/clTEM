@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     // Create our application
     QApplication a(argc, argv);
 
+
     // set the app details so we can save/load settings (this is critical for using the QStandardPaths)
     QCoreApplication::setOrganizationName("PetersSoft");
     QCoreApplication::setApplicationName("clTEM");
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
     defaultConf.setGlobally(el::ConfigurationType::Filename, log_dir.toStdString());
     defaultConf.setGlobally(el::ConfigurationType::Format, "[%logger] %datetime (thread:%thread) %level - %func: %msg");
     defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, "false");
+    defaultConf.setGlobally(el::ConfigurationType::MaxLogFileSize, "1073741824");
 
     QSettings settings;
     if (!settings.contains("logging"))

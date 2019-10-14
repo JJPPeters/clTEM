@@ -140,14 +140,12 @@ StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, 
 
 
 ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
-#ifdef _WIN32
     tFrame = new GeneralSettingsFrame(this);
     ui->vLayout->insertWidget(0, tFrame);
 
-    this->setWindowTitle("Theme");
+    this->setWindowTitle("General settings");
 
     this->setFixedSize(this->minimumSizeHint());
-#endif
 }
 
 

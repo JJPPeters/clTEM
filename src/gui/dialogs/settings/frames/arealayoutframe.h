@@ -6,8 +6,11 @@
 #include "ctemareaframe.h"
 #include "stemareaframe.h"
 #include "cbedareaframe.h"
-#include "controls/oglviewwidget/oglviewwidget.h"
 #include "utilities/logging.h"
+
+#include "controls/glplot/plotwidget.h"
+#include "controls/glplot/techniques/scattertechnique.h"
+#include "controls/glplot/techniques/rectangletechnique.h"
 
 namespace Ui {
 class AreaLayoutFrame;
@@ -28,9 +31,9 @@ public:
     explicit AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationManager> simMan);
     ~AreaLayoutFrame();
 
-    void closeEvent(QCloseEvent *event) {
-        delete pltStructure;
-    }
+//    void closeEvent(QCloseEvent *event) {
+////        delete pltStructure;
+//    }
 
 private slots:
     void areasChanged();
@@ -72,7 +75,10 @@ private:
     StemAreaFrame *StemFrame;
     CbedAreaFrame *CbedFrame;
 
-    OGLViewWidget *pltStructure;
+    std::vector<std::weak_ptr<PGL::Rectangle>> _plot_rects;
+    std::weak_ptr<PGL::Scatter> _plot_scatter;
+
+    std::shared_ptr<PGL::PlotWidget> pltStructure;
 
     bool getErrorStringCtem();
     bool getErrorStringStem();

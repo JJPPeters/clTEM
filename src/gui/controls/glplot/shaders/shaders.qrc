@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/PGL/Shaders">
+        <file>scatter.vs</file>
+        <file>scatter.gs</file>
+        <file>scatter.fs</file>
+        <file>rectangle.vs</file>
+        <file>rectangle.fs</file>
+    </qresource>
+</RCC>
