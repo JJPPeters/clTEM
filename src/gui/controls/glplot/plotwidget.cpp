@@ -26,6 +26,16 @@ namespace PGL {
         connect(this, &PlotWidget::customContextMenuRequested, this, &PlotWidget::contextMenuRequest);
     }
 
+    PlotWidget::~PlotWidget() {
+        makeCurrent();
+
+        _framebuffer.reset();
+
+        _techniques.clear();
+
+        doneCurrent();
+    }
+
     bool PlotWidget::event(QEvent *event) {
         // this might get spammed a bit, not sure if it is supposed to
         if (event->type() == QEvent::PaletteChange) {
@@ -337,9 +347,6 @@ namespace PGL {
             n_d = directionEnumToVector(View::Direction::Back);
 
         SetCamera(v_d * -1, v_d, n_d, ViewMode::Orthographic);
-
-        // cube coords need to be defined for this to work
-        // FitView(1.0);
     }
 
     void PlotWidget::contextMenuRequest(QPoint pos) {
@@ -349,5 +356,29 @@ namespace PGL {
         auto menu = new QMenu(this);
         menu->addAction("Reset view", this, &PlotWidget::resetPressed);
         menu->popup(mapToGlobal(pos));
+    }
+
+    std::weak_ptr<PGL::Scatter> PlotWidget::scatter(std::vector<Vector3f> positions, std::vector<Vector3f> colours) {
+        makeCurrent();
+
+        auto plot_item = std::make_shared<PGL::Scatter>(positions, colours);
+
+        addItem(std::dynamic_pointer_cast<PGL::Technique>(plot_item));
+
+        doneCurrent();
+
+        return plot_item;
+    }
+
+    std::weak_ptr<PGL::Rectangle> PlotWidget::rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl) {
+        makeCurrent();
+
+        auto plot_item = std::make_shared<PGL::Rectangle>(t, l, b, r, z, colour, pl);
+
+        addItem(std::dynamic_pointer_cast<PGL::Technique>(plot_item));
+
+        doneCurrent();
+
+        return plot_item;
     }
 }

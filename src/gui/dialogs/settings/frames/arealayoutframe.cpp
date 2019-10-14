@@ -12,11 +12,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     // but it makes OpenGL work on my linux laptop (intel 4th gen)
     try {
         QSurfaceFormat format;
-//        format.setDepthBufferSize(24);
-//        format.setStencilBufferSize(8);
         format.setRenderableType(QSurfaceFormat::OpenGL);
         format.setProfile(QSurfaceFormat::CoreProfile);
-//        format.setSamples(32); // sets MSAA samples
         format.setVersion(4, 0); // sets opengl version
 
         QSettings settings;
@@ -348,8 +345,6 @@ void AreaLayoutFrame::plotStructure() {
     if (!SimManager->getStructure() || !pltStructure)
         return;
 
-    pltStructure->makeCurrent();
-
     // get ranges (needed to define out 'cube'
     auto xr = SimManager->getStructure()->getLimitsX();
     auto yr = SimManager->getStructure()->getLimitsY();
@@ -367,16 +362,12 @@ void AreaLayoutFrame::plotStructure() {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0f;
     }
 
-    _plot_scatter = std::make_shared<PGL::Scatter>(pos, col);
+    // here is where the data is actually plotted
+    _plot_scatter = pltStructure->scatter(pos, col);
 
-    pltStructure->addItem(std::dynamic_pointer_cast<PGL::Technique>(_plot_scatter));
     pltStructure->SetViewDirection(View::Direction::Top);
-
     pltStructure->FitView(1.1);
-
     pltStructure->repaint();
-
-    pltStructure->doneCurrent();
 }
 
 void AreaLayoutFrame::showEvent(QShowEvent *event) {
@@ -424,16 +415,17 @@ void AreaLayoutFrame::showRectChanged(int arg1) {
     if (!pltStructure)
         return;
 
-    for(auto &rect: _plot_rects)
-        rect->setVisible(arg1 != 0);
+    for(auto &rect: _plot_rects) {
+        auto r = rect.lock();
+        if (r)
+            r->setVisible(arg1 != 0);
+    }
 
     pltStructure->repaint();
 }
 
 void AreaLayoutFrame::updatePlotRects() {
     // Add in the rectangles showing the simulation areas and slices
-
-    pltStructure->makeCurrent();
 
     // test if we have a structure to plot...
     if (!SimManager->getStructure() || !pltStructure)
@@ -455,13 +447,13 @@ void AreaLayoutFrame::updatePlotRects() {
 
     // first the sim area + padding
     Vector4f col_1 = Vector4f(0.0f, 0.5f, 1.0f, 0.1f);
-    _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, PGL::Plane::z));
-    _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, PGL::Plane::z));
+    _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[0], col_1, PGL::Plane::z));
+    _plot_rects.emplace_back(pltStructure->rectangle(syr[0], sxr[0], syr[1], sxr[1], szr[1], col_1, PGL::Plane::z));
 
     // now the sim area
     Vector4f col_2 = Vector4f(1.0f, 0.4f, 0.0f, 0.1f);
-    _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, PGL::Plane::z));
-    _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
+    _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, PGL::Plane::z));
+    _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
 
     // now add the sides for slices
     auto dz = SimManager->getSliceThickness();
@@ -471,24 +463,17 @@ void AreaLayoutFrame::updatePlotRects() {
     auto current_z = szr[0];
     for (int i = 0; i < nz; ++i) {
         auto current_col = cols_slice[i % 2];
-        _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, PGL::Plane::x));
-        _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, PGL::Plane::x));
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, PGL::Plane::x));
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, PGL::Plane::x));
 
-        _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, PGL::Plane::y));
-        _plot_rects.emplace_back(std::make_shared<PGL::Rectangle>(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, PGL::Plane::y));
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, sxr[0], current_z + dz, sxr[1], syr[0], current_col, PGL::Plane::y));
+        _plot_rects.emplace_back(pltStructure->rectangle(current_z, sxr[0], current_z + dz, sxr[1], syr[1], current_col, PGL::Plane::y));
 
         current_z += dz;
     }
 
-    for(auto &rect: _plot_rects) {
-        rect->setVisible(ui->chkShowRect->isChecked());
-        pltStructure->addItem(rect);
-    }
-
     pltStructure->FitView(1.1);
     pltStructure->repaint();
-
-    pltStructure->doneCurrent();
 
 }
 

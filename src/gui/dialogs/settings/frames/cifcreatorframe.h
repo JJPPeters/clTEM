@@ -37,7 +37,7 @@ private slots:
 private:
     Ui::CifCreatorFrame *ui;
 
-    PGL::PlotWidget* pltPreview;
+    std::shared_ptr<PGL::PlotWidget> pltPreview;
 
     std::shared_ptr<CIF::SuperCellInfo> CellInfo;
 

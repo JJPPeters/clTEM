@@ -28,14 +28,14 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
         QSettings settings;
         int msaa = settings.value("MSAA", 1).toInt();
 
-        pltPreview = new PGL::PlotWidget(this, msaa);
+        pltPreview = std::make_shared<PGL::PlotWidget>(this, msaa);
         pltPreview->setFormat(format);
-        ui->vPlotLayout->addWidget(pltPreview, 1);
+        ui->vPlotLayout->addWidget(pltPreview.get(), 1);
         pltPreview->setMinimumHeight(400);
         pltPreview->setMinimumWidth(400);
 
         pltPreview->setAttribute(Qt::WA_TransparentForMouseEvents);
-        connect(pltPreview, &PGL::PlotWidget::initError, this, &CifCreatorFrame::processOpenGLError);
+        connect(pltPreview.get(), &PGL::PlotWidget::initError, this, &CifCreatorFrame::processOpenGLError);
     } catch (const std::exception& e) {
         CLOG(WARNING, "gui") << "Failed to make OpenGL view: " << e.what();
         QMessageBox msgBox(this);
@@ -297,9 +297,7 @@ void CifCreatorFrame::previewStructure(bool dummy) {
         col[i] = Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
     }
 
-    auto scatter = std::make_shared<PGL::Scatter>(pos, col);
-
-    pltPreview->addItem(std::dynamic_pointer_cast<PGL::Technique>(scatter));
+    pltPreview->scatter(pos, col);
     pltPreview->SetViewDirection(View::Direction::Top);
 
     pltPreview->FitView(1.1);

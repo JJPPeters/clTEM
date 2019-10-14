@@ -13,12 +13,14 @@
 #include "GL/glu.h"
 
 #include "arraybuffer.h"
-#include "techniques/technique.h"
 #include "camera.h"
+#include "framebuffer.h"
+
+#include "techniques/technique.h"
+#include <techniques/scattertechnique.h>
+#include <techniques/rectangletechnique.h>
 
 #include <Eigen/Dense>
-
-#include "framebuffer.h"
 
 namespace View {
     enum Direction {
@@ -43,6 +45,12 @@ namespace PGL {
     public:
         explicit PlotWidget(QWidget *parent, int msaa=1);
 
+        ~PlotWidget() override;
+
+        std::weak_ptr<PGL::Scatter> scatter(std::vector<Vector3f> positions, std::vector<Vector3f> colours);
+
+        std::weak_ptr<PGL::Rectangle> rectangle(float t, float l, float b, float r, float z, Vector4f &colour, PGL::Plane pl);
+
         Eigen::Matrix<float, 3, 2> GetSceneLimits();
 
         std::vector<Vector3f> GetBoundingCube();
@@ -51,14 +59,9 @@ namespace PGL {
 
         void SetViewDirection(View::Direction view_dir);
 
-        void addItem(std::shared_ptr<PGL::Technique> technique) {
-            auto position = std::find(_techniques.begin(), _techniques.end(), technique);
-            if (position == _techniques.end()) // i.e. element does not already exist
-                _techniques.push_back(technique);
-        }
-
-        void removeItem(std::shared_ptr<PGL::Technique> technique) {
-            auto position = std::find(_techniques.begin(), _techniques.end(), technique);
+        void removeItem(std::weak_ptr<PGL::Technique> technique) {
+            std::shared_ptr<PGL::Technique> temp = technique.lock();
+            auto position = std::find(_techniques.begin(), _techniques.end(), temp);
             if (position != _techniques.end())
                 _techniques.erase(position);
         }
@@ -83,6 +86,12 @@ namespace PGL {
         void keyPressEvent(QKeyEvent *event) override;
 
     private:
+        void addItem(std::shared_ptr<PGL::Technique> technique) {
+            auto position = std::find(_techniques.begin(), _techniques.end(), technique);
+            if (position == _techniques.end()) // i.e. element does not already exist
+                _techniques.push_back(technique);
+        }
+
         void FitOrthoView(float extend = 1.0);
 
         std::vector<std::shared_ptr<PGL::Technique>> _techniques;
