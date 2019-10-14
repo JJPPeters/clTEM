@@ -30,12 +30,12 @@ SimulationManager::SimulationManager() : Resolution(256), completeJobs(0), defau
     MicroParams->C30 = 10000;
 }
 
-void SimulationManager::setStructure(std::string filePath, CIF::SuperCellInfo info)
+void SimulationManager::setStructure(std::string filePath, CIF::SuperCellInfo info, bool fix_cif)
 {
     // lock this in case we need multiple devices to load this structure
     std::unique_lock<std::mutex> lock(structure_mutex);
 
-    Structure.reset(new CrystalStructure(filePath, info));
+    Structure.reset(new CrystalStructure(filePath, info, fix_cif));
 
     if (!maintain_area) {
         auto x_lims = getStructLimitsX();

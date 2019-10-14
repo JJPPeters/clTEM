@@ -65,7 +65,7 @@ private:
 
 public:
     // mostly for opening .xyz files, but will handle .cif
-    explicit CrystalStructure(std::string &fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo());
+    explicit CrystalStructure(std::string &fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo(), bool fix_cif=false);
 
     // only for opening cif files
     explicit CrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
@@ -74,7 +74,7 @@ public:
     /// \param fPath - path to .xyz file to open
     void openXyz(std::string fPath);
 
-    void openCif(std::string fPath, CIF::SuperCellInfo info);
+    void openCif(std::string fPath, CIF::SuperCellInfo info, bool fix_cif=false);
     void openCif(CIF::CIFReader cif, CIF::SuperCellInfo info);
 
     std::string getFileName() {return filePath;}

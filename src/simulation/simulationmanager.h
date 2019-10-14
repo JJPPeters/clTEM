@@ -95,7 +95,7 @@ public:
         return *this;
     }
 
-    void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo());
+    void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo(), bool fix_cif=false);
 
     void setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
 

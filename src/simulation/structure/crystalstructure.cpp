@@ -9,7 +9,7 @@
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
-CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info)
+CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, bool fix_cif)
         : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
           dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
     resetLimits();
@@ -20,7 +20,7 @@ CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info)
     if (ext == ".xyz")
         openXyz(fPath);
     else if (ext == ".cif") {
-        openCif(fPath, info);
+        openCif(fPath, info, fix_cif);
     }
 }
 
@@ -174,8 +174,8 @@ void CrystalStructure::openXyz(std::string fPath) {
     processAtomList(A, x, y, z, occ, ux, uy, uz);
 }
 
-void CrystalStructure::openCif(std::string fPath, CIF::SuperCellInfo info) {
-    openCif(CIF::CIFReader(fPath), info);
+void CrystalStructure::openCif(std::string fPath, CIF::SuperCellInfo info, bool fix_cif) {
+    openCif(CIF::CIFReader(fPath, fix_cif), info);
 }
 
 void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {

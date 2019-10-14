@@ -60,7 +60,8 @@ void printHelp()
                  "    -s : (--size) REQUIRED the size of the supercell (x,y,z values separated by commas)\n"
                  "    -z : (--zone) REQUIRED the zone axis to construct the structure along(u,v,w values separated by commas)\n"
                  "    -n : (--normal) the axis to place along the x-direction (u,v,w values separated by commas)\n"
-                 "    -t : (--tilts) small tilts (degrees) to modify the zone axis (tilts around x,y,z axes separated by commas)" << std::endl;
+                 "    -t : (--tilts) small tilts (degrees) to modify the zone axis (tilts around x,y,z axes separated by commas)"
+                 "    --fix : attempt to fix some common errors in .cif files when parsing them\n" << std::endl;
 }
 
 void printVersion()
@@ -206,6 +207,7 @@ void imageReturned(SimulationManager sm)
 int main(int argc, char *argv[])
 {
     int verbose_flag = 0;
+    int fix_cif = 0;
     total_pcnt = 0;
     slice_pcnt = 0;
     int c;
@@ -234,6 +236,7 @@ int main(int argc, char *argv[])
                         {"zone",   required_argument, nullptr,       'z'},
                         {"normal",   required_argument, nullptr,       'n'},
                         {"tilts",   required_argument, nullptr,       't'},
+                        {"fix",   no_argument, &fix_cif,       1},
                         {"debug",  no_argument,       &verbose_flag, 1},
                         {nullptr, 0, nullptr, 0}
                 };
@@ -508,7 +511,7 @@ int main(int argc, char *argv[])
     std::cout << "Structure file: " << input_struct << std::endl;
     try {
         if (iscif)
-            man_ptr->setStructure(input_struct, sc_info);
+            man_ptr->setStructure(input_struct, sc_info, fix_cif==1);
         else
             man_ptr->setStructure(input_struct);
     } catch (const std::exception& e) {
