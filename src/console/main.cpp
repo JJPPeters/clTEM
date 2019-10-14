@@ -330,65 +330,70 @@ int main(int argc, char *argv[])
         valid_flags = false;
     }
 
-    // this is where the input is actually set
-    input_struct = non_option_args[0];
-    bool isxyz = input_struct.compare(input_struct.size() - 4, 4, ".xyz") == 0;
-    bool iscif = input_struct.compare(input_struct.size() - 4, 4, ".cif") == 0;
-
-    if (!isxyz && !iscif) {
-        std::cerr << "Require a .xyz or .cif file non-option argument. Instead got: " << input_struct << std::endl;
-        valid_flags = false;
-    }
-
+    bool iscif = false;
+    bool isxyz = false;
+    
     CIF::SuperCellInfo sc_info;
 
-    // Process all the .cif relevant options here
-    if (iscif) {
-        if (size_arg.empty()) {
-            std::cerr << ".cif files require a size arg (-s, --size)" << std::endl;
+    if (!non_option_args.empty()) {
+        // this is where the input is actually set
+        input_struct = non_option_args[0];
+        isxyz = input_struct.compare(input_struct.size() - 4, 4, ".xyz") == 0;
+        iscif = input_struct.compare(input_struct.size() - 4, 4, ".cif") == 0;
+
+        if (!isxyz && !iscif) {
+            std::cerr << "Require a .xyz or .cif file non-option argument. Instead got: " << input_struct << std::endl;
             valid_flags = false;
         }
 
-        if (zone_arg.empty()) {
-            std::cerr << ".cif files require a zone axis arg (-z, --zone)" << std::endl;
-            valid_flags = false;
-        }
+        // Process all the .cif relevant options here
+        if (iscif) {
+            if (size_arg.empty()) {
+                std::cerr << ".cif files require a size arg (-s, --size)" << std::endl;
+                valid_flags = false;
+            }
 
-        double sx, sy, sz;
-        if(!parseThreeCommaList(size_arg, sx, sy, sz)) {
-            std::cerr << "Could not parse .cif size argument: " << size_arg << std::endl;
-            valid_flags = false;
-        } else
-            sc_info.setWidths(sx, sy, sz);
+            if (zone_arg.empty()) {
+                std::cerr << ".cif files require a zone axis arg (-z, --zone)" << std::endl;
+                valid_flags = false;
+            }
 
-        double zu, zv, zw;
-        if(!parseThreeCommaList(zone_arg, zu, zv, zw)) {
-            std::cerr << "Could not parse .cif size argument: " << zone_arg << std::endl;
-            valid_flags = false;
-        } else
-            sc_info.setZoneAxis(zu, zv, zw);
-
-        double nu, nv, nw;
-        if (!normal_arg.empty()) {
-            if(!parseThreeCommaList(normal_arg, nu, nv, nw)) {
-                std::cerr << "Could not parse .cif normal argument: " << normal_arg << std::endl;
+            double sx, sy, sz;
+            if (!parseThreeCommaList(size_arg, sx, sy, sz)) {
+                std::cerr << "Could not parse .cif size argument: " << size_arg << std::endl;
                 valid_flags = false;
             } else
-                sc_info.setHorizontalAxis(nu, nv, nw);
-        }
+                sc_info.setWidths(sx, sy, sz);
 
-        double tx, ty, tz;
-        if (!tilt_arg.empty()) {
-            if(!parseThreeCommaList(tilt_arg, tx, ty, tz)) {
-                std::cerr << "Could not parse .cif tilt argument: " << tilt_arg << std::endl;
+            double zu, zv, zw;
+            if (!parseThreeCommaList(zone_arg, zu, zv, zw)) {
+                std::cerr << "Could not parse .cif size argument: " << zone_arg << std::endl;
                 valid_flags = false;
             } else
-                sc_info.setTilts(tx, ty, tz);
-        }
+                sc_info.setZoneAxis(zu, zv, zw);
 
-    } else {
-        if (!size_arg.empty() || !zone_arg.empty() || !normal_arg.empty() || !tilt_arg.empty())
-            std::cerr << "WARNING: .cif options have been set for .xyz file, these will be ignored" << std::endl;
+            double nu, nv, nw;
+            if (!normal_arg.empty()) {
+                if (!parseThreeCommaList(normal_arg, nu, nv, nw)) {
+                    std::cerr << "Could not parse .cif normal argument: " << normal_arg << std::endl;
+                    valid_flags = false;
+                } else
+                    sc_info.setHorizontalAxis(nu, nv, nw);
+            }
+
+            double tx, ty, tz;
+            if (!tilt_arg.empty()) {
+                if (!parseThreeCommaList(tilt_arg, tx, ty, tz)) {
+                    std::cerr << "Could not parse .cif tilt argument: " << tilt_arg << std::endl;
+                    valid_flags = false;
+                } else
+                    sc_info.setTilts(tx, ty, tz);
+            }
+
+        } else if (isxyz) {
+            if (!size_arg.empty() || !zone_arg.empty() || !normal_arg.empty() || !tilt_arg.empty())
+                std::cerr << "WARNING: .cif options have been set for .xyz file, these will be ignored" << std::endl;
+        }
     }
 
     if (!valid_flags)
