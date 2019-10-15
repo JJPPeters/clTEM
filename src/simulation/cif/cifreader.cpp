@@ -19,7 +19,7 @@ namespace CIF {
 
         filecontents.assign((std::istreambuf_iterator<char>(filestream)), std::istreambuf_iterator<char>());
 
-        filecontents = Utilities::stripComments(filecontents);
+        filecontents = Utilities::stripCommentsWhitespace(filecontents);
 
         std::string errors;
 
@@ -67,7 +67,7 @@ namespace CIF {
                 symmetrylist = {temp_symmetry};
                 return;
             } else
-                throw std::runtime_error("Cannot find _symmetry_equiv_pos_ block.");
+                throw std::runtime_error("Cannot find _symmetry_equiv_pos_ block\n");
         }
 
         std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
@@ -75,7 +75,7 @@ namespace CIF {
         int xyzcol = Utilities::vectorSearch(headerlines, std::string("_symmetry_equiv_pos_as_xyz"));
 
         if (xyzcol >= headerlines.size())
-            throw std::runtime_error("Could not find _symmetry_equiv_pos_as_xyz.");
+            throw std::runtime_error("Could not find _symmetry_equiv_pos_as_xyz\n");
 
         std::string symmetrypattern = "";
 
@@ -117,7 +117,7 @@ namespace CIF {
             std::regex rgxxyz("['\"]*\\s*([^\\s'\"]+)\\s*,\\s*([^\\s'\"]+)\\s*,\\s*([^\\s'\"]+)\\s*['\"]*");
 
             if (!std::regex_search(symmetryxyz, match, rgxxyz))
-                throw std::runtime_error("Problem parsing _symmetry_equiv_pos_ line.");
+                throw std::runtime_error("Problem parsing _symmetry_equiv_pos_ line\n");
 
             auto matched = match;
             Symmetry ops;
@@ -170,15 +170,21 @@ namespace CIF {
 
         // first we need to know where the positions we need are kept (column wise)
         // we do this through the header declaration just after the "loop_"
-        std::regex rgxheaders(R"((?:loop_\n)((?:_atom_site_\w+?\n)+))");
+        std::regex rgxheaders(R"((?:\nloop_\n)((?:_atom_site_\w+?\n)+))");
         std::smatch match;
 
         auto start = input;
         bool found = false;
+
+        // these are needed so we can parse this again for the aniso part
+        std::vector<std::vector<std::string>> header_strings;
+        std::vector<std::vector<std::string>> data_strings;
+
         while(std::regex_search(start, match, rgxheaders)) {
             found = true;
             // headers
             std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
+            header_strings.push_back(headerlines);
 
             std::string positionpattern = "((?:\\s*";
             for (int i = 0; i < headerlines.size() - 1; ++i)
@@ -199,16 +205,43 @@ namespace CIF {
                 atomlines.push_back(atom_line);
             }
 
-            // process these lines/headers
-            // first get all the atom position stuff
-            readAtomPositions(headerlines, atomlines);
-            readThermalParameters(headerlines, atomlines);
+            data_strings.push_back(atomlines);
 
             start = match.suffix().str();
         }
 
         if (!found)
-            throw std::runtime_error("Cannot find _atom_site_ block(s)");
+            throw std::runtime_error("Could not find _atom_site_ block(s)\n");
+
+        // now process the atomc positions
+        std::vector<std::string> errors;
+        for (int i = 0; i < header_strings.size(); ++i) {
+            try {
+                readAtomPositions(header_strings[i], data_strings[i]);
+                errors.emplace_back("");
+            } catch (std::runtime_error& e) {
+                errors.emplace_back(e.what());
+            }
+        }
+
+        // we just need one block to not have errors for this to have 'passed'
+        found = errors.empty();
+        std::string error_out;
+        for (auto &er : errors) {
+            if (er.empty()) {
+                found = true;
+                break;
+            } else {
+                error_out += er;
+            }
+        }
+
+        if (!found)
+            throw std::runtime_error(error_out);
+
+        // Now the displacement stuff
+        for (int i = 0; i < header_strings.size(); ++i)
+            readThermalParameters(header_strings[i], data_strings[i]);
 
         if (atomsites.empty())
             throw std::runtime_error("Could not parse atom information");

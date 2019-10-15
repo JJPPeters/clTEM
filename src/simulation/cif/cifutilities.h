@@ -26,7 +26,13 @@ namespace CIF::Utilities {
 
         std::vector<std::string> split(const std::string &s, char delim);
 
+        // https://stackoverflow.com/a/49201823
+        std::vector<std::string> split(const std::string &s, std::string delims);
+
         double stod(std::string& s);
+
+        // https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
+        bool string_ends_with(std::string fullString, std::string ending);
 
         template<typename T>
         int vectorSearch(std::vector<T> vec, T value) {
@@ -75,7 +81,8 @@ namespace CIF::Utilities {
             return Eigen::Matrix3d(data.data());
         }
 
-        std::string stripComments(const std::string& input);
+        /// Removes CIF comments and whitespace at start or end of line
+        std::string stripCommentsWhitespace(const std::string& input);
 
     }
 #endif //XYZ_UTILITIES_H
