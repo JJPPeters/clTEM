@@ -166,18 +166,34 @@ public:
     std::valarray<double> getPaddedStructLimitsZ() { return getStructLimitsZ() + getPaddingZ(); }
 
     // should have corrected the shift issue so this more intuitive version works!!
-    std::valarray<double> getPaddedSimLimitsX() {
-        return getCurrentAreaBase().getCorrectedLimitsX() + getPaddingX();
+    // this covers only the area that is needed right now (i.e. for just this pixel)
+    std::valarray<double> getPaddedSimLimitsX(int pixel) {
+        return getCurrentAreaBase(pixel).getCorrectedLimitsX() + getPaddingX();
     }
-    std::valarray<double> getPaddedSimLimitsY() {
-        return getCurrentAreaBase().getCorrectedLimitsY() + getPaddingY();
+    std::valarray<double> getPaddedSimLimitsY(int pixel) {
+        return getCurrentAreaBase(pixel).getCorrectedLimitsY() + getPaddingY();
     }
 
-    std::valarray<double> getRawSimLimitsX() {
-        return getCurrentAreaBase().getRawLimitsX();
+    // this one covers the total sim area (even if it is not all needed for each simulation, ie area covered by all pixels)
+    std::valarray<double> getPaddedFullLimitsX() {
+        return getFullAreaBase().getCorrectedLimitsX() + getPaddingX();
     }
-    std::valarray<double> getRawSimLimitsY() {
-        return getCurrentAreaBase().getRawLimitsY();
+    std::valarray<double> getPaddedFullLimitsY() {
+        return getFullAreaBase().getCorrectedLimitsY() + getPaddingY();
+    }
+
+    std::valarray<double> getRawSimLimitsX(int pixel) {
+        return getCurrentAreaBase(pixel).getRawLimitsX();
+    }
+    std::valarray<double> getRawSimLimitsY(int pixel) {
+        return getCurrentAreaBase(pixel).getRawLimitsY();
+    }
+
+    std::valarray<double> getRawFullLimitsX() {
+        return getFullAreaBase().getRawLimitsX();
+    }
+    std::valarray<double> getRawDullLimitsY() {
+        return getFullAreaBase().getRawLimitsY();
     }
 
     int getBlocksX();
@@ -288,7 +304,7 @@ private:
     void round_Y_padding() {padding_y = default_xy_padding;}
     void round_Z_padding();
 
-    SimulationArea getCurrentAreaBase() {
+    SimulationArea getFullAreaBase() {
         // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
         // limits
         SimulationArea sa;
@@ -299,6 +315,19 @@ private:
             sa = CbedPos->getSimArea();
         else if (Mode == SimulationMode::CTEM)
             sa = *SimArea;
+
+        return sa;
+    }
+
+    SimulationArea getCurrentAreaBase(int pixel) {
+        // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
+        // limits
+        SimulationArea sa;
+
+        if (Mode == SimulationMode::STEM)
+            sa = StemSimArea->getPixelSimArea(pixel);
+        else
+            sa = getFullAreaBase(); // These don't ever change!
 
         return sa;
     }

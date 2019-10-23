@@ -39,7 +39,7 @@ void SimulationWorker<T>::Run(const std::shared_ptr<SimulationJob> &_job) {
 
     CLOG(DEBUG, "sim") << "Sorting atoms";
 
-    sortAtoms(job->simManager->getTdsRuns() > 1);
+    sortAtoms();
 
     // now what we do depends on the simulation type (I think...)
     SimulationMode mode = job->simManager->getMode();
@@ -67,15 +67,30 @@ void SimulationWorker<T>::Run(const std::shared_ptr<SimulationJob> &_job) {
 }
 
 template <class T>
-void SimulationWorker<T>::sortAtoms(bool doTds) {
+void SimulationWorker<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
+
+    bool doTds = job->simManager->getTdsRuns() > 1;
+
+    // TODO: check that this is only useful here
+    if (job->simManager == current_manager && !doTds) {
+        CLOG(DEBUG, "sim") << "Atoms already sorted, reusing that data";
+        return;
+    }
+    current_manager = job->simManager;
+
     std::vector<AtomSite> atoms = job->simManager->getStructure()->getAtoms();
     auto atom_count = static_cast<unsigned int>(atoms.size()); // Needs to be cast to int as opencl kernel expects that size
 
-    std::vector<int> AtomANum(atom_count);
-    std::vector<T> AtomXPos(atom_count);
-    std::vector<T> AtomYPos(atom_count);
-    std::vector<T> AtomZPos(atom_count);
+    std::vector<int> AtomANum;
+    std::vector<T> AtomXPos;
+    std::vector<T> AtomYPos;
+    std::vector<T> AtomZPos;
+
+    AtomANum.reserve(atom_count);
+    AtomXPos.reserve(atom_count);
+    AtomYPos.reserve(atom_count);
+    AtomZPos.reserve(atom_count);
 
     CLOG(DEBUG, "sim") << "Getting atom positions";
     if (doTds)
@@ -90,10 +105,12 @@ void SimulationWorker<T>::sortAtoms(bool doTds) {
             dz = job->simManager->generateTdsFactor(atoms[i], 2);
         }
 
-        AtomANum[i] = atoms[i].A;
-        AtomXPos[i] = atoms[i].x + dx;
-        AtomYPos[i] = atoms[i].y + dy;
-        AtomZPos[i] = atoms[i].z + dz;
+        // TODO: check if atom position is in the sim limits (could do before TDS)
+
+        AtomANum.push_back(atoms[i].A);
+        AtomXPos.push_back(atoms[i].x + dx);
+        AtomYPos.push_back(atoms[i].y + dy);
+        AtomZPos.push_back(atoms[i].z + dz);
     }
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
@@ -109,8 +126,12 @@ void SimulationWorker<T>::sortAtoms(bool doTds) {
     // Or fix it so they are all referencing same variable.
     unsigned int BlocksX = job->simManager->getBlocksX();
     unsigned int BlocksY = job->simManager->getBlocksY();
-    std::valarray<double> x_lims = job->simManager->getPaddedSimLimitsX(); // is this the right padding?
-    std::valarray<double> y_lims = job->simManager->getPaddedSimLimitsY();
+
+    // For sorting the atoms, we want the total area that the simulation covers
+    // Basically, this only applies to STEM, so this atom sorting covered all the pixels,
+    // even if we aren't going to be using all these atoms for each pixel
+    std::valarray<double> x_lims = job->simManager->getPaddedFullLimitsX();
+    std::valarray<double> y_lims = job->simManager->getPaddedFullLimitsY();
     std::valarray<double> z_lims = job->simManager->getPaddedStructLimitsZ();
 
     double dz = job->simManager->getSliceThickness();
@@ -219,7 +240,7 @@ void SimulationWorker<T>::sortAtoms(bool doTds) {
 
     ClBlockStartPositions.Write(blockStartPositions);
 
-    // wait for the IO queue here so that we are sure the data is uploaded before we start usign it
+    // wait for the IO queue here so that we are sure the data is uploaded before we start using it
     ctx.WaitForQueueFinish();
 }
 
@@ -244,12 +265,12 @@ void SimulationWorker<T>::doCtem()
 
     double real_scale = job->simManager->getRealScale();
 
-    auto x_im_range = job->simManager->getRawSimLimitsX()[1] - job->simManager->getRawSimLimitsX()[0];
-    auto x_sim_range = job->simManager->getPaddedSimLimitsX()[1] - job->simManager->getPaddedSimLimitsX()[0];
+    auto x_im_range = job->simManager->getRawSimLimitsX(0)[1] - job->simManager->getRawSimLimitsX(0)[0];
+    auto x_sim_range = job->simManager->getPaddedSimLimitsX(0)[1] - job->simManager->getPaddedSimLimitsX(0)[0];
     auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
 
-    auto y_im_range = job->simManager->getRawSimLimitsY()[1] - job->simManager->getRawSimLimitsY()[0];
-    auto y_sim_range = job->simManager->getPaddedSimLimitsY()[1] - job->simManager->getPaddedSimLimitsY()[0];
+    auto y_im_range = job->simManager->getRawSimLimitsY(0)[1] - job->simManager->getRawSimLimitsY(0)[0];
+    auto y_sim_range = job->simManager->getPaddedSimLimitsY(0)[1] - job->simManager->getPaddedSimLimitsY(0)[0];
     auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
 
     auto crop_l = static_cast<unsigned int>(std::floor(crop_lr_total / 2.0));
@@ -408,13 +429,15 @@ void SimulationWorker<T>::initialiseSimulation() {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Get local copies of variables (for convenience)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    auto current_pixel = job->getPixel();
+
     bool isFull3D = job->simManager->isFull3d();
     unsigned int resolution = job->simManager->getResolution();
     double wavelength = job->simManager->getWavelength();
     double pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
-    double startx = job->simManager->getPaddedSimLimitsX()[0];
-    double starty = job->simManager->getPaddedSimLimitsY()[0];
+    double startx = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
+    double starty = job->simManager->getPaddedSimLimitsY(current_pixel)[0];
     int full3dints = job->simManager->getFull3dInts();
     std::string param_name = job->simManager->getStructureParametersName();
 
@@ -456,8 +479,6 @@ void SimulationWorker<T>::initialiseSimulation() {
     }
 
     // Find maximum frequency for bandwidth limiting rule
-
-
     T kmaxx = std::abs(k0x[imidx]);
     T kmaxy = std::abs(k0y[imidy]);
 
@@ -505,8 +526,10 @@ void SimulationWorker<T>::initialiseSimulation() {
     // Work out which blocks to load by ensuring we have the entire area around workgroup up to 5 angstroms away...
     // TODO: check this is doing what the above comment says it is doing...
     // TODO: I think the 8.0 and 3.0 should be the padding as set in the manager...
+
     int load_blocks_x = (int) std::ceil(8.0 / job->simManager->getBlockScaleX());
     int load_blocks_y = (int) std::ceil(8.0 / job->simManager->getBlockScaleY());
+
     double dz = job->simManager->getSliceThickness();
     int load_blocks_z = (int) std::ceil(3.0 / dz);
 
@@ -524,13 +547,13 @@ void SimulationWorker<T>::initialiseSimulation() {
     BinnedAtomicPotential.SetArg(8, resolution);
     BinnedAtomicPotential.SetArg(9, resolution);
     BinnedAtomicPotential.SetArg(13, static_cast<T>(dz));
-    BinnedAtomicPotential.SetArg(14, static_cast<T>(pixelscale));
+    BinnedAtomicPotential.SetArg(14, static_cast<T>(pixelscale)); // TODO: does this want to be different?
     BinnedAtomicPotential.SetArg(15, job->simManager->getBlocksX());
     BinnedAtomicPotential.SetArg(16, job->simManager->getBlocksY());
-    BinnedAtomicPotential.SetArg(17, static_cast<T>(job->simManager->getPaddedSimLimitsX()[1]));
-    BinnedAtomicPotential.SetArg(18, static_cast<T>(job->simManager->getPaddedSimLimitsX()[0]));
-    BinnedAtomicPotential.SetArg(19, static_cast<T>(job->simManager->getPaddedSimLimitsY()[1]));
-    BinnedAtomicPotential.SetArg(20, static_cast<T>(job->simManager->getPaddedSimLimitsY()[0]));
+    BinnedAtomicPotential.SetArg(17, static_cast<T>(job->simManager->getPaddedFullLimitsX()[1]));
+    BinnedAtomicPotential.SetArg(18, static_cast<T>(job->simManager->getPaddedFullLimitsX()[0]));
+    BinnedAtomicPotential.SetArg(19, static_cast<T>(job->simManager->getPaddedFullLimitsY()[1]));
+    BinnedAtomicPotential.SetArg(20, static_cast<T>(job->simManager->getPaddedFullLimitsY()[0]));
     BinnedAtomicPotential.SetArg(21, load_blocks_x);
     BinnedAtomicPotential.SetArg(22, load_blocks_y);
     BinnedAtomicPotential.SetArg(23, load_blocks_z);
@@ -615,9 +638,10 @@ void SimulationWorker<T>::initialiseProbeWave(double posx, double posy, int n_pa
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // TODO: is this needed? must test on a sample we know (i.e. a single atom) or just save the probe image
     // convert from angstroms to pixel position (this bit seemed to make results 'more' sensible)
+    auto current_pixel = job->getPixel();
 
-    double start_x = job->simManager->getPaddedSimLimitsX()[0];
-    double start_y = job->simManager->getPaddedSimLimitsY()[0];
+    double start_x = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
+    double start_y = job->simManager->getPaddedSimLimitsY(current_pixel)[0];
     // account for the simulation area start point and convert to pixels
     posx = (posx - start_x) / pixelscale;
     posy = (posy - start_y) / pixelscale;
@@ -705,37 +729,6 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
 
     ctx.WaitForQueueFinish();
 
-
-
-
-
-//    {
-//        // save our transmission function
-//        auto loc = clPotential.CreateLocalCopy();
-//
-//        std::vector<T> loc_r(loc.size());
-//        std::vector<T> loc_i(loc.size());
-//
-//        for (int ii = 0; ii < loc.size(); ++ii) {
-//            loc_r[ii] = std::real(loc[ii]);
-//            loc_i[ii] = std::imag(loc[ii]);
-//        }
-//
-//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_real.tif", loc_r, resolution, resolution);
-//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_imag.tif", loc_i, resolution, resolution);
-//
-//    }
-
-
-
-
-
-
-
-
-
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Apply low pass filter to potentials
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -750,46 +743,12 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     FourierTrans.run(clWaveFunction3, clPotential, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
-//    {
-//        // save our transmission function
-//        auto loc = clPotential.CreateLocalCopy();
-//
-//        std::vector<T> loc_r(loc.size());
-//        std::vector<T> loc_i(loc.size());
-//
-//        for (int ii = 0; ii < loc.size(); ++ii) {
-//            loc_r[ii] = std::real(loc[ii]);
-//            loc_i[ii] = std::imag(loc[ii]);
-//        }
-//
-//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_limited_real.tif", loc_r, resolution, resolution);
-//        fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\transmission_limited_imag.tif", loc_i, resolution, resolution);
-//
-//    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     for (int i = 1; i <= n_parallel; i++)
     {
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
-
-//        {
-//            // save our transmission function
-//            auto loc = clWaveFunction1[i - 1].CreateLocalCopy();
-//
-//            std::vector<T> loc_r(loc.size());
-//            std::vector<T> loc_i(loc.size());
-//
-//            for (int ii = 0; ii < loc.size(); ++ii) {
-//                loc_r[ii] = std::real(loc[ii]);
-//                loc_i[ii] = std::imag(loc[ii]);
-//            }
-//
-//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_in_real.tif", loc_r, resolution, resolution);
-//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_in_imag.tif", loc_i, resolution, resolution);
-//
-//        }
 
         // Multiply transmission function with wavefunction
         ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
@@ -798,23 +757,6 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
         CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
         ComplexMultiply.run(Work);
         ctx.WaitForQueueFinish();
-
-//        {
-//            // save our transmission function
-//            auto loc = clWaveFunction2[i - 1].CreateLocalCopy();
-//
-//            std::vector<T> loc_r(loc.size());
-//            std::vector<T> loc_i(loc.size());
-//
-//            for (int ii = 0; ii < loc.size(); ++ii) {
-//                loc_r[ii] = std::real(loc[ii]);
-//                loc_i[ii] = std::imag(loc[ii]);
-//            }
-//
-//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_trans_real.tif", loc_r, resolution, resolution);
-//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_trans_imag.tif", loc_i, resolution, resolution);
-//
-//        }
 
         // go to reciprocal space
         CLOG(DEBUG, "sim") << "FFT to reciprocal space";
@@ -833,23 +775,6 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
         CLOG(DEBUG, "sim") << "IFFT to real space";
         FourierTrans.run(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
         ctx.WaitForQueueFinish();
-
-//        {
-//            // save our transmission function
-//            auto loc = clWaveFunction1[i - 1].CreateLocalCopy();
-//
-//            std::vector<T> loc_r(loc.size());
-//            std::vector<T> loc_i(loc.size());
-//
-//            for (int ii = 0; ii < loc.size(); ++ii) {
-//                loc_r[ii] = std::real(loc[ii]);
-//                loc_i[ii] = std::imag(loc[ii]);
-//            }
-//
-//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_out_real.tif", loc_r, resolution, resolution);
-//            fileio::SaveTiff<float>("D:\\Users\\Jon\\Work\\CBED multislice\\potentials test\\outputs\\wave_out_imag.tif", loc_i, resolution, resolution);
-//
-//        }
     }
 }
 

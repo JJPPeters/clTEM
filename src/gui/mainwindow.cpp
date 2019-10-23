@@ -420,8 +420,8 @@ void MainWindow::imagesChanged(SimulationManager sm)
                         comp_data[i] = std::complex<double>(im.data[2*i], im.data[2*i+1]);
                     Image<std::complex<double>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
 
-                    double lx = sm.getPaddedSimLimitsX()[0];
-                    double ly = sm.getPaddedSimLimitsY()[0];
+                    double lx = sm.getPaddedSimLimitsX(0)[0];
+                    double ly = sm.getPaddedSimLimitsY(0)[0];
                     double sc = sm.getRealScale();
                     tab->setPlotWithComplexData(comp_im, "Å", sc, sc, lx, ly, settings);
                 }
@@ -435,8 +435,8 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
                     auto settings = original_settings;
-                    double lx = sm.getPaddedSimLimitsX()[0];
-                    double ly = sm.getPaddedSimLimitsY()[0];
+                    double lx = sm.getPaddedSimLimitsX(0)[0];
+                    double ly = sm.getPaddedSimLimitsY(0)[0];
                     double sc = sm.getRealScale();
                     tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
                 }

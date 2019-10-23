@@ -79,7 +79,7 @@ __kernel void ctem_image_d( __global const double2* input,
 
 			// TODO: check the 0.25 factor here is correct (it was 0.5, but Kirkland 2nd ed. eq. 3.42 disagrees)
 			double temporalCoh = native_exp( -0.25 * M_PI*M_PI  * delta*delta * cModSq(w)*cModSq(w) / (wavelength*wavelength) );
-			double spatialCoh = native_exp( -1.0 * M_PI*M_PI * beta2*beta2 * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2)  / (wavelength*wavelength) );
+			double spatialCoh = native_exp( -1.0 * M_PI*M_PI * beta2*beta2 * cModSq(w) * pow((C10 + C30*cModSq(w) + C50*cModSq(w)*cModSq(w)), 2) );
 			double tC10 = 0.5 * C10 * cModSq(w);
 			double2 tC12 = 0.5 * cMult(C12, cPow(wc, 2));
 			double2 tC21 = cMult(C21, cMult(cPow(wc, 2), w)) / 3.0;

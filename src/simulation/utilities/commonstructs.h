@@ -137,12 +137,22 @@ struct MicroscopeParameters {
     }
 };
 
+struct StemDetector {
+    StemDetector() : name("--"), inner(0.0), outer(1.0), xcentre(0.0), ycentre(0.0) {}
+    StemDetector(std::string nm, double in, double out, double xc, double yc) : name(std::move(nm)),
+            inner(in), outer(out), xcentre(xc), ycentre(yc) {}
+
+    std::string name;
+
+    double inner, outer, xcentre, ycentre;
+};
+
 struct SimulationArea {
     SimulationArea() : xStart(0.0), xFinish(10.0), yStart(0.0), yFinish(10.0), padding(0.0) {}
 
     SimulationArea(double xs, double xf, double ys, double yf, double pd = 0.f) : xStart(xs), xFinish(xf),
-                                                                             yStart(ys), yFinish(yf),
-                                                                             padding(pd) {}
+                                                                                  yStart(ys), yFinish(yf),
+                                                                                  padding(pd) {}
 
     std::valarray<double> getRawLimitsX();
     std::valarray<double> getRawLimitsY();
@@ -157,16 +167,6 @@ struct SimulationArea {
 
 protected:
     double xStart, xFinish, yStart, yFinish, padding;
-};
-
-struct StemDetector {
-    StemDetector() : name("--"), inner(0.0), outer(1.0), xcentre(0.0), ycentre(0.0) {}
-    StemDetector(std::string nm, double in, double out, double xc, double yc) : name(std::move(nm)),
-            inner(in), outer(out), xcentre(xc), ycentre(yc) {}
-
-    std::string name;
-
-    double inner, outer, xcentre, ycentre;
 };
 
 // TODO: is this class necessary, can we not just use the sim area one with the start and end points the same?
@@ -210,7 +210,7 @@ struct StemArea : public SimulationArea {
     void forcePxRangeY(double start, double finish, int px);
 
     void setPixelsX(unsigned int px) {xPixels = px;}
-    void setPixelsY(unsigned int px) {yPixels = px;}
+    void setPixelsY(unsigned int py) {yPixels = py;}
 
     double getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
     double getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}
@@ -223,6 +223,17 @@ struct StemArea : public SimulationArea {
     double getScaleY();
 
     unsigned int getNumPixels() {return xPixels * yPixels;}
+
+    SimulationArea getPixelSimArea(int pixel) {
+        // convert pixel id to x, y position
+        unsigned int x_px = pixel % xPixels;
+        unsigned int y_px = (unsigned int) std::floor(pixel / xPixels);
+
+        float xPos = getRawLimitsX()[0] + getScaleX() * x_px;
+        float yPos = getRawLimitsY()[0] + getScaleY() * y_px;
+        // pad equally on both sides
+        return SimulationArea(xPos, xPos, yPos, yPos, padding);
+    }
 
 private:
     unsigned int xPixels, yPixels;

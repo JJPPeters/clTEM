@@ -326,8 +326,8 @@ namespace JSONUtils {
         j["maintain areas"] = man.getMaintainAreas();
 
 
-        auto xl = man.getPaddedSimLimitsX();
-        auto yl = man.getPaddedSimLimitsY();
+        auto xl = man.getPaddedSimLimitsX(0);
+        auto yl = man.getPaddedSimLimitsY(0);
         auto zl = man.getPaddedStructLimitsZ(); // z never changes, so always is struct limits
 
         // padding is always plus/minus one value, with the second element ([1]) being positive

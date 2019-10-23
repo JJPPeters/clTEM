@@ -76,11 +76,11 @@ void SimulationManager::setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info
 
 std::tuple<double, double, double, int> SimulationManager::getSimRanges()
 {
-    double xRange = getPaddedSimLimitsX()[1] - getPaddedSimLimitsX()[0];
-    double yRange = getPaddedSimLimitsY()[1] - getPaddedSimLimitsY()[0];
+    double xRange = getPaddedSimLimitsX(0)[1] - getPaddedSimLimitsX(0)[0];
+    double yRange = getPaddedSimLimitsY(0)[1] - getPaddedSimLimitsY(0)[0];
     double zRange = getPaddedStructLimitsZ()[1] - getPaddedStructLimitsZ()[0];
-    int numAtoms = Structure->getAtomCountInRange(getPaddedSimLimitsX()[0], getPaddedSimLimitsX()[1],
-                                                  getPaddedSimLimitsY()[0], getPaddedSimLimitsY()[1]);
+    int numAtoms = Structure->getAtomCountInRange(getPaddedSimLimitsX(0)[0], getPaddedSimLimitsX(0)[1],
+                                                  getPaddedSimLimitsY(0)[0], getPaddedSimLimitsY(0)[1]);
 
     return std::make_tuple(xRange, yRange, zRange, numAtoms);
 }
@@ -90,8 +90,11 @@ double SimulationManager::getRealScale()
     if(!Structure || !haveResolution())
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
-    auto x_r = getPaddedSimLimitsX()[1] - getPaddedSimLimitsX()[0];
-    auto y_r = getPaddedSimLimitsY()[1] - getPaddedSimLimitsY()[0];
+    auto lim_x = getPaddedSimLimitsX(0);
+    auto lim_y = getPaddedSimLimitsY(0);
+
+    auto x_r = lim_x[1] - lim_x[0];
+    auto y_r = lim_y[1] - lim_y[0];
     return std::max(x_r, y_r) / Resolution;
 }
 
@@ -204,42 +207,39 @@ void SimulationManager::reportTotalProgress(double prog)
         progressTotalReporter(prog);
 }
 
-void SimulationManager::reportSliceProgress(double prog)
-{
+void SimulationManager::reportSliceProgress(double prog) {
     if (progressSliceReporter)
         progressSliceReporter(prog);
 }
 
-double SimulationManager::getBlockScaleX()
-{
-    auto r = getPaddedStructLimitsX();
+double SimulationManager::getBlockScaleX() {
+//    auto r = getPaddedStructLimitsX();
+    auto r = getPaddedFullLimitsX();
     return (r[1] - r[0]) / getBlocksX();
 }
 
 double SimulationManager::getBlockScaleY() {
-    auto r = getPaddedStructLimitsY();
+//    auto r = getPaddedStructLimitsY();
+    auto r = getPaddedFullLimitsY();
     return (r[1] - r[0]) / getBlocksY();
 }
 
-int SimulationManager::getBlocksX()
-{
+int SimulationManager::getBlocksX() {
     calculate_blocks();
     return blocks_x;
 }
 
-int SimulationManager::getBlocksY()
-{
+int SimulationManager::getBlocksY() {
     calculate_blocks();
     return blocks_y;
 }
 
-void SimulationManager::calculate_blocks()
-{
+void SimulationManager::calculate_blocks() {
     // set number of blocks. Set the blocks to be 4 Angstroms apart (as this is half our buffer region)
     // so we are never loading more than two extra blocks (I suppose smaller is better, but also might make the
     // arrays a bit convoluted) TODO: test if this matters
-    auto x_lims_2 = getPaddedSimLimitsX();
-    auto y_lims_2 = getPaddedSimLimitsY();
+    auto x_lims_2 = getPaddedFullLimitsX();
+    auto y_lims_2 = getPaddedFullLimitsY();
     double xr = x_lims_2[1] - x_lims_2[0];
     double yr = y_lims_2[1] - y_lims_2[0];
 

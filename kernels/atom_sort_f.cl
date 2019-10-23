@@ -47,7 +47,7 @@ __kernel void atom_sort_f( __global const float* x_input,
             // get the fractional position of the atoms (in the structure), times by the number of blocks and floor
             int bidx = floor( (x_input[xid] - min_x) * native_recip(max_x - min_x) * blocks_x);
             int bidy = floor( (y_input[xid] - min_y) * native_recip(max_y - min_y) * blocks_y);
-            // I think this assumes that the z is always from 0?
+            // This sorts the top atoms (largest z) to be the frist atoms (i.e. we simulate top down)
             int zid  = floor( (max_z - z_input[xid]) * native_recip(dz));
 
             // account for any edge cases that are exactly on the limit of z

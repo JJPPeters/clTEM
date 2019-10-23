@@ -36,9 +36,11 @@ public:
 private:
     clContext ctx;
 
+    std::shared_ptr<SimulationManager> current_manager;
+
     std::shared_ptr<SimulationJob> job;
 
-    void sortAtoms(bool doTds = false);
+    void sortAtoms();
 
     void doCtem();
 

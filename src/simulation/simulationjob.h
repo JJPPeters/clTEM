@@ -26,6 +26,12 @@ public:
 
     std::future<void> get_future() {return promise.get_future();}
 
+    unsigned int getPixel() {
+        if (!pixels.empty())
+            return pixels[0];
+        return 0;
+    }
+
     // only used for STEM simulations, here are the (randomised) pixel indices to simulate.
     std::vector<int> pixels;
 };

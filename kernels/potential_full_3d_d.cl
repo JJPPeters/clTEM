@@ -26,7 +26,7 @@
 /// total_slices - total number of slices in the simulation
 /// z - current z position
 /// dz - the slice thickness
-/// pixelscale - pixel scale of the image in real space
+/// pixel_scale - pixel scale of the image in real space
 /// blocks_x - total number of blocks in x direction
 /// blocks_y - total number of blocks in y direction
 /// max_x - max x position (including padding)
@@ -173,10 +173,26 @@ __kernel void potential_full_3d_d( __global double2* potential,
 	__local double atz[256];
 	__local int atZ[256];
 
-	int startj = fmax(floor( (starty - min_y +  gy    * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) - block_load_y, 0) ;
-	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) + block_load_y, blocks_y-1);
-	int starti = fmax(floor( (startx - min_x +  gx    * get_local_size(0) * pixel_scale) * blocks_x * native_recip(max_x-min_x)) - block_load_x, 0) ;
-	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixel_scale) * blocks_x * native_recip(max_x-min_x)) + block_load_x, blocks_x-1);
+	// calculate the indices of the bins we will need
+    // get the size of one workgroup
+    double group_size_x = get_local_size(0) * pixel_scale;
+    double group_size_y = get_local_size(1) * pixel_scale;
+
+    // get the start and end position of the current workgroup
+    double group_start_x = startx +  gx      * group_size_x;
+    double group_end_x   = startx + (gx + 1) * group_size_x;
+
+    double group_start_y = starty +  gy      * group_size_y;
+    double group_end_y   = starty + (gy + 1) * group_size_y;
+
+    // get the reciprocal of the full range (for efficiency)
+    double recip_range_x = native_recip(max_x - min_x);
+    double recip_range_y = native_recip(max_y - min_y);
+
+    int starti = fmax(floor( blocks_x * (group_start_x - min_x) * recip_range_x) - block_load_x, 0);
+    int endi   = fmin( ceil( blocks_x * (group_end_x   - min_x) * recip_range_x) + block_load_x, blocks_x - 1);
+    int startj = fmax(floor( blocks_y * (group_start_y - min_y) * recip_range_y) - block_load_y, 0);
+    int endj   = fmin( ceil( blocks_y * (group_end_y   - min_y) * recip_range_y) + block_load_y, blocks_y - 1);
 
 	for(int k = topz; k <= bottomz; k++) {
 		for (int j = startj ; j <= endj; j++) {
@@ -197,21 +213,33 @@ __kernel void potential_full_3d_d( __global double2* potential,
 
 			double p2=0.0;
 			for (int l = 0; l < end-start; l++) {
-				double xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
+				// calculate the radius from the current position in space (i.e. pixel?)
+                double im_pos_x = startx + xid * pixel_scale;
+                double rad_x = im_pos_x - atx[l];
+
+                double im_pos_y = starty + yid * pixel_scale;
+                double rad_y = im_pos_y - aty[l];
+
+                double xyrad2 = rad_x*rad_x + rad_y*rad_y;
 
 				for (int h = 0; h <= integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
-					double rad = native_sqrt(xyrad2 + (z - h * dz * int_r - atz[l])*(z - h * dz * int_r - atz[l]));
 
-					double r_min = 1.0e-10;
+					// z is the slice position, h is the 'sub' integral, dz is the slice thickness and int_r is 1/integrals
+                    double im_pos_z = z - h * dz * int_r;
+                    double rad_z = im_pos_z - atz[l];
+
+                    double rad = native_sqrt(xyrad2 + rad_z*rad_z);
+
+					double r_min = 0.01;//0.25 * pixel_scale;
                     if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
                         rad = r_min;
 
 					double p1 = 0.0;
 
-					if( rad < 3.0) {
+					if( rad < 5.0) {
     					double p1;
     					if (param_selector == 0)
     					    p1 = kirkland(params, atZ[l], rad);

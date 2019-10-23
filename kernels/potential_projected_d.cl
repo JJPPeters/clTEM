@@ -277,17 +277,32 @@ __kernel void potential_projected_d( __global double2* potential,
 	__local double aty[256];
 	__local int atZ[256];
 
-	// calculate the indices of the bins we will need?
-	int startj = fmax(floor( (starty - min_y+  gy *    get_local_size(1) * pixelscale) * blocks_y  / (max_y-min_y)) - block_load_y, 0) ;
-	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixelscale) * blocks_y  / (max_y-min_y)) + block_load_y, blocks_y-1);
-	int starti = fmax(floor( (startx - min_x +  gx *    get_local_size(0) * pixelscale) * blocks_x  / (max_x-min_x)) - block_load_x, 0) ;
-	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixelscale) * blocks_x  / (max_x-min_x)) + block_load_x, blocks_x-1);
+	// calculate the indices of the bins we will need
+    // get the size of one workgroup
+    double group_size_x = get_local_size(0) * pixelscale;
+    double group_size_y = get_local_size(1) * pixelscale;
+
+    // get the start and end position of the current workgroup
+    double group_start_x = startx +  gx      * group_size_x;
+    double group_end_x   = startx + (gx + 1) * group_size_x;
+
+    double group_start_y = starty +  gy      * group_size_y;
+    double group_end_y   = starty + (gy + 1) * group_size_y;
+
+    // get the reciprocal of the full range (for efficiency)
+    double recip_range_x = native_recip(max_x - min_x);
+    double recip_range_y = native_recip(max_y - min_y);
+
+    int starti = fmax(floor( blocks_x * (group_start_x - min_x) * recip_range_x) - block_load_x, 0);
+    int endi   = fmin( ceil( blocks_x * (group_end_x   - min_x) * recip_range_x) + block_load_x, blocks_x - 1);
+    int startj = fmax(floor( blocks_y * (group_start_y - min_y) * recip_range_y) - block_load_y, 0);
+    int endj   = fmin( ceil( blocks_y * (group_end_y   - min_y) * recip_range_y) + block_load_y, blocks_y - 1);
 
 	for(int k = topz; k <= bottomz; k++) {
 		for (int j = startj ; j <= endj; j++) {
 			//Need list of atoms to load, so we can load in sequence
-			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti];
-			int end = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
+			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti  ];
+			int end   = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
 
 			int gid = start + lid;
 
@@ -301,9 +316,15 @@ __kernel void potential_projected_d( __global double2* potential,
 
 			for (int l = 0; l < end-start; l++) {
 				// calculate the radius from the current position in space (i.e. pixel?)
-				double rad = native_sqrt((startx + xid*pixelscale-atx[l])*(startx + xid*pixelscale-atx[l]) + (starty + yid*pixelscale-aty[l])*(starty + yid*pixelscale-aty[l]));
+				double im_pos_x = startx + xid * pixelscale;
+                double rad_x = im_pos_x - atx[l];
 
-                double r_min = 1.0e-10;
+                double im_pos_y = starty + yid * pixelscale;
+                double rad_y = im_pos_y - aty[l];
+
+                double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
+
+                double r_min = 0.0f;//0.25 * pixelscale;
 				if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
 					rad = r_min;
 

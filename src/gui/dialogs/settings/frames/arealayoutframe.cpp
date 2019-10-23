@@ -440,10 +440,10 @@ void AreaLayoutFrame::updatePlotRects() {
     auto test = SimManager->getSimulationArea();
 
     auto szr = SimManager->getPaddedStructLimitsZ();
-    auto ixr = SimManager->getRawSimLimitsX();
-    auto iyr = SimManager->getRawSimLimitsY();
-    auto sxr = SimManager->getPaddedSimLimitsX();
-    auto syr = SimManager->getPaddedSimLimitsY();
+    auto ixr = SimManager->getRawSimLimitsX(0);
+    auto iyr = SimManager->getRawSimLimitsY(0);
+    auto sxr = SimManager->getPaddedSimLimitsX(0);
+    auto syr = SimManager->getPaddedSimLimitsY(0);
 
     // get these now so we know how many we will have
     auto dz = SimManager->getSliceThickness();
