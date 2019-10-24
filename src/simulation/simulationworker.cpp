@@ -96,6 +96,14 @@ void SimulationWorker<T>::sortAtoms() {
     if (doTds)
         CLOG(DEBUG, "sim") << "Using TDS";
 
+    // For sorting the atoms, we want the total area that the simulation covers
+    // Basically, this only applies to STEM, so this atom sorting covered all the pixels,
+    // even if we aren't going to be using all these atoms for each pixel
+    // also used to limit the atoms we have to sort
+    std::valarray<double> x_lims = job->simManager->getPaddedFullLimitsX();
+    std::valarray<double> y_lims = job->simManager->getPaddedFullLimitsY();
+    std::valarray<double> z_lims = job->simManager->getPaddedStructLimitsZ();
+
     for(int i = 0; i < atom_count; i++) {
         double dx = 0.0, dy = 0.0, dz = 0.0;
         if (doTds) {
@@ -105,13 +113,26 @@ void SimulationWorker<T>::sortAtoms() {
             dz = job->simManager->generateTdsFactor(atoms[i], 2);
         }
 
-        // TODO: check if atom position is in the sim limits (could do before TDS)
+        // TODO: could move this check before the TDS if I can get a good estimate of the maximum displacement
 
-        AtomANum.push_back(atoms[i].A);
-        AtomXPos.push_back(atoms[i].x + dx);
-        AtomYPos.push_back(atoms[i].y + dy);
-        AtomZPos.push_back(atoms[i].z + dz);
+        int new_x = atoms[i].x + dx;
+        int new_y = atoms[i].y + dy;
+        int new_z = atoms[i].z + dz;
+        bool in_x = new_x > x_lims[0] && new_x < x_lims[1];
+        bool in_y = new_y > y_lims[0] && new_y < y_lims[1];
+        bool in_z = new_z > z_lims[0] && new_z < z_lims[1];
+
+        if (in_x && in_y && in_z) {
+            // puch back is OK because I have reserved the vector
+            AtomANum.push_back(atoms[i].A);
+            AtomXPos.push_back(atoms[i].x + dx);
+            AtomYPos.push_back(atoms[i].y + dy);
+            AtomZPos.push_back(atoms[i].z + dz);
+        }
     }
+
+    // update our atom count to be the atoms we have in range
+    atom_count = AtomANum.size();
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
 
@@ -126,13 +147,6 @@ void SimulationWorker<T>::sortAtoms() {
     // Or fix it so they are all referencing same variable.
     unsigned int BlocksX = job->simManager->getBlocksX();
     unsigned int BlocksY = job->simManager->getBlocksY();
-
-    // For sorting the atoms, we want the total area that the simulation covers
-    // Basically, this only applies to STEM, so this atom sorting covered all the pixels,
-    // even if we aren't going to be using all these atoms for each pixel
-    std::valarray<double> x_lims = job->simManager->getPaddedFullLimitsX();
-    std::valarray<double> y_lims = job->simManager->getPaddedFullLimitsY();
-    std::valarray<double> z_lims = job->simManager->getPaddedStructLimitsZ();
 
     double dz = job->simManager->getSliceThickness();
     unsigned int numberOfSlices = job->simManager->getNumberofSlices();
