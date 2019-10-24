@@ -35,8 +35,10 @@ public:
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
               slice_offset(sm.slice_offset), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
-              rng(std::mt19937(std::random_device()())), dist(std::normal_distribution<>(0, 1)), use_double_precision(false)
+              dist(std::normal_distribution<>(0, 1)), use_double_precision(false)
     {
+        rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
+
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
@@ -81,7 +83,7 @@ public:
         slice_offset = sm.slice_offset;
         structure_parameters_name = sm.structure_parameters_name;
         maintain_area = sm.maintain_area;
-        rng = std::mt19937(std::random_device()());
+        rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
         dist = std::normal_distribution<>(0, 1);
 
         if (sm.Structure) // structure doesnt always exist
@@ -235,6 +237,8 @@ public:
     unsigned int getTdsRunsCbed() { return (!TdsEnabledCbed) ? 1 : TdsRunsCbed; }
     unsigned int getTdsRunsStem() { return (!TdsEnabledStem) ? 1 : TdsRunsStem; }
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
+
+    bool getTdsEnabled();
     bool getTdsEnabledStem() { return TdsEnabledStem; }
     bool getTdsEnabledCbed() { return TdsEnabledCbed; }
 
@@ -336,7 +340,7 @@ private:
 
     bool maintain_area;
 
-    std::mt19937 rng;
+    std::mt19937_64 rng;
     std::normal_distribution<> dist;
     std::shared_ptr<ThermalVibrations> thermal_vibrations;
 

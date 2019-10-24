@@ -51,7 +51,7 @@ private:
     unsigned int MaxAtomicNumber;
     unsigned int AtomCount;
 
-    std::mt19937 rng;
+    std::mt19937_64 rng;
     std::uniform_real_distribution<> dist;
 
     void resetLimits();

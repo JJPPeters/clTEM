@@ -5,13 +5,16 @@
 #include <fstream>
 #include <ctime>
 #include <utilities/vectorutils.h>
+#include <chrono>
 
 #include "utilities/stringutils.h"
 #include "utilities/structureutils.h"
 
 CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, bool fix_cif)
-        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
+        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false),
           dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
+    rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
+
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
@@ -25,8 +28,10 @@ CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, 
 }
 
 CrystalStructure::CrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info)
-        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false), rng(std::mt19937(std::random_device()())),
+        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false),
           dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
+    rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
+
     resetLimits();
     Atoms = std::vector<AtomSite>();
 
@@ -105,6 +110,7 @@ void CrystalStructure::openXyz(std::string fPath) {
     }
 
     auto max_header = std::max<int>({h_A, h_x, h_y, h_z, h_occ, h_u, h_ux, h_uy, h_uz});
+//    int header_count = 4 + (h_occ >= 0) + (h_u >= 0) + (h_ux >= 0) + (h_uy >= 0) + (h_uz >= 0);
 
     // TODO: report warning on unused headers?
 

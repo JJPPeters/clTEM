@@ -70,7 +70,7 @@ template <class T>
 void SimulationWorker<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
 
-    bool doTds = job->simManager->getTdsRuns() > 1;
+    bool doTds = job->simManager->getTdsEnabled();
 
     // TODO: check that this is only useful here
     if (job->simManager == current_manager && !doTds) {
@@ -903,8 +903,8 @@ void SimulationWorker<T>::simulateCtemImage(std::vector<T> dqe_data, std::vector
 
     CLOG(DEBUG, "sim") << "Add noise";
 
-    std::random_device rd;
-    std::mt19937 rng(rd());
+//    std::random_device rd;
+    std::mt19937_64 rng(std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count()));
 
     for (int i = 0; i < resolution * resolution; i++) {
         // previously was using a Box-Muller transform to get a normal dist and assuming it would approximate a poisson distribution

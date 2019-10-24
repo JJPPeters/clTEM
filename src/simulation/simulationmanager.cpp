@@ -9,9 +9,11 @@ SimulationManager::SimulationManager() : Resolution(256), completeJobs(0), defau
                                          padding_y(default_xy_padding), padding_z(default_z_padding), slice_dz(1.0),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(false),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
-                                         slice_offset(0.0), structure_parameters_name("kirkland"), maintain_area(false), rng(std::mt19937(std::random_device()())),
+                                         slice_offset(0.0), structure_parameters_name("kirkland"), maintain_area(false),
                                          dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM), use_double_precision(false)
 {
+    rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
+
     // Here is where the default values are set!
     MicroParams = std::make_shared<MicroscopeParameters>();
     SimArea = std::make_shared<SimulationArea>();
@@ -180,14 +182,14 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
         throw std::runtime_error("Simulation received more parts than it expected");
     }
 
-    auto prgrss = static_cast<double>(completeJobs) / getTotalParts();
+    auto prgrss = static_cast<double>(completeJobs) / v;
 
     CLOG(DEBUG, "sim") << "Report progress: " << prgrss*100 << "%";
 
     reportTotalProgress(prgrss);
 
     // this means this simulation is finished
-    if (completeJobs == getTotalParts() && imageReturn) {
+    if (completeJobs == v && imageReturn) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
         imageReturn(*this);
     }
@@ -302,6 +304,15 @@ unsigned int SimulationManager::getStoredTdsRuns() {
     return 1;
 }
 
+bool SimulationManager::getTdsEnabled() {
+    if (Mode == SimulationMode::STEM)
+        return getTdsEnabledStem();
+    else if (Mode == SimulationMode::CBED)
+        return getTdsEnabledCbed();
+    else
+        return false;
+}
+
 double SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
     if (direction < 0 || direction > 2)
         throw std::runtime_error("Error trying to apply thermal displacement to axis: " + std::to_string(direction));
@@ -329,8 +340,8 @@ double SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
         u = thermal_vibrations->getVibrations((unsigned int) at.A);
     }
 
-
-    double randNormal = std::sqrt(u) * dist(rng);
+    auto jj = dist(rng);
+    double randNormal = std::sqrt(u) * jj;
 
     return randNormal;
 }
