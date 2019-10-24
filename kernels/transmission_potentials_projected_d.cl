@@ -324,7 +324,7 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 
                 double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
 
-                double r_min = 0.0f;//0.25 * pixelscale;
+                double r_min = 0.25 * pixelscale;
 				if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
 					rad = r_min;
 

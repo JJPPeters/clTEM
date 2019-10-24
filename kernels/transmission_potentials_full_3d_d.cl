@@ -233,7 +233,7 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 
                     double rad = native_sqrt(xyrad2 + rad_z*rad_z);
 
-					double r_min = 0.01;//0.25 * pixel_scale;
+					double r_min = 0.25 * pixel_scale;
                     if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
                         rad = r_min;
 

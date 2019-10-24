@@ -230,7 +230,10 @@ void MainWindow::updateScales()
     if (!Manager->haveStructure() || !Manager->haveResolution())
         return;
 
-    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
+    try {
+        ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(),
+                                       Manager->getInverseMaxAngle());
+    } catch (...) {}
     ui->tSim->updateStructureInfo(Manager->getSimRanges());
 }
 
@@ -855,7 +858,9 @@ void MainWindow::updateVoltageMrad(double voltage) {
     // update the voltage in teh manager
     Manager->getMicroscopeParams()->Voltage = voltage;
 
+    try {
     ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
+    } catch (...) {}
 }
 
 

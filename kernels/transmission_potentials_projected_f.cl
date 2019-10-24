@@ -329,7 +329,7 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 
 			float rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
 
-            float r_min = 0.01f;//0.25f * pixelscale;
+            float r_min = 0.25f * pixelscale;
 			if(rad < r_min) // is this sensible?
 				rad = r_min;
 

@@ -658,6 +658,7 @@ void SimulationWorker<T>::initialiseProbeWave(double posx, double posy, int n_pa
 
     double start_x = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
     double start_y = job->simManager->getPaddedSimLimitsY(current_pixel)[0];
+
     // account for the simulation area start point and convert to pixels
     posx = (posx - start_x) / pixelscale;
     posy = (posy - start_y) / pixelscale;
