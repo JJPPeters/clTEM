@@ -22,7 +22,8 @@ __kernel void propogator_f( __global float2* propagator,
 									unsigned int height,
 									float dz,
 									float wavelength,
-									float k_max)
+									float k_max,
+									float limit_factor)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -32,7 +33,9 @@ __kernel void propogator_f( __global float2* propagator,
 		float k0x = k_x[xid] * k_x[xid];
 		float k0y = k_y[yid] * k_y[yid];
 
-        if (k0x+k0y < k_max*k_max) {
+        double k_max_2 = limit_factor * limit_factor * k_max * k_max;
+
+        if (k0x+k0y < k_max_2) {
 		    propagator[id].x = native_cos(M_PI_F * dz * wavelength * (k0x+k0y));
 		    propagator[id].y = -1.0f * native_sin(M_PI_F * dz * wavelength * (k0x+k0y));
 		} else {

@@ -70,7 +70,10 @@ __kernel void init_probe_wave_f( __global float2* output,
 		int id = xid + yid*width;
 		float cond_ap2 = (cond_ap * 0.001f) / wavelength;
         float k = native_sqrt( (k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]) );
-		if (k < cond_ap2)
+
+        float ap_smooth_radius = (0.5f * 0.001f) / wavelength; // radius in mrad
+
+		if (k < cond_ap2 + ap_smooth_radius)
 		{
 			// this term is easier to calculate once before it is put into the exponential
 			float posTerm = 2.0f * M_PI_F * (k_x[xid]*pos_x*pixel_scale + k_y[yid]*pos_y*pixel_scale);
@@ -96,8 +99,14 @@ __kernel void init_probe_wave_f( __global float2* output,
 			float cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			float chi = 2.0f * M_PI_F * cchi / wavelength;
 
-			output[id].x = native_cos(posTerm - chi);
-            output[id].y = native_sin(posTerm - chi);
+            // smooth the aperture edge
+            float edge_factor = 1.0f;
+
+            if (fabs(k-cond_ap2) < ap_smooth_radius)
+                edge_factor = 1.0f - smoothstep(cond_ap2 - ap_smooth_radius, cond_ap2 + ap_smooth_radius, k);
+
+			output[id].x = native_cos(posTerm - chi) * edge_factor;
+            output[id].y = native_sin(posTerm - chi) * edge_factor;
 		}
 		else
 		{

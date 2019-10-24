@@ -94,6 +94,8 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     setStructLimits();
 
     areasChanged();
+
+    updateSlices();
 }
 
 
@@ -127,8 +129,7 @@ void AreaLayoutFrame::areasChanged() {
     }
     else if (mode == 1) { // STEM
         auto stema = StemFrame->getStemArea();
-        auto xlims = stema.getCorrectedLimitsX();
-        auto range = xlims[1] - xlims[0]; // x lims should be the same as y
+        auto range = stema.getPadding();
         realScale = (range + pd_range) / SimManager->getResolution();
 
         ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
@@ -165,6 +166,10 @@ void AreaLayoutFrame::areasChanged() {
     ui->lblAngleScale->setText(Utils_Qt::numToQString(angleScale) + " mrad");
     ui->lblAngleMax->setText(Utils_Qt::numToQString(angleMax) + " mrad");
 
+    slicesChanged();
+}
+
+void AreaLayoutFrame::updateSlices() {
     double dz = SimManager->getSliceThickness();
     double oz = SimManager->getSliceOffset();
 
@@ -440,10 +445,10 @@ void AreaLayoutFrame::updatePlotRects() {
     auto test = SimManager->getSimulationArea();
 
     auto szr = SimManager->getPaddedStructLimitsZ();
-    auto ixr = SimManager->getRawSimLimitsX(0);
-    auto iyr = SimManager->getRawSimLimitsY(0);
-    auto sxr = SimManager->getPaddedSimLimitsX(0);
-    auto syr = SimManager->getPaddedSimLimitsY(0);
+    auto ixr = SimManager->getRawFullLimitsX();
+    auto iyr = SimManager->getRawFullLimitsY();
+    auto sxr = SimManager->getPaddedFullLimitsX();
+    auto syr = SimManager->getPaddedFullLimitsY();
 
     // get these now so we know how many we will have
     auto dz = SimManager->getSliceThickness();
@@ -463,7 +468,14 @@ void AreaLayoutFrame::updatePlotRects() {
     _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[0], col_2, PGL::Plane::z));
     _plot_rects.emplace_back(pltStructure->rectangle(iyr[0], ixr[0], iyr[1], ixr[1], szr[1], col_2, PGL::Plane::z));
 
-    // now add the sides for slices
+    // now add the sides of the sim area
+    _plot_rects.emplace_back(pltStructure->rectangle(szr[0], iyr[0], szr[1], iyr[1], ixr[0], col_2, PGL::Plane::x));
+    _plot_rects.emplace_back(pltStructure->rectangle(szr[0], iyr[0], szr[1], iyr[1], ixr[1], col_2, PGL::Plane::x));
+
+    _plot_rects.emplace_back(pltStructure->rectangle(szr[0], ixr[0], szr[1], ixr[1], iyr[0], col_2, PGL::Plane::y));
+    _plot_rects.emplace_back(pltStructure->rectangle(szr[0], ixr[0], szr[1], ixr[1], iyr[1], col_2, PGL::Plane::y));
+
+    // add the slices
 
     std::vector<Eigen::Vector4f> cols_slice = {Eigen::Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Eigen::Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
 

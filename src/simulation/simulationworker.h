@@ -91,7 +91,7 @@ private:
     clMemory<GPU_Type, Manual> clXFrequencies;
     clMemory<GPU_Type, Manual> clYFrequencies;
     clMemory<std::complex<GPU_Type>, Manual> clPropagator;
-    clMemory<std::complex<GPU_Type>, Manual> clPotential;
+    clMemory<std::complex<GPU_Type>, Manual> clTransmissionFunction;
     clMemory<std::complex<GPU_Type>, Manual> clImageWaveFunction;
 
     // General kernels
@@ -99,7 +99,7 @@ private:
     clKernel AtomSort;
     clKernel BandLimit;
     clKernel fftShift;
-    clKernel BinnedAtomicPotential;
+    clKernel CalculateTransmissionFunction;
     clKernel GeneratePropagator;
     clKernel ComplexMultiply;
 

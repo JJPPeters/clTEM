@@ -31,7 +31,7 @@ void SimulationFrame::updateResolutionInfo(double pixScale, double invScale, dou
 
     ui->lblRealScale->setText(Utils_Qt::numToQString(pixScale, 2) + " Å");
 
-    ui->lblInverseScale->setText(Utils_Qt::numToQString(invScale*1000, 2) + "&times;10<sup>3</sup> Å<sup>-1</sup>");
+    ui->lblInverseScale->setText(Utils_Qt::numToQString(invScale*1000, 2) + "&times;10<sup>-3</sup> Å<sup>-1</sup>");
 
     ui->lblMaxInverse->setText(Utils_Qt::numToQString(invMax, 2) + " mrad");
 }

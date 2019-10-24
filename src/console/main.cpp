@@ -619,8 +619,8 @@ int main(int argc, char *argv[])
         Kernels::fft_shift_d = Utils::resourceToChar(kernel_path, "fft_shift_d.cl");
         Kernels::init_plane_wave_d = Utils::resourceToChar(kernel_path, "init_plane_wave_d.cl");
         Kernels::init_probe_wave_d = Utils::resourceToChar(kernel_path, "init_probe_wave_d.cl");
-        Kernels::potential_full_3d_d = Utils::resourceToChar(kernel_path, "potential_full_3d_d.cl");
-        Kernels::potential_projected_d = Utils::resourceToChar(kernel_path, "potential_projected_d.cl");
+        Kernels::transmission_potentials_full_3d_d = Utils::resourceToChar(kernel_path, "transmission_potentials_full_3d_d.cl");
+        Kernels::transmission_potentials_projected_d = Utils::resourceToChar(kernel_path, "transmission_potentials_projected_d.cl");
         Kernels::propogator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
         Kernels::sqabs_d = Utils::resourceToChar(kernel_path, "sqabs_d.cl");
         Kernels::sum_reduction_d = Utils::resourceToChar(kernel_path, "sum_reduction_d.cl");
@@ -635,8 +635,8 @@ int main(int argc, char *argv[])
         Kernels::fft_shift_f = Utils::resourceToChar(kernel_path, "fft_shift_f.cl");
         Kernels::init_plane_wave_f = Utils::resourceToChar(kernel_path, "init_plane_wave_f.cl");
         Kernels::init_probe_wave_f = Utils::resourceToChar(kernel_path, "init_probe_wave_f.cl");
-        Kernels::potential_full_3d_f = Utils::resourceToChar(kernel_path, "potential_full_3d_f.cl");
-        Kernels::potential_projected_f = Utils::resourceToChar(kernel_path, "potential_projected_f.cl");
+        Kernels::transmission_potentials_full_3d_f = Utils::resourceToChar(kernel_path, "transmission_potentials_full_3d_f.cl");
+        Kernels::transmission_potentials_projected_f = Utils::resourceToChar(kernel_path, "transmission_potentials_projected_f.cl");
         Kernels::propogator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
         Kernels::sqabs_f = Utils::resourceToChar(kernel_path, "sqabs_f.cl");
         Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");

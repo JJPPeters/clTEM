@@ -192,7 +192,7 @@ public:
     std::valarray<double> getRawFullLimitsX() {
         return getFullAreaBase().getRawLimitsX();
     }
-    std::valarray<double> getRawDullLimitsY() {
+    std::valarray<double> getRawFullLimitsY() {
         return getFullAreaBase().getRawLimitsY();
     }
 

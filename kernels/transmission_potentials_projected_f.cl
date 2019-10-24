@@ -164,15 +164,16 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     float suml, sumg, x;
     suml = 0.0f;
     sumg = 0.0f;
+
     //
     // Lorentzians
     //
     x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
-    for(i=0; i<2; i+=2) {
-        float a = params[(ZNum-1)*12+i];
-        float b = params[(ZNum-1)*12+i+1];
+    for(i = 0; i < 6; i += 2) {
+        float a = params[(ZNum-1) * 12 + i];
+        float b = params[(ZNum-1) * 12 + i + 1];
         suml += a * bessk0( x * native_sqrt(b) );
     }
 
@@ -183,9 +184,9 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     x = x * x;
 
     // Loop through our parameters (a and b)
-    for(i=6; i<8; i+=2) {
-        float c = params[(ZNum-1)*12+i];
-        float d = params[(ZNum-1)*12+i+1];
+    for(i = 6; i < 12; i += 2) {
+        float c = params[(ZNum-1) * 12 + i];
+        float d = params[(ZNum-1) * 12 + i + 1];
         float d_inv = native_recip(d);
         sumg += (c * d_inv) * native_exp(-x * d_inv);
     }
@@ -230,7 +231,7 @@ float peng(__constant float* params, int ZNum, float rad) {
     return 1040.79479708354f * sum;
 }
 
-__kernel void potential_projected_f( __global float2* potential,
+__kernel void transmission_potentials_projected_f( __global float2* potential,
 							         __global const float* restrict pos_x,
 						  		     __global const float* restrict pos_y,
 						 		     __global const float* restrict pos_z,
@@ -332,7 +333,7 @@ __kernel void potential_projected_f( __global float2* potential,
 			if(rad < r_min) // is this sensible?
 				rad = r_min;
 
-			if( rad < 3.0f) { // Should also make sure is not too small
+			if( rad <= 8.0f) { // Should also make sure is not too small
 				if (param_selector == 0)
                     sumz += kirkland(params, atZ[l], rad);
                 else if (param_selector == 1)

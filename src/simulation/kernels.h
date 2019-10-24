@@ -79,8 +79,8 @@ struct Kernels
     static KernelSource fft_shift_f;
     static KernelSource init_plane_wave_f;
     static KernelSource init_probe_wave_f;
-    static KernelSource potential_full_3d_f;
-    static KernelSource potential_projected_f;
+    static KernelSource transmission_potentials_full_3d_f;
+    static KernelSource transmission_potentials_projected_f;
     static KernelSource propogator_f;
     static KernelSource sqabs_f;
     static KernelSource sum_reduction_f;
@@ -95,8 +95,8 @@ struct Kernels
     static KernelSource fft_shift_d;
     static KernelSource init_plane_wave_d;
     static KernelSource init_probe_wave_d;
-    static KernelSource potential_full_3d_d;
-    static KernelSource potential_projected_d;
+    static KernelSource transmission_potentials_full_3d_d;
+    static KernelSource transmission_potentials_projected_d;
     static KernelSource propogator_d;
     static KernelSource sqabs_d;
     static KernelSource sum_reduction_d;

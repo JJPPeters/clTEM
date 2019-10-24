@@ -482,7 +482,7 @@ void SimulationWorker<T>::initialiseSimulation() {
     T kmaxx = std::abs(k0x[imidx]);
     T kmaxy = std::abs(k0y[imidy]);
 
-    double bandwidthkmax = std::min(kmaxy, kmaxx) * job->simManager->getInverseLimitFactor();
+    double bandwidthkmax = std::min(kmaxy, kmaxx);
 
     CLOG(DEBUG, "sim") << "Writing to buffers";
     // write our frequencies to OpenCL buffers
@@ -515,8 +515,9 @@ void SimulationWorker<T>::initialiseSimulation() {
     BandLimit.SetArg(1, resolution);
     BandLimit.SetArg(2, resolution);
     BandLimit.SetArg(3, static_cast<T>(bandwidthkmax));
-    BandLimit.SetArg(4, clXFrequencies, ArgumentType::Input);
-    BandLimit.SetArg(5, clYFrequencies, ArgumentType::Input);
+    BandLimit.SetArg(4, static_cast<T>(job->simManager->getInverseLimitFactor()));
+    BandLimit.SetArg(5, clXFrequencies, ArgumentType::Input);
+    BandLimit.SetArg(6, clYFrequencies, ArgumentType::Input);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up the kernels to calculate the atomic potentials
@@ -534,34 +535,34 @@ void SimulationWorker<T>::initialiseSimulation() {
     int load_blocks_z = (int) std::ceil(3.0 / dz);
 
     // Set some of the arguments which dont change each iteration
-    BinnedAtomicPotential.SetArg(0, clPotential, ArgumentType::Output);
-    BinnedAtomicPotential.SetArg(5, ClParameterisation, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(0, clTransmissionFunction, ArgumentType::Output);
+    CalculateTransmissionFunction.SetArg(5, ClParameterisation, ArgumentType::Input);
     if (param_name == "kirkland")
-        BinnedAtomicPotential.SetArg(6, 0);
+        CalculateTransmissionFunction.SetArg(6, 0);
     else if (param_name == "peng")
-        BinnedAtomicPotential.SetArg(6, 1);
+        CalculateTransmissionFunction.SetArg(6, 1);
     else if (param_name == "lobato")
-        BinnedAtomicPotential.SetArg(6, 2);
+        CalculateTransmissionFunction.SetArg(6, 2);
     else
         throw std::runtime_error("Trying to use parameterisation I do not understand");
-    BinnedAtomicPotential.SetArg(8, resolution);
-    BinnedAtomicPotential.SetArg(9, resolution);
-    BinnedAtomicPotential.SetArg(13, static_cast<T>(dz));
-    BinnedAtomicPotential.SetArg(14, static_cast<T>(pixelscale)); // TODO: does this want to be different?
-    BinnedAtomicPotential.SetArg(15, job->simManager->getBlocksX());
-    BinnedAtomicPotential.SetArg(16, job->simManager->getBlocksY());
-    BinnedAtomicPotential.SetArg(17, static_cast<T>(job->simManager->getPaddedFullLimitsX()[1]));
-    BinnedAtomicPotential.SetArg(18, static_cast<T>(job->simManager->getPaddedFullLimitsX()[0]));
-    BinnedAtomicPotential.SetArg(19, static_cast<T>(job->simManager->getPaddedFullLimitsY()[1]));
-    BinnedAtomicPotential.SetArg(20, static_cast<T>(job->simManager->getPaddedFullLimitsY()[0]));
-    BinnedAtomicPotential.SetArg(21, load_blocks_x);
-    BinnedAtomicPotential.SetArg(22, load_blocks_y);
-    BinnedAtomicPotential.SetArg(23, load_blocks_z);
-    BinnedAtomicPotential.SetArg(24, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
-    BinnedAtomicPotential.SetArg(25, static_cast<T>(startx));
-    BinnedAtomicPotential.SetArg(26, static_cast<T>(starty));
+    CalculateTransmissionFunction.SetArg(8, resolution);
+    CalculateTransmissionFunction.SetArg(9, resolution);
+    CalculateTransmissionFunction.SetArg(13, static_cast<T>(dz));
+    CalculateTransmissionFunction.SetArg(14, static_cast<T>(pixelscale)); // TODO: does this want to be different?
+    CalculateTransmissionFunction.SetArg(15, job->simManager->getBlocksX());
+    CalculateTransmissionFunction.SetArg(16, job->simManager->getBlocksY());
+    CalculateTransmissionFunction.SetArg(17, static_cast<T>(job->simManager->getPaddedFullLimitsX()[1]));
+    CalculateTransmissionFunction.SetArg(18, static_cast<T>(job->simManager->getPaddedFullLimitsX()[0]));
+    CalculateTransmissionFunction.SetArg(19, static_cast<T>(job->simManager->getPaddedFullLimitsY()[1]));
+    CalculateTransmissionFunction.SetArg(20, static_cast<T>(job->simManager->getPaddedFullLimitsY()[0]));
+    CalculateTransmissionFunction.SetArg(21, load_blocks_x);
+    CalculateTransmissionFunction.SetArg(22, load_blocks_y);
+    CalculateTransmissionFunction.SetArg(23, load_blocks_z);
+    CalculateTransmissionFunction.SetArg(24, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
+    CalculateTransmissionFunction.SetArg(25, static_cast<T>(startx));
+    CalculateTransmissionFunction.SetArg(26, static_cast<T>(starty));
     if (isFull3D)
-        BinnedAtomicPotential.SetArg(27, full3dints);
+        CalculateTransmissionFunction.SetArg(27, full3dints);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up the propogator
@@ -576,6 +577,7 @@ void SimulationWorker<T>::initialiseSimulation() {
     GeneratePropagator.SetArg(5, static_cast<T>(dz)); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
     GeneratePropagator.SetArg(6, static_cast<T>(wavelength));
     GeneratePropagator.SetArg(7, static_cast<T>(bandwidthkmax));
+    GeneratePropagator.SetArg(8, static_cast<T>(job->simManager->getInverseLimitFactor()));
 
     // actually run this kernel now
     GeneratePropagator.run(WorkSize);
@@ -714,33 +716,32 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     unsigned int numberOfSlices = job->simManager->getNumberofSlices();
 
-    BinnedAtomicPotential.SetArg(1, ClAtomX, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(2, ClAtomY, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(3, ClAtomZ, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(4, ClAtomA, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(7, ClBlockStartPositions, ArgumentType::Input);
-    BinnedAtomicPotential.SetArg(10, slice);
-    BinnedAtomicPotential.SetArg(11, numberOfSlices);
-    BinnedAtomicPotential.SetArg(12, static_cast<T>(currentz));
+    CalculateTransmissionFunction.SetArg(1, ClAtomX, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(2, ClAtomY, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(3, ClAtomZ, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(4, ClAtomA, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(7, ClBlockStartPositions, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(10, slice);
+    CalculateTransmissionFunction.SetArg(11, numberOfSlices);
+    CalculateTransmissionFunction.SetArg(12, static_cast<T>(currentz));
 
     CLOG(DEBUG, "sim") << "Calculating potentials";
 
-    BinnedAtomicPotential.run(Work, LocalWork);
+    CalculateTransmissionFunction.run(Work, LocalWork);
 
     ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Apply low pass filter to potentials
+    /// Apply low pass filter to transmission function
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //TODO: this can just be in the atomic potential kernel
-    CLOG(DEBUG, "sim") << "FFT potentials";
-    FourierTrans.run(clPotential, clWaveFunction3, Direction::Forwards);
+    CLOG(DEBUG, "sim") << "FFT transmission function";
+    FourierTrans.run(clTransmissionFunction, clWaveFunction3, Direction::Forwards);
     ctx.WaitForQueueFinish();
-    CLOG(DEBUG, "sim") << "Band limit potentials";
+    CLOG(DEBUG, "sim") << "Band limit transmission function";
     BandLimit.run(Work);
     ctx.WaitForQueueFinish();
-    CLOG(DEBUG, "sim") << "IFFT band limited potentials";
-    FourierTrans.run(clWaveFunction3, clPotential, Direction::Inverse);
+    CLOG(DEBUG, "sim") << "IFFT band limited transmission function";
+    FourierTrans.run(clWaveFunction3, clTransmissionFunction, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -751,7 +752,7 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
 
         // Multiply transmission function with wavefunction
-        ComplexMultiply.SetArg(0, clPotential, ArgumentType::Input);
+        ComplexMultiply.SetArg(0, clTransmissionFunction, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
@@ -1101,7 +1102,7 @@ void SimulationWorker<T>::initialiseBuffers() {
         clXFrequencies = clMemory<T, Manual>(ctx, rs);
         clYFrequencies = clMemory<T, Manual>(ctx, rs);
         clPropagator = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
-        clPotential = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        clTransmissionFunction = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
         clWaveFunction3 = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
 
         clWaveFunction1.clear();
@@ -1156,9 +1157,9 @@ void SimulationWorker<float>::initialiseKernels() {
     bool isFull3D = sm->isFull3d();
     if (do_initialise || isFull3D != last_do_3d) {
         if (isFull3D)
-            BinnedAtomicPotential = Kernels::potential_full_3d_f.BuildToKernel(ctx);
+            CalculateTransmissionFunction = Kernels::transmission_potentials_full_3d_f.BuildToKernel(ctx);
         else
-            BinnedAtomicPotential = Kernels::potential_projected_f.BuildToKernel(ctx);
+            CalculateTransmissionFunction = Kernels::transmission_potentials_projected_f.BuildToKernel(ctx);
     }
     last_do_3d = isFull3D;
     
@@ -1192,9 +1193,9 @@ void SimulationWorker<double>::initialiseKernels() {
     bool isFull3D = sm->isFull3d();
     if (do_initialise || isFull3D != last_do_3d) {
         if (isFull3D)
-            BinnedAtomicPotential = Kernels::potential_full_3d_d.BuildToKernel(ctx);
+            CalculateTransmissionFunction = Kernels::transmission_potentials_full_3d_d.BuildToKernel(ctx);
         else
-            BinnedAtomicPotential = Kernels::potential_projected_d.BuildToKernel(ctx);
+            CalculateTransmissionFunction = Kernels::transmission_potentials_projected_d.BuildToKernel(ctx);
     }
     last_do_3d = isFull3D;
 
