@@ -257,7 +257,9 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 								     int slice_load_z,
 								     float sigma,
 						  		     float startx,
-								     float starty)
+								     float starty,
+								     float beam_theta,
+								     float beam_phi)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -266,6 +268,9 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 	float sumz = 0.0f;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
+	// convert from mrad to radians (and get beam tilt from the surface)
+	beam_theta = M_PI_2_F - beam_theta * 0.001f;
+	beam_phi = M_PI_2_F - beam_phi * 0.001f;
 
 	__local float atx[256];
 	__local float aty[256];
@@ -327,7 +332,19 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
             float im_pos_y = starty + yid * pixelscale;
             float rad_y = im_pos_y - aty[l];
 
-			float rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
+			//float rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
+			float cos_beam_phi = native_cos(beam_phi);
+			float sin_beam_phi = native_sin(beam_phi);
+			float sin_beam_2theta = native_sin(2.0f * beam_theta);
+
+			float z_prime = -0.5f * (rad_x * cos_beam_phi + rad_y * sin_beam_phi) * sin_beam_2theta;
+
+			float z_by_tan_beam_theta = z_prime / native_tan(beam_theta);
+
+			float x_prime = rad_x + z_by_tan_beam_theta * cos_beam_phi;
+			float y_prime = rad_y + z_by_tan_beam_theta * sin_beam_phi;
+
+            float rad = native_sqrt(z_prime*z_prime + x_prime*x_prime + y_prime*y_prime);
 
             float r_min = 0.25f * pixelscale;
 			if(rad < r_min) // is this sensible?
@@ -347,7 +364,7 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 	}
 
 	if(xid < width && yid < height) {
-		potential[id].x = native_cos(sigma*sumz);
-		potential[id].y = native_sin(sigma*sumz);
+		potential[id].x = native_cos(sigma * sumz);
+		potential[id].y = native_sin(sigma * sumz);
 	}
 }

@@ -86,7 +86,7 @@ struct ComplexAberration {
 
 struct MicroscopeParameters {
     MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), Alpha(1.0f), Delta(1.0f),
-                             BeamTilt(10.0), BeamAzimuth(0.0) {}
+                             BeamTilt(0.0), BeamAzimuth(0.0) {}
 
     // Defocus
     double C10;

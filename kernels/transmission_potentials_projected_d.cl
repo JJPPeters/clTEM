@@ -256,7 +256,9 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 												   int slice_load_z,
 												   double sigma,
 										  		   double startx,
-												   double starty)
+												   double starty,
+                                                   double beam_theta,
+                                                   double beam_phi)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -267,6 +269,9 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 	double sumz = 0.0;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
+	// convert from mrad to radians (and get beam tilt from the surface)
+    beam_theta = M_PI_2 - beam_theta * 0.001;
+    beam_phi = M_PI_2 - beam_phi * 0.001;
 
 	if(topz < 0 )
 		topz = 0;
@@ -322,7 +327,19 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
                 double im_pos_y = starty + yid * pixelscale;
                 double rad_y = im_pos_y - aty[l];
 
-                double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
+                //double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
+                double cos_beam_phi = native_cos(beam_phi);
+                double sin_beam_phi = native_sin(beam_phi);
+                double sin_beam_2theta = native_sin(2.0 * beam_theta);
+
+                double z_prime = -0.5 * (rad_x * cos_beam_phi + rad_y * sin_beam_phi) * sin_beam_2theta;
+
+                double z_by_tan_beam_theta = z_prime / native_tan(beam_theta);
+
+                double x_prime = rad_x + z_by_tan_beam_theta * cos_beam_phi;
+                double y_prime = rad_y + z_by_tan_beam_theta * sin_beam_phi;
+
+                double rad = native_sqrt(z_prime*z_prime + x_prime*x_prime + y_prime*y_prime);
 
                 double r_min = 0.25 * pixelscale;
 				if(rad < r_min) // avoid singularity at 0 (value used by kirkland)

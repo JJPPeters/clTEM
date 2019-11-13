@@ -447,10 +447,10 @@ void SimulationWorker<T>::initialiseSimulation() {
 
     bool isFull3D = job->simManager->isFull3d();
     unsigned int resolution = job->simManager->getResolution();
-    double wavenumber = job->simManager->getMicroscopeParams()->Wavenumber();
-    std::valarray<double> wavevector = job->simManager->getMicroscopeParams()->Wavevector();
-    double pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
+    double wavenumber = mParams->Wavenumber();
+    std::valarray<double> wavevector = mParams->Wavevector();
+    double pixelscale = job->simManager->getRealScale();
     double startx = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
     double starty = job->simManager->getPaddedSimLimitsY(current_pixel)[0];
     int full3dints = job->simManager->getFull3dInts();
@@ -460,7 +460,7 @@ void SimulationWorker<T>::initialiseSimulation() {
     double SimSizeX = pixelscale * resolution;
     double SimSizeY = SimSizeX;
 
-    double sigma = mParams->Sigma();
+    double sigma = mParams->Sigma() * wavenumber / wavevector[2];
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up our frequency calibrations
@@ -576,6 +576,8 @@ void SimulationWorker<T>::initialiseSimulation() {
     CalculateTransmissionFunction.SetArg(24, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
     CalculateTransmissionFunction.SetArg(25, static_cast<T>(startx));
     CalculateTransmissionFunction.SetArg(26, static_cast<T>(starty));
+    CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
+    CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
     if (isFull3D)
         CalculateTransmissionFunction.SetArg(27, full3dints);
 

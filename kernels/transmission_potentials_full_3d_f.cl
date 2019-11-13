@@ -150,6 +150,8 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
 										  float sigma,
 										  float startx,
 										  float starty,
+                                          float beam_theta,
+                                          float beam_phi,
 										  int integrals)
 {
 	int xid = get_global_id(0);
@@ -162,6 +164,9 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
 	float int_r = native_recip(integrals);
+	// convert from mrad to radians (and get beam tilt from the surface)
+    beam_theta = M_PI_2_F - beam_theta * 0.001f;
+    beam_phi = M_PI_2_F - beam_phi * 0.001f;
 
 	if(topz < 0 )
 		topz = 0;
