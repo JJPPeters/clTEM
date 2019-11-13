@@ -271,7 +271,6 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 	int gy = get_group_id(1);
 	// convert from mrad to radians (and get beam tilt from the surface)
     beam_theta = M_PI_2 - beam_theta * 0.001;
-    beam_phi = M_PI_2 - beam_phi * 0.001;
 
 	if(topz < 0 )
 		topz = 0;

@@ -38,41 +38,47 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
 void FullAberrationFrame::setValidators()
 {
     QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtVoltage->setValidator(pValidator);
     ui->edtAperture->setValidator(pValidator);
     ui->edtDefocusSpread->setValidator(pValidator);
     ui->edtConverge->setValidator(pValidator);
 
-    ui->edtC10->setValidator(pValidator);
-    ui->edtC12Mag->setValidator(pValidator);
-    ui->edtC12Ang->setValidator(pValidator);
+    ui->edtBeamTilt->setValidator(pmValidator);
+    ui->edtBeamAzimuth->setValidator(pmValidator);
 
-    ui->edtC21Mag->setValidator(pValidator);
-    ui->edtC21Ang->setValidator(pValidator);
-    ui->edtC23Mag->setValidator(pValidator);
-    ui->edtC23Ang->setValidator(pValidator);
+    ui->edtApertureSmooth->setValidator(pValidator);
 
-    ui->edtC30->setValidator(pValidator);
-    ui->edtC32Mag->setValidator(pValidator);
-    ui->edtC32Ang->setValidator(pValidator);
-    ui->edtC34Mag->setValidator(pValidator);
-    ui->edtC34Ang->setValidator(pValidator);
+    ui->edtC10->setValidator(pmValidator);
+    ui->edtC12Mag->setValidator(pmValidator);
+    ui->edtC12Ang->setValidator(pmValidator);
 
-    ui->edtC41Mag->setValidator(pValidator);
-    ui->edtC41Ang->setValidator(pValidator);
-    ui->edtC43Mag->setValidator(pValidator);
-    ui->edtC43Ang->setValidator(pValidator);
-    ui->edtC45Mag->setValidator(pValidator);
-    ui->edtC45Ang->setValidator(pValidator);
+    ui->edtC21Mag->setValidator(pmValidator);
+    ui->edtC21Ang->setValidator(pmValidator);
+    ui->edtC23Mag->setValidator(pmValidator);
+    ui->edtC23Ang->setValidator(pmValidator);
 
-    ui->edtC50->setValidator(pValidator);
-    ui->edtC52Mag->setValidator(pValidator);
-    ui->edtC52Ang->setValidator(pValidator);
-    ui->edtC54Mag->setValidator(pValidator);
-    ui->edtC54Ang->setValidator(pValidator);
-    ui->edtC56Mag->setValidator(pValidator);
-    ui->edtC56Ang->setValidator(pValidator);
+    ui->edtC30->setValidator(pmValidator);
+    ui->edtC32Mag->setValidator(pmValidator);
+    ui->edtC32Ang->setValidator(pmValidator);
+    ui->edtC34Mag->setValidator(pmValidator);
+    ui->edtC34Ang->setValidator(pmValidator);
+
+    ui->edtC41Mag->setValidator(pmValidator);
+    ui->edtC41Ang->setValidator(pmValidator);
+    ui->edtC43Mag->setValidator(pmValidator);
+    ui->edtC43Ang->setValidator(pmValidator);
+    ui->edtC45Mag->setValidator(pmValidator);
+    ui->edtC45Ang->setValidator(pmValidator);
+
+    ui->edtC50->setValidator(pmValidator);
+    ui->edtC52Mag->setValidator(pmValidator);
+    ui->edtC52Ang->setValidator(pmValidator);
+    ui->edtC54Mag->setValidator(pmValidator);
+    ui->edtC54Ang->setValidator(pmValidator);
+    ui->edtC56Mag->setValidator(pmValidator);
+    ui->edtC56Ang->setValidator(pmValidator);
 }
 
 void FullAberrationFrame::setValues()
@@ -82,6 +88,10 @@ void FullAberrationFrame::setValues()
     ui->edtAperture->setText(Utils_Qt::numToQString(MicroParams->Aperture)); // mrad
     ui->edtDefocusSpread->setText(Utils_Qt::numToQString(MicroParams->Delta / 10)); // nm
     ui->edtConverge->setText(Utils_Qt::numToQString(MicroParams->Alpha)); // mrad
+
+    ui->edtBeamTilt->setText(Utils_Qt::numToQString(MicroParams->BeamTilt)); // mrad
+    ui->edtBeamAzimuth->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->BeamAzimuth)); // mrad
+    ui->edtApertureSmooth->setText(Utils_Qt::numToQString(MicroParams->ApertureSmoothing)); // mrad
 
     ui->edtC10->setText(Utils_Qt::numToQString(MicroParams->C10 / 10)); // nm
     ui->edtC12Mag->setText(Utils_Qt::numToQString(MicroParams->C12.Mag / 10)); // nm
@@ -163,12 +173,9 @@ bool FullAberrationFrame::dlgApply_clicked()
     double apert = ui->edtAperture->text().toDouble();
     double converge = ui->edtConverge->text().toDouble();
 
-    // TODO: show error here or just when simulation is started
-//    if (voltage <= 0 || dfSpread <= 0 || apert <= 0 || converge <= 0)
-//    {
-//        QMessageBox::warning(this, tr("Aberrations"), tr("Warning:\nVoltage, aperture, convergence and Δ must all be non-zero."), QMessageBox::Ok);
-//        return false;
-//    }
+    double beam_tilt = ui->edtBeamTilt->text().toDouble();
+    double beam_azimuth = ui->edtBeamAzimuth->text().toDouble() * Constants::Pi / 180;
+    double apert_smooth = ui->edtApertureSmooth->text().toDouble();
 
     double C10 = ui->edtC10->text().toDouble() * 10;
     double C12m = ui->edtC12Mag->text().toDouble() * 10;
@@ -207,6 +214,10 @@ bool FullAberrationFrame::dlgApply_clicked()
     MicroParams->Delta = dfSpread;
     MicroParams->Alpha = converge;
 
+    MicroParams->BeamTilt = beam_tilt;
+    MicroParams->BeamAzimuth = beam_azimuth;
+    MicroParams->ApertureSmoothing = apert_smooth;
+
     MicroParams->C10 = C10;
     MicroParams->C12 = ComplexAberration(C12m, C12a);
 
@@ -236,6 +247,11 @@ void FullAberrationFrame::setUnits() {
     ui->edtAperture->setUnits("mrad");
     ui->edtDefocusSpread->setUnits("nm");
     ui->edtConverge->setUnits("mrad");
+
+    ui->edtBeamTilt->setUnits("mrad");
+    ui->edtBeamAzimuth->setUnits("°");
+
+    ui->edtApertureSmooth->setUnits("mrad");
 
     ui->edtC10->setUnits("nm");
     ui->edtC12Mag->setUnits("nm");

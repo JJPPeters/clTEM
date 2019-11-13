@@ -60,7 +60,8 @@ __kernel void init_probe_wave_d( __global double2* output,
 											double C30, double2 C32, double2 C34,
 											double2 C41, double2 C43, double2 C45,
 											double C50, double2 C52, double2 C54, double2 C56,
-											double cond_ap)
+											double cond_ap,
+											double ap_smooth)
 {
 	// Get the work items ID
 	int xid = get_global_id(0);
@@ -71,7 +72,7 @@ __kernel void init_probe_wave_d( __global double2* output,
 		double cond_ap2 = (cond_ap * 0.001) / wavelength;
         double k = native_sqrt( (k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]) );
 
-        float ap_smooth_radius = (0.5f * 0.001f) / wavelength; // radius in mrad
+        double ap_smooth_radius = (ap_smooth * 0.001) / wavelength; // radius in mrad
 
 		if (k < cond_ap2 + ap_smooth_radius)
 		{

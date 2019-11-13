@@ -696,6 +696,7 @@ void SimulationWorker<T>::initialiseProbeWave(double posx, double posy, int n_pa
     InitProbeWavefunction.SetArg(21, static_cast<std::complex<T>>(mParams->C54.getComplex()));
     InitProbeWavefunction.SetArg(22, static_cast<std::complex<T>>(mParams->C56.getComplex()));
     InitProbeWavefunction.SetArg(23, static_cast<T>(mParams->Aperture));
+    InitProbeWavefunction.SetArg(24, static_cast<T>(mParams->ApertureSmoothing));
 
     CLOG(DEBUG, "sim") << "Run probe wavefunction generation kernel";
     InitProbeWavefunction.run(WorkSize);

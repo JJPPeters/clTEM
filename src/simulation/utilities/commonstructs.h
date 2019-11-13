@@ -125,8 +125,9 @@ struct MicroscopeParameters {
     // Aperture smoothing radius (mrad)
     double ApertureSmoothing;
 
-    // Beam tilt parameters (mrad)
-    double BeamTilt; // inclination
+    // Beam tilt inclination (mrad)
+    double BeamTilt;
+    // Beam tilt azimuth (rad)
     double BeamAzimuth;
 
     //Convergence angle (?)
@@ -150,8 +151,8 @@ struct MicroscopeParameters {
 
     std::valarray<double> Wavevector() {
         double k = Wavenumber();
-        double k_x = k * std::sin(BeamTilt / 1000.0) * std::cos(BeamAzimuth / 1000.0);
-        double k_y = k * std::sin(BeamTilt / 1000.0) * std::sin(BeamAzimuth / 1000.0);
+        double k_x = k * std::sin(BeamTilt / 1000.0) * std::cos(BeamAzimuth);
+        double k_y = k * std::sin(BeamTilt / 1000.0) * std::sin(BeamAzimuth);
         double k_z = k * std::cos(BeamTilt / 1000.0);
 
         return {k_x, k_y, k_z};
