@@ -70,6 +70,15 @@ namespace JSONUtils {
         try { mp->Aperture = readJsonEntry<double>(j, "microscope", "aperture", "val");
         } catch (std::exception& e) {}
 
+        try { mp->ApertureSmoothing = readJsonEntry<double>(j, "microscope", "aperture smooth radius", "val");
+        } catch (std::exception& e) {}
+
+        try { mp->BeamTilt = readJsonEntry<double>(j, "microscope", "beam tilt", "inclination", "val");
+        } catch (std::exception& e) {}
+
+        try { mp->BeamAzimuth = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "beam tilt", "azimuth", "val");
+        } catch (std::exception& e) {}
+
         try { mp->Alpha = readJsonEntry<double>(j, "microscope", "alpha", "val");
         } catch (std::exception& e) {}
 
@@ -378,6 +387,19 @@ namespace JSONUtils {
         // apert
         j["microscope"]["aperture"]["val"] = mp->Aperture;
         j["microscope"]["aperture"]["units"] = "mrad";
+
+        if (mode != SimulationMode::CTEM || force_all) {
+            // alpha
+            j["microscope"]["aperture smooth radius"]["val"] = mp->ApertureSmoothing;
+            j["microscope"]["aperture smooth radius"]["units"] = "mrad";
+        }
+
+        j["microscope"]["beam tilt"]["inclination"]["val"] = mp->BeamTilt;
+        j["microscope"]["beam tilt"]["inclination"]["units"] = "mrad";
+
+        j["microscope"]["beam tilt"]["azimuth"]["val"] = mp->BeamAzimuth * 180 / Constants::Pi;
+        j["microscope"]["beam tilt"]["azimuth"]["units"] = "°";
+
 
         if (mode == SimulationMode::CTEM || force_all) {
             // alpha
