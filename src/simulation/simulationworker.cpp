@@ -447,7 +447,8 @@ void SimulationWorker<T>::initialiseSimulation() {
 
     bool isFull3D = job->simManager->isFull3d();
     unsigned int resolution = job->simManager->getResolution();
-    double wavelength = job->simManager->getWavelength();
+    double wavenumber = job->simManager->getMicroscopeParams()->Wavenumber();
+    std::valarray<double> wavevector = job->simManager->getMicroscopeParams()->Wavevector();
     double pixelscale = job->simManager->getRealScale();
     auto mParams = job->simManager->getMicroscopeParams();
     double startx = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
@@ -579,7 +580,7 @@ void SimulationWorker<T>::initialiseSimulation() {
         CalculateTransmissionFunction.SetArg(27, full3dints);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Set up the propogator
+    /// Set up the propagator
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up propagator kernel";
 
@@ -589,9 +590,11 @@ void SimulationWorker<T>::initialiseSimulation() {
     GeneratePropagator.SetArg(3, resolution);
     GeneratePropagator.SetArg(4, resolution);
     GeneratePropagator.SetArg(5, static_cast<T>(dz)); // Is this the right dz? (Propagator needs slice thickness not spacing between atom bins)
-    GeneratePropagator.SetArg(6, static_cast<T>(wavelength));
-    GeneratePropagator.SetArg(7, static_cast<T>(bandwidthkmax));
-    GeneratePropagator.SetArg(8, static_cast<T>(job->simManager->getInverseLimitFactor()));
+    GeneratePropagator.SetArg(6, static_cast<T>(wavenumber));
+    GeneratePropagator.SetArg(7, static_cast<T>(wavevector[0]));
+    GeneratePropagator.SetArg(8, static_cast<T>(wavevector[1]));
+    GeneratePropagator.SetArg(9, static_cast<T>(wavevector[2]));
+    GeneratePropagator.SetArg(10, static_cast<T>(bandwidthkmax * job->simManager->getInverseLimitFactor()));
 
     // actually run this kernel now
     GeneratePropagator.run(WorkSize);
@@ -783,7 +786,7 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
         ComplexMultiply.SetArg(0, clWaveFunction3, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clPropagator, ArgumentType::Input);
         ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
-        CLOG(DEBUG, "sim") << "Convolve with propogator";
+        CLOG(DEBUG, "sim") << "Convolve with propagator";
         ComplexMultiply.run(Work);
         ctx.WaitForQueueFinish();
 
@@ -1182,7 +1185,7 @@ void SimulationWorker<float>::initialiseKernels() {
         AtomSort = Kernels::atom_sort_f.BuildToKernel(ctx);
         fftShift = Kernels::fft_shift_f.BuildToKernel(ctx);
         BandLimit = Kernels::band_limit_f.BuildToKernel(ctx);
-        GeneratePropagator = Kernels::propogator_f.BuildToKernel(ctx);
+        GeneratePropagator = Kernels::propagator_f.BuildToKernel(ctx);
         ComplexMultiply = Kernels::complex_multiply_f.BuildToKernel(ctx);
         InitPlaneWavefunction = Kernels::init_plane_wave_f.BuildToKernel(ctx);
         ImagingKernel = Kernels::ctem_image_f.BuildToKernel(ctx);
@@ -1218,7 +1221,7 @@ void SimulationWorker<double>::initialiseKernels() {
         AtomSort = Kernels::atom_sort_d.BuildToKernel(ctx);
         fftShift = Kernels::fft_shift_d.BuildToKernel(ctx);
         BandLimit = Kernels::band_limit_d.BuildToKernel(ctx);
-        GeneratePropagator = Kernels::propogator_d.BuildToKernel(ctx);
+        GeneratePropagator = Kernels::propagator_d.BuildToKernel(ctx);
         ComplexMultiply = Kernels::complex_multiply_d.BuildToKernel(ctx);
         InitPlaneWavefunction = Kernels::init_plane_wave_d.BuildToKernel(ctx);
         ImagingKernel = Kernels::ctem_image_d.BuildToKernel(ctx);

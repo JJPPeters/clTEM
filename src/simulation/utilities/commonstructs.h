@@ -85,7 +85,8 @@ struct ComplexAberration {
 };
 
 struct MicroscopeParameters {
-    MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), Alpha(1.0f), Delta(1.0f) {}
+    MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), Alpha(1.0f), Delta(1.0f),
+                             BeamTilt(10.0), BeamAzimuth(0.0) {}
 
     // Defocus
     double C10;
@@ -118,8 +119,15 @@ struct MicroscopeParameters {
 
     // Voltage (kV) == (kg m^2 C^-1 s^-2)
     double Voltage;
-    //Condenser aperture size (mrad)
+    // TEM: Objective aperture radius (mrad)
+    // STEM: Condenser aperture radius (mrad)
     double Aperture;
+    // Aperture smoothing radius (mrad)
+    double ApertureSmoothing;
+
+    // Beam tilt parameters (mrad)
+    double BeamTilt; // inclination
+    double BeamAzimuth;
 
     //Convergence angle (?)
     double Alpha;
@@ -131,9 +139,22 @@ struct MicroscopeParameters {
         return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000) * (2 * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000 ) ) ) * 1e+10;
     }
 
+    double Wavenumber() {
+        return 1.0 / Wavelength();
+    }
+
     // Interaction parameter (see Kirkland Eq. 5.6) (s^2 C m^-2 kg^-1 Angstrom^-1])
     double Sigma() {
         return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000));
+    }
+
+    std::valarray<double> Wavevector() {
+        double k = Wavenumber();
+        double k_x = k * std::sin(BeamTilt / 1000.0) * std::cos(BeamAzimuth / 1000.0);
+        double k_y = k * std::sin(BeamTilt / 1000.0) * std::sin(BeamAzimuth / 1000.0);
+        double k_z = k * std::cos(BeamTilt / 1000.0);
+
+        return {k_x, k_y, k_z};
     }
 };
 

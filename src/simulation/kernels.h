@@ -81,7 +81,7 @@ struct Kernels
     static KernelSource init_probe_wave_f;
     static KernelSource transmission_potentials_full_3d_f;
     static KernelSource transmission_potentials_projected_f;
-    static KernelSource propogator_f;
+    static KernelSource propagator_f;
     static KernelSource sqabs_f;
     static KernelSource sum_reduction_f;
 
@@ -97,7 +97,7 @@ struct Kernels
     static KernelSource init_probe_wave_d;
     static KernelSource transmission_potentials_full_3d_d;
     static KernelSource transmission_potentials_projected_d;
-    static KernelSource propogator_d;
+    static KernelSource propagator_d;
     static KernelSource sqabs_d;
     static KernelSource sum_reduction_d;
 

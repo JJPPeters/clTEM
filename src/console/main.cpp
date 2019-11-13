@@ -621,7 +621,7 @@ int main(int argc, char *argv[])
         Kernels::init_probe_wave_d = Utils::resourceToChar(kernel_path, "init_probe_wave_d.cl");
         Kernels::transmission_potentials_full_3d_d = Utils::resourceToChar(kernel_path, "transmission_potentials_full_3d_d.cl");
         Kernels::transmission_potentials_projected_d = Utils::resourceToChar(kernel_path, "transmission_potentials_projected_d.cl");
-        Kernels::propogator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
+        Kernels::propagator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
         Kernels::sqabs_d = Utils::resourceToChar(kernel_path, "sqabs_d.cl");
         Kernels::sum_reduction_d = Utils::resourceToChar(kernel_path, "sum_reduction_d.cl");
     } else {
@@ -637,7 +637,7 @@ int main(int argc, char *argv[])
         Kernels::init_probe_wave_f = Utils::resourceToChar(kernel_path, "init_probe_wave_f.cl");
         Kernels::transmission_potentials_full_3d_f = Utils::resourceToChar(kernel_path, "transmission_potentials_full_3d_f.cl");
         Kernels::transmission_potentials_projected_f = Utils::resourceToChar(kernel_path, "transmission_potentials_projected_f.cl");
-        Kernels::propogator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
+        Kernels::propagator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
         Kernels::sqabs_f = Utils::resourceToChar(kernel_path, "sqabs_f.cl");
         Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");
     }

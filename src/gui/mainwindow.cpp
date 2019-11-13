@@ -585,7 +585,7 @@ void MainWindow::loadExternalSources()
     Kernels::init_probe_wave_f = Utils_Qt::kernelToChar("init_probe_wave_f.cl");
     Kernels::transmission_potentials_full_3d_f = Utils_Qt::kernelToChar("transmission_potentials_full_3d_f.cl");
     Kernels::transmission_potentials_projected_f = Utils_Qt::kernelToChar("transmission_potentials_projected_f.cl");
-    Kernels::propogator_f = Utils_Qt::kernelToChar("propagator_f.cl");
+    Kernels::propagator_f = Utils_Qt::kernelToChar("propagator_f.cl");
     Kernels::sqabs_f = Utils_Qt::kernelToChar("sqabs_f.cl");
     Kernels::sum_reduction_f = Utils_Qt::kernelToChar("sum_reduction_f.cl");
 
@@ -601,7 +601,7 @@ void MainWindow::loadExternalSources()
     Kernels::init_probe_wave_d = Utils_Qt::kernelToChar("init_probe_wave_d.cl");
     Kernels::transmission_potentials_full_3d_d = Utils_Qt::kernelToChar("transmission_potentials_full_3d_d.cl");
     Kernels::transmission_potentials_projected_d = Utils_Qt::kernelToChar("transmission_potentials_projected_d.cl");
-    Kernels::propogator_d = Utils_Qt::kernelToChar("propagator_d.cl");
+    Kernels::propagator_d = Utils_Qt::kernelToChar("propagator_d.cl");
     Kernels::sqabs_d = Utils_Qt::kernelToChar("sqabs_d.cl");
     Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
     

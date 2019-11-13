@@ -15,15 +15,17 @@
 /// wavelength - wavelength of the electron beam (units...)
 /// k_max - maximum k value to allow through the low pass filter
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void propogator_d( __global double2* propagator,
+__kernel void propagator_d( __global double2* propagator,
 									__global double* k_x,
 									__global double* k_y,
 									unsigned int width,
 									unsigned int height,
 									double dz,
-									double wavelength,
-									double k_max,
-									double limit_factor)
+                                    double beam_k,
+                                    double beam_k_x,
+                                    double beam_k_y,
+                                    double beam_k_z,
+                                    double k_max)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -33,11 +35,14 @@ __kernel void propogator_d( __global double2* propagator,
 		double k0x = k_x[xid] * k_x[xid];
         double k0y = k_y[yid] * k_y[yid];
 
-        double k_max_2 = limit_factor * limit_factor * k_max * k_max;
+        double k_max_2 = k_max * k_max;
 
         if (k0x+k0y < k_max_2) {
-            propagator[id].x = native_cos(M_PI * dz * wavelength * (k0x+k0y));
-            propagator[id].y = -1.0 * native_sin(M_PI * dz * wavelength * (k0x+k0y));
+            double f = beam_k_z / beam_k;
+            double s_u = beam_k*beam_k - beam_k_z*beam_k_z - (beam_k_x + k_x[xid])*(beam_k_x + k_x[xid]) - (beam_k_y + k_y[yid])*(beam_k_y + k_y[yid]);
+            s_u = s_u / (beam_k_z);
+            propagator[id].x = native_cos(M_PI * s_u * dz);
+            propagator[id].y = native_sin(M_PI * s_u * dz);
         } else {
             propagator[id].x = 0.0;
             propagator[id].y = 0.0;

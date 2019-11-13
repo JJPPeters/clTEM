@@ -12,7 +12,7 @@ KernelSource Kernels::init_plane_wave_f;
 KernelSource Kernels::init_probe_wave_f;
 KernelSource Kernels::transmission_potentials_full_3d_f;
 KernelSource Kernels::transmission_potentials_projected_f;
-KernelSource Kernels::propogator_f;
+KernelSource Kernels::propagator_f;
 KernelSource Kernels::sqabs_f;
 KernelSource Kernels::sum_reduction_f;
 
@@ -28,6 +28,6 @@ KernelSource Kernels::init_plane_wave_d;
 KernelSource Kernels::init_probe_wave_d;
 KernelSource Kernels::transmission_potentials_full_3d_d;
 KernelSource Kernels::transmission_potentials_projected_d;
-KernelSource Kernels::propogator_d;
+KernelSource Kernels::propagator_d;
 KernelSource Kernels::sqabs_d;
 KernelSource Kernels::sum_reduction_d;
