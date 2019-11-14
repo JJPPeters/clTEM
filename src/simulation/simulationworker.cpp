@@ -576,11 +576,17 @@ void SimulationWorker<T>::initialiseSimulation() {
     CalculateTransmissionFunction.SetArg(24, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
     CalculateTransmissionFunction.SetArg(25, static_cast<T>(startx));
     CalculateTransmissionFunction.SetArg(26, static_cast<T>(starty));
-    CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
-    CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
-    if (isFull3D)
-        CalculateTransmissionFunction.SetArg(27, full3dints);
+    if (isFull3D) {
+        double int_shift_x = (wavevector[0] / wavevector[2]) * dz / full3dints;
+        double int_shift_y = (wavevector[1] / wavevector[2]) * dz / full3dints;
 
+        CalculateTransmissionFunction.SetArg(27, static_cast<T>(int_shift_x));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_y));
+        CalculateTransmissionFunction.SetArg(29, full3dints);
+    } else {
+        CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up the propagator
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -150,8 +150,8 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
 										  float sigma,
 										  float startx,
 										  float starty,
-                                          float beam_theta,
-                                          float beam_phi,
+                                          float slice_shift_x,
+                                          float slice_shift_y,
 										  int integrals)
 {
 	int xid = get_global_id(0);
@@ -164,9 +164,6 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
 	float int_r = native_recip(integrals);
-	// convert from mrad to radians (and get beam tilt from the surface)
-    beam_theta = M_PI_2_F - beam_theta * 0.001f;
-    beam_phi = M_PI_2_F - beam_phi * 0.001f;
 
 	if(topz < 0 )
 		topz = 0;
@@ -225,14 +222,19 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
                 float im_pos_y = starty + yid * pixel_scale;
                 float rad_y = im_pos_y - aty[l];
 
-                float xyrad2 = rad_x*rad_x + rad_y*rad_y;
-
 				for (int h = 0; h <= integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
 
+                    // account for shift due to beam tilt
+                    rad_x -= slice_shift_x;
+                    rad_y -= slice_shift_y;
+
+                    float xyrad2 = rad_x*rad_x + rad_y*rad_y;
+
 					// z is the slice position, h is the 'sub' integral, dz is the slice thickness and int_r is 1/integrals
+					// so basically this gets our exact z position...
 					float im_pos_z = z - h * dz * int_r;
 					float rad_z = im_pos_z - atz[l];
 
