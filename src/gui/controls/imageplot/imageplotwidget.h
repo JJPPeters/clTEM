@@ -118,6 +118,8 @@ private:
 
     bool crop_image = false;
 
+    unsigned int current_slice = 0;
+
     int full_size_x, full_size_y, crop_size_x, crop_size_y;
     int crop_t, crop_l, crop_b, crop_r;
 
@@ -176,11 +178,12 @@ public:
     {
         is_complex = false;
 
-        auto sz = img.getDimensions();
-        auto pd = img.getPadding();
+        data_real = img;
+        data_complex = Image<std::complex<double>>();
 
-        SetImageGeneric(img.getSlice(), sz[0], sz[1], pd[0], pd[1], pd[2], pd[3],
-                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
+        current_slice = img.getDepth() - 1;
+
+        SetImageGeneric(current_slice, z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
     }
 
     template <typename T>
@@ -194,15 +197,13 @@ public:
     {
         complex_type = show_comp;
         is_complex = true;
-        data_complex = img.getSlice();
 
-        auto im_d = calculateComplexData();
+        data_real = Image<double>();
+        data_complex = img;
 
-        auto sz = img.getDimensions();
-        auto pd = img.getPadding();
+        current_slice = img.getDepth() - 1;
 
-        SetImageGeneric(im_d, sz[0], sz[1], pd[0], pd[1], pd[2], pd[3],
-                        z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
+        SetImageGeneric(current_slice, z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
     }
 
     void setComplexDisplay(ShowComplex show_c, bool redraw = true, bool reset = false) {
@@ -211,10 +212,20 @@ public:
 
         complex_type = show_c;
 
-        auto im_d = calculateComplexData();
-        SetImageGeneric(im_d, full_size_x, full_size_y,
-                        crop_t, crop_l, crop_b, crop_r,
-                        zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, redraw, reset);
+        SetImageGeneric(current_slice, zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, redraw, reset);
+    }
+
+    void setSlice(int slice = 0) {
+        std::vector<double> im_d;
+        if (is_complex && data_complex.getDepth() > 1 && slice < data_complex.getDepth()) {
+            im_d = calculateComplexData(slice);
+        } else if (!is_complex && data_real.getDepth() > 1 && slice < data_real.getDepth()) {
+            im_d = data_real.getSlice(slice);
+        } else {
+            return;
+        }
+
+        SetImageData(im_d, true, false);
     }
 
 private:
@@ -222,60 +233,91 @@ private:
 
     ShowComplex complex_type;
 
-    std::vector<std::complex<double>> data_complex; // only used when we have a complex image
+    Image<double> data_real;
+    Image<std::complex<double>> data_complex; // only used when we have a complex image
 
-    std::vector<double> calculateComplexData() {
-        std::vector<double> im_d(data_complex.size());
+    std::vector<double> calculateComplexData(unsigned int slice = 0) {
+        int sz = data_complex.getSliceSize();
+        std::vector<double> im_d(sz);
 
         if (complex_type == ShowComplex::Real) {
-            for (int i = 0; i < data_complex.size(); ++i)
-                im_d[i] = std::real(data_complex[i]);
+            for (int i = 0; i < sz; ++i)
+                im_d[i] = std::real(data_complex.getSlice(slice)[i]);
         } else if (complex_type == ShowComplex::Imag) {
-            for (int i = 0; i < data_complex.size(); ++i)
-                im_d[i] = std::imag(data_complex[i]);
+            for (int i = 0; i < sz; ++i)
+                im_d[i] = std::imag(data_complex.getSlice(slice)[i]);
         } else if (complex_type == ShowComplex::Amplitude) {
-            for (int i = 0; i < data_complex.size(); ++i)
-                im_d[i] = std::abs(data_complex[i]);
+            for (int i = 0; i < sz; ++i)
+                im_d[i] = std::abs(data_complex.getSlice(slice)[i]);
         } else if (complex_type == ShowComplex::Phase) {
-            for (int i = 0; i < data_complex.size(); ++i)
-                im_d[i] = std::arg(data_complex[i]);
+            for (int i = 0; i < sz; ++i)
+                im_d[i] = std::arg(data_complex.getSlice(slice)[i]);
         }
 
         return im_d;
     }
 
-    template <typename T>
-    void SetImageGeneric(std::vector<T> img, int sx, int sy,
-                         int pad_t, int pad_l, int pad_b, int pad_r,
+    void SetImageGeneric(unsigned int slice,
                          double z_x, double z_y,
                          double sc_x, double sc_y,
                          IntensityScale intensity_scale,
                          ZeroPosition zp,
                          bool redraw, bool reset)
     {
-        // free up this complex data if we aren't going to use it
-        if (!is_complex)
-            data_complex.clear();
+        if (is_complex) {
+            auto im_d = calculateComplexData(slice);
 
-        std::vector<double> im_d(img.size());
-        for (int i = 0; i < img.size(); ++i)
-            im_d[i] = static_cast<double>(img[i]);
-        crop_t = pad_t;
-        crop_l = pad_l;
-        crop_b = pad_b;
-        crop_r = pad_r;
-        scale_x = sc_x;
-        scale_y = sc_y;
-        zero_x = z_x;
-        zero_y = z_y;
-        zero_pos = zp;
-        int_scale = intensity_scale;
-        SetImageData(im_d, sx, sy, intensity_scale, redraw, reset);
+            std::valarray<unsigned int> pd = data_complex.getPadding();
+            crop_t = pd[0];
+            crop_l = pd[1];
+            crop_b = pd[2];
+            crop_r = pd[3];
+
+            std::valarray<unsigned int> sz = data_complex.getDimensions();
+            full_size_x = sz[0];
+            full_size_y = sz[1];
+
+            crop_size_x = data_complex.getCroppedWidth();
+            crop_size_y = data_complex.getCroppedHeight();
+
+            scale_x = sc_x;
+            scale_y = sc_y;
+            zero_x = z_x;
+            zero_y = z_y;
+            zero_pos = zp;
+            int_scale = intensity_scale;
+
+            SetImageData(im_d, redraw, reset);
+        } else {
+            auto im_d = data_real.getSlice(slice);
+
+            std::valarray<unsigned int> pd = data_real.getPadding();
+            crop_t = pd[0];
+            crop_l = pd[1];
+            crop_b = pd[2];
+            crop_r = pd[3];
+
+            std::valarray<unsigned int> sz = data_real.getDimensions();
+            full_size_x = sz[0];
+            full_size_y = sz[1];
+
+            crop_size_x = data_real.getCroppedWidth();
+            crop_size_y = data_real.getCroppedHeight();
+
+            scale_x = sc_x;
+            scale_y = sc_y;
+            zero_x = z_x;
+            zero_y = z_y;
+            zero_pos = zp;
+            int_scale = intensity_scale;
+
+            SetImageData(im_d, redraw, reset);
+        }
     }
 
-    void SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw);
+    void SetImagePlot(const std::vector<double> &image, bool redraw);
 
-    void SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw, bool reset);
+    void SetImageData(const std::vector<double> &image, bool redraw, bool reset);
 
 };
 

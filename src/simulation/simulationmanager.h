@@ -198,6 +198,26 @@ public:
         return getFullAreaBase().getRawLimitsY();
     }
 
+    std::valarray<unsigned int> getImageCrop() {
+        double real_scale = getRealScale();
+
+        auto x_im_range = getRawSimLimitsX(0)[1] - getRawSimLimitsX(0)[0];
+        auto x_sim_range = getPaddedSimLimitsX(0)[1] - getPaddedSimLimitsX(0)[0];
+        auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
+
+        auto y_im_range = getRawSimLimitsY(0)[1] - getRawSimLimitsY(0)[0];
+        auto y_sim_range = getPaddedSimLimitsY(0)[1] - getPaddedSimLimitsY(0)[0];
+        auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
+
+        auto crop_l = static_cast<unsigned int>(std::floor(crop_lr_total / 2.0));
+        auto crop_b = static_cast<unsigned int>(std::floor(crop_tb_total / 2.0));
+
+        auto crop_r = static_cast<unsigned int>(crop_lr_total - crop_l);
+        auto crop_t = static_cast<unsigned int>(crop_tb_total - crop_b);
+
+        return {crop_t, crop_l, crop_b, crop_r};
+    }
+
     int getBlocksX();
     int getBlocksY();
 

@@ -259,74 +259,75 @@ void SimulationWorker<T>::sortAtoms() {
 }
 
 template <class T>
-void SimulationWorker<T>::doCtem()
-{
+void SimulationWorker<T>::doCtem() {
     CLOG(DEBUG, "sim") << "Starting multislice loop";
-    // loop through slices
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
-    for (int i = 0; i < numberOfSlices; ++i) {
-        doMultiSliceStep(i);
-        if (pool.stop)
-            return;
-        job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
-    }
 
-    CLOG(DEBUG, "sim") << "Getting return images";
-
-    unsigned int resolution = job->simManager->getResolution();
+    // convenient typedef and create the map to return our images
     typedef std::map<std::string, Image<double>> return_map;
     return_map Images;
+    // Get all the variables we will be needing in one go
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    unsigned int resolution = job->simManager->getResolution();
+    std::valarray<unsigned int> im_crop = job->simManager->getImageCrop();
+    bool sim_im = job->simManager->getSimulateCtemImage();
 
-    double real_scale = job->simManager->getRealScale();
+    // TODO: set this properly
+    // This will be a pre-calculated variable to set how often we pull our our slice data
+    int slice_step = 3;
 
-    auto x_im_range = job->simManager->getRawSimLimitsX(0)[1] - job->simManager->getRawSimLimitsX(0)[0];
-    auto x_sim_range = job->simManager->getPaddedSimLimitsX(0)[1] - job->simManager->getPaddedSimLimitsX(0)[0];
-    auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
+    int output_count = std::ceil(numberOfSlices / slice_step);
 
-    auto y_im_range = job->simManager->getRawSimLimitsY(0)[1] - job->simManager->getRawSimLimitsY(0)[0];
-    auto y_sim_range = job->simManager->getPaddedSimLimitsY(0)[1] - job->simManager->getPaddedSimLimitsY(0)[0];
-    auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
+    // Create our images here (as we will need to be updating them throughout the slice process)
+    auto ew = Image<double>(resolution, resolution, output_count, im_crop[0], im_crop[1], im_crop[2], im_crop[3]);
+    auto diff = Image<double>(resolution, resolution, output_count);
+    Image<double> ctem_im;
+    if (sim_im)
+        ctem_im = Image<double>(resolution, resolution, output_count, im_crop[0], im_crop[1], im_crop[2], im_crop[3]);
 
-    auto crop_l = static_cast<unsigned int>(std::floor(crop_lr_total / 2.0));
-    auto crop_b = static_cast<unsigned int>(std::floor(crop_tb_total / 2.0));
+    // loop through slices
+    unsigned int output_counter = 0;
+    for (int i = 0; i < numberOfSlices; ++i) {
+        doMultiSliceStep(i);
 
-    auto crop_r = static_cast<unsigned int>(crop_lr_total - crop_l);
-    auto crop_t = static_cast<unsigned int>(crop_tb_total - crop_b);
+        // this is mostly here because large images can take an age to copy across (so skip that if we are cancelling)
+        if (pool.stop)
+            return;
 
-    auto ew = Image<double>(getExitWaveImage(), resolution, resolution, crop_t, crop_l, crop_b, crop_r);
-    auto diff = Image<double>(getDiffractionImage(), resolution, resolution);
+        // get data when we have the right number of slices (unless it is the end, that is always done after the loop)
+        if ((i + 1) % slice_step == 0) {
+            ew.getSlice(output_counter) = getExitWaveImage();
+            diff.getSlice(output_counter) = getDiffractionImage();
+
+            if (sim_im) {
+                simulateCtemImage();
+                ctem_im.getSlice(output_counter) = getCtemImage();
+            }
+
+            ++output_counter;
+        }
+
+        if (pool.stop)
+            return;
+
+        job->simManager->reportSliceProgress(static_cast<double>(i + 1) / numberOfSlices);
+    }
+
+    // get the final slice output
+    if (output_counter < output_count) {
+        ew.getSlice(output_counter) = getExitWaveImage();
+        diff.getSlice(output_counter) = getDiffractionImage();
+        if (sim_im) {
+            simulateCtemImage();
+            ctem_im.getSlice(output_counter) = getCtemImage();
+        }
+    }
+    CLOG(DEBUG, "sim") << "Getting return images";
 
     // get the images we need
     Images.insert(return_map::value_type("EW", ew));
     Images.insert(return_map::value_type("Diff", diff));
-
-    if (job->simManager->getSimulateCtemImage()) {
-
-        std::string ccd = job->simManager->getCcdName();
-        if (CCDParams::nameExists(ccd)) {
-            std::vector<double> dqe_d = CCDParams::getDQE(ccd);
-            std::vector<double> ntf_d = CCDParams::getNTF(ccd);
-            // convert these to our GPU type
-            std::vector<T> dqe(dqe_d.begin(), dqe_d.end());
-            std::vector<T> ntf(ntf_d.begin(), ntf_d.end());
-            int binning = job->simManager->getCcdBinning();
-            // get dose
-            double dose = job->simManager->getCcdDose(); // electrons per area
-            // get electrons per pixel
-            double scale = job->simManager->getRealScale();
-            scale *= scale; // square it to get area of pixel
-            double dose_per_pix = dose * scale;
-
-            // Error here is because of dqe and ntf vectors
-            simulateCtemImage(dqe, ntf, binning, dose_per_pix);
-        }
-        else {
-            simulateCtemImage();
-        }
-
-        auto ctem_im = Image<double>(getCtemImage(), resolution, resolution, crop_t, crop_l, crop_b, crop_r);
+    if (sim_im)
         Images.insert(return_map::value_type("Image", ctem_im));
-    }
 
     job->simManager->updateImages(Images, 1);
 }
@@ -334,29 +335,46 @@ void SimulationWorker<T>::doCtem()
 template <class T>
 void SimulationWorker<T>::doCbed()
 {
-    auto pos = job->simManager->getCBedPosition();
-
-    initialiseProbeWave(pos->getXPos(), pos->getYPos());
-
-    CLOG(DEBUG, "sim") << "Starting multislice loop";
-    // loop through slices
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
-    for (int i = 0; i < numberOfSlices; ++i) {
-        doMultiSliceStep(i);
-        if (pool.stop) {
-            CLOG(DEBUG, "sim") << "Thread pool stopping";
-            return;
-        }
-        job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
-    }
-
-    CLOG(DEBUG, "sim") << "Getting return images";
-    // get images and return them...
-    unsigned int resolution = job->simManager->getResolution();
     typedef std::map<std::string, Image<double>> return_map;
     return_map Images;
 
-    auto diff = Image<double>(getDiffractionImage(), resolution, resolution);
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    auto pos = job->simManager->getCBedPosition();
+    unsigned int resolution = job->simManager->getResolution();
+
+    initialiseProbeWave(pos->getXPos(), pos->getYPos());
+
+    // TODO: set this properly
+    // This will be a pre-calculated variable to set how often we pull our our slice data
+    int slice_step = 3;
+
+    int output_count = std::ceil(numberOfSlices / slice_step);
+
+    auto diff = Image<double>(resolution, resolution, output_count);
+
+    CLOG(DEBUG, "sim") << "Starting multislice loop";
+    // loop through slices
+    unsigned int output_counter = 0;
+    for (int i = 0; i < numberOfSlices; ++i) {
+        doMultiSliceStep(i);
+
+        if (pool.stop)
+            return;
+
+        if ((i+1) % slice_step == 0) {
+            diff.getSlice(output_counter) = getDiffractionImage();
+
+            output_counter++;
+        }
+
+        if (pool.stop)
+            return;
+
+        job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
+    }
+
+    if (output_counter < output_count)
+        diff.getSlice(output_counter) = getDiffractionImage();
 
     Images.insert(return_map::value_type("Diff", diff));
 
@@ -368,11 +386,13 @@ void SimulationWorker<T>::doStem()
 {
     CLOG(DEBUG, "sim") << "Parallel pixels: " << job->pixels.size();
 
+    typedef std::map<std::string, Image<double>> return_map;
+    return_map Images;
+
     // now need to work out where our probes need to be made
     auto stemPixels = job->simManager->getStemArea();
+    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
 
-    // get start position and the pixel step
-    // Raw values here as this is used to calculate the beam positions
     double start_x = stemPixels->getRawLimitsX()[0];
     double start_y = stemPixels->getRawLimitsY()[0];
 
@@ -380,6 +400,17 @@ void SimulationWorker<T>::doStem()
 
     double step_x = stemPixels->getScaleX();
     double step_y = stemPixels->getScaleY();
+
+    unsigned int px_x = job->simManager->getStemArea()->getPixelsX();
+    unsigned int px_y = job->simManager->getStemArea()->getPixelsY();
+
+    int slice_step = 3;
+    int output_count = std::ceil(numberOfSlices / slice_step);
+
+    // initialise our images
+    for (const auto &det : job->simManager->getDetectors()) {
+        Images[det.name] = Image<double>(px_x, px_y, output_count);
+    }
 
     CLOG(DEBUG, "sim") << "Initialising probe(s)";
     for (int i = 0; i < job->pixels.size(); ++i) {
@@ -396,30 +427,44 @@ void SimulationWorker<T>::doStem()
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    unsigned int output_counter = 0;
     for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
-        if (pool.stop) {
-            CLOG(DEBUG, "sim") << "Thread pool stopping";
+
+        if (pool.stop)
             return;
+        if ((i+1) % slice_step == 0) {
+            for (const auto &det : job->simManager->getDetectors()) {
+                std::vector<double> im(stemPixels->getNumPixels(), 0.0);
+
+                for (int j = 0; j < job->pixels.size(); ++j) {
+                    im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j);
+                }
+
+                Images[det.name].getSlice(output_counter) = im;
+            }
+            ++output_counter;
         }
+
+        if (pool.stop)
+            return;
+
         job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
     }
 
     CLOG(DEBUG, "sim") << "Getting return images";
-    typedef std::map<std::string, Image<double>> return_map;
-    return_map Images;
-    unsigned int px_x = job->simManager->getStemArea()->getPixelsX();
-    unsigned int px_y = job->simManager->getStemArea()->getPixelsY();
 
-    for (const auto &det : job->simManager->getDetectors()) {
-        std::vector<double> im(stemPixels->getNumPixels(), 0.0f);
 
-        for (int i = 0; i < job->pixels.size(); ++i) {
-            im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
+    if (output_counter < output_count) {
+        for (const auto &det : job->simManager->getDetectors()) {
+            std::vector<double> im(stemPixels->getNumPixels(), 0.0);
+
+            for (int i = 0; i < job->pixels.size(); ++i) {
+                im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
+            }
+
+            Images[det.name].getSlice(output_counter) = im;
         }
-
-        Images[det.name] = Image<double>(im, px_x, px_y);
     }
 
     job->simManager->updateImages(Images, 1);
@@ -807,7 +852,31 @@ void SimulationWorker<T>::doMultiSliceStep(int slice)
 }
 
 template <class T>
-void SimulationWorker<T>::simulateCtemImage()
+void SimulationWorker<T>::simulateCtemImage() {
+    // Check if have a CCD set, then do that method instead
+    std::string ccd = job->simManager->getCcdName();
+    if (CCDParams::nameExists(ccd)) {
+        std::vector<double> dqe_d = CCDParams::getDQE(ccd);
+        std::vector<double> ntf_d = CCDParams::getNTF(ccd);
+        // convert these to our GPU type
+        std::vector<T> dqe(dqe_d.begin(), dqe_d.end());
+        std::vector<T> ntf(ntf_d.begin(), ntf_d.end());
+        int binning = job->simManager->getCcdBinning();
+        // get dose
+        double dose = job->simManager->getCcdDose(); // electrons per area
+        // get electrons per pixel
+        double scale = job->simManager->getRealScale();
+        scale *= scale; // square it to get area of pixel
+        double dose_per_pix = dose * scale;
+
+        simulateCtemImageDose(dqe, ntf, binning, dose_per_pix);
+    } else {
+        simulateCtemImagePerfect();
+    }
+}
+
+template <class T>
+void SimulationWorker<T>::simulateCtemImagePerfect()
 {
     CLOG(DEBUG, "sim") << "Start CTEM image simulation (no dose calculation)";
     unsigned int resolution = job->simManager->getResolution();
@@ -848,11 +917,11 @@ void SimulationWorker<T>::simulateCtemImage()
 
     // Now get and display absolute value
     CLOG(DEBUG, "sim") << "IFFT to real space";
-    FourierTrans.run(clImageWaveFunction, clWaveFunction1[0], Direction::Inverse);
+    FourierTrans.run(clImageWaveFunction, clWaveFunction3, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Calculate absolute squared";
-    ABS2.SetArg(0, clWaveFunction1[0], ArgumentType::Input);
+    ABS2.SetArg(0, clWaveFunction3, ArgumentType::Input);
     ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
@@ -863,7 +932,7 @@ void SimulationWorker<T>::simulateCtemImage()
 // TODO: what should be done with the conversion factor?
 // I think it might be like an amplification thing - as in if the detector gets n electrons, it will 'detect' n*conversion factor?
 template <class T>
-void SimulationWorker<T>::simulateCtemImage(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning,
+void SimulationWorker<T>::simulateCtemImageDose(std::vector<T> dqe_data, std::vector<T> ntf_data, int binning,
                                          double doseperpix, double conversionfactor)
 {
     // all the NTF, DQE stuff can be found here: 10.1016/j.jsb.2013.05.008

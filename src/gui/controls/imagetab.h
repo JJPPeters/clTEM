@@ -49,6 +49,17 @@ public:
     {
         settings = stngs;
         image_units = units;
+        if (img.getDepth() > 1) {
+            ui->hScrlSlice->setMinimum(0);
+            ui->hScrlSlice->setMaximum(img.getDepth() - 1);
+
+            ui->hScrlSlice->setVisible(true);
+            disconnect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+            ui->hScrlSlice->setValue(img.getDepth() - 1);
+            connect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+        } else
+            ui->hScrlSlice->setVisible(false);
+
         ui->widget->SetImage(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
     }
 
@@ -62,6 +73,17 @@ public:
     {
         settings = stngs;
         image_units = units;
+        if (img.getDepth() > 1) {
+            ui->hScrlSlice->setMinimum(0);
+            ui->hScrlSlice->setMaximum(img.getDepth() - 1);
+
+            ui->hScrlSlice->setVisible(true);
+            disconnect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+            ui->hScrlSlice->setValue(img.getDepth() - 1);
+            connect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+        } else
+            ui->hScrlSlice->setVisible(false);
+
         ui->widget->SetComplexImage(img, lo_x, lo_y, sc_x, sc_y, scale, getComplexDisplayOption(), zp, doReplot);
     }
 
@@ -77,6 +99,8 @@ private:
     QString image_units;
 
     ShowComplex getComplexDisplayOption();
+
+    void sliceSliderChanged(int value);
 
 public slots:
     void forwardSaveData() { emit saveDataActivated(); }

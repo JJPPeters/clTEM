@@ -34,6 +34,20 @@ public:
     /// Default constructer
     Image() : width(0), height(0), depth(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
 
+    /// Constructor for an empty image (where you want to add the data later)
+    Image(unsigned int w, unsigned int h, unsigned int d = 1, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
+        width = w;
+        height = h;
+        depth = d;
+
+        data.resize(d);
+
+        pad_t = pt;
+        pad_l = pl;
+        pad_b = pb;
+        pad_r = pr;
+    }
+
     /// Constructor for a single image
     Image(std::vector<T> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
         data.push_back(image);
@@ -46,6 +60,7 @@ public:
         pad_b = pb;
         pad_r = pr;
     }
+
     /// Constructor for a stack of images
     Image(std::vector<std::vector<T>> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : data(image),
                                                                                                                                                                   width(w), height(h), depth(image.size()),
@@ -71,6 +86,12 @@ public:
         return *this;
     }
 
+//    void addSlice(std::vector<T> im) {
+//        if (im.size() != getSliceSize())
+//            throw std::runtime_error("Append image to stack with incompatible sizes");
+//        data.push_back(im);
+//    }
+
     unsigned int getSliceSize() {return width * height;}
 
     std::valarray<unsigned int> getDimensions() { return {getWidth(), getHeight(), getDepth()}; }
@@ -86,20 +107,6 @@ public:
 
     std::vector<T>& getSlice(unsigned int slice = 0) {
         return data[slice];
-    }
-    std::vector<T> getSliceCropped(unsigned int slice = 0) {
-        std::vector<T> data_out(getCroppedWidth()*getCroppedHeight());
-        int cnt = 0;
-        for (int j = 0; j < height; ++j)
-            if (j >= pad_b && j < (height - pad_t))
-                for (int i = 0; i < width; ++i)
-                    if (i >= pad_l && i < (width - pad_r))
-                    {
-                        int k = i + j * width;
-                        data_out[cnt] = data[k];
-                        ++cnt;
-                    }
-        return data_out;
     }
 
 private:

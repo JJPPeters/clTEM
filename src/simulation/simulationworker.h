@@ -58,7 +58,9 @@ private:
 
     void simulateCtemImage();
 
-    void simulateCtemImage(std::vector<GPU_Type> dqe_data, std::vector<GPU_Type> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
+    void simulateCtemImagePerfect();
+
+    void simulateCtemImageDose(std::vector<GPU_Type> dqe_data, std::vector<GPU_Type> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
 
     std::vector<double> getDiffractionImage(int parallel_ind = 0);
 

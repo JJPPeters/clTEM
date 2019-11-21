@@ -152,7 +152,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     {
         CLOG(DEBUG, "sim") << "Processing image " << i.first;
         if (Images.find(i.first) != Images.end()) {
-            CLOG(DEBUG, "sim") << "First time so creating image";
+            CLOG(DEBUG, "sim") << "Adding to existing image";
             auto current = Images[i.first];
             auto im = i.second;
             if (im.getSliceSize() != current.getSliceSize()) {
@@ -160,15 +160,17 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
             }
             CLOG(DEBUG, "sim") << "Copying data";
-            for (int j = 0; j < current.getSliceSize(); ++j)
-                current.getSlice()[j] += im.getSlice()[j] / average_factor;
+            for (int j = 0; j < current.getDepth(); ++j)
+                for (int k = 0; k < current.getSliceSize(); ++k)
+                    current.getSlice(j)[k] += im.getSlice(j)[k] / average_factor;
             Images[i.first] = current;
         } else {
-            CLOG(DEBUG, "sim") << "Adding to existing image";
+            CLOG(DEBUG, "sim") << "First time so creating image";
             auto new_averaged = i.second;
-            for (double &d : new_averaged.getSlice())
-                d /= average_factor; // need to average this as the image is created (if TDS)
-            Images.insert(std::map<std::string, Image<double>>::value_type(i.first, new_averaged));
+            for (int j = 0; j < new_averaged.getDepth(); ++j)
+                for (double &d : new_averaged.getSlice(j))
+                    d /= average_factor; // need to average this as the image is created (if TDS)
+            Images[i.first] = new_averaged;
         }
     }
 
