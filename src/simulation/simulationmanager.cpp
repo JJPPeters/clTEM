@@ -155,18 +155,18 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
             CLOG(DEBUG, "sim") << "First time so creating image";
             auto current = Images[i.first];
             auto im = i.second;
-            if (im.data.size() != current.data.size()) {
+            if (im.getSliceSize() != current.getSliceSize()) {
                 CLOG(ERROR, "sim") << "Tried to merge simulation jobs with different output size";
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
             }
             CLOG(DEBUG, "sim") << "Copying data";
-            for (int j = 0; j < current.data.size(); ++j)
-                current.data[j] += im.data[j] / average_factor;
+            for (int j = 0; j < current.getSliceSize(); ++j)
+                current.getSlice()[j] += im.getSlice()[j] / average_factor;
             Images[i.first] = current;
         } else {
             CLOG(DEBUG, "sim") << "Adding to existing image";
             auto new_averaged = i.second;
-            for (double &d : new_averaged.data)
+            for (double &d : new_averaged.getSlice())
                 d /= average_factor; // need to average this as the image is created (if TDS)
             Images.insert(std::map<std::string, Image<double>>::value_type(i.first, new_averaged));
         }

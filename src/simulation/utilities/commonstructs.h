@@ -7,6 +7,7 @@
 #include "clwrapper.h"
 #include <valarray>
 
+
 struct Constants
 {
     static const double Pi;
@@ -27,21 +28,40 @@ struct Constants
 };
 
 template<class T>
-struct Image
+class Image
 {
-    Image() : width(0), height(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
-    Image(unsigned int w, unsigned int h, std::vector<T> d, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : width(w), height(h),
-                                                                                            data(d),
-                                                                                            pad_t(pt), pad_l(pl),
-                                                                                            pad_b(pb), pad_r(pr) {}
-    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), data(rhs.data), pad_t(rhs.pad_t),
-                                                                                       pad_l(rhs.pad_l),
-                                                                                       pad_b(rhs.pad_b),
-                                                                                       pad_r(rhs.pad_r) {}
+public:
+    /// Default constructer
+    Image() : width(0), height(0), depth(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
+
+    /// Constructor for a single image
+    Image(std::vector<T> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
+        data.push_back(image);
+        width = w;
+        height = h;
+        depth = 1;
+
+        pad_t = pt;
+        pad_l = pl;
+        pad_b = pb;
+        pad_r = pr;
+    }
+    /// Constructor for a stack of images
+    Image(std::vector<std::vector<T>> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : data(image),
+                                                                                                                                                                  width(w), height(h), depth(image.size()),
+                                                                                                                                                                  pad_t(pt), pad_l(pl),
+                                                                                                                                                                  pad_b(pb), pad_r(pr) {}
+
+    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), depth(rhs.depth), data(rhs.data),
+                                                                                         pad_t(rhs.pad_t),
+                                                                                         pad_l(rhs.pad_l),
+                                                                                         pad_b(rhs.pad_b),
+                                                                                         pad_r(rhs.pad_r) {}
 
     Image<T>& operator=(const Image<T>& rhs) {
         width = rhs.width;
         height = rhs.height;
+        depth = rhs.depth;
         data = rhs.data;
         pad_t = rhs.pad_t;
         pad_l = rhs.pad_l;
@@ -51,15 +71,23 @@ struct Image
         return *this;
     }
 
+    unsigned int getSliceSize() {return width * height;}
 
-    unsigned int width;
-    unsigned int height;
-    unsigned int pad_t, pad_l, pad_b, pad_r;
-    std::vector<T> data;
+    std::valarray<unsigned int> getDimensions() { return {getWidth(), getHeight(), getDepth()}; }
+    std::valarray<unsigned int> getCroppedDimensions() { return {getCroppedWidth(), getCroppedHeight(), getDepth()}; }
 
+    unsigned int getWidth() {return width;}
+    unsigned int getHeight() {return height;}
+    unsigned int getDepth() {return depth;}
     unsigned int getCroppedWidth() {return width - pad_l - pad_r;}
     unsigned int getCroppedHeight() {return height - pad_t - pad_b;}
-    std::vector<T> getCropped() {
+
+    std::valarray<unsigned int> getPadding() { return {pad_t, pad_l, pad_b, pad_r}; }
+
+    std::vector<T>& getSlice(unsigned int slice = 0) {
+        return data[slice];
+    }
+    std::vector<T> getSliceCropped(unsigned int slice = 0) {
         std::vector<T> data_out(getCroppedWidth()*getCroppedHeight());
         int cnt = 0;
         for (int j = 0; j < height; ++j)
@@ -73,6 +101,13 @@ struct Image
                     }
         return data_out;
     }
+
+private:
+    unsigned int width;
+    unsigned int height;
+    unsigned int depth;
+    unsigned int pad_t, pad_l, pad_b, pad_r;
+    std::vector<std::vector<T>> data;
 };
 
 struct ComplexAberration {

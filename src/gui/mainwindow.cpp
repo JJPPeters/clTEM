@@ -418,10 +418,11 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     settings["microscope"].erase("delta");
 
                     // convert our float data to complex
-                    std::vector<std::complex<double>> comp_data(im.height*im.width);
+                    std::vector<std::complex<double>> comp_data(im.getSliceSize());
                     for (int i = 0; i < comp_data.size(); ++i)
-                        comp_data[i] = std::complex<double>(im.data[2*i], im.data[2*i+1]);
-                    Image<std::complex<double>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
+                        comp_data[i] = std::complex<double>(im.getSlice()[2*i], im.getSlice()[2*i+1]);
+                    auto pd = im.getPadding(); // t l b r
+                    Image<std::complex<double>> comp_im(comp_data, im.getWidth(), im.getHeight(), pd[0], pd[1], pd[2], pd[3]);
 
                     double lx = sm.getPaddedSimLimitsX(0)[0];
                     double ly = sm.getPaddedSimLimitsY(0)[0];

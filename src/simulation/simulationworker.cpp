@@ -293,8 +293,8 @@ void SimulationWorker<T>::doCtem()
     auto crop_r = static_cast<unsigned int>(crop_lr_total - crop_l);
     auto crop_t = static_cast<unsigned int>(crop_tb_total - crop_b);
 
-    auto ew = Image<double>(resolution, resolution, getExitWaveImage(), crop_t, crop_l, crop_b, crop_r);
-    auto diff = Image<double>(resolution, resolution, getDiffractionImage());
+    auto ew = Image<double>(getExitWaveImage(), resolution, resolution, crop_t, crop_l, crop_b, crop_r);
+    auto diff = Image<double>(getDiffractionImage(), resolution, resolution);
 
     // get the images we need
     Images.insert(return_map::value_type("EW", ew));
@@ -324,7 +324,7 @@ void SimulationWorker<T>::doCtem()
             simulateCtemImage();
         }
 
-        auto ctem_im = Image<double>(resolution, resolution, getCtemImage(), crop_t, crop_l, crop_b, crop_r);
+        auto ctem_im = Image<double>(getCtemImage(), resolution, resolution, crop_t, crop_l, crop_b, crop_r);
         Images.insert(return_map::value_type("Image", ctem_im));
     }
 
@@ -356,7 +356,7 @@ void SimulationWorker<T>::doCbed()
     typedef std::map<std::string, Image<double>> return_map;
     return_map Images;
 
-    auto diff = Image<double>(resolution, resolution, getDiffractionImage());
+    auto diff = Image<double>(getDiffractionImage(), resolution, resolution);
 
     Images.insert(return_map::value_type("Diff", diff));
 
@@ -419,7 +419,7 @@ void SimulationWorker<T>::doStem()
             im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
         }
 
-        Images[det.name] = Image<double>(px_x, px_y, im);
+        Images[det.name] = Image<double>(im, px_x, px_y);
     }
 
     job->simManager->updateImages(Images, 1);

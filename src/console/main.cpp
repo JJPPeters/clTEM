@@ -176,25 +176,25 @@ void imageReturned(SimulationManager sm)
 
         try {
             if (name == "EW") { // save amplitude and phase
-                if (im.data.size() % 2 != 0)
+                if (im.getSliceSize() % 2 != 0)
                     throw std::runtime_error("Attempting to save complex image with non equal real and imaginary parts.");
 
-                std::vector<float> abs(im.data.size() / 2);
-                std::vector<float> arg(im.data.size() / 2);
+                std::vector<float> abs(im.getSliceSize() / 2);
+                std::vector<float> arg(im.getSliceSize() / 2);
 
-                for (int j = 0; j < im.data.size(); j+=2) {
-                    auto cval = std::complex<float>(im.data[j], im.data[j+1]);
+                for (int j = 0; j < im.getSliceSize(); j+=2) {
+                    auto cval = std::complex<float>(im.getSlice()[j], im.getSlice()[j+1]);
                     abs[j / 2] = std::abs(cval);
                     arg[j / 2] = std::arg(cval);
                 }
 
-                fileio::SaveTiff<float>(out_name + "_amplitude.tif", abs, im.width, im.height);
+                fileio::SaveTiff<float>(out_name + "_amplitude.tif", abs, im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + "_amplitude.json", settings);
 
-                fileio::SaveTiff<float>(out_name + "_phase.tif", arg, im.width, im.height);
+                fileio::SaveTiff<float>(out_name + "_phase.tif", arg, im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + "_phase.json", settings);
             } else {
-                fileio::SaveTiff<float>(out_name + ".tif", im.data, im.width, im.height);
+                fileio::SaveTiff<float>(out_name + ".tif", im.getSlice(), im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + ".json", settings);
             }
         } catch (std::runtime_error &e) {

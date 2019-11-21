@@ -175,7 +175,11 @@ public:
                           bool redraw = true, bool reset = true)
     {
         is_complex = false;
-        SetImageGeneric(img.data, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
+
+        auto sz = img.getDimensions();
+        auto pd = img.getPadding();
+
+        SetImageGeneric(img.getSlice(), sz[0], sz[1], pd[0], pd[1], pd[2], pd[3],
                         z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
     }
 
@@ -190,11 +194,14 @@ public:
     {
         complex_type = show_comp;
         is_complex = true;
-        data_complex = img.data;
+        data_complex = img.getSlice();
 
         auto im_d = calculateComplexData();
 
-        SetImageGeneric(im_d, img.width, img.height, img.pad_t, img.pad_l, img.pad_b, img.pad_r,
+        auto sz = img.getDimensions();
+        auto pd = img.getPadding();
+
+        SetImageGeneric(im_d, sz[0], sz[1], pd[0], pd[1], pd[2], pd[3],
                         z_x, z_y, sc_x, sc_y, intensity_scale, zp, redraw, reset);
     }
 
