@@ -9,6 +9,8 @@ namespace CIF {
     CIFReader::CIFReader(std::string filePath, bool attempt_fixes) {
         file_path = filePath;
 
+        fix = attempt_fixes;
+
         // http://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
         std::ifstream filestream(filePath);
         std::string filecontents;
@@ -288,9 +290,9 @@ namespace CIF {
         if(!foundlabel)
             errors += "Could not find _atom_site_label\n";
         if(!foundsymbol)
-            errors += "Could not find _atom_site_fract_x\n";
-        if(!foundx)
             errors += "Could not find _atom_site_type_symbol\n";
+        if(!foundx)
+            errors += "Could not find _atom_site_fract_x\n";
         if(!foundy)
             errors += "Could not find _atom_site_fract_y\n";
         if(!foundz)

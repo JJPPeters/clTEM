@@ -150,7 +150,9 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 										  double sigma,
 										  double startx,
 										  double starty,
-										  int integrals)
+                                          double slice_shift_x,
+                                          double slice_shift_y,
+                                          int integrals)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -220,12 +222,16 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
                 double im_pos_y = starty + yid * pixel_scale;
                 double rad_y = im_pos_y - aty[l];
 
-                double xyrad2 = rad_x*rad_x + rad_y*rad_y;
-
-				for (int h = 0; h <= integrals; h++) {
+				for (int h = 0; h < integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
+
+                    // account for shift due to beam tilt
+                    rad_x -= slice_shift_x;
+                    rad_y -= slice_shift_y;
+
+                    double xyrad2 = rad_x*rad_x + rad_y*rad_y;
 
 					// z is the slice position, h is the 'sub' integral, dz is the slice thickness and int_r is 1/integrals
                     double im_pos_z = z - h * dz * int_r;

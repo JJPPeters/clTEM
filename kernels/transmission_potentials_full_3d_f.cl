@@ -222,7 +222,7 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
                 float im_pos_y = starty + yid * pixel_scale;
                 float rad_y = im_pos_y - aty[l];
 
-				for (int h = 0; h <= integrals; h++) {
+				for (int h = 0; h < integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
