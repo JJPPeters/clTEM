@@ -172,12 +172,17 @@ void AreaLayoutFrame::areasChanged() {
 void AreaLayoutFrame::updateSlices() {
     double dz = SimManager->getSliceThickness();
     double oz = SimManager->getSliceOffset();
+    unsigned int so = SimManager->getIntermediateSlices();
+    bool iso = SimManager->getIntermediateSlicesEnabled();
 
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
     connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
 
     ui->edtSliceThickness->setText(Utils_Qt::numToQString(dz));
     ui->edtSliceOffset->setText(Utils_Qt::numToQString(oz));
+
+    ui->edtSliceOutput->setText(Utils_Qt::numToQString(so));
+    ui->chkSliceOutput->setChecked(iso);
 }
 
 void AreaLayoutFrame::on_cmbResolution_currentIndexChanged(const QString &arg1) {
@@ -212,17 +217,23 @@ bool AreaLayoutFrame::apply_pressed() {
     double dz = ui->edtSliceThickness->text().toDouble();
     double oz = ui->edtSliceOffset->text().toDouble();
 
+    unsigned int so = ui->edtSliceOutput->text().toUInt();
+    bool iso = ui->chkSliceOutput->isChecked();
+
     bool valid = true;
     std::vector<std::string> errors;
 
-    if (dz <= 0)
-    {
+    if (dz <= 0) {
         errors.emplace_back("Slice thickness must be greater than 0");
         valid = false;
     }
-    if (oz < 0)
-    {
+    if (oz < 0) {
         errors.emplace_back("Slice offset must be positive");
+        valid = false;
+    }
+
+    if (so < 0) {
+        errors.emplace_back("Intermediate slice output must be positive");
         valid = false;
     }
 
@@ -247,6 +258,8 @@ bool AreaLayoutFrame::apply_pressed() {
 
     SimManager->setSliceThickness(dz);
     SimManager->setSliceOffset(oz);
+    SimManager->setIntermediateSlices(so);
+    SimManager->setIntermediateSlicesEnabled(iso);
 
     SimManager->setMaintainAreas(ui->chkKeep->isChecked());
 

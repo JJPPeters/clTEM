@@ -273,9 +273,11 @@ void SimulationWorker<T>::doCtem() {
 
     // TODO: set this properly
     // This will be a pre-calculated variable to set how often we pull our our slice data
-    int slice_step = 3;
 
-    int output_count = std::ceil(numberOfSlices / slice_step);
+    unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
+    unsigned int output_count = 1;
+    if (slice_step > 0)
+        output_count = std::ceil(numberOfSlices / slice_step);
 
     // Create our images here (as we will need to be updating them throughout the slice process)
     auto ew = Image<double>(resolution, resolution, output_count, im_crop[0], im_crop[1], im_crop[2], im_crop[3]);
@@ -294,7 +296,7 @@ void SimulationWorker<T>::doCtem() {
             return;
 
         // get data when we have the right number of slices (unless it is the end, that is always done after the loop)
-        if ((i + 1) % slice_step == 0) {
+        if (slice_step > 0 && (i + 1) % slice_step == 0) {
             ew.getSlice(output_counter) = getExitWaveImage();
             diff.getSlice(output_counter) = getDiffractionImage();
 
@@ -346,9 +348,10 @@ void SimulationWorker<T>::doCbed()
 
     // TODO: set this properly
     // This will be a pre-calculated variable to set how often we pull our our slice data
-    int slice_step = 3;
-
-    int output_count = std::ceil(numberOfSlices / slice_step);
+    unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
+    unsigned int output_count = 1;
+    if (slice_step > 0)
+        output_count = std::ceil(numberOfSlices / slice_step);
 
     auto diff = Image<double>(resolution, resolution, output_count);
 
@@ -361,7 +364,7 @@ void SimulationWorker<T>::doCbed()
         if (pool.stop)
             return;
 
-        if ((i+1) % slice_step == 0) {
+        if (slice_step > 0 && (i+1) % slice_step == 0) {
             diff.getSlice(output_counter) = getDiffractionImage();
 
             output_counter++;
@@ -404,8 +407,10 @@ void SimulationWorker<T>::doStem()
     unsigned int px_x = job->simManager->getStemArea()->getPixelsX();
     unsigned int px_y = job->simManager->getStemArea()->getPixelsY();
 
-    int slice_step = 3;
-    int output_count = std::ceil(numberOfSlices / slice_step);
+    unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
+    unsigned int output_count = 1;
+    if (slice_step > 0)
+        output_count = std::ceil(numberOfSlices / slice_step);
 
     // initialise our images
     for (const auto &det : job->simManager->getDetectors()) {
@@ -433,7 +438,7 @@ void SimulationWorker<T>::doStem()
 
         if (pool.stop)
             return;
-        if ((i+1) % slice_step == 0) {
+        if (slice_step > 0 && (i+1) % slice_step == 0) {
             for (const auto &det : job->simManager->getDetectors()) {
                 std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 

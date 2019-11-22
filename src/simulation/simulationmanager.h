@@ -35,7 +35,8 @@ public:
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
               slice_offset(sm.slice_offset), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
-              dist(std::normal_distribution<>(0, 1)), use_double_precision(false)
+              dist(std::normal_distribution<>(0, 1)), use_double_precision(sm.use_double_precision),
+              intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
     {
         rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
 
@@ -51,6 +52,8 @@ public:
 
     SimulationManager& operator=(const SimulationManager& sm)
     {
+        intermediate_slices_enabled = sm.intermediate_slices_enabled;
+        intermediate_slices = sm.intermediate_slices;
         use_double_precision = sm.use_double_precision;
         Resolution = sm.Resolution;
         TdsRunsStem = sm.TdsRunsStem;
@@ -317,6 +320,13 @@ public:
     bool getDoDoublePrecision() {return use_double_precision;}
     void setDoDoublePrecision(bool ddp) {use_double_precision = ddp;}
 
+    unsigned int getUsedIntermediateSlices() {return intermediate_slices_enabled ? intermediate_slices : 0;}
+    unsigned int getIntermediateSlices() {return intermediate_slices;}
+    bool getIntermediateSlicesEnabled() {return intermediate_slices_enabled;}
+
+    void setIntermediateSlices(unsigned int is) {intermediate_slices = is;}
+    void setIntermediateSlicesEnabled(bool ise) {intermediate_slices_enabled = ise;}
+
 private:
     bool use_double_precision;
 
@@ -395,6 +405,11 @@ private:
     std::string ccd_name;
     int ccd_binning;
     double ccd_dose;
+
+    // Exporting intermediate slices
+
+    unsigned int intermediate_slices;
+    bool intermediate_slices_enabled;
 
     // Data return
 

@@ -10,7 +10,7 @@ SimulationManager::SimulationManager() : Resolution(256), completeJobs(0), defau
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(false),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
                                          slice_offset(0.0), structure_parameters_name("kirkland"), maintain_area(false),
-                                         dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM), use_double_precision(false)
+                                         dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
 {
     rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
 
