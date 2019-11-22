@@ -36,10 +36,10 @@ namespace JSONUtils {
         try { man.setSliceOffset( readJsonEntry<double>(j, "slice offset", "val") );
         } catch (std::exception& e) {}
 
-        try { man.setIntermediateSlices( readJsonEntry<double>(j, "intermediate output", "slice count") );
+        try { man.setIntermediateSlices( readJsonEntry<unsigned int>(j, "intermediate output", "slice interval") );
         } catch (std::exception& e) {}
 
-        try { man.setIntermediateSlicesEnabled( readJsonEntry<double>(j, "intermediate output", "enabled") );
+        try { man.setIntermediateSlicesEnabled( readJsonEntry<bool>(j, "intermediate output", "enabled") );
         } catch (std::exception& e) {}
 
         try { man.setFull3d( readJsonEntry<bool>(j, "full 3d", "state") );
@@ -338,11 +338,13 @@ namespace JSONUtils {
         j["slice offset"]["val"] = man.getSliceOffset();
         j["slice offset"]["units"] = "Å";
 
-        j["intermediate output"]["slice count"] = man.getIntermediateSlices();
+        j["slice count"] = man.getNumberofSlices();
+
+        j["intermediate output"]["slice interval"] = man.getIntermediateSlices();
         j["intermediate output"]["enabled"] = man.getIntermediateSlicesEnabled();
 
         j["maintain areas"] = man.getMaintainAreas();
-        
+
         auto xl = man.getPaddedSimLimitsX(0);
         auto yl = man.getPaddedSimLimitsY(0);
         auto zl = man.getPaddedStructLimitsZ(); // z never changes, so always is struct limits

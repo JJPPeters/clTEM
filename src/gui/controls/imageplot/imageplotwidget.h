@@ -35,8 +35,8 @@ class ImagePlotWidget : public QCustomPlot
     Q_OBJECT
 
 signals:
-    void saveDataClicked();
-    void saveImageClicked();
+    void saveDataClicked(bool);
+    void saveImageClicked(bool);
     void mouseHoverEvent(double, double);
 
 public:
@@ -74,34 +74,64 @@ public:
     }
 
     template <typename T>
-    void getData(std::vector<T>& out, int& sx, int& sy)
-    {
-        int c_l = 0;
-        int c_r = 0;
-        int c_t = 0;
-        int c_b = 0;
+    void getCurrentData(std::vector<T>& out, int& sx, int& sy) {
+        return getData(out, sx, sy, current_slice);
+    }
 
-        if (crop_image)
-        {
-            c_t = crop_t;
-            c_l = crop_l;
-            c_b = crop_b;
-            c_r = crop_r;
+    template <typename T>
+    void getData(std::vector<T>& out, int& sx, int& sy, int slice) {
+
+        if (is_complex) {
+            sx = data_complex.getWidth(crop_image);
+            sy = data_complex.getHeight(crop_image);
+            out = std::vector<T>(sx*sy);
+
+            // get cropped data
+            auto temp = calculateComplexData(slice, crop_image);
+            for (int i = 0; i < temp.size(); ++i)
+                out[i] = static_cast<T>(temp[i]);
+        } else {
+            sx = data_real.getWidth(crop_image);
+            sy = data_real.getHeight(crop_image);
+            out = std::vector<T>(sx*sy);
+
+            // get cropped data
+            auto temp = data_real.getSlice(slice, crop_image);
+            for (int i = 0; i < temp.size(); ++i)
+                out[i] = static_cast<T>(temp[i]);
         }
 
-        sx = ImageObject->data()->keySize() - c_l - c_r;
-        sy = ImageObject->data()->valueSize() - c_t - c_b;
-
-        out = std::vector<T>(sx*sy);
-
-        int cnt = 0;
-        for (int j = c_b; j < full_size_y-c_t; ++j)
-            for (int i = c_l; i < full_size_x-c_r; ++i)
-            {
-                out[cnt] = static_cast<T>(ImageObject->data()->cell(i, j));
-                ++cnt;
-            }
     }
+//
+//    template <typename T>
+//    void getData(std::vector<T>& out, int& sx, int& sy)
+//    {
+//        int c_l = 0;
+//        int c_r = 0;
+//        int c_t = 0;
+//        int c_b = 0;
+//
+//        if (crop_image)
+//        {
+//            c_t = crop_t;
+//            c_l = crop_l;
+//            c_b = crop_b;
+//            c_r = crop_r;
+//        }
+//
+//        sx = ImageObject->data()->keySize() - c_l - c_r;
+//        sy = ImageObject->data()->valueSize() - c_t - c_b;
+//
+//        out = std::vector<T>(sx*sy);
+//
+//        int cnt = 0;
+//        for (int j = c_b; j < full_size_y-c_t; ++j)
+//            for (int i = c_l; i < full_size_x-c_r; ++i)
+//            {
+//                out[cnt] = static_cast<T>(ImageObject->data()->cell(i, j));
+//                ++cnt;
+//            }
+//    }
 
     bool isComplex() {return is_complex;}
 
@@ -158,8 +188,10 @@ public slots:
     void resetAxes_slot() {resetAxes(true);} // this is purely for the slot...
 
     void exportTiff();
+    void exportTiffStack();
 
     void exportBmp();
+    void exportBmpStack();
 
 private slots:
     void contextMenuRequest(QPoint pos);
@@ -220,12 +252,21 @@ public:
         if (is_complex && data_complex.getDepth() > 1 && slice < data_complex.getDepth()) {
             im_d = calculateComplexData(slice);
         } else if (!is_complex && data_real.getDepth() > 1 && slice < data_real.getDepth()) {
-            im_d = data_real.getSlice(slice);
+            im_d = data_real.getSliceRef(slice);
         } else {
             return;
         }
 
+        current_slice = slice;
+
         SetImageData(im_d, true, false);
+    }
+
+    unsigned int getSliceCount() {
+        if (is_complex)
+            return data_complex.getDepth();
+        else
+            return data_real.getDepth();
     }
 
 private:
@@ -236,22 +277,24 @@ private:
     Image<double> data_real;
     Image<std::complex<double>> data_complex; // only used when we have a complex image
 
-    std::vector<double> calculateComplexData(unsigned int slice = 0) {
-        int sz = data_complex.getSliceSize();
+    std::vector<double> calculateComplexData(unsigned int slice = 0, bool crop = false) {
+        int sz = data_complex.getSliceSize(crop);
         std::vector<double> im_d(sz);
+
+        std::vector<std::complex<double>> im_c = data_complex.getSlice(slice, crop);
 
         if (complex_type == ShowComplex::Real) {
             for (int i = 0; i < sz; ++i)
-                im_d[i] = std::real(data_complex.getSlice(slice)[i]);
+                im_d[i] = std::real(im_c[i]);
         } else if (complex_type == ShowComplex::Imag) {
             for (int i = 0; i < sz; ++i)
-                im_d[i] = std::imag(data_complex.getSlice(slice)[i]);
+                im_d[i] = std::imag(im_c[i]);
         } else if (complex_type == ShowComplex::Amplitude) {
             for (int i = 0; i < sz; ++i)
-                im_d[i] = std::abs(data_complex.getSlice(slice)[i]);
+                im_d[i] = std::abs(im_c[i]);
         } else if (complex_type == ShowComplex::Phase) {
             for (int i = 0; i < sz; ++i)
-                im_d[i] = std::arg(data_complex.getSlice(slice)[i]);
+                im_d[i] = std::arg(im_c[i]);
         }
 
         return im_d;
@@ -289,7 +332,7 @@ private:
 
             SetImageData(im_d, redraw, reset);
         } else {
-            auto im_d = data_real.getSlice(slice);
+            auto im_d = data_real.getSliceRef(slice);
 
             std::valarray<unsigned int> pd = data_real.getPadding();
             crop_t = pd[0];

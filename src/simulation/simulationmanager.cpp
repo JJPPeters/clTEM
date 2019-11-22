@@ -162,13 +162,13 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
             CLOG(DEBUG, "sim") << "Copying data";
             for (int j = 0; j < current.getDepth(); ++j)
                 for (int k = 0; k < current.getSliceSize(); ++k)
-                    current.getSlice(j)[k] += im.getSlice(j)[k] / average_factor;
+                    current.getSliceRef(j)[k] += im.getSliceRef(j)[k] / average_factor;
             Images[i.first] = current;
         } else {
             CLOG(DEBUG, "sim") << "First time so creating image";
             auto new_averaged = i.second;
             for (int j = 0; j < new_averaged.getDepth(); ++j)
-                for (double &d : new_averaged.getSlice(j))
+                for (double &d : new_averaged.getSliceRef(j))
                     d /= average_factor; // need to average this as the image is created (if TDS)
             Images[i.first] = new_averaged;
         }

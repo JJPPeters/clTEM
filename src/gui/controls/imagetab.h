@@ -23,8 +23,8 @@ class ImageTab : public QWidget
     Q_OBJECT
 
 signals:
-    void saveDataActivated();
-    void saveImageActivated();
+    void saveDataActivated(bool);
+    void saveImageActivated(bool);
 
 public:
     explicit ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex = false);
@@ -103,8 +103,8 @@ private:
     void sliceSliderChanged(int value);
 
 public slots:
-    void forwardSaveData() { emit saveDataActivated(); }
-    void forwardSaveImage() { emit saveImageActivated(); }
+    void forwardSaveData(bool full_stack) { emit saveDataActivated(full_stack); }
+    void forwardSaveImage(bool full_stack) { emit saveImageActivated(full_stack); }
 
     void on_cmbComplex_currentIndexChanged(const QString &selection);
 

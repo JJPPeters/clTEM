@@ -187,12 +187,21 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
     menu->addAction("Reset zoom", this, &ImagePlotWidget::resetAxes_slot);
 
     if (haveImage) {
-        QMenu *save_menu = new QMenu("Export...", menu);
+        QMenu *save_menu_single = new QMenu("Export displayed...", menu);
 
-        save_menu->addAction("Data", this, &ImagePlotWidget::exportTiff);
-        save_menu->addAction("RGB", this, &ImagePlotWidget::exportBmp);
+        save_menu_single->addAction("Data", this, &ImagePlotWidget::exportTiff);
+        save_menu_single->addAction("RGB", this, &ImagePlotWidget::exportBmp);
 
-        menu->addMenu(save_menu);
+        menu->addMenu(save_menu_single);
+
+        if ((is_complex && data_complex.getDepth() > 1) || (!is_complex && data_real.getDepth() > 1)) {
+            QMenu *save_menu_stack = new QMenu("Export stack...", menu);
+
+            save_menu_stack->addAction("Data", this, &ImagePlotWidget::exportTiffStack);
+            save_menu_stack->addAction("RGB", this, &ImagePlotWidget::exportBmpStack);
+
+            menu->addMenu(save_menu_stack);
+        }
     }
 
     menu->popup(mapToGlobal(pos));
@@ -219,11 +228,19 @@ void ImagePlotWidget::cropImage(bool doReplot) {
 }
 
 void ImagePlotWidget::exportTiff() {
-    emit saveDataClicked();
+    emit saveDataClicked(false);
+}
+
+void ImagePlotWidget::exportTiffStack() {
+    emit saveDataClicked(true);
 }
 
 void ImagePlotWidget::exportBmp() {
-    emit saveImageClicked();
+    emit saveImageClicked(false);
+}
+
+void ImagePlotWidget::exportBmpStack() {
+    emit saveImageClicked(true);
 }
 
 void

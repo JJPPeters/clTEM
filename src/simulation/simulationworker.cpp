@@ -277,7 +277,7 @@ void SimulationWorker<T>::doCtem() {
     unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
     unsigned int output_count = 1;
     if (slice_step > 0)
-        output_count = std::ceil(numberOfSlices / slice_step);
+        output_count = std::ceil((float) numberOfSlices / slice_step);
 
     // Create our images here (as we will need to be updating them throughout the slice process)
     auto ew = Image<double>(resolution, resolution, output_count, im_crop[0], im_crop[1], im_crop[2], im_crop[3]);
@@ -297,12 +297,12 @@ void SimulationWorker<T>::doCtem() {
 
         // get data when we have the right number of slices (unless it is the end, that is always done after the loop)
         if (slice_step > 0 && (i + 1) % slice_step == 0) {
-            ew.getSlice(output_counter) = getExitWaveImage();
-            diff.getSlice(output_counter) = getDiffractionImage();
+            ew.getSliceRef(output_counter) = getExitWaveImage();
+            diff.getSliceRef(output_counter) = getDiffractionImage();
 
             if (sim_im) {
                 simulateCtemImage();
-                ctem_im.getSlice(output_counter) = getCtemImage();
+                ctem_im.getSliceRef(output_counter) = getCtemImage();
             }
 
             ++output_counter;
@@ -316,11 +316,11 @@ void SimulationWorker<T>::doCtem() {
 
     // get the final slice output
     if (output_counter < output_count) {
-        ew.getSlice(output_counter) = getExitWaveImage();
-        diff.getSlice(output_counter) = getDiffractionImage();
+        ew.getSliceRef(output_counter) = getExitWaveImage();
+        diff.getSliceRef(output_counter) = getDiffractionImage();
         if (sim_im) {
             simulateCtemImage();
-            ctem_im.getSlice(output_counter) = getCtemImage();
+            ctem_im.getSliceRef(output_counter) = getCtemImage();
         }
     }
     CLOG(DEBUG, "sim") << "Getting return images";
@@ -351,7 +351,7 @@ void SimulationWorker<T>::doCbed()
     unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
     unsigned int output_count = 1;
     if (slice_step > 0)
-        output_count = std::ceil(numberOfSlices / slice_step);
+        output_count = std::ceil((float) numberOfSlices / slice_step);
 
     auto diff = Image<double>(resolution, resolution, output_count);
 
@@ -365,7 +365,7 @@ void SimulationWorker<T>::doCbed()
             return;
 
         if (slice_step > 0 && (i+1) % slice_step == 0) {
-            diff.getSlice(output_counter) = getDiffractionImage();
+            diff.getSliceRef(output_counter) = getDiffractionImage();
 
             output_counter++;
         }
@@ -377,7 +377,7 @@ void SimulationWorker<T>::doCbed()
     }
 
     if (output_counter < output_count)
-        diff.getSlice(output_counter) = getDiffractionImage();
+        diff.getSliceRef(output_counter) = getDiffractionImage();
 
     Images.insert(return_map::value_type("Diff", diff));
 
@@ -410,7 +410,7 @@ void SimulationWorker<T>::doStem()
     unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
     unsigned int output_count = 1;
     if (slice_step > 0)
-        output_count = std::ceil(numberOfSlices / slice_step);
+        output_count = std::ceil((float) numberOfSlices / slice_step);
 
     // initialise our images
     for (const auto &det : job->simManager->getDetectors()) {
@@ -446,7 +446,7 @@ void SimulationWorker<T>::doStem()
                     im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j);
                 }
 
-                Images[det.name].getSlice(output_counter) = im;
+                Images[det.name].getSliceRef(output_counter) = im;
             }
             ++output_counter;
         }
@@ -468,7 +468,7 @@ void SimulationWorker<T>::doStem()
                 im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
             }
 
-            Images[det.name].getSlice(output_counter) = im;
+            Images[det.name].getSliceRef(output_counter) = im;
         }
     }
 

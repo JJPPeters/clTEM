@@ -115,9 +115,9 @@ private slots:
 
     void simulationFailed();
 
-    void saveTiff();
+    void saveTiff(bool full_stack);
 
-    void saveBmp();
+    void saveBmp(bool full_stack);
 
 private:
     FlatTitleBar *m_title;

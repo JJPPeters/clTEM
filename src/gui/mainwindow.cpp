@@ -424,9 +424,9 @@ void MainWindow::imagesChanged(SimulationManager sm)
                         // convert our float data to complex
                         std::vector<std::complex<double>> comp_data(im.getSliceSize());
                         for (int ii = 0; ii < comp_data.size(); ++ii)
-                            comp_data[ii] = std::complex<double>(im.getSlice(jj)[2 * ii], im.getSlice(jj)[2 * ii + 1]);
+                            comp_data[ii] = std::complex<double>(im.getSliceRef(jj)[2 * ii], im.getSliceRef(jj)[2 * ii + 1]);
 
-                        comp_im.getSlice(jj) = comp_data;
+                        comp_im.getSliceRef(jj) = comp_data;
                     }
 
                     double lx = sm.getPaddedSimLimitsX(0)[0];
@@ -669,7 +669,7 @@ void MainWindow::set_ctem_crop(bool state) {
     }
 }
 
-void MainWindow::saveTiff() {
+void MainWindow::saveTiff(bool full_stack) {
     auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
@@ -692,14 +692,38 @@ void MainWindow::saveTiff() {
     int sx, sy;
     std::vector<float> data;
 
-    origin->getPlot()->getData(data, sx, sy); // get data
-    fileio::SaveTiff<float>(fo+".tif", data, sx, sy); // save data
     nlohmann::json j_settings = origin->getSettings(); // get settings
     fileio::SaveSettingsJson(fo+".json", j_settings); // save settings
+
+    if (full_stack) {
+        // calculate the slice count of this output
+        auto si = JSONUtils::readJsonEntry<unsigned int>(j_settings, "intermediate output", "slice interval");
+        auto sc = JSONUtils::readJsonEntry<unsigned int>(j_settings, "slice count");
+        if (si < 1)
+            throw std::runtime_error("Saving stack with < 0 slice step.");
+
+        int out_string_len = Utils::numToString(sc-1).size();
+
+        for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
+            origin->getPlot()->getData(data, sx, sy, i); // get data
+
+            // get the name to use for the output
+            //  remember we don't start getting slices from the first slice
+            unsigned int slice_id = (i+1)*si-1;
+            if (slice_id >= sc)
+                slice_id = sc-1;
+            std::string temp = Utils::uintToString(slice_id, out_string_len);
+
+            fileio::SaveTiff<float>(fo+temp+".tif", data, sx, sy); // save data
+        }
+
+    } else {
+        origin->getPlot()->getCurrentData(data, sx, sy); // get data
+        fileio::SaveTiff<float>(fo+".tif", data, sx, sy); // save data
+    }
 }
 
-void MainWindow::saveBmp() {
-    // csat our sender to check this is all valid and good
+void MainWindow::saveBmp(bool full_stack) {
     auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
@@ -711,25 +735,46 @@ void MainWindow::saveBmp() {
 
     QFileInfo temp(filepath);
     settings.setValue("dialog/currentSavePath", temp.path());
+    std::string fo = filepath.toStdString();
 
-    std::string f = filepath.toStdString();
     // I feel that there should be a better way for this...
-    if (f.substr((f.length() - 4)) != ".bmp")
-        f.append(".bmp");
+    // get the filepath without the extension (if it is there)
+    if (fo.substr(fo.length() - 4) == ".bmp")
+        fo = fo.substr(0, fo.length() - 4);
 
-    // now get the data by reference
+    // set up where we will get our data
     int sx, sy;
     std::vector<float> data;
-    origin->getPlot()->getData(data, sx, sy);
 
-    // and save
-    fileio::SaveBmp(f, data, sx, sy);
+    nlohmann::json j_settings = origin->getSettings(); // get settings
+    fileio::SaveSettingsJson(fo + ".json", j_settings); // save settings
 
-    // change the extension an save settings!
-    f.append("n");
-    f.replace(f.end()-5, f.end(), ".json");
-    nlohmann::json test = origin->getSettings();
-    fileio::SaveSettingsJson(f, test);
+    if (full_stack) {
+        // calculate the slice count of this output
+        auto si = JSONUtils::readJsonEntry<unsigned int>(j_settings, "intermediate output", "slice interval");
+        auto sc = JSONUtils::readJsonEntry<unsigned int>(j_settings, "slice count");
+        if (si < 1)
+            throw std::runtime_error("Saving stack with < 0 slice step.");
+
+        int out_string_len = Utils::numToString(sc-1).size();
+
+        for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
+            origin->getPlot()->getData(data, sx, sy, i); // get data
+
+            // get the name to use for the output
+            //  remember we don't start getting slices from the first slice
+            unsigned int slice_id = (i+1)*si-1;
+            if (slice_id >= sc)
+                slice_id = sc-1;
+            std::string temp = Utils::uintToString(slice_id, out_string_len);
+
+            fileio::SaveBmp(fo + temp + ".bmp", data, sx, sy); // save data
+        }
+
+    } else {
+        origin->getPlot()->getCurrentData(data, sx, sy); // get data
+        fileio::SaveBmp(fo + ".bmp", data, sx, sy); // save data
+    }
 }
 
 void MainWindow::on_actionGeneral_triggered() {

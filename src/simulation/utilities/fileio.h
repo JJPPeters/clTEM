@@ -17,6 +17,8 @@
 
 #include "json.hpp"
 
+#include "stringutils.h"
+
 namespace fileio //D:
 {
     using json = nlohmann::json;
@@ -24,6 +26,19 @@ namespace fileio //D:
     void SaveSettingsJson(std::string filepath, json man);
 
     json OpenSettingsJson(std::string filepath);
+
+//    template <typename T_out, typename T_in>
+//    void SaveTiffStack(std::string folderpath, Image<T_in> data, unsigned int index_increment) {
+//
+////        if (!Utils::stringEndsWith(folderpath, sep))
+////            folderpath += sep;
+//
+//        for (int i = 0; i < data.getDepth(); ++i) {
+//            std::string out_file = folderpath + Utils::numToString(i);
+//            SaveTiff(out_file, data.getSliceRef(i), data.getWidth(), data.getHeight());
+//        }
+//
+//    }
 
     template <typename T_out, typename T_in>
     void SaveTiff(const std::string &filepath, std::vector<T_in> data, unsigned int size_x, unsigned int size_y)

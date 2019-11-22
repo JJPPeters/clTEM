@@ -92,21 +92,46 @@ public:
 //        data.push_back(im);
 //    }
 
-    unsigned int getSliceSize() {return width * height;}
+    unsigned int getCroppedSliceSize() {return getCroppedWidth() * getCroppedHeight();}
+    unsigned int getSliceSize(bool crop = false) {
+        if (crop)
+            return getCroppedSliceSize();
+        else
+            return width * height;
+    }
 
     std::valarray<unsigned int> getDimensions() { return {getWidth(), getHeight(), getDepth()}; }
     std::valarray<unsigned int> getCroppedDimensions() { return {getCroppedWidth(), getCroppedHeight(), getDepth()}; }
 
-    unsigned int getWidth() {return width;}
-    unsigned int getHeight() {return height;}
+    unsigned int getWidth(bool crop = false) {if(crop) return getCroppedWidth(); else return width;}
+    unsigned int getHeight(bool crop = false) {if(crop) return getCroppedHeight(); else return height;}
     unsigned int getDepth() {return depth;}
     unsigned int getCroppedWidth() {return width - pad_l - pad_r;}
     unsigned int getCroppedHeight() {return height - pad_t - pad_b;}
 
     std::valarray<unsigned int> getPadding() { return {pad_t, pad_l, pad_b, pad_r}; }
 
-    std::vector<T>& getSlice(unsigned int slice = 0) {
+    std::vector<T>& getSliceRef(unsigned int slice = 0) {
         return data[slice];
+    }
+
+    std::vector<T> getSlice(unsigned int slice = 0, bool crop = false) {
+        if (crop)
+            return getCroppedSlice(slice);
+        return data[slice];
+    }
+
+    std::vector<T> getCroppedSlice(unsigned int slice = 0) {
+
+        std::vector<T> out(getCroppedSliceSize());
+
+        unsigned int counter = 0;
+        for (int j = pad_b; j < getHeight()-pad_t; ++j)
+            for (int i = pad_l; i < getWidth() - pad_r; ++i) {
+                unsigned int index = j * getWidth() + i;
+                out[counter] = data[slice][index];
+                counter++;
+            }
     }
 
 private:

@@ -10,6 +10,9 @@
 
 namespace Utils
 {
+    // https://stackoverflow.com/a/20446239
+    bool stringEndsWith(const std::string &str, const std::string &suffix);
+
     std::vector<std::string> splitStringSpace(const std::string &in);
 
     // Taken from http://stackoverflow.com/a/6089413
@@ -28,6 +31,8 @@ namespace Utils
             oss << num;
         return oss.str();
     }
+
+    std::string uintToString(unsigned int num, unsigned int width = 0);
 
     std::string resourceToChar(std::string full_directory, std::string fileName);
 

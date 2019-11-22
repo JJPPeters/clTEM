@@ -183,7 +183,7 @@ void imageReturned(SimulationManager sm)
                 std::vector<float> arg(im.getSliceSize() / 2);
 
                 for (int j = 0; j < im.getSliceSize(); j+=2) {
-                    auto cval = std::complex<float>(im.getSlice()[j], im.getSlice()[j+1]);
+                    auto cval = std::complex<float>(im.getSliceRef()[j], im.getSliceRef()[j + 1]);
                     abs[j / 2] = std::abs(cval);
                     arg[j / 2] = std::arg(cval);
                 }
@@ -194,7 +194,7 @@ void imageReturned(SimulationManager sm)
                 fileio::SaveTiff<float>(out_name + "_phase.tif", arg, im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + "_phase.json", settings);
             } else {
-                fileio::SaveTiff<float>(out_name + ".tif", im.getSlice(), im.getWidth(), im.getHeight());
+                fileio::SaveTiff<float>(out_name + ".tif", im.getSliceRef(), im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + ".json", settings);
             }
         } catch (std::runtime_error &e) {

@@ -4,6 +4,28 @@
 
 namespace Utils
 {
+    bool stringEndsWith(const std::string &str, const std::string &suffix) {
+        return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+    }
+
+    std::string uintToString(unsigned int num, unsigned int width)
+    {
+        std::ostringstream oss;
+        oss << num;
+        std::string out = oss.str();
+
+        if (out.size() > width)
+            return out;
+        else {
+            int rmndr = out.size() - width;
+            std::string new_out = "";
+            for (int i = 0; i < rmndr; ++i)
+                new_out += "0";
+            new_out += out;
+
+            return new_out;
+        }
+    }
 
     // https://stackoverflow.com/questions/236129/the-most-elegant-way-to-iterate-the-words-of-a-string
     // split a string by the whitespace
