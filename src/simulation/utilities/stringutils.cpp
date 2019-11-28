@@ -17,7 +17,7 @@ namespace Utils
         if (out.size() > width)
             return out;
         else {
-            int rmndr = out.size() - width;
+            int rmndr = width - out.size();
             std::string new_out = "";
             for (int i = 0; i < rmndr; ++i)
                 new_out += "0";
