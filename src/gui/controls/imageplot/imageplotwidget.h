@@ -97,6 +97,13 @@ public:
 
             // get cropped data
             auto temp = data_real.getSlice(slice, crop_image);
+
+            int s_out = out.size();
+            int s_in = temp.size();
+
+            if (s_out != s_in)
+                throw std::runtime_error("Getting data of incorrect size");
+
             for (int i = 0; i < temp.size(); ++i)
                 out[i] = static_cast<T>(temp[i]);
         }
@@ -270,7 +277,7 @@ public:
     }
 
 private:
-    bool is_complex = false;
+    bool is_complex;
 
     ShowComplex complex_type;
 

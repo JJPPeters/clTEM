@@ -25,6 +25,7 @@ ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
     yAxis->setRange(-500, 500);
 
     matchPlotToPalette();
+    is_complex = false;
 
     axisRect()->setAutoMargins(QCP::msNone);
     // minus 10 means we can't accidentally scroll on it...

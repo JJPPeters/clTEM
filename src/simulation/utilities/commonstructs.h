@@ -42,6 +42,9 @@ public:
 
         data.resize(d);
 
+        for(auto& slice: data)
+            slice.resize(w*h);
+
         pad_t = pt;
         pad_l = pl;
         pad_b = pb;
@@ -132,9 +135,12 @@ public:
                 out[counter] = data[slice][index];
                 counter++;
             }
+
+        return out;
     }
 
 private:
+    // bool is_complex; // this sets if the data is interleaved complex (i.e. real->img->real->imag etc...)
     unsigned int width;
     unsigned int height;
     unsigned int depth;

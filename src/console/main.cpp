@@ -132,6 +132,41 @@ void reportTotalProgress(double frac)
         std::cout << std::endl;
 }
 
+void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_settings) {
+
+    if (filename.substr(filename.length() - 4) == ".tif")
+        filename = filename.substr(0, filename.length() - 4);
+
+    if (im.getDepth() > 1) {
+
+        // calculate the slice count of this output
+        auto si = JSONUtils::readJsonEntry<unsigned int>(j_settings, "intermediate output", "slice interval");
+        auto sc = JSONUtils::readJsonEntry<unsigned int>(j_settings, "slice count");
+        if (si < 1)
+            throw std::runtime_error("Saving stack with < 0 slice step.");
+
+        int out_string_len = Utils::numToString(sc-1).size();
+
+        std::vector<double> data;
+
+        for (int i = 0; i < im.getSliceSize(); ++i) {
+            data = im.getSlice(i, false);
+
+            // get the name to use for the output
+            //  remember we don't start getting slices from the first slice
+            unsigned int slice_id = (i+1)*si-1;
+            if (slice_id >= sc)
+                slice_id = sc-1;
+            std::string temp = Utils::uintToString(slice_id, out_string_len);
+
+            fileio::SaveTiff<float>(filename+"_"+temp+".tif", data, im.getWidth(), im.getHeight()); // save data
+        }
+
+    } else {
+        fileio::SaveTiff<float>(filename+".tif", im.getSlice(0, false), im.getWidth(), im.getHeight()); // save data
+    }
+}
+
 void imageReturned(SimulationManager sm)
 {
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
@@ -179,23 +214,27 @@ void imageReturned(SimulationManager sm)
                 if (im.getSliceSize() % 2 != 0)
                     throw std::runtime_error("Attempting to save complex image with non equal real and imaginary parts.");
 
-                std::vector<float> abs(im.getSliceSize() / 2);
-                std::vector<float> arg(im.getSliceSize() / 2);
+                auto im_d = im.getDimensions();
 
-                for (int j = 0; j < im.getSliceSize(); j+=2) {
-                    auto cval = std::complex<float>(im.getSliceRef()[j], im.getSliceRef()[j + 1]);
-                    abs[j / 2] = std::abs(cval);
-                    arg[j / 2] = std::arg(cval);
-                }
+                Image<double> abs(im_d[0], im_d[1], im_d[2]);
+                Image<double> arg(im_d[0], im_d[1], im_d[2]);
 
-                fileio::SaveTiff<float>(out_name + "_amplitude.tif", abs, im.getWidth(), im.getHeight());
+                for (int j = 0; j < im.getDepth(); j+=2)
+                    for (int k = 0; k < im.getSliceSize(); k+=2) {
+                        auto cval = std::complex<double>(im.getSliceRef(j)[k], im.getSliceRef(j)[k + 1]);
+                        abs.getSliceRef(j)[k / 2] = std::abs(cval);
+                        arg.getSliceRef(j)[k / 2] = std::arg(cval);
+                    }
+
+
                 fileio::SaveSettingsJson(out_name + "_amplitude.json", settings);
-
-                fileio::SaveTiff<float>(out_name + "_phase.tif", arg, im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + "_phase.json", settings);
+
+                saveTiffOutput(out_name+"_amplitude", abs, settings);
+                saveTiffOutput(out_name+"_phase", arg, settings);
             } else {
-                fileio::SaveTiff<float>(out_name + ".tif", im.getSliceRef(), im.getWidth(), im.getHeight());
                 fileio::SaveSettingsJson(out_name + ".json", settings);
+                saveTiffOutput(out_name, im, settings);
             }
         } catch (std::runtime_error &e) {
             std::cout << "Error saving image: " << e.what() << std::endl;
