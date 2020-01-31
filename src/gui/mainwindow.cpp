@@ -522,7 +522,7 @@ void MainWindow::loadSavedOpenClSettings()
     settings.beginGroup("opencl");
     QStringList devs = settings.childGroups();
     std::vector<clDevice> dev_list;
-    auto present_devs = ClManager::getDeviceList();
+    auto present_devs = OpenCL::GetDeviceList();
     for (int i = 0; i < devs.size(); ++i)
     {
         int dev_num = settings.value(devs[i] + "/device").toInt();

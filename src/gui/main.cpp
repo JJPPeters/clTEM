@@ -2,7 +2,6 @@
 #include <QApplication>
 #include <iostream>
 #include <QtWidgets/QMessageBox>
-#include <clmanager.h>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <controls/borderlesswindow.h>
@@ -64,7 +63,7 @@ int main(int argc, char *argv[]) {
 
     // this tests for opencl, if we dont have it, then there is no point in loading the program
     try {
-        ClManager::getDeviceList();
+        OpenCL::GetDeviceList();
     } catch (const std::exception& e) {
         // TODO: later, this shouldn't exit but should just disable everything relevant
         CLOG(ERROR, "gui") << "Could not find OpenCL: " << e.what();

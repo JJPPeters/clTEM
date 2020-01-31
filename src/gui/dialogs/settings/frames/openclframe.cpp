@@ -9,7 +9,6 @@
 #include "utilities/stringutils.h"
 
 #include "clwrapper.h"
-#include "clmanager.h"
 
 // TODO: construct from list of devices/platforms and occupy the list
 
@@ -122,7 +121,7 @@ void OpenClFrame::populatePlatformCombo()
 {
     ui->cmbPlatform->clear();
     // get list of opencl Devices
-    Devices = ClManager::getDeviceList();
+    Devices = OpenCL::GetDeviceList();
 
     // Handles platforms
     for (clDevice d : Devices)

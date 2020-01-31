@@ -203,9 +203,9 @@ struct MicroscopeParameters {
     // Beam tilt azimuth (rad)
     double BeamAzimuth;
 
-    //Convergence angle (?)
+    //Convergence angle (mrad)
     double Alpha;
-    //Defocus spread (?)
+    //Defocus spread (Angstroms)
     double Delta;
 
     //Calculate wavelength (Angstroms)
