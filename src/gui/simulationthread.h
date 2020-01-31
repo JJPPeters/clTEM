@@ -4,7 +4,7 @@
 
 #include <QThread>
 #include <QMutex>
-#include <simulationrunner.h>
+#include <threading/simulationrunner.h>
 #include "simulationmanager.h"
 #include "utilities/logging.h"
 

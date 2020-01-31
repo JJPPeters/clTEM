@@ -12,7 +12,7 @@
 #include "parseopencl.h"
 
 #include <boost/filesystem.hpp>
-#include <simulationrunner.h>
+#include <threading/simulationrunner.h>
 #include <structure/structureparameters.h>
 #include <kernels.h>
 #ifdef _WIN32

@@ -9,7 +9,7 @@
 
 #include <complex>
 
-#include "threadworker.h"
+#include "threading/threadworker.h"
 #include "clwrapper.h"
 #include "utilities/logging.h"
 

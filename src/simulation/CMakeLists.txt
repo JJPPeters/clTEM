@@ -38,7 +38,10 @@ set(SIM_HDRS
         utilities/commonstructs.h
         utilities/stringutils.h
         utilities/structureutils.h
-        threadworker.h
+        threading/simulationrunner.h
+        threading/threadpool.h
+        threading/threadworker.h
+        threading/simulationjob.h
         )
 
 set(SIM_SCRS
@@ -47,12 +50,14 @@ set(SIM_SCRS
         utilities/commonstructs.cpp
         utilities/stringutils.cpp
         utilities/structureutils.cpp
-        simulationrunner.cpp
+        threading/simulationrunner.cpp
+        threading/threadpool.cpp
+        threading/threadworker.cpp
+        threading/simulationjob.cpp
 #        simulations/ctemsimulation.cpp
 #        simulations/stemsimulation.cpp
 #        simulations/microscopesimulation.cpp
-        threadworker.cpp
-        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h utilities/logging.cpp utilities/logging.h utilities/simutils.cpp utilities/simutils.h)
+        simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h utilities/logging.cpp utilities/logging.h utilities/simutils.cpp utilities/simutils.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 
