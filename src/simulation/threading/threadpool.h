@@ -31,10 +31,11 @@ public:
 
     void stopThreads();
 
+    bool isStopped() {return stop;}
+    void setStopped(bool s = true) {stop = s;}
+
 private:
     friend class ThreadWorker;
-    template <class T>
-    friend class SimulationWorker;
 
     std::vector<std::thread> workers;
 

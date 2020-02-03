@@ -33,31 +33,65 @@ endif()
 
 set(SIM_HDRS
         simulationmanager.h
+        kernels.h
+        ccdparams.h
+        #
         structure/crystalstructure.h
         structure/atom.h
+        structure/structureparameters.h
+        structure/thermalvibrations.h
+        #
         utilities/commonstructs.h
         utilities/stringutils.h
         utilities/structureutils.h
+        utilities/fileio.h
+        utilities/enums.h
+        utilities/jsonutils.h
+        utilities/vectorutils.h
+        utilities/logging.h
+        utilities/simutils.h
+        #
         threading/simulationrunner.h
         threading/threadpool.h
         threading/threadworker.h
         threading/simulationjob.h
+        #
+        microscope/simulationgeneral.h
+        microscope/simulationworker.h
+        microscope/simulationctem.h
+        microscope/simulationcbed.h
+        microscope/simulationstem.h
         )
 
 set(SIM_SCRS
         simulationmanager.cpp
+        kernels.cpp
+        ccdparams.cpp
+        #
         structure/crystalstructure.cpp
+        structure/structureparameters.cpp
+        structure/thermalvibrations.cpp
+        #
         utilities/commonstructs.cpp
         utilities/stringutils.cpp
         utilities/structureutils.cpp
+        utilities/fileio.cpp
+        utilities/jsonutils.cpp
+        utilities/vectorutils.cpp
+        utilities/logging.cpp
+        utilities/simutils.cpp
+        #
         threading/simulationrunner.cpp
         threading/threadpool.cpp
         threading/threadworker.cpp
         threading/simulationjob.cpp
-#        simulations/ctemsimulation.cpp
-#        simulations/stemsimulation.cpp
-#        simulations/microscopesimulation.cpp
-        simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h utilities/logging.cpp utilities/logging.h utilities/simutils.cpp utilities/simutils.h)
+        #
+        microscope/simulationgeneral.cpp
+        microscope/simulationworker.cpp
+        microscope/simulationctem.cpp
+        microscope/simulationcbed.cpp
+        microscope/simulationstem.cpp
+        )
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 
