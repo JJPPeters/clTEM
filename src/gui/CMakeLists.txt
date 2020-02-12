@@ -83,6 +83,7 @@ set ( clTEM_SRCS
         dialogs/settings/frames/thermalscatteringframe.cpp
         dialogs/settings/frames/arealayoutframe.cpp
         dialogs/settings/frames/cifcreatorframe.cpp
+        dialogs/settings/frames/plasmonsettingsframe.cpp
         utils/stringutils.cpp
         utils/guiutils.cpp
         controls/editunitsbox.cpp
@@ -111,6 +112,7 @@ set ( clTEM_UIS
         dialogs/settings/frames/arealayoutframe.ui
         dialogs/settings/frames/thermalscatteringframe.ui
         dialogs/settings/frames/generalsettingsframe.ui
+        dialogs/settings/frames/plasmonsettingsframe.ui
         )
 
 IF(WIN32)

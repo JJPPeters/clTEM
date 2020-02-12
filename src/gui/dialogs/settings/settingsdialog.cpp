@@ -124,6 +124,18 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
 }
 
 
+PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+        SettingsDialog(parent)
+{
+    PlasmonFrame = new PlasmonSettingsFrame(this, simManager);
+    ui->vLayout->insertWidget(0, PlasmonFrame);
+
+    this->setWindowTitle("Plasmons");
+
+    this->setFixedSize(this->minimumSizeHint());
+}
+
+
 void StemAreaDialog::coreStemAreaChanged()
 {
     emit stemAreaChanged();

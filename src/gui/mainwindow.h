@@ -93,6 +93,8 @@ private slots:
 
     void on_actionThermal_scattering_triggered();
 
+    void on_actionPlasmons_triggered();
+
     void on_actionSimulate_EW_triggered();
 
     void cancel_simulation();

@@ -902,6 +902,11 @@ void MainWindow::on_actionThermal_scattering_triggered() {
     myDialog->exec();
 }
 
+void MainWindow::on_actionPlasmons_triggered() {
+    PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
+    myDialog->exec();
+}
+
 void MainWindow::updateVoltageMrad(double voltage) {
     if (!Manager->haveStructure() || !Manager->haveResolution())
         return;

@@ -12,6 +12,7 @@
 #include "dialogs/settings/frames/fullaberrationframe.h"
 #include "dialogs/settings/frames/cifcreatorframe.h"
 #include "dialogs/settings/frames/generalsettingsframe.h"
+#include "dialogs/settings/frames/plasmonsettingsframe.h"
 
 #include <structure/crystalstructure.h>
 #include <controls/borderlessdialog.h>
@@ -125,6 +126,17 @@ public:
 };
 
 
+class PlasmonDialog : public SettingsDialog
+{
+Q_OBJECT
+
+private:
+    PlasmonSettingsFrame* PlasmonFrame;
+
+public:
+    explicit PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
+
+};
 
 
 class SimAreaDialog : public SettingsDialog

@@ -205,6 +205,7 @@
     </property>
     <addaction name="actionGeneral"/>
     <addaction name="actionThermal_scattering"/>
+    <addaction name="actionPlasmons"/>
     <addaction name="actionSet_area"/>
     <addaction name="actionAberrations"/>
     <addaction name="separator"/>
@@ -367,6 +368,11 @@
   <action name="actionShow_default">
    <property name="text">
     <string>Show default config</string>
+   </property>
+  </action>
+  <action name="actionPlasmons">
+   <property name="text">
+    <string>Plasmons</string>
    </property>
   </action>
  </widget>
