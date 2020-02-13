@@ -1,7 +1,6 @@
 #include <dialogs/settings/settingsdialog.h>
 #ifdef _WIN32
 #include <theme/thememanager.h>
-#include <utils/rangevalidator.h>
 
 #endif
 #include "plasmonsettingsframe.h"
@@ -32,8 +31,7 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
     ui->edtCombinedIterations->setValidator(pIntValidator);
 
     // sort out our number lsit text box (like a printer page select dialog)
-//    QRegExpValidator* iListValidator = new QRegExpValidator(QRegExp(R"([0-9,-]*)"));
-    auto iListValidator = new RangeValidator();
+    QRegExpValidator* iListValidator = new QRegExpValidator(QRegExp(R"([0-9,-]*)"));
 
     ui->edtIndividualList->setValidator(iListValidator);
 
