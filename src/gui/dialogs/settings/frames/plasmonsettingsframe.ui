@@ -27,24 +27,8 @@
        <string>Tab 1</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="2" column="1" colspan="2">
-        <widget class="QLabel" name="lblMultisampling">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Characteristic scattering angle: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="2">
-        <widget class="QCheckBox" name="checkBox_2">
+        <widget class="QCheckBox" name="chkCombined">
          <property name="text">
           <string/>
          </property>
@@ -90,32 +74,16 @@
         </spacer>
        </item>
        <item row="5" column="4">
-        <widget class="QLineEdit" name="lineEdit_5"/>
-       </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QLabel" name="lblTheme">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Mean free path:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
+        <widget class="QLineEdit" name="edtIndividualList"/>
        </item>
        <item row="4" column="4">
-        <widget class="QLineEdit" name="lineEdit_4"/>
+        <widget class="QLineEdit" name="edtCombinedIterations"/>
        </item>
        <item row="1" column="4">
-        <widget class="QLineEdit" name="lineEdit"/>
+        <widget class="EditUnitsBox" name="edtMeanFreePath"/>
        </item>
        <item row="5" column="2">
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="chkIndividual">
          <property name="text">
           <string/>
          </property>
@@ -135,29 +103,13 @@
         </spacer>
        </item>
        <item row="2" column="4">
-        <widget class="QLineEdit" name="lineEdit_2"/>
+        <widget class="EditUnitsBox" name="edtCharacteristicAngle"/>
        </item>
        <item row="3" column="4">
-        <widget class="QLineEdit" name="lineEdit_3"/>
-       </item>
-       <item row="3" column="1" colspan="2">
-        <widget class="QLabel" name="lblMultisampling_2">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Critical scattering angle: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
+        <widget class="EditUnitsBox" name="edtCriticalAngle"/>
        </item>
        <item row="4" column="1">
-        <widget class="QLabel" name="lblMultisampling_3">
+        <widget class="QLabel" name="label_5">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -172,8 +124,24 @@
          </property>
         </widget>
        </item>
+       <item row="2" column="1" colspan="3">
+        <widget class="QLabel" name="label_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Characteristic scattering angle: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
        <item row="5" column="3">
-        <widget class="QLabel" name="lblMultisampling_6">
+        <widget class="QLabel" name="label_1">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -188,8 +156,24 @@
          </property>
         </widget>
        </item>
+       <item row="5" column="1">
+        <widget class="QLabel" name="label_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Simulate individual: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
        <item row="4" column="3">
-        <widget class="QLabel" name="lblMultisampling_5">
+        <widget class="QLabel" name="label_7">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -204,8 +188,8 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QLabel" name="lblMultisampling_4">
+       <item row="3" column="1" colspan="3">
+        <widget class="QLabel" name="label_4">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -213,7 +197,23 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Simulate individual: </string>
+          <string>Critical scattering angle: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="3">
+        <widget class="QLabel" name="label_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Mean free path:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -232,6 +232,11 @@
    <extends>QTabWidget</extends>
    <header>controls/tabpanel.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

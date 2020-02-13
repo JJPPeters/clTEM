@@ -91,7 +91,7 @@ set(SIM_SCRS
         microscope/simulationctem.cpp
         microscope/simulationcbed.cpp
         microscope/simulationstem.cpp
-        )
+        structure/plasmons.cpp structure/plasmons.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 

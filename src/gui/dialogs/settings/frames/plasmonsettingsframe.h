@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <simulationmanager.h>
 #include <structure/structureparameters.h>
+#include <structure/plasmons.h>
 
 
 namespace Ui {
@@ -27,6 +28,8 @@ public:
 
 private:
     Ui::PlasmonSettingsFrame *ui;
+
+    std::shared_ptr<Plasmons> test;
 };
 
 #endif // PLASMONSETTINGSFRAME_H
