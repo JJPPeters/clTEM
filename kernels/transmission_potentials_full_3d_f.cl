@@ -116,11 +116,12 @@ float peng(__constant float* params, int ZNum, float rad) {
     for(i=0; i<5; ++i) {
         float a = params[(ZNum-1)*10+i];
         float b = params[(ZNum-1)*10+i+5];
+        float b_inv_root = native_rsqrt(b);
 
-        sum += a * native_exp(-x * native_recip(b));
+        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-x * native_recip(b));
     }
 
-    return 1844.76074609315f * sum;
+    return 266.5157269f * sum;
 }
 
 __kernel void transmission_potentials_full_3d_f( __global float2* potential,

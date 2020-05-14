@@ -223,11 +223,12 @@ double peng(__constant double* params, int ZNum, double rad) {
     for(i=0; i<5; ++i) {
         double a = params[(ZNum-1)*10+i];
         double b = params[(ZNum-1)*10+i+5];
+        double b_inv = native_recip(b);
 
-        sum += a * native_sqrt(b) * native_exp(-x * native_recip(b));
+        sum += a * b_inv * native_exp(-x * b_inv);
     }
 
-    return 1040.79479708354 * sum;
+    return 150.4121417 * sum;
 }
 
 __kernel void transmission_potentials_projected_d( __global double2* potential,

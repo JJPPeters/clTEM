@@ -224,11 +224,12 @@ float peng(__constant float* params, int ZNum, float rad) {
     for(i=0; i<5; ++i) {
         float a = params[(ZNum-1)*10+i];
         float b = params[(ZNum-1)*10+i+5];
+        float b_inv = native_recip(b);
 
-        sum += a * native_sqrt(b) * native_exp(-x * native_recip(b));
+        sum += a * b_inv * native_exp(-x * b_inv);
     }
 
-    return 1040.79479708354f * sum;
+    return 150.4121417f * sum;
 }
 
 __kernel void transmission_potentials_projected_f( __global float2* potential,

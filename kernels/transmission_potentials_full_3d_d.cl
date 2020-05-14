@@ -116,11 +116,12 @@ double peng(__constant double* params, int ZNum, double rad) {
     for(i=0; i<5; ++i) {
         double a = params[(ZNum-1)*10+i];
         double b = params[(ZNum-1)*10+i+5];
+        double b_inv_root = native_rsqrt(b);
 
-        sum += a * native_exp(-x * native_recip(b));
+        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-x * native_recip(b));
     }
 
-    return 1844.76074609315 * sum;
+    return 266.5157269 * sum;
 }
 
 __kernel void transmission_potentials_full_3d_d( __global double2* potential,
