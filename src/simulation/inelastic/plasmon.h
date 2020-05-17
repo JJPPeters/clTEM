@@ -44,16 +44,16 @@ private:
 public:
 
     PlasmonScattering() {
-        plasmons_enabled = true;//false;
+        plasmons_enabled = false;
 
-        mean_free_path = 10;//0;
-        characteristic_angle = 0;
-        critical_angle = 0;
+        mean_free_path = 10;
+        characteristic_angle = 1;
+        critical_angle = 0.1;
 
-        simulate_combined_plasmons = true;//false;
+        simulate_combined_plasmons = true;
 
         simulate_individual_plasmon = false;
-        individual_plasmon = 5;
+        individual_plasmon = 1;
 
         dist = std::uniform_real_distribution<>(0, 1);
         rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
@@ -94,6 +94,7 @@ public:
     std::vector<double> getDistancesforCombined(double thickness);
 
     double getGeneratedDepth(unsigned int job_id, unsigned int scattering_count);
+    std::vector<std::vector<unsigned int>> getPlasmonNumbers();
 };
 
 

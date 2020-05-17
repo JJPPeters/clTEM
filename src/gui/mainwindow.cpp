@@ -188,6 +188,8 @@ void MainWindow::on_actionOpen_triggered()
 
     updateScales();
 
+    ui->tCbed->updateTextBoxes();
+
     ui->tStem->updateScaleLabels();
 
     StatusBar->setFileLabel(fileName);

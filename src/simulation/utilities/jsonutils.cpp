@@ -280,10 +280,10 @@ namespace JSONUtils {
         try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
         } catch (std::exception& e) {}
 
-        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
+        try { man.getInelasticScattering()->getPlasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
         } catch (std::exception& e) {}
 
-        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
+        try { man.getInelasticScattering()->getPlasmons()->setCriticalAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
         } catch (std::exception& e) {}
 
         //
@@ -589,7 +589,7 @@ namespace JSONUtils {
             j["inelastic scattering"]["plasmon"]["individual"]["enabled"] = man.getInelasticScattering()->getPlasmons()->getIndividualEnabled();
             j["inelastic scattering"]["plasmon"]["individual"]["number"] = man.getInelasticScattering()->getPlasmons()->getIndividualPlasmon();
 
-            j["inelastic scattering"]["plasmon"]["mean free path"]["value"] = man.getInelasticScattering()->getPlasmons()->getMeanFreePath();
+            j["inelastic scattering"]["plasmon"]["mean free path"]["value"] = man.getInelasticScattering()->getPlasmons()->getMeanFreePath() / 10;
             j["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
 
             j["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = man.getInelasticScattering()->getPlasmons()->getCharacteristicAngle();
@@ -598,6 +598,30 @@ namespace JSONUtils {
             j["inelastic scattering"]["plasmon"]["critical angle"]["value"] = man.getInelasticScattering()->getPlasmons()->getCriticalAngle();
             j["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
         }
+
+        // this is only valid if we have actually saved a simulation, so we can't force it
+        if (plasmon_used && man.getInelasticScattering()->getPlasmons()->getCombinedEnabled()) {
+
+            auto pn = man.getInelasticScattering()->getPlasmons()->getPlasmonNumbers();
+
+            // add leading zeros to make it be in correct order in json
+            // (this is only for humands, it is never used by code)
+
+            unsigned int max_n = 0;
+            for (auto & i : pn)
+                if (i[0] > max_n)
+                    max_n = i[0];
+            unsigned int str_len = std::to_string(max_n).size();
+
+
+            for (auto & i : pn) {
+                std::string str_n = std::to_string(i[0]);
+                str_n = std::string(str_len - str_n.length(), '0') + str_n;
+
+                j["inelastic scattering"]["plasmon"]["full"]["plasmon numbers"][str_n] = i[1];
+            }
+        }
+
         //
         // All done!
         //

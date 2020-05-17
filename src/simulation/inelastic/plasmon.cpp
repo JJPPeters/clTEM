@@ -106,6 +106,9 @@ double PlasmonScattering::getGeneratedDepth(unsigned int job_id, unsigned int sc
     if (job_id > depths.size())
         throw std::runtime_error("Error generating plasmon scattering depths, depth vectors may not have been initialised");
 
+    if (depths.empty())
+        return std::numeric_limits<double>::infinity();
+
     int total_scatters = depths[job_id].size();
 
     if (scattering_count == total_scatters)
@@ -117,4 +120,33 @@ double PlasmonScattering::getGeneratedDepth(unsigned int job_id, unsigned int sc
     else
         throw std::runtime_error("Error accessing scattering depths that do not exist");
 
+}
+
+std::vector<std::vector<unsigned int>> PlasmonScattering::getPlasmonNumbers() {
+    std::vector<unsigned int> number;
+    std::vector<unsigned int> count;
+
+    for (int i = 0; i < depths.size(); ++i) {
+        unsigned int pn = depths[i].size();
+
+        auto it = std::find(number.begin(), number.end(), pn);
+        if (it != number.end()) {
+            size_t ind = std::distance(number.begin(), it);
+            count[ind]++;
+        } else {
+            number.push_back(pn);
+            count.push_back(1);
+        }
+    }
+
+    std::vector<std::vector<unsigned int>> output(number.size());
+
+    for (int i = 0; i < number.size(); ++i) {
+        std::vector<unsigned int> temp(2);
+        temp[0] = number[i];
+        temp[1] = count[i];
+        output[i] = temp;
+    }
+
+    return output;
 }

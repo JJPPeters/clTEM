@@ -18,14 +18,14 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
     auto pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
+    connect(ui->edtIterations, &QLineEdit::textChanged, this, &InelasticFrame::checkEditZero);
+
     ui->edtIterations->setValidator(pIntValidator);
     ui->edtPlasmonSingle->setValidator(pIntValidator);
     ui->edtPhononDefault->setValidator(pmValidator);
 
     ui->edtPlasmonSingle->setUnits("th");
     ui->edtPhononDefault->setUnits("Å²");
-
-    connect(ui->edtIterations, &QLineEdit::textChanged, this, &InelasticFrame::checkEditZero);
 }
 
 InelasticFrame::~InelasticFrame()
@@ -110,9 +110,9 @@ void InelasticFrame::updateIterationsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    unsigned int its = ui->edtIterations->text().toUInt();
+    unsigned int its = Main->Manager->getInelasticScattering()->getStoredInelasticIterations();
 
-    Main->Manager->getInelasticScattering()->setInelasticIterations(its);
+    ui->edtIterations->setText(QString::number(its));
 }
 
 void InelasticFrame::updatePhononsManager() {
