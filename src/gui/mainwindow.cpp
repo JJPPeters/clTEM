@@ -20,6 +20,7 @@
 #include <cif/supercell.h>
 
 #include <variant>
+#include <frames/inelasticframe.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
@@ -70,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tSim->assignMainWindow(this);
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
+    ui->tInelastic->assignMainWindow(this);
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
@@ -350,29 +352,31 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // TODO: move to the manager class (then we can easily call it from the command line too)
     // TODO: operate on an exception basis...
     // Check our plasmon configuration is viable
-    if(Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
-        int parts = Manager->getTotalParts();
-        Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
-        auto z_lims = Manager->getStructLimitsZ();
-        double thk = z_lims[1] - z_lims[0];
+    if (Manager->getMode() == SimulationMode::CBED || Manager->getMode() == SimulationMode::STEM) {
+        if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+            int parts = Manager->getTotalParts();
+            Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+            auto z_lims = Manager->getStructLimitsZ();
+            double thk = z_lims[1] - z_lims[0];
 
-        bool valid = false;
-        for (int i = 0; i < parts; ++i) {
-            valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+            bool valid = false;
+            for (int i = 0; i < parts; ++i) {
+                valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
 
-            if (!valid) {
-                QMessageBox msgBox(this);
-                msgBox.setText("Error:");
-//            msgBox.setInformativeText(e.what());
-                msgBox.setInformativeText("Could not generate valid plasmon configuration.");
-                msgBox.setIcon(QMessageBox::Critical);
-                msgBox.setStandardButtons(QMessageBox::Ok);
-                msgBox.setMinimumSize(160, 125);
-                msgBox.exec();
-                setUiActive(true);
-                return;
+                if (!valid) {
+                    QMessageBox msgBox(this);
+                    msgBox.setText("Error:");
+                    //            msgBox.setInformativeText(e.what());
+                    msgBox.setInformativeText("Could not generate valid plasmon configuration.");
+                    msgBox.setIcon(QMessageBox::Critical);
+                    msgBox.setStandardButtons(QMessageBox::Ok);
+                    msgBox.setMinimumSize(160, 125);
+                    msgBox.exec();
+                    setUiActive(true);
+                    return;
+                }
+
             }
-
         }
     }
 
@@ -855,14 +859,7 @@ void MainWindow::updateManagerFromGui() {
     // CBED/STEM TDS
     // CTEM CCD stuff
 
-    // Sort out TDS bits
-    if (Manager->getMode() == SimulationMode::CBED) {
-        Manager->getInelasticScattering()->setInelasticIterations(ui->tCbed->getTdsRuns());
-        Manager->getInelasticScattering()->getPhonons()->setFrozenPhononEnabled(ui->tCbed->isTdsEnabled());
-    } else if (Manager->getMode() == SimulationMode::STEM) {
-        Manager->getInelasticScattering()->setInelasticIterations(ui->tStem->getTdsRuns());
-        Manager->getInelasticScattering()->getPhonons()->setFrozenPhononEnabled(ui->tStem->isTdsEnabled());
-    }
+    ui->tInelastic->updateManager();
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -881,12 +878,12 @@ void MainWindow::updateGuiFromManager() {
 
     // set CBED stuff (position/TDS)
     ui->tCbed->updateTextBoxes();
-    ui->tCbed->updateTds();
 
     // set STEM TDS
-    ui->tStem->updateTextBoxes();
-    ui->tStem->updateTds();
     ui->tStem->updateScaleLabels();
+
+    // set inelastic frame parameters
+    ui->tInelastic->updateGui();
 
     // set CTEM CCD stuff
     ui->tTem->update_ccd_boxes(Manager);
@@ -927,13 +924,13 @@ void MainWindow::on_actionAberrations_triggered()
 
 void MainWindow::on_actionThermal_scattering_triggered() {
     ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
-    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tStem, &StemFrame::updateTds);
-    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tCbed, &CbedFrame::updateTds);
+    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tInelastic, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
 
 void MainWindow::on_actionPlasmons_triggered() {
     PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
+    connect(myDialog, &PlasmonDialog::plasmonsChanged, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
 

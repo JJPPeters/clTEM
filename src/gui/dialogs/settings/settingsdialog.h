@@ -138,6 +138,10 @@ class PlasmonDialog : public SettingsDialog
 {
 Q_OBJECT
 
+signals:
+    // this signal is picked up by the mainwindow aberrations frame
+    void plasmonsChanged();
+
 private:
     PlasmonSettingsFrame* PlasmonFrame;
 

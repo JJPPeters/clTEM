@@ -118,7 +118,7 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
     ThermalFrame = new ThermalScatteringFrame(this, simManager);
     ui->vLayout->insertWidget(0, ThermalFrame);
 
-    this->setWindowTitle("Thermal scattering");
+    this->setWindowTitle("Phonon scattering");
 
     connect(ThermalFrame, &ThermalScatteringFrame::phononsApplied, this, &ThermalScatteringDialog::corePhononsChanged);
 
@@ -136,7 +136,7 @@ PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager>
     PlasmonFrame = new PlasmonSettingsFrame(this, simManager);
     ui->vLayout->insertWidget(0, PlasmonFrame);
 
-    this->setWindowTitle("Plasmons");
+    this->setWindowTitle("Plasmon scattering");
 
     this->setFixedSize(this->minimumSizeHint());
 }

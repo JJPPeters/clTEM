@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
+    <width>344</width>
     <height>330</height>
    </rect>
   </property>
@@ -28,7 +28,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>147</width>
+           <width>128</width>
            <height>20</height>
           </size>
          </property>
@@ -48,7 +48,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>147</width>
+           <width>127</width>
            <height>20</height>
           </size>
          </property>
@@ -71,16 +71,6 @@
        <string>Tab 1</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="4" column="2">
-        <widget class="QRadioButton" name="rdioCombined">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <spacer name="horizontalSpacer_4">
          <property name="orientation">
@@ -107,29 +97,6 @@
          </property>
         </spacer>
        </item>
-       <item row="5" column="3" colspan="2">
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="EditUnitsBox" name="edtIndividual"/>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_8">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>plasmon</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
        <item row="1" column="5">
         <spacer name="horizontalSpacer_3">
          <property name="orientation">
@@ -143,22 +110,6 @@
          </property>
         </spacer>
        </item>
-       <item row="4" column="3" colspan="2">
-        <widget class="QLabel" name="label_6">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>All plasmons</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="1" colspan="3">
         <widget class="QLabel" name="label_2">
          <property name="sizePolicy">
@@ -169,22 +120,6 @@
          </property>
          <property name="text">
           <string>Mean free path:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLabel" name="label_5">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Simulate combined: </string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -245,13 +180,82 @@
        <item row="2" column="4">
         <widget class="EditUnitsBox" name="edtCharacteristicAngle"/>
        </item>
-       <item row="5" column="2">
-        <widget class="QRadioButton" name="rdioIndividual">
-         <property name="text">
-          <string/>
+       <item row="4" column="4">
+        <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,1">
+         <item>
+          <widget class="QRadioButton" name="rdioCombined">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>All plasmons</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="5" column="4">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1">
+         <item>
+          <widget class="QRadioButton" name="rdioIndividual">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="EditUnitsBox" name="edtIndividual"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string> plasmon</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLabel" name="label_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="checked">
-          <bool>false</bool>
+         <property name="text">
+          <string>Simulate:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>

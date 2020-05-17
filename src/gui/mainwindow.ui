@@ -92,6 +92,11 @@
             <string>Aberrations</string>
            </attribute>
           </widget>
+          <widget class="InelasticFrame" name="tInelastic">
+           <attribute name="title">
+            <string>Inelastic</string>
+           </attribute>
+          </widget>
          </widget>
         </item>
         <item>
@@ -179,7 +184,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>20</height>
+     <height>17</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuInput">
@@ -203,9 +208,15 @@
     <property name="title">
      <string>Simulation</string>
     </property>
+    <widget class="QMenu" name="menuInelastic">
+     <property name="title">
+      <string>Inelastic</string>
+     </property>
+     <addaction name="actionThermal_scattering"/>
+     <addaction name="actionPlasmons"/>
+    </widget>
     <addaction name="actionGeneral"/>
-    <addaction name="actionThermal_scattering"/>
-    <addaction name="actionPlasmons"/>
+    <addaction name="menuInelastic"/>
     <addaction name="actionSet_area"/>
     <addaction name="actionAberrations"/>
     <addaction name="separator"/>
@@ -331,7 +342,7 @@
   </action>
   <action name="actionThermal_scattering">
    <property name="text">
-    <string>Thermal scattering</string>
+    <string>Phonons</string>
    </property>
   </action>
   <action name="actionNative">
@@ -412,6 +423,12 @@
    <class>BorderlessWindow</class>
    <extends>QMainWindow</extends>
    <header>controls/borderlesswindow.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>InelasticFrame</class>
+   <extends>QWidget</extends>
+   <header>frames/inelasticframe.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

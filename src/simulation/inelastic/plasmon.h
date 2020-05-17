@@ -46,14 +46,14 @@ public:
     PlasmonScattering() {
         plasmons_enabled = true;//false;
 
-        mean_free_path = 50;//0;
+        mean_free_path = 10;//0;
         characteristic_angle = 0;
         critical_angle = 0;
 
         simulate_combined_plasmons = true;//false;
 
         simulate_individual_plasmon = false;
-        individual_plasmon = 0;
+        individual_plasmon = 5;
 
         dist = std::uniform_real_distribution<>(0, 1);
         rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
@@ -69,13 +69,11 @@ public:
     void setIndividualPlasmon(unsigned int n) {individual_plasmon = n;}
     void setCombinedEnabled(bool do_sim) {
         simulate_combined_plasmons = do_sim;
-        if (do_sim && simulate_individual_plasmon)
-            simulate_individual_plasmon = false;
+        simulate_individual_plasmon = !do_sim;
     }
     void setIndividualEnabled(bool do_sim) {
         simulate_individual_plasmon = do_sim;
-        if (do_sim && simulate_combined_plasmons)
-            simulate_combined_plasmons = false;
+        simulate_combined_plasmons = !do_sim;
     }
 
     double getMeanFreePath(){return mean_free_path;}

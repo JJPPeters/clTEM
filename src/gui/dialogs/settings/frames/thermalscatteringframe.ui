@@ -282,6 +282,9 @@
        </item>
        <item row="1" column="4">
         <widget class="QCheckBox" name="chkOverride">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
          <property name="text">
           <string>Override file</string>
          </property>
@@ -289,6 +292,9 @@
        </item>
        <item row="1" column="3">
         <widget class="QCheckBox" name="chkForceDefault">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
          <property name="text">
           <string>Force default</string>
          </property>

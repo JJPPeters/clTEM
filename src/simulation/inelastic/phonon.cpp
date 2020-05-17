@@ -71,6 +71,17 @@ void PhononScattering::setVibrations(double def, std::vector<int> elements, std:
     set_elements = elements;
 }
 
+void PhononScattering::setDefault(double def) {
+    // here we need to account for the way we store the vibrations for EVERY element
+    std::vector<double> vibrations(set_elements.size());
+
+    for(int i = 0; i < set_elements.size(); ++i) {
+        vibrations[i] = u_squareds[set_elements[i]];
+    }
+
+    setVibrations(def, set_elements, vibrations);
+}
+
 double PhononScattering::getVibrations(unsigned int element) {
     if (u_squareds.empty())
         u_squareds = std::vector<double>(Utils::VectorSymbolToNumber.size(), u_default);

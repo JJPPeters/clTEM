@@ -10,7 +10,7 @@
 
 AberrationFrame::AberrationFrame(QWidget *parent) :
     QWidget(parent), Main(nullptr),
-    ui(new Ui::AberrationForm)
+    ui(new Ui::AberrationFrame)
 {
     ui->setupUi(this);
 

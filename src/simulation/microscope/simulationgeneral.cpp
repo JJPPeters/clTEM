@@ -138,7 +138,6 @@ void SimulationGeneral<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
 
     bool do_phonon = job->simManager->getInelasticScattering()->getPhonons()->getFrozenPhononEnabled();
-//    bool do_inelastic = job->simManager->getInelasticScattering()->getInelasticEnabled();
 
     // TODO: check that this is only useful here
     if (job->simManager == current_manager && !do_phonon) {

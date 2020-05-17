@@ -147,7 +147,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     std::lock_guard<std::mutex> lck(image_update_mtx);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    auto average_factor = static_cast<double>(inelastic_scattering->getInelasticIterations());
+    auto average_factor = static_cast<double>(getTotalParts());
 
     for (auto const& i : ims)
     {

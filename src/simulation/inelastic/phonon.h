@@ -53,6 +53,8 @@ public:
 
     void setVibrations(double def, std::vector<int> elements, std::vector<double> vibs);
 
+    void setDefault(double def);
+
     double getVibrations(unsigned int element);
 
     double getDefault(){

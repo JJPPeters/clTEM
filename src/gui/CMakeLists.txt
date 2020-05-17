@@ -67,11 +67,14 @@ set ( clTEM_SRCS
         controls/tabpanelbar.cpp
         controls/imagetab.cpp
         controls/imageplot/imageplotwidget.cpp
+        #
         frames/simulationframe.cpp
         frames/temframe.cpp
         frames/stemframe.cpp
         frames/cbedframe.cpp
         frames/aberrationframe.cpp
+        frames/inelasticframe.cpp
+        #
         dialogs/settings/settingsdialog.cpp
         dialogs/settings/frames/openclframe.cpp
         dialogs/settings/frames/globalsimsettingsframe.cpp
@@ -98,6 +101,7 @@ set ( clTEM_UIS
         frames/stemframe.ui
         frames/cbedframe.ui
         frames/aberrationframe.ui
+        frames/inelasticframe.ui
         controls/imagetab.ui
         controls/statuslayout.ui
         dialogs/settings/settingsdialog.ui

@@ -10,12 +10,6 @@ StemFrame::StemFrame(QWidget *parent) :
     ui(new Ui::StemFrame)
 {
     ui->setupUi(this);
-
-    QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
-
-    ui->edtTds->setValidator(pIntValidator);
-
-    connect(ui->edtTds, &QLineEdit::textChanged, this, &StemFrame::edtTds_changed);
 }
 
 StemFrame::~StemFrame()
@@ -73,53 +67,9 @@ void StemFrame::updateScaleLabels()
     ui->lblStemScaleY->setText( "y: " + Utils_Qt::numToQString(scaleY, 2) + " Å" );
 }
 
-void StemFrame::edtTds_changed_proxy(const QString &arg1, bool update_partner) {
-    if(arg1.toInt() < 1)
-        ui->edtTds->setStyleSheet("color: #FF8C00");
-    else
-        ui->edtTds->setStyleSheet("");
-
-    if (update_partner)
-        Main->getCbedFrame()->setTdsRuns(arg1.toUInt());
-}
-
-void StemFrame::edtTds_changed(const QString &arg1)
-{
-    edtTds_changed_proxy(arg1, true);
-}
-
-void StemFrame::setTdsRuns(unsigned int runs) {
-    disconnect(ui->edtTds, &QLineEdit::textChanged, this, &StemFrame::edtTds_changed);
-    auto new_num = QString::number(runs);
-    ui->edtTds->setText(new_num);
-    edtTds_changed_proxy(new_num, false);
-    connect(ui->edtTds, &QLineEdit::textChanged, this, &StemFrame::edtTds_changed);
-}
-
 void StemFrame::on_btnSim_clicked()
 {
     emit startSim();
-}
-
-void StemFrame::on_chkTds_stateChanged(int state)
-{
-    // this just updates the other frame to have the same state
-    Main->getCbedFrame()->setTdsEnabled(state != 0);
-}
-
-void StemFrame::setTdsEnabled(bool enabled)
-{
-    ui->chkTds->setChecked(enabled);
-}
-
-bool StemFrame::isTdsEnabled()
-{
-    return ui->chkTds->checkState() == Qt::Checked;
-}
-
-unsigned int StemFrame::getTdsRuns()
-{
-    return ui->edtTds->text().toUInt();
 }
 
 void StemFrame::setActive(bool active)
@@ -130,15 +80,4 @@ void StemFrame::setActive(bool active)
 void StemFrame::on_btnCancel_clicked()
 {
     emit stopSim();
-}
-
-void StemFrame::updateTextBoxes() {
-    if (Main == 0)
-        throw std::runtime_error("Error connecting STEM frame to main window.");
-
-    ui->edtTds->setText(Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticIterations()));
-}
-
-void StemFrame::updateTds() {
-    ui->chkTds->setChecked( Main->Manager->getInelasticScattering()->getPhonons()->getFrozenPhononEnabled() );
 }

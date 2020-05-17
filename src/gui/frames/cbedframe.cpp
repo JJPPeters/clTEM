@@ -11,47 +11,17 @@ CbedFrame::CbedFrame(QWidget *parent) :
     ui->setupUi(this);
 
     QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
-    QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
     ui->edtPosX->setValidator(pmValidator);
     ui->edtPosY->setValidator(pmValidator);
-    ui->edtTds->setValidator(pIntValidator);
 
     ui->edtPosX->setUnits("Å");
     ui->edtPosY->setUnits("Å");
-
-    connect(ui->edtTds, &QLineEdit::textChanged, this, &CbedFrame::edtTds_changed);
 }
 
 CbedFrame::~CbedFrame()
 {
     delete ui;
-}
-
-void CbedFrame::edtTds_changed_proxy(const QString &arg1, bool update_partner) {
-    // due to the complexities of this interacting with the STEM version, this will be set later (when the sim in run)
-    int v = arg1.toInt();
-
-    if(v < 1)
-        ui->edtTds->setStyleSheet("color: #FF8C00");
-    else
-        ui->edtTds->setStyleSheet("");
-
-    if (update_partner)
-        Main->getStemFrame()->setTdsRuns(arg1.toUInt());
-}
-
-void CbedFrame::edtTds_changed(const QString &arg1)
-{
-    edtTds_changed_proxy(arg1, true);
-}
-
-void CbedFrame::setTdsRuns(unsigned int runs) {
-    disconnect(ui->edtTds, &QLineEdit::textChanged, this, &CbedFrame::edtTds_changed);
-    auto new_num = QString::number(runs);
-    ui->edtTds->setText(new_num);
-    edtTds_changed_proxy(new_num, false);
-    connect(ui->edtTds, &QLineEdit::textChanged, this, &CbedFrame::edtTds_changed);
 }
 
 void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
@@ -86,28 +56,6 @@ void CbedFrame::on_btnSim_clicked()
     emit startSim();
 }
 
-void CbedFrame::on_chkTds_stateChanged(int state)
-{
-    // this just updates the other frame to have the same state
-    Main->getStemFrame()->setTdsEnabled(state != 0);
-}
-
-
-void CbedFrame::setTdsEnabled(bool enabled)
-{
-    ui->chkTds->setChecked(enabled);
-}
-
-bool CbedFrame::isTdsEnabled()
-{
-    return ui->chkTds->checkState() == Qt::Checked;
-}
-
-unsigned int CbedFrame::getTdsRuns()
-{
-    return ui->edtTds->text().toUInt();
-}
-
 void CbedFrame::setActive(bool active)
 {
     ui->btnSim->setEnabled(active);
@@ -125,9 +73,4 @@ void CbedFrame::updateTextBoxes()
 
     ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
     ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
-    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticIterations()));
-}
-
-void CbedFrame::updateTds() {
-    ui->chkTds->setChecked( Main->Manager->getInelasticScattering()->getPhonons()->getFrozenPhononEnabled());
 }
