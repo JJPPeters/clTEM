@@ -71,11 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
 
-    ui->tStem->updateScaleLabels();
-
-    auto p = Manager->getMicroscopeParams();
-    ui->tAberr->updateTextBoxes();
-
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
     connect(ui->tStem, &StemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
@@ -350,6 +345,31 @@ void MainWindow::on_actionSimulate_EW_triggered()
         msgBox.exec();
         setUiActive(true);
         return;
+    }
+
+    // TODO: move to the manager class (then we can easily call it from the command line too)
+    // Check our plasmon configuration is viable
+    if(Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+        int parts = Manager->getTotalParts();
+        Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+        auto z_lims = Manager->getStructLimitsZ();
+        double thk = z_lims[1] - z_lims[0];
+
+        bool valid = false;
+        for (int i = 0; i < parts; ++i)
+            valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+        if (!valid) {
+            QMessageBox msgBox(this);
+            msgBox.setText("Error:");
+//            msgBox.setInformativeText(e.what());
+            msgBox.setInformativeText("Could not generate valid plasmon configuration.");
+            msgBox.setIcon(QMessageBox::Critical);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setMinimumSize(160, 125);
+            msgBox.exec();
+            setUiActive(true);
+            return;
+        }
     }
 
     std::vector<std::shared_ptr<SimulationManager>> man_list; //why is this a vector?
@@ -832,11 +852,13 @@ void MainWindow::updateManagerFromGui() {
     // CTEM CCD stuff
 
     // Sort out TDS bits
-    Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
-    Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
-
-    Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
-    Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
+    if (Manager->getMode() == SimulationMode::CBED) {
+        Manager->getInelasticScattering()->setInelasticIterations(ui->tCbed->getTdsRuns());
+        Manager->getInelasticScattering()->getPhonons()->setFrozenPhononEnabled(ui->tCbed->isTdsEnabled());
+    } else if (Manager->getMode() == SimulationMode::STEM) {
+        Manager->getInelasticScattering()->setInelasticIterations(ui->tStem->getTdsRuns());
+        Manager->getInelasticScattering()->getPhonons()->setFrozenPhononEnabled(ui->tStem->isTdsEnabled());
+    }
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -854,10 +876,12 @@ void MainWindow::updateGuiFromManager() {
     ui->tAberr->updateTextBoxes();
 
     // set CBED stuff (position/TDS)
-    ui->tCbed->update_text_boxes();
+    ui->tCbed->updateTextBoxes();
+    ui->tCbed->updateTds();
 
     // set STEM TDS
-    ui->tStem->updateTdsText();
+    ui->tStem->updateTextBoxes();
+    ui->tStem->updateTds();
     ui->tStem->updateScaleLabels();
 
     // set CTEM CCD stuff
@@ -882,7 +906,7 @@ void MainWindow::on_actionSet_area_triggered()
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, ui->tSim, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, this, &MainWindow::set_active_mode);
-    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::updateTextBoxes);
     connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, this, &MainWindow::updateScales);
 
@@ -899,6 +923,8 @@ void MainWindow::on_actionAberrations_triggered()
 
 void MainWindow::on_actionThermal_scattering_triggered() {
     ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
+    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tStem, &StemFrame::updateTds);
+    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tCbed, &CbedFrame::updateTds);
     myDialog->exec();
 }
 

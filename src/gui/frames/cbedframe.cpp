@@ -19,6 +19,8 @@ CbedFrame::CbedFrame(QWidget *parent) :
 
     ui->edtPosX->setUnits("Å");
     ui->edtPosY->setUnits("Å");
+
+    connect(ui->edtTds, &QLineEdit::textChanged, this, &CbedFrame::edtTds_changed);
 }
 
 CbedFrame::~CbedFrame()
@@ -26,8 +28,7 @@ CbedFrame::~CbedFrame()
     delete ui;
 }
 
-void CbedFrame::on_edtTds_textChanged(const QString &arg1)
-{
+void CbedFrame::edtTds_changed_proxy(const QString &arg1, bool update_partner) {
     // due to the complexities of this interacting with the STEM version, this will be set later (when the sim in run)
     int v = arg1.toInt();
 
@@ -35,6 +36,22 @@ void CbedFrame::on_edtTds_textChanged(const QString &arg1)
         ui->edtTds->setStyleSheet("color: #FF8C00");
     else
         ui->edtTds->setStyleSheet("");
+
+    if (update_partner)
+        Main->getStemFrame()->setTdsRuns(arg1.toUInt());
+}
+
+void CbedFrame::edtTds_changed(const QString &arg1)
+{
+    edtTds_changed_proxy(arg1, true);
+}
+
+void CbedFrame::setTdsRuns(unsigned int runs) {
+    disconnect(ui->edtTds, &QLineEdit::textChanged, this, &CbedFrame::edtTds_changed);
+    auto new_num = QString::number(runs);
+    ui->edtTds->setText(new_num);
+    edtTds_changed_proxy(new_num, false);
+    connect(ui->edtTds, &QLineEdit::textChanged, this, &CbedFrame::edtTds_changed);
 }
 
 void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
@@ -71,8 +88,14 @@ void CbedFrame::on_btnSim_clicked()
 
 void CbedFrame::on_chkTds_stateChanged(int state)
 {
-    // This function is implemented when the simulation has been executed (to avoid complication due to CBED and STEM
-    // both having the same checkbox, but only one variable to store it in
+    // this just updates the other frame to have the same state
+    Main->getStemFrame()->setTdsEnabled(state != 0);
+}
+
+
+void CbedFrame::setTdsEnabled(bool enabled)
+{
+    ui->chkTds->setChecked(enabled);
 }
 
 bool CbedFrame::isTdsEnabled()
@@ -95,13 +118,16 @@ void CbedFrame::on_btnCancel_clicked()
     emit stopSim();
 }
 
-void CbedFrame::update_text_boxes()
+void CbedFrame::updateTextBoxes()
 {
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
     ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
     ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
-    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getStoredTdsRunsCbed()) );
-    ui->chkTds->setChecked( Main->Manager->getTdsEnabledCbed() );
+    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticInterations()));
+}
+
+void CbedFrame::updateTds() {
+    ui->chkTds->setChecked( Main->Manager->getInelasticScattering()->getPhonons()->getFrozenPhononEnabled());
 }

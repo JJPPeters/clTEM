@@ -137,10 +137,11 @@ template <class T>
 void SimulationGeneral<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
 
-    bool doTds = job->simManager->getTdsEnabled();
+    bool do_phonon = job->simManager->getInelasticScattering()->getPhonons()->getFrozenPhononEnabled();
+//    bool do_inelastic = job->simManager->getInelasticScattering()->getInelasticEnabled();
 
     // TODO: check that this is only useful here
-    if (job->simManager == current_manager && !doTds) {
+    if (job->simManager == current_manager && !do_phonon) {
         CLOG(DEBUG, "sim") << "Atoms already sorted, reusing that data";
         return;
     }
@@ -160,7 +161,7 @@ void SimulationGeneral<T>::sortAtoms() {
     AtomZPos.reserve(atom_count);
 
     CLOG(DEBUG, "sim") << "Getting atom positions";
-    if (doTds)
+    if (do_phonon)
         CLOG(DEBUG, "sim") << "Using TDS";
 
     // For sorting the atoms, we want the total area that the simulation covers
@@ -173,11 +174,11 @@ void SimulationGeneral<T>::sortAtoms() {
 
     for(int i = 0; i < atom_count; i++) {
         double dx = 0.0, dy = 0.0, dz = 0.0;
-        if (doTds) {
+        if (do_phonon) {
             // TODO: need a log guard here or in the structure file?
-            dx = job->simManager->generateTdsFactor(atoms[i], 0);
-            dy = job->simManager->generateTdsFactor(atoms[i], 1);
-            dz = job->simManager->generateTdsFactor(atoms[i], 2);
+            dx = job->simManager->getInelasticScattering()->getPhonons()->generateTdsFactor(atoms[i], 0);
+            dy = job->simManager->getInelasticScattering()->getPhonons()->generateTdsFactor(atoms[i], 1);
+            dz = job->simManager->getInelasticScattering()->getPhonons()->generateTdsFactor(atoms[i], 2);
         }
 
         // TODO: could move this check before the TDS if I can get a good estimate of the maximum displacement

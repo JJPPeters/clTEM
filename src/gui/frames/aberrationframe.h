@@ -17,7 +17,7 @@ public:
 
     ~AberrationFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m;}
+    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
     void updateAberrations();
 

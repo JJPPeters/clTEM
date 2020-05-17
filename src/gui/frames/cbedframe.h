@@ -21,7 +21,11 @@ public:
 
     ~CbedFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m; update_text_boxes();}
+    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
+
+    void setTdsEnabled(bool enabled);
+
+    void setTdsRuns(unsigned int runs);
 
     bool isTdsEnabled();
 
@@ -30,10 +34,12 @@ public:
     void setActive(bool active);
 
 public slots:
-    void update_text_boxes();
+    void updateTextBoxes();
+
+    void updateTds();
 
 private slots:
-    void on_edtTds_textChanged(const QString &arg1);
+    void edtTds_changed(const QString &arg1);
 
     void on_edtPosY_textChanged(const QString &arg1);
 
@@ -49,6 +55,8 @@ private:
     Ui::CbedFrame *ui;
 
     MainWindow* Main;
+
+    void edtTds_changed_proxy(const QString &arg1, bool update_partner);
 };
 
 #endif // CBEDFRAME_H

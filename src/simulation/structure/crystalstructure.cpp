@@ -299,6 +299,8 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
     for (int i = 0; i < count; ++i) {
         AtomSite thisAtom;
 
+        thisAtom.defined_u = file_defined_thermals;
+
         thisAtom.A = Utils::ElementSymbolToNumber(A[i]);
         thisAtom.x = x[i];
         thisAtom.y = y[i];

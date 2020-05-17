@@ -115,10 +115,18 @@ public:
 
 class ThermalScatteringDialog : public SettingsDialog
 {
-Q_OBJECT
+    Q_OBJECT
+
+signals:
+    // this signal is picked up by the mainwindow aberrations frame
+    void phononsChanged();
 
 private:
     ThermalScatteringFrame* ThermalFrame;
+
+private slots:
+    // this slot gets the signal from the fullaberrationsframe
+    void corePhononsChanged();
 
 public:
     explicit ThermalScatteringDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);

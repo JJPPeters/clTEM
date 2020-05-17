@@ -207,12 +207,6 @@ namespace JSONUtils {
                 area_set = true;
         } catch (std::exception& e) {}
 
-        try { man.setTdsRunsStem(readJsonEntry<unsigned int>(j, "stem", "tds", "configurations"));
-        } catch (std::exception& e) {}
-
-        try { man.setTdsEnabledStem(readJsonEntry<bool>(j, "stem", "tds", "enabled"));
-        } catch (std::exception& e) {}
-
         try { man.setParallelPixels(readJsonEntry<unsigned int>(j, "stem", "concurrent pixels"));
         } catch (std::exception& e) {}
 
@@ -253,20 +247,55 @@ namespace JSONUtils {
                 area_set = true; // I don't know if this one matters...
         } catch (std::exception& e) {}
 
-        try { man.setTdsRunsCbed(readJsonEntry<unsigned int>(j, "cbed", "tds", "configurations"));
+
+        //
+        // Inelastic scattering
+        //
+
+        try { man.getInelasticScattering()->setInelasticIterations(readJsonEntry<unsigned int>(j, "inelastic scattering", "iterations"));
         } catch (std::exception& e) {}
 
-        try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
+        // phonon
+
+        try { man.getInelasticScattering()->getPhonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "inelastic scattering", "phonon", "frozen phonon", "enabled"));
         } catch (std::exception& e) {}
 
-        *(man.getThermalVibrations()) = JsonToThermalVibrations(j);
+        *(man.getInelasticScattering()->getPhonons()) = JsonToThermalVibrations(j);
+
+        // plasmon
+
+        try {
+            man.getInelasticScattering()->getPlasmons()->setCombinedEnabled(
+                    readJsonEntry<bool>(j, "inelastic scattering", "plasmon", "full", "enabled"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.getInelasticScattering()->getPlasmons()->setIndividualEnabled(
+                    readJsonEntry<bool>(j, "inelastic scattering", "plasmon", "individual", "enabled"));
+        } catch (std::exception& e) {}
+
+        try { man.getInelasticScattering()->getPlasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
+        } catch (std::exception& e) {}
+
+        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value"));
+        } catch (std::exception& e) {}
+
+        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
+        } catch (std::exception& e) {}
+
+        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
+        } catch (std::exception& e) {}
+
+        //
+        // All done!
+        //
 
         return man;
     }
 
-    ThermalVibrations JsonToThermalVibrations(json& j) {
+    PhononScattering JsonToThermalVibrations(json& j) {
 
-        ThermalVibrations out_therms;
+        PhononScattering out_therms;
 
         bool force_default = false;
         bool override_file = false;
@@ -275,17 +304,17 @@ namespace JSONUtils {
         std::vector<double> vibs;
         std::vector<int> els;
 
-        try { force_default = readJsonEntry<bool>(j, "thermal parameters", "force default");
+        try { force_default = readJsonEntry<bool>(j, "inelastic scattering", "phonon","thermal parameters", "force default");
         } catch (std::exception& e) {}
 
-        try { override_file = readJsonEntry<bool>(j, "thermal parameters", "override file");
+        try { override_file = readJsonEntry<bool>(j, "inelastic scattering", "phonon", "thermal parameters", "override file");
         } catch (std::exception& e) {}
 
-        try { def = readJsonEntry<double>(j, "thermal parameters", "default");
+        try { def = readJsonEntry<double>(j, "inelastic scattering", "phonon", "thermal parameters", "default");
         } catch (std::exception& e) {}
 
         try {
-            json element_section = readJsonEntry<json>(j, "thermal parameters", "values");
+            json element_section = readJsonEntry<json>(j, "inelastic scattering", "phonon", "thermal parameters", "values");
             for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
                 std::string element = it.key();
                 try{
@@ -511,13 +540,6 @@ namespace JSONUtils {
             // stem detector bit...
 
             j["stem"]["concurrent pixels"] = man.getParallelPixels();
-
-            if (force_all) {
-                j["stem"]["tds"]["configurations"] = man.getStoredTdsRunsStem();
-                j["stem"]["tds"]["enabled"] = man.getTdsEnabledStem();
-            }
-            else
-                j["stem"]["tds"]["configurations"] = man.getTdsRunsStem();
         }
 
         // If CBED, get position info and TDS info
@@ -527,25 +549,58 @@ namespace JSONUtils {
             j["cbed"]["position"]["y"] = man.getCBedPosition()->getYPos();
             j["cbed"]["position"]["padding"] = man.getCBedPosition()->getPadding();
             j["cbed"]["position"]["units"] = "Å";
-            if (force_all) {
-                j["cbed"]["tds"]["configurations"] = man.getStoredTdsRunsCbed();
-                j["cbed"]["tds"]["enabled"] = man.getTdsEnabledCbed();
+        }
+
+        //
+        // Inelastic scattering
+        //
+
+        bool inelastic_used = (mode == SimulationMode::CBED || mode == SimulationMode::STEM) && man.getInelasticScattering()->getInelasticEnabled();
+        if (inelastic_used || force_all)
+            j["inelastic scattering"]["iterations"] = man.getInelasticScattering()->getStoredInelasticInterations();
+
+        // phonon
+
+        bool phonon_used = (mode == SimulationMode::CBED || mode == SimulationMode::STEM) && man.getInelasticScattering()->getPhonons()->getFrozenPhononEnabled();
+        if (phonon_used || force_all) {
+
+            j["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.getInelasticScattering()->getPhonons()->getFrozenPhononEnabled();
+
+            // don't export if we have file defined vibrations and no override
+            bool export_thermals = true;
+            if (man.getStructure()) // structure does not always exist
+                export_thermals = !(man.getStructure()->isThermalFileDefined() &&
+                                    !man.getInelasticScattering()->getPhonons()->force_default &&
+                                    !man.getInelasticScattering()->getPhonons()->force_defined);
+
+            if (export_thermals || force_all) {
+                if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all)
+                    j["inelastic scattering"]["thermal parameters"]["phonon"] = thermalVibrationsToJson(man);
+            } else {
+                j["inelastic scattering"]["thermal parameters"]["phonon"] = "input file defined";
             }
-            else
-                j["cbed"]["tds"]["configurations"] = man.getTdsRunsCbed();
         }
+        // plasmon
 
-        // don't export if we have file defined vibrations and no override
-        bool export_thermals = true;
-        if (man.getStructure()) // structure does not always exist
-            export_thermals = !(man.getStructure()->isThermalFileDefined() && !man.getThermalVibrations()->force_default && !man.getThermalVibrations()->force_defined);
+        bool plasmon_used = (mode == SimulationMode::CBED || mode == SimulationMode::STEM) && man.getInelasticScattering()->getPlasmons()->getPlasmonEnabled();
+        if (plasmon_used || force_all) {
+            j["inelastic scattering"]["plasmon"]["full"]["enabled"] = man.getInelasticScattering()->getPlasmons()->getCombinedEnabled();
 
-        if (export_thermals || force_all) {
-            if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all)
-                j["thermal parameters"] = thermalVibrationsToJson(man);
-        } else {
-            j["thermal parameters"] = "input file defined";
+            j["inelastic scattering"]["plasmon"]["individual"]["enabled"] = man.getInelasticScattering()->getPlasmons()->getIndividualEnabled();
+            j["inelastic scattering"]["plasmon"]["individual"]["number"] = man.getInelasticScattering()->getPlasmons()->getIndividualPlasmon();
+
+            j["inelastic scattering"]["plasmon"]["mean free path"]["value"] = man.getInelasticScattering()->getPlasmons()->getMeanFreePath();
+            j["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
+
+            j["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = man.getInelasticScattering()->getPlasmons()->getCharacteristicAngle();
+            j["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
+
+            j["inelastic scattering"]["plasmon"]["critical angle"]["value"] = man.getInelasticScattering()->getPlasmons()->getCriticalAngle();
+            j["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
         }
+        //
+        // All done!
+        //
 
         return j;
     }
@@ -566,14 +621,14 @@ namespace JSONUtils {
     json thermalVibrationsToJson(SimulationManager& man) {
         json j;
 
-        j["force default"] = man.getThermalVibrations()->force_default;
-        j["override file"] = man.getThermalVibrations()->force_defined;
+        j["force default"] = man.getInelasticScattering()->getPhonons()->force_default;
+        j["override file"] = man.getInelasticScattering()->getPhonons()->force_defined;
 
-        j["default"] = man.getThermalVibrations()->getDefault();
+        j["default"] = man.getInelasticScattering()->getPhonons()->getDefault();
         j["units"] = "Å²";
 
-        auto els = man.getThermalVibrations()->getDefinedElements();
-        auto vibs = man.getThermalVibrations()->getDefinedVibrations();
+        auto els = man.getInelasticScattering()->getPhonons()->getDefinedElements();
+        auto vibs = man.getInelasticScattering()->getPhonons()->getDefinedVibrations();
 
         if (els.size() != vibs.size())
             throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");

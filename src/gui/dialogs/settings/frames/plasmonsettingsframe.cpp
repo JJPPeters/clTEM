@@ -24,29 +24,26 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
     ui->edtMeanFreePath->setUnits("nm");
     ui->edtCharacteristicAngle->setUnits("mrad");
     ui->edtCriticalAngle->setUnits("mrad");
+    ui->edtIndividual->setUnits("th");
 
     // sort out our integer text box
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
-    ui->edtCombinedIterations->setValidator(pIntValidator);
-
-    // sort out our number lsit text box (like a printer page select dialog)
-    QRegExpValidator* iListValidator = new QRegExpValidator(QRegExp(R"([0-9,-]*)"));
-
-    ui->edtIndividualList->setValidator(iListValidator);
+    ui->edtIndividual->setValidator(pIntValidator);
 
     //TODO: remove this
-    test = std::make_shared<Plasmons>();
+    plasmon_manager = simManager->getInelasticScattering()->getPlasmons();
 
-    ui->edtMeanFreePath->setText(QString::number(test->getMeanFreePath()));
-    ui->edtCharacteristicAngle->setText(QString::number(test->getCharacteristicAngle()));
-    ui->edtCriticalAngle->setText(QString::number(test->getCriticalAngle()));
+    ui->edtMeanFreePath->setText(QString::number(plasmon_manager->getMeanFreePath()));
+    ui->edtCharacteristicAngle->setText(QString::number(plasmon_manager->getCharacteristicAngle()));
+    ui->edtCriticalAngle->setText(QString::number(plasmon_manager->getCriticalAngle()));
 
-    ui->edtCombinedIterations->setText(QString::number(test->getCombinedPlasmonIterations()));
-    ui->edtIndividualList->setText(QString::fromStdString(test->getSpecificPhononsAsString()));
+    ui->edtIndividual->setText(QString::number(plasmon_manager->getIndividualPlasmon()));
 
-    ui->chkCombined->setChecked(test->getSimulateCombined());
-    ui->chkIndividual->setChecked(test->getSimulateIndividual());
+    ui->rdioCombined->setChecked(plasmon_manager->getCombinedEnabled());
+    ui->rdioIndividual->setChecked(plasmon_manager->getIndividualEnabled());
+
+    ui->chkEnabled->setChecked(plasmon_manager->getPlasmonEnabled());
 
     // connect up our OK, etc... buttons
     auto parent_dlg = dynamic_cast<PlasmonDialog*>(parentWidget());
@@ -75,23 +72,24 @@ void PlasmonSettingsFrame::dlgOk_clicked()
 
 void PlasmonSettingsFrame::dlgApply_clicked()
 {
-    auto individuals = ui->edtIndividualList->text().toStdString();
-    test->setSpecificPhononsFromString(individuals);
-
     double mfp = ui->edtMeanFreePath->text().toDouble();
     double cha = ui->edtCharacteristicAngle->text().toDouble();
     double cra = ui->edtCriticalAngle->text().toDouble();
 
-    int it = ui->edtCombinedIterations->text().toInt();
+    auto individual = ui->edtIndividual->text().toUInt();
 
-    bool do_comb = ui->chkCombined->isChecked();
-    bool do_ind = ui->chkIndividual->isChecked();
+    bool do_comb = ui->rdioCombined->isChecked();
+    bool do_ind = ui->rdioIndividual->isChecked();
 
-    test->setMeanFreePath(mfp);
-    test->setCharacteristicAngle(cha);
-    test->setCriticalAngle(cra);
-    test->setCombinedPlasmonIterations(it);
+    bool enabled = ui->chkEnabled->isChecked();
 
-    test->setSimulateCombined(do_comb);
-    test->setSimulateIndividual(do_ind);
+    plasmon_manager->setMeanFreePath(mfp);
+    plasmon_manager->setCharacteristicAngle(cha);
+    plasmon_manager->setCriticalAngle(cra);
+    plasmon_manager->setIndividualPlasmon(individual);
+
+    plasmon_manager->setCombinedEnabled(do_comb);
+    plasmon_manager->setIndividualEnabled(do_ind);
+
+    plasmon_manager->setEnabled(enabled);
 }

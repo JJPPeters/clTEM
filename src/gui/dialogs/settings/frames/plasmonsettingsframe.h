@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <simulationmanager.h>
 #include <structure/structureparameters.h>
-#include <structure/plasmons.h>
+#include <inelastic/plasmon.h>
 
 
 namespace Ui {
@@ -29,7 +29,7 @@ public:
 private:
     Ui::PlasmonSettingsFrame *ui;
 
-    std::shared_ptr<Plasmons> test;
+    std::shared_ptr<PlasmonScattering> plasmon_manager;
 };
 
 #endif // PLASMONSETTINGSFRAME_H

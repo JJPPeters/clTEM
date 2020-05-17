@@ -67,7 +67,7 @@ void SimulationFrame::on_btnSimArea_clicked()
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, this, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);
-    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, Main->getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, Main->getCbedFrame(), &CbedFrame::updateTextBoxes);
     connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, Main->getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, Main, &MainWindow::updateScales);
 

@@ -120,9 +120,15 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
 
     this->setWindowTitle("Thermal scattering");
 
+    connect(ThermalFrame, &ThermalScatteringFrame::phononsApplied, this, &ThermalScatteringDialog::corePhononsChanged);
+
     this->setFixedSize(this->minimumSizeHint());
 }
 
+void ThermalScatteringDialog::corePhononsChanged()
+{
+    emit phononsChanged();
+}
 
 PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
         SettingsDialog(parent)

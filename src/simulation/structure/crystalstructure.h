@@ -8,7 +8,7 @@
 
 #include "utilities/commonstructs.h"
 
-#include "thermalvibrations.h"
+#include "inelastic/phonon.h"
 
 #include "atom.h"
 #include "cif/cifreader.h"

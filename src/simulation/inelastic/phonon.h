@@ -7,10 +7,14 @@
 
 #include <vector>
 #include <stdexcept>
+#include <structure/atom.h>
+#include <random>
+#include <chrono>
 
 #include "utilities/structureutils.h"
 
-class ThermalVibrations {
+class PhononScattering {
+    bool frozen_phonon_enabled;
 
     // this default is not used for the calculations, but is just a record of what we have set it as
     // the defaults will be filled into the vector of displacements
@@ -21,9 +25,19 @@ class ThermalVibrations {
 
     std::vector<int> set_elements;
 
+    std::mt19937_64 rng;
+    std::normal_distribution<> dist;
+
 public:
 
-    ThermalVibrations();
+    PhononScattering();
+    PhononScattering(const PhononScattering& ps);
+    PhononScattering& operator=(const PhononScattering& ps);
+
+    void setFrozenPhononEnabled(bool enabled) {frozen_phonon_enabled = enabled;}
+    bool getFrozenPhononEnabled() {return frozen_phonon_enabled;}
+
+    double generateTdsFactor(AtomSite& at, int direction);
 
     // if this is set, then the default value is used for everything
     bool force_default;
