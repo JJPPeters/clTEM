@@ -11,8 +11,8 @@
 #include <random>
 #include <chrono>
 
-#define THICKNESS_IT_LIMIT 1e6
-#define INDIVIDUAL_IT_LIMIT 1e6
+#define THICKNESS_IT_LIMIT 1e10
+#define INDIVIDUAL_IT_LIMIT 1e10
 
 class PlasmonScattering {
 

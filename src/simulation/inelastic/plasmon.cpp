@@ -84,7 +84,7 @@ std::vector<double> PlasmonScattering::getDistancesForIndividual(double thicknes
 std::vector<double> PlasmonScattering::getDistancesforCombined(double thickness) {
     // this function will have varying length vectors, so we can't set them now
     std::vector<double> depths;
-    depths.reserve(static_cast<int>(thickness / mean_free_path));
+    depths.reserve(static_cast<int>(3 * thickness / mean_free_path));
 
     double current_t = getScatteringDistance();
     unsigned int c = 0;
