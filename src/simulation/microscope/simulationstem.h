@@ -21,6 +21,7 @@ protected:
     using SimulationGeneral<GPU_Type>::fftShift;
 
     using SimulationGeneral<GPU_Type>::doMultiSliceStep;
+    using SimulationGeneral<GPU_Type>::modifyBeamTilt;
 
     using SimulationCbed<GPU_Type>::initialiseProbeWave;
 

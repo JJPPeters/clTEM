@@ -125,7 +125,7 @@ void CbedFrame::updateTextBoxes()
 
     ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
     ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
-    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticInterations()));
+    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticIterations()));
 }
 
 void CbedFrame::updateTds() {

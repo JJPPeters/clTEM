@@ -24,6 +24,7 @@ protected:
     using SimulationGeneral<GPU_Type>::FourierTrans;
 
     using SimulationGeneral<GPU_Type>::doMultiSliceStep;
+    using SimulationGeneral<GPU_Type>::modifyBeamTilt;
     using SimulationGeneral<GPU_Type>::getDiffractionImage;
 
     void initialiseProbeWave(double posx, double posy, int n_parallel = 0);

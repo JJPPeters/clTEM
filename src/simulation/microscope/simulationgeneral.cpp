@@ -523,6 +523,38 @@ void SimulationGeneral<T>::initialiseSimulation() {
 }
 
 template <class T>
+void SimulationGeneral<T>::modifyBeamTilt(double d_tilt, double d_azimuth){
+    auto mParams = job->simManager->getMicroscopeParams();
+    bool isFull3D = job->simManager->isFull3d();
+    int full3dints = job->simManager->getFull3dInts();
+    double dz = job->simManager->getSliceThickness();
+    unsigned int resolution = job->simManager->getResolution();
+
+    std::valarray<double> wavevector = mParams->Wavevector(d_tilt, d_azimuth);
+
+    // The transmission function does not need to be recalculated here (it is done on every slice)
+    if (isFull3D) {
+        double int_shift_x = (wavevector[0] / wavevector[2]) * dz / full3dints;
+        double int_shift_y = (wavevector[1] / wavevector[2]) * dz / full3dints;
+
+        CalculateTransmissionFunction.SetArg(27, static_cast<T>(int_shift_x));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_y));
+    } else {
+        CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
+    }
+
+    // The propagator does need to be recalculated now
+    GeneratePropagator.SetArg(7, static_cast<T>(wavevector[0]));
+    GeneratePropagator.SetArg(8, static_cast<T>(wavevector[1]));
+    GeneratePropagator.SetArg(9, static_cast<T>(wavevector[2]));
+
+    clWorkGroup WorkSize(resolution, resolution, 1);
+    GeneratePropagator.run(WorkSize);
+    ctx.WaitForQueueFinish();
+}
+
+template <class T>
 void SimulationGeneral<T>::doMultiSliceStep(int slice)
 {
     CLOG(DEBUG, "sim") << "Start multislice step " << slice;

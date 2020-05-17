@@ -34,7 +34,7 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
     //TODO: remove this
     plasmon_manager = simManager->getInelasticScattering()->getPlasmons();
 
-    ui->edtMeanFreePath->setText(QString::number(plasmon_manager->getMeanFreePath()));
+    ui->edtMeanFreePath->setText(QString::number(plasmon_manager->getMeanFreePath() / 10)); // angstroms to nm
     ui->edtCharacteristicAngle->setText(QString::number(plasmon_manager->getCharacteristicAngle()));
     ui->edtCriticalAngle->setText(QString::number(plasmon_manager->getCriticalAngle()));
 
@@ -72,7 +72,7 @@ void PlasmonSettingsFrame::dlgOk_clicked()
 
 void PlasmonSettingsFrame::dlgApply_clicked()
 {
-    double mfp = ui->edtMeanFreePath->text().toDouble();
+    double mfp = ui->edtMeanFreePath->text().toDouble() * 10; // nm to angstroms
     double cha = ui->edtCharacteristicAngle->text().toDouble();
     double cra = ui->edtCriticalAngle->text().toDouble();
 

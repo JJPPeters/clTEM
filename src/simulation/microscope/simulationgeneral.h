@@ -56,6 +56,9 @@ protected:
     void initialiseBuffers();
     void initialiseKernels();
 
+    // this tilts the beam mid simulation - used for plasmon scattering.
+    void modifyBeamTilt(double d_tilt, double d_azimuth);
+
     // OpenCL stuff
     clMemory<GPU_Type, Manual> ClParameterisation;
 

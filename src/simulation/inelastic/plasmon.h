@@ -11,8 +11,11 @@
 #include <random>
 #include <chrono>
 
+#define THICKNESS_IT_LIMIT 1e6
+#define INDIVIDUAL_IT_LIMIT 1e6
 
 class PlasmonScattering {
+
 private:
     // units of nm
     double mean_free_path;
@@ -41,11 +44,13 @@ private:
 public:
 
     PlasmonScattering() {
-        mean_free_path = 0;
+        plasmons_enabled = true;//false;
+
+        mean_free_path = 50;//0;
         characteristic_angle = 0;
         critical_angle = 0;
 
-        simulate_combined_plasmons = false;
+        simulate_combined_plasmons = true;//false;
 
         simulate_individual_plasmon = false;
         individual_plasmon = 0;
@@ -88,6 +93,9 @@ public:
     void initDepthVectors(unsigned int job_count);
     bool generateScatteringDepths(unsigned int job_id, double thickness);
     std::vector<double> getDistancesForIndividual(double thickness);
+    std::vector<double> getDistancesforCombined(double thickness);
+
+    double getGeneratedDepth(unsigned int job_id, unsigned int scattering_count);
 };
 
 

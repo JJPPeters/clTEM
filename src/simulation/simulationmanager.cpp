@@ -286,3 +286,7 @@ unsigned int SimulationManager::getNumberofSlices() {
     n_slices += (n_slices == 0);
     return n_slices;
 }
+
+unsigned int SimulationManager::getPaddedPreSlices() {
+    return static_cast<unsigned int>(padding_z[1] / slice_dz);
+}

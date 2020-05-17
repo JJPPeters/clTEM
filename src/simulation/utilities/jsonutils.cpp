@@ -277,7 +277,7 @@ namespace JSONUtils {
         try { man.getInelasticScattering()->getPlasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
         } catch (std::exception& e) {}
 
-        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value"));
+        try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
         } catch (std::exception& e) {}
 
         try { man.getInelasticScattering()->getPlasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
@@ -557,7 +557,7 @@ namespace JSONUtils {
 
         bool inelastic_used = (mode == SimulationMode::CBED || mode == SimulationMode::STEM) && man.getInelasticScattering()->getInelasticEnabled();
         if (inelastic_used || force_all)
-            j["inelastic scattering"]["iterations"] = man.getInelasticScattering()->getStoredInelasticInterations();
+            j["inelastic scattering"]["iterations"] = man.getInelasticScattering()->getStoredInelasticIterations();
 
         // phonon
 

@@ -222,11 +222,14 @@ struct MicroscopeParameters {
         return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000));
     }
 
-    std::valarray<double> Wavevector() {
+    std::valarray<double> Wavevector(double diff_tilt=0.0, double diff_azimuth=0.0) {
+        double bt = BeamTilt + diff_tilt;
+        double ba = BeamAzimuth + diff_azimuth;
+
         double k = Wavenumber();
-        double k_x = k * std::sin(BeamTilt / 1000.0) * std::cos(BeamAzimuth);
-        double k_y = k * std::sin(BeamTilt / 1000.0) * std::sin(BeamAzimuth);
-        double k_z = k * std::cos(BeamTilt / 1000.0);
+        double k_x = k * std::sin(bt / 1000.0) * std::cos(ba);
+        double k_y = k * std::sin(bt / 1000.0) * std::sin(ba);
+        double k_z = k * std::cos(bt / 1000.0);
 
         return {k_x, k_y, k_z};
     }

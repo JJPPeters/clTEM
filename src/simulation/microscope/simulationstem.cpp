@@ -174,11 +174,36 @@ void SimulationStem<GPU_Type>::simulate() {
         initialiseProbeWave(x_pos, y_pos, i);
     }
 
+    //
+    // plasmon setup
+    //
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
+    bool do_plasmons = plasmon->getPlasmonEnabled();
+    double slice_dz = job->simManager->getSliceThickness();
+    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    unsigned int scattering_count = 0;
+    double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
+    double d_tilt = 0.0;
+    double d_azimuth = 0.0;
+
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
     unsigned int output_counter = 0;
     for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
+
+        // remove padding slices and add one (as we are at the 'end' of the current slice
+        double current_depth = (i + 1 - padding_slices) * slice_dz;
+        if (do_plasmons && current_depth >= next_scattering_depth) {
+            // modify propagator/transmission function
+            d_tilt += plasmon->getScatteringPolar();
+            d_azimuth += plasmon->getScatteringAzimuth();
+            modifyBeamTilt(d_tilt, d_azimuth);
+
+            // update parameters for next scattering event!
+            scattering_count++;
+            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+        }
 
         if (pool.isStopped())
             return;

@@ -136,7 +136,7 @@ void StemFrame::updateTextBoxes() {
     if (Main == 0)
         throw std::runtime_error("Error connecting STEM frame to main window.");
 
-    ui->edtTds->setText(Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticInterations()));
+    ui->edtTds->setText(Utils_Qt::numToQString(Main->Manager->getInelasticScattering()->getStoredInelasticIterations()));
 }
 
 void StemFrame::updateTds() {

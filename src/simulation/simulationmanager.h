@@ -312,6 +312,8 @@ public:
     void setIntermediateSlices(unsigned int is) {intermediate_slices = is;}
     void setIntermediateSlicesEnabled(bool ise) {intermediate_slices_enabled = ise;}
 
+    unsigned int getPaddedPreSlices();
+
 private:
     bool use_double_precision;
 

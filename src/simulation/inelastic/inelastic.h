@@ -34,7 +34,7 @@ public:
 //    bool getPlasmonEnabled() { return plasmons->getPlasmonEnabled(); }
     bool getInelasticEnabled(){ return phonons->getFrozenPhononEnabled() || plasmons->getPlasmonEnabled(); }
 
-    unsigned int getStoredInelasticInterations() { return inelastic_iterations;}
+    unsigned int getStoredInelasticIterations() { return inelastic_iterations;}
     unsigned int getInelasticIterations() {
         if (getInelasticEnabled())
             return inelastic_iterations;
