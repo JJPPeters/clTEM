@@ -6,6 +6,7 @@
 #include <dialogs/settings/settingsdialog.h>
 #include "cifcreatorframe.h"
 #include "ui_cifcreatorframe.h"
+#include <QScreen>
 
 CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shared_ptr<CIF::SuperCellInfo> _info) : QWidget(parent), ui(new Ui::CifCreatorFrame), CellInfo(_info), cif(_cif) {
     ui->setupUi(this);
@@ -30,9 +31,13 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
 
         pltPreview = std::make_shared<PGL::PlotWidget>(this, msaa);
         pltPreview->setFormat(format);
+
         ui->vPlotLayout->addWidget(pltPreview.get(), 1);
-        pltPreview->setMinimumHeight(400);
-        pltPreview->setMinimumWidth(400);
+
+        QScreen* primary_screen = QGuiApplication::primaryScreen();
+        double pixel_ratio = primary_screen->devicePixelRatio();
+        pltPreview->setMinimumHeight(400 / pixel_ratio);
+        pltPreview->setMinimumWidth(400 / pixel_ratio);
 
         pltPreview->setAttribute(Qt::WA_TransparentForMouseEvents);
         connect(pltPreview.get(), &PGL::PlotWidget::initError, this, &CifCreatorFrame::processOpenGLError);

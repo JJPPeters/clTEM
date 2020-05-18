@@ -267,19 +267,27 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
+  <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>
    <header>controls/tabpanel.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>EditUnitsBox</class>
-   <extends>QLineEdit</extends>
-   <header>controls/editunitsbox.h</header>
-  </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>chkEnabled</tabstop>
   <tabstop>tabWidget</tabstop>
+  <tabstop>edtMeanFreePath</tabstop>
+  <tabstop>edtCharacteristicAngle</tabstop>
+  <tabstop>edtCriticalAngle</tabstop>
+  <tabstop>rdioCombined</tabstop>
+  <tabstop>rdioIndividual</tabstop>
+  <tabstop>edtIndividual</tabstop>
  </tabstops>
  <resources/>
  <connections/>

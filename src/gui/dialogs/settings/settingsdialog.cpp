@@ -177,5 +177,5 @@ CifCreatorDialog::CifCreatorDialog(QWidget *parent, CIF::CIFReader cif, std::sha
 
     this->setWindowTitle("Cif");
 
-//    this->setFixedSize(this->sizeHint());
+    this->setFixedSize(this->minimumSize());
 }

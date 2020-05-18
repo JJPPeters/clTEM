@@ -3,12 +3,26 @@
 
 #include <QtGui/QRegExpValidator>
 #include <utils/stringutils.h>
+#include <QScreen>
 
 TemFrame::TemFrame(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::TemFrame)
 {
     ui->setupUi(this);
+
+    QScreen* primary_screen = QGuiApplication::primaryScreen();
+    double pixel_ratio = primary_screen->devicePixelRatio();
+
+    int col1 = 75  / pixel_ratio;
+//    int col2 = 100 / pixel_ratio;
+//    int col3 = 100 / pixel_ratio;
+
+    auto test = dynamic_cast<QGridLayout*>(this->layout());
+
+    test->setColumnMinimumWidth(0, col1);
+//    test->setColumnMinimumWidth(1, col2);
+//    test->setColumnMinimumWidth(2, col3);
 
     QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 

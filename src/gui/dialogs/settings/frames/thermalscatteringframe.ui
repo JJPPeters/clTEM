@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>551</width>
-    <height>452</height>
+    <height>470</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -445,17 +445,32 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
+  <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>
    <header>controls/tabpanel.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>EditUnitsBox</class>
-   <extends>QLineEdit</extends>
-   <header>controls/editunitsbox.h</header>
-  </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>chkEnabled</tabstop>
+  <tabstop>tPanel</tabstop>
+  <tabstop>edtDefault</tabstop>
+  <tabstop>chkForceDefault</tabstop>
+  <tabstop>chkOverride</tabstop>
+  <tabstop>btnLoad</tabstop>
+  <tabstop>tblDisplacements</tabstop>
+  <tabstop>tPanel_2</tabstop>
+  <tabstop>cmbElement</tabstop>
+  <tabstop>edtDisplacement</tabstop>
+  <tabstop>btnAdd</tabstop>
+  <tabstop>btnDelete</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

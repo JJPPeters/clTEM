@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Manager = std::make_shared<SimulationManager>();
 
-    std::string exe_path = qApp->applicationDirPath().toStdString();
+    std::string exe_path = QGuiApplication::applicationDirPath().toStdString();
 
     // try loading default settings from the config location
     on_actionImport_default_triggered(true);
@@ -51,6 +51,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     setWindowTitle("clTEM");
+
+    // this just makes it look nice without fannying about with widgets and all that
+    int w = width();
+    resize(w, w*0.66);
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
@@ -643,7 +647,7 @@ void MainWindow::loadExternalSources()
     
     // load parameters
     // get all the files in the parameters folder
-    auto params_path = qApp->applicationDirPath() + "/params/";
+    auto params_path = QGuiApplication::applicationDirPath() + "/params/";
     QDir params_dir(params_path);
     QStringList params_filt;
     params_filt << "*.dat";
@@ -662,7 +666,7 @@ void MainWindow::loadExternalSources()
 
     // load DQE, NQE for the CTEM simulation
 
-    auto ccd_path = qApp->applicationDirPath() + "/ccds/";
+    auto ccd_path = QGuiApplication::applicationDirPath() + "/ccds/";
     QDir ccd_dir(ccd_path);
     QStringList ccd_filt;
     ccd_filt << "*.dat";

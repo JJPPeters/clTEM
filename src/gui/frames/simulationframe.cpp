@@ -9,7 +9,6 @@ SimulationFrame::SimulationFrame(QWidget *parent) :
     ui(new Ui::SimulationFrame)
 {
     ui->setupUi(this);
-    ui->chkFiniteDiff->setVisible(false);
 }
 
 SimulationFrame::~SimulationFrame()
@@ -48,9 +47,6 @@ void SimulationFrame::on_chkFull3D_toggled(bool checked)
 {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
-
-    if(checked && ui->chkFiniteDiff->isChecked())
-        ui->chkFiniteDiff->setChecked(false);
 
     Main->Manager->setFull3d(ui->chkFull3D->isChecked());
 }

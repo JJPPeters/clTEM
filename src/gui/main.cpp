@@ -15,6 +15,9 @@
 #endif
 
 int main(int argc, char *argv[]) {
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+//    QGuiApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+
     // Create our application
     QApplication a(argc, argv);
 

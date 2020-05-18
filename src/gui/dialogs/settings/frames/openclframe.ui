@@ -240,6 +240,14 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tblDevices</tabstop>
+  <tabstop>tPanel</tabstop>
+  <tabstop>cmbPlatform</tabstop>
+  <tabstop>cmbDevice</tabstop>
+  <tabstop>btnAdd</tabstop>
+  <tabstop>btnDelete</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

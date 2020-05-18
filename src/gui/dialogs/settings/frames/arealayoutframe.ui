@@ -22,6 +22,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::TabFocus</enum>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -68,6 +71,9 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::TabFocus</enum>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::South</enum>
@@ -307,6 +313,9 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::TabFocus</enum>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::South</enum>
@@ -816,8 +825,20 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tbStructurePlot</tabstop>
+  <tabstop>chkShowRect</tabstop>
+  <tabstop>cmbViewDirection</tabstop>
+  <tabstop>btnApplyUpdate</tabstop>
+  <tabstop>tabGeneralWidget</tabstop>
+  <tabstop>cmbResolution</tabstop>
+  <tabstop>chkKeep</tabstop>
+  <tabstop>tabZWidget</tabstop>
   <tabstop>edtSliceThickness</tabstop>
   <tabstop>edtSliceOffset</tabstop>
+  <tabstop>chkSliceOutput</tabstop>
+  <tabstop>edtSliceOutput</tabstop>
+  <tabstop>tabAreaWidget</tabstop>
+  <tabstop>tabScaleWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>
