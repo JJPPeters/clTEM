@@ -50,9 +50,12 @@ namespace CIF {
         Eigen::Matrix3d xy_rotation = Eigen::Matrix3d::Identity();
         if ((abc.array() != 0).any()) {
             Eigen::Vector3d abc_vec = abc(0) * a_vector + abc(1) * b_vector + abc(2) * c_vector;
-            abc_vec = za_rotation * abc;
+            abc_vec = za_rotation * abc_vec;
             abc_vec(2) = 0.0; // no rotate the z-axis!
-            abc_vec.normalize();
+            if (abc_vec(0) < 1e-15)
+                abc_vec(0) = 0.0;
+            if (abc_vec(1) < 1e-15)
+                abc_vec(1) = 0.0;
             Eigen::Vector3d x_direction(std::vector<double>({1.0, 0.0, 0.0}).data()); // TODO: use << initialisation
             // Need the negative angle here? so give inputs in opposite order?
             xy_rotation = Utilities::generateNormalisedRotationMatrix<double>(x_direction, abc_vec);

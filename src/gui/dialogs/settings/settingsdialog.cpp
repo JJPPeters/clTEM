@@ -32,7 +32,9 @@ void SettingsDialog::showApplyButton(bool show) {
     ui->BtnApply->setVisible(show);
 }
 
-
+void SettingsDialog::setOkEnabled(bool enabled) {
+    ui->btnOk->setEnabled(enabled);
+}
 
 
 OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice>& current_devices) :

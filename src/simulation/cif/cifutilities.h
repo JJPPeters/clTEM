@@ -44,20 +44,26 @@ namespace CIF::Utilities {
         double regexFindDoubleTag(std::string input, std::string pattern);
 
         template<typename T>
-        Eigen::Matrix3d generateNormalisedRotationMatrix(const Eigen::Vector3d &A, const Eigen::Vector3d &B) {
-            Eigen::Vector3d wm = A.cross(B);
+        Eigen::Matrix3d generateNormalisedRotationMatrix(Eigen::Vector3d A, Eigen::Vector3d B) {
+            // https://stackoverflow.com/questions/45142959/calculate-rotation-matrix-to-align-two-vectors-in-3d-space
+            A.normalize();
+            B.normalize();
+            Eigen::Vector3d v = A.cross(B);
+            double c = A.dot(B);
+            // norm() gets the magnitude (normalize() normalises the vector)
+            double s = v.norm();
 
-            wm.normalize(); // I'm assuming that Eigen will handle the case of a zero vector...
+            // Row major
+            // std::vector<T> data = {0.0, -v(2), v(1), v(2), 0.0, -v(0), -v(1), v(0), 0.0};
+            // Column maor
+            std::vector<T> data = {0.0, v(2), -v(1), -v(2), 0.0, v(0), v(1), -v(0), 0.0};
+            Eigen::Matrix3d k(data.data());
 
-            std::vector<T> data = {0.0, -wm(2), wm(1), wm(2), 0.0, -wm(0), -wm(1), wm(0), 0.0};
-            Eigen::Matrix3d w_hat(data.data());
-
-            double cos_tht = A.dot(B) / (A.norm() * B.norm());
-
-            double tht = std::acos(cos_tht);
-
-            // This is the rotation matrix we want
-            return Eigen::Matrix3d::Identity() + w_hat * std::sin(tht) + w_hat * w_hat * (1 - cos_tht);
+            // k * k is proper matrix multiplication
+            Eigen::Matrix3d r = Eigen::Matrix3d::Identity() + k + k * k * (1 - c) / (s * s);
+//            Eigen::Matrix3d r = Eigen::Matrix3d::Identity() + k + k * k / (1 + c);
+//            r.normalize();
+            return r;
         }
 
         template<typename T>
@@ -76,8 +82,15 @@ namespace CIF::Utilities {
             auto bd = bcd(0) * bcd(2);
             auto cd = bcd(1) * bcd(2);
 
-            std::vector<T> data = {aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac), 2 * (bc - ad), aa + cc - bb - dd,
-                                   2 * (cd + ab), 2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc};
+            // row-major!
+//            std::vector<T> data = {aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac), 2 * (bc - ad), aa + cc - bb - dd,
+//                                   2 * (cd + ab), 2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc};
+
+            // Column major!
+            std::vector<T> data = {aa + bb - cc - dd, 2 * (bc - ad), 2 * (bd + ac),
+                                   2 * (bc + ad), aa + cc - bb - dd, 2 * (cd - ab),
+                                   2 * (bd - ac), 2 * (cd + ab), aa + dd - bb - cc};
+
             return Eigen::Matrix3d(data.data());
         }
 

@@ -38,6 +38,8 @@ public:
 
     void showApplyButton(bool show);
 
+    void setOkEnabled(bool enabled);
+
 private slots:
     void on_btnCancel_clicked();
 

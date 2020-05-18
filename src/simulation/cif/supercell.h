@@ -29,6 +29,12 @@ namespace CIF {
         void setWidths(double x, double y, double z) { widths << x, y, z; }
 
         void setTilts(double alpha, double beta, double gamma) { tilts << alpha, beta, gamma; }
+
+        bool equalUVW(double u, double v, double w) {return uvw(0) == u && uvw(1) == v && uvw(2) == w;}
+
+        bool equalABC(double a, double b, double c) {return abc(0) == a && abc(1) == b && abc(2) == c;}
+
+        bool equalTilts(double alpha, double beta, double gamma) {return tilts(0) == alpha && tilts(1) == beta && tilts(2) == gamma;}
     };
 
     void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<double> &x,
