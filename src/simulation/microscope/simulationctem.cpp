@@ -77,7 +77,7 @@ void SimulationCtem<T>::initialiseSimulation()
     InitPlaneWavefunction.SetArg(1, resolution);
     InitPlaneWavefunction.SetArg(2, resolution);
     InitPlaneWavefunction.SetArg(3, static_cast<T>(InitialValue));
-    InitPlaneWavefunction.SetArg(0, clWaveFunction1[0], ArgumentType::Output);
+    InitPlaneWavefunction.SetArg(0, clWaveFunctionReal[0], ArgumentType::Output);
     InitPlaneWavefunction.run(WorkSize);
 
     ctx.WaitForQueueFinish();
@@ -117,7 +117,7 @@ void SimulationCtem<T>::simulateImagePerfect()
 
     CLOG(DEBUG, "sim") << "Calculating CTEM image from wavefunction";
     // Set arguments for imaging kernel
-    ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
+    ImagingKernel.SetArg(0, clWaveFunctionRecip[0], ArgumentType::Input);
     ImagingKernel.SetArg(1, clImageWaveFunction, ArgumentType::Output);
     ImagingKernel.SetArg(2, resolution);
     ImagingKernel.SetArg(3, resolution);
@@ -149,11 +149,11 @@ void SimulationCtem<T>::simulateImagePerfect()
 
     // Now get and display absolute value
     CLOG(DEBUG, "sim") << "IFFT to real space";
-    FourierTrans.run(clImageWaveFunction, clWaveFunction3, Direction::Inverse);
+    FourierTrans.run(clImageWaveFunction, clWaveFunctionTemp_1, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Calculate absolute squared";
-    ABS2.SetArg(0, clWaveFunction3, ArgumentType::Input);
+    ABS2.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
     ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
@@ -319,7 +319,7 @@ void SimulationCtem<GPU_Type>::simulate() {
         // get data when we have the right number of slices (unless it is the end, that is always done after the loop)
         if (slice_step > 0 && (i + 1) % slice_step == 0) {
             ew.getSliceRef(output_counter) = getExitWaveImage();
-            diff.getSliceRef(output_counter) = getDiffractionImage();
+            diff.getSliceRef(output_counter) = getDiffractionImage(0);
 
             if (sim_im) {
                 simulateCtemImage();
@@ -338,7 +338,7 @@ void SimulationCtem<GPU_Type>::simulate() {
     // get the final slice output
     if (output_counter < output_count) {
         ew.getSliceRef(output_counter) = getExitWaveImage();
-        diff.getSliceRef(output_counter) = getDiffractionImage();
+        diff.getSliceRef(output_counter) = getDiffractionImage(0);
         if (sim_im) {
             simulateCtemImage();
             ctem_im.getSliceRef(output_counter) = getCtemImage();

@@ -663,6 +663,8 @@ int main(int argc, char *argv[])
         Kernels::propagator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
         Kernels::sqabs_d = Utils::resourceToChar(kernel_path, "sqabs_d.cl");
         Kernels::sum_reduction_d = Utils::resourceToChar(kernel_path, "sum_reduction_d.cl");
+        Kernels::bilinear_translate_d = Utils::resourceToChar(kernel_path, "bilinear_translate_d.cl");
+        Kernels::complex_to_real_d = Utils::resourceToChar(kernel_path, "complex_to_real_d.cl");
     } else {
         Kernels::atom_sort_f = Utils::resourceToChar(kernel_path, "atom_sort_f.cl");
         Kernels::band_limit_f = Utils::resourceToChar(kernel_path, "band_limit_f.cl");
@@ -679,6 +681,8 @@ int main(int argc, char *argv[])
         Kernels::propagator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
         Kernels::sqabs_f = Utils::resourceToChar(kernel_path, "sqabs_f.cl");
         Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");
+        Kernels::bilinear_translate_f = Utils::resourceToChar(kernel_path, "bilinear_translate_f.cl");
+        Kernels::complex_to_real_f = Utils::resourceToChar(kernel_path, "complex_to_real_f.cl");
     }
 
     auto ccd_name = man_ptr->getCcdName();

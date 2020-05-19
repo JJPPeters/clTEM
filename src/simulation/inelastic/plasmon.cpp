@@ -103,11 +103,11 @@ std::vector<double> PlasmonScattering::getDistancesforCombined(double thickness)
 }
 
 double PlasmonScattering::getGeneratedDepth(unsigned int job_id, unsigned int scattering_count) {
-    if (job_id > depths.size())
-        throw std::runtime_error("Error generating plasmon scattering depths, depth vectors may not have been initialised");
-
     if (depths.empty())
         return std::numeric_limits<double>::infinity();
+
+    if (job_id > depths.size())
+        throw std::runtime_error("Error generating plasmon scattering depths, depth vectors may not have been initialised");
 
     int total_scatters = depths[job_id].size();
 

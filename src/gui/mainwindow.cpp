@@ -628,6 +628,8 @@ void MainWindow::loadExternalSources()
     Kernels::propagator_f = Utils_Qt::kernelToChar("propagator_f.cl");
     Kernels::sqabs_f = Utils_Qt::kernelToChar("sqabs_f.cl");
     Kernels::sum_reduction_f = Utils_Qt::kernelToChar("sum_reduction_f.cl");
+    Kernels::bilinear_translate_f = Utils_Qt::kernelToChar("bilinear_translate_f.cl");
+    Kernels::complex_to_real_f = Utils_Qt::kernelToChar("complex_to_real_f.cl");
 
     Kernels::atom_sort_d = Utils_Qt::kernelToChar("atom_sort_d.cl");
     Kernels::band_limit_d = Utils_Qt::kernelToChar("band_limit_d.cl");
@@ -644,6 +646,8 @@ void MainWindow::loadExternalSources()
     Kernels::propagator_d = Utils_Qt::kernelToChar("propagator_d.cl");
     Kernels::sqabs_d = Utils_Qt::kernelToChar("sqabs_d.cl");
     Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
+    Kernels::bilinear_translate_d = Utils_Qt::kernelToChar("bilinear_translate_d.cl");
+    Kernels::complex_to_real_d = Utils_Qt::kernelToChar("complex_to_real_d.cl");
     
     // load parameters
     // get all the files in the parameters folder

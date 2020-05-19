@@ -17,9 +17,9 @@ protected:
     using SimulationGeneral<GPU_Type>::last_mode;
     using SimulationGeneral<GPU_Type>::ctx;
 
-    using SimulationGeneral<GPU_Type>::clWaveFunction1;
-    using SimulationGeneral<GPU_Type>::clWaveFunction2;
-    using SimulationGeneral<GPU_Type>::clWaveFunction3;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionReal;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionRecip;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionTemp_1;
     using SimulationGeneral<GPU_Type>::clXFrequencies;
     using SimulationGeneral<GPU_Type>::clYFrequencies;
     using SimulationGeneral<GPU_Type>::FourierTrans;

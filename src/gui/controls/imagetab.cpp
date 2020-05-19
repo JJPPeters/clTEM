@@ -11,7 +11,7 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex
 
     if (!is_complex) {
         ui->cmbComplex->setEnabled(false);
-        ui->cmbComplex->setStyleSheet("QComboBox {min-width: 0px; margin: 1px 0px; padding: 0px; border: 0px;}");
+        ui->cmbComplex->setStyleSheet("QComboBox {min-width: 0px; padding: 0px; border: 0px;}");
         ui->cmbComplex->setFixedWidth(0); // do this, so the ui doesnt resize
     }
 

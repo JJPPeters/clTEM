@@ -15,6 +15,8 @@ KernelSource Kernels::transmission_potentials_projected_f;
 KernelSource Kernels::propagator_f;
 KernelSource Kernels::sqabs_f;
 KernelSource Kernels::sum_reduction_f;
+KernelSource Kernels::bilinear_translate_f;
+KernelSource Kernels::complex_to_real_f;
 
 KernelSource Kernels::atom_sort_d;
 KernelSource Kernels::band_limit_d;
@@ -31,3 +33,5 @@ KernelSource Kernels::transmission_potentials_projected_d;
 KernelSource Kernels::propagator_d;
 KernelSource Kernels::sqabs_d;
 KernelSource Kernels::sum_reduction_d;
+KernelSource Kernels::bilinear_translate_d;
+KernelSource Kernels::complex_to_real_d;

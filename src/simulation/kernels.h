@@ -84,6 +84,8 @@ struct Kernels
     static KernelSource propagator_f;
     static KernelSource sqabs_f;
     static KernelSource sum_reduction_f;
+    static KernelSource bilinear_translate_f;
+    static KernelSource complex_to_real_f;
 
     static KernelSource atom_sort_d;
     static KernelSource band_limit_d;
@@ -100,6 +102,8 @@ struct Kernels
     static KernelSource propagator_d;
     static KernelSource sqabs_d;
     static KernelSource sum_reduction_d;
+    static KernelSource bilinear_translate_d;
+    static KernelSource complex_to_real_d;
 
 };
 

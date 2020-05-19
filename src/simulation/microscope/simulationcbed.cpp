@@ -4,6 +4,11 @@
 
 #include "simulationcbed.h"
 
+template <class T>
+void SimulationCbed<T>::initialiseBuffers() {
+    SimulationCtem<T>::initialiseBuffers();
+}
+
 template <>
 void SimulationCbed<float>::initialiseKernels() {
     SimulationGeneral<float>::initialiseKernels();
@@ -58,7 +63,7 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     posx = resolution - posx;
     posy = resolution - posy;
 
-    InitProbeWavefunction.SetArg(0, clWaveFunction2[n_parallel]);
+    InitProbeWavefunction.SetArg(0, clWaveFunctionRecip[n_parallel]);
     InitProbeWavefunction.SetArg(1, resolution);
     InitProbeWavefunction.SetArg(2, resolution);
     InitProbeWavefunction.SetArg(3, clXFrequencies);
@@ -95,7 +100,7 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
 
     // IFFT
     CLOG(DEBUG, "sim") << "IFFT probe wavefunction";
-    FourierTrans.run(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
+    FourierTrans.run(clWaveFunctionRecip[n_parallel], clWaveFunctionReal[n_parallel], Direction::Inverse);
     ctx.WaitForQueueFinish();
 }
 
@@ -164,8 +169,7 @@ void SimulationCbed<GPU_Type>::simulate() {
             return;
 
         if (slice_step > 0 && (i+1) % slice_step == 0) {
-            diff.getSliceRef(output_counter) = getDiffractionImage();
-
+            diff.getSliceRef(output_counter) = getDiffractionImage(0, d_tilt, d_azimuth);
             output_counter++;
         }
 
@@ -175,8 +179,9 @@ void SimulationCbed<GPU_Type>::simulate() {
         job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
     }
 
-    if (output_counter < output_count)
-        diff.getSliceRef(output_counter) = getDiffractionImage();
+    if (output_counter < output_count) {
+        diff.getSliceRef(output_counter) = getDiffractionImage(0, d_tilt, d_azimuth);
+    }
 
     Images.insert(return_map::value_type("Diff", diff));
 

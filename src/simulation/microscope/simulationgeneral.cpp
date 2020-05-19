@@ -34,45 +34,28 @@ void SimulationGeneral<T>::initialiseBuffers() {
         clYFrequencies = clMemory<T, Manual>(ctx, rs);
         clPropagator = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
         clTransmissionFunction = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
-        clWaveFunction3 = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        clWaveFunctionTemp_1 = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        clWaveFunctionTemp_2 = clMemory<T, Manual>(ctx, rs * rs);
+        clWaveFunctionTemp_3 = clMemory<T, Manual>(ctx, rs * rs);
 
-        clWaveFunction1.clear();
-        clWaveFunction2.clear();
-        clWaveFunction4.clear();
+        clWaveFunctionReal.clear();
+        clWaveFunctionRecip.clear();
 
         for (int i = 0; i < sm->getParallelPixels(); ++i) {
-            clWaveFunction1.emplace_back(ctx, rs * rs);
-            clWaveFunction2.emplace_back(ctx, rs * rs);
-            clWaveFunction4.emplace_back(ctx, rs * rs);
+            clWaveFunctionReal.emplace_back(ctx, rs * rs);
+            clWaveFunctionRecip.emplace_back(ctx, rs * rs);
         }
     }
 
-    if (sm->getParallelPixels() < clWaveFunction1.size()) {
-        clWaveFunction1.resize(sm->getParallelPixels());
-        clWaveFunction2.resize(sm->getParallelPixels());
-        clWaveFunction4.resize(sm->getParallelPixels());
-    } else if (sm->getParallelPixels() > clWaveFunction1.size()) {
-        for (int i = 0; i < sm->getParallelPixels() - clWaveFunction1.size(); ++i) {
-            clWaveFunction1.emplace_back(ctx, rs * rs);
-            clWaveFunction2.emplace_back(ctx, rs * rs);
-            clWaveFunction4.emplace_back(ctx, rs * rs);
+    if (sm->getParallelPixels() < clWaveFunctionReal.size()) {
+        clWaveFunctionReal.resize(sm->getParallelPixels());
+        clWaveFunctionRecip.resize(sm->getParallelPixels());
+    } else if (sm->getParallelPixels() > clWaveFunctionReal.size()) {
+        for (int i = 0; i < sm->getParallelPixels() - clWaveFunctionReal.size(); ++i) {
+            clWaveFunctionReal.emplace_back(ctx, rs * rs);
+            clWaveFunctionRecip.emplace_back(ctx, rs * rs);
         }
     }
-
-//    // when resolution changes (or if enabled)
-//    auto sim_mode = sm->getMode();
-//    if (sim_mode == SimulationMode::CTEM && (sim_mode != last_mode || rs*rs != clImageWaveFunction.GetSize())) {
-//        clImageWaveFunction = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
-//
-//        // TODO: I can further split these up, but they aren't a huge issue
-//        clTempBuffer = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
-//        clCcdBuffer = clMemory<T, Manual>(ctx, 725);
-//    }
-//
-//    if (sim_mode == SimulationMode::STEM && (sim_mode != last_mode || rs*rs != clTDSMaskDiff.GetSize())) {
-//        clTDSMaskDiff = clMemory<T, Manual>(ctx, rs * rs);
-//        clReductionBuffer = clMemory<T, Manual>(ctx, rs*rs / 256); // STEM only
-//    }
 
     // TODO: could clear unneeded buffers when sim type switches, but there aren't many of them... (the main ones are the wavefunction vectors)
 }
@@ -96,10 +79,12 @@ void SimulationGeneral<float>::initialiseKernels() {
 
     if (do_initialise_general) {
         AtomSort = Kernels::atom_sort_f.BuildToKernel(ctx);
-        fftShift = Kernels::fft_shift_f.BuildToKernel(ctx);
+        FftShift = Kernels::fft_shift_f.BuildToKernel(ctx);
         BandLimit = Kernels::band_limit_f.BuildToKernel(ctx);
         GeneratePropagator = Kernels::propagator_f.BuildToKernel(ctx);
         ComplexMultiply = Kernels::complex_multiply_f.BuildToKernel(ctx);
+        BilinearTranslate = Kernels::bilinear_translate_f.BuildToKernel(ctx);
+        ComplexToReal = Kernels::complex_to_real_f.BuildToKernel(ctx);
     }
 
     do_initialise_general = false;
@@ -124,10 +109,12 @@ void SimulationGeneral<double>::initialiseKernels() {
 
     if (do_initialise_general) {
         AtomSort = Kernels::atom_sort_d.BuildToKernel(ctx);
-        fftShift = Kernels::fft_shift_d.BuildToKernel(ctx);
+        FftShift = Kernels::fft_shift_d.BuildToKernel(ctx);
         BandLimit = Kernels::band_limit_d.BuildToKernel(ctx);
         GeneratePropagator = Kernels::propagator_d.BuildToKernel(ctx);
         ComplexMultiply = Kernels::complex_multiply_d.BuildToKernel(ctx);
+        BilinearTranslate = Kernels::bilinear_translate_d.BuildToKernel(ctx);
+        ComplexToReal = Kernels::complex_to_real_d.BuildToKernel(ctx);
     }
 
     do_initialise_general = false;
@@ -415,10 +402,37 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CLOG(DEBUG, "sim") << "Set up FFT shift kernel";
 
     // these will never change, so set them here
-    fftShift.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
-    fftShift.SetArg(1, clWaveFunction3, ArgumentType::Output);
-    fftShift.SetArg(2, resolution);
-    fftShift.SetArg(3, resolution);
+    FftShift.SetArg(0, clWaveFunctionRecip[0], ArgumentType::Input);
+    FftShift.SetArg(1, clWaveFunctionTemp_1, ArgumentType::Output);
+    FftShift.SetArg(2, resolution);
+    FftShift.SetArg(3, resolution);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Set up complex to real kernel
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CLOG(DEBUG, "sim") << "Set up complex to real kernel";
+
+    // these will never change, so set them here
+//    ComplexToReal.SetArg(0, ..., ArgumentType::Input);
+    ComplexToReal.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
+//    ComplexToReal.SetArg(2, 0);
+    ComplexToReal.SetArg(3, resolution);
+    ComplexToReal.SetArg(4, resolution);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Set up bilinear translation kernel
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CLOG(DEBUG, "sim") << "Set up bilinear translation kernel";
+
+    // these will never change, so set them here
+    BilinearTranslate.SetArg(0, clWaveFunctionTemp_2, ArgumentType::Input);
+    BilinearTranslate.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
+//    BilinearTranslate.SetArg(2, 0);
+//    BilinearTranslate.SetArg(3, 0);
+//    BilinearTranslate.SetArg(4, static_cast<T>(0.0));
+//    BilinearTranslate.SetArg(5, static_cast<T>(0.0));
+    BilinearTranslate.SetArg(6, resolution);
+    BilinearTranslate.SetArg(7, resolution);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up low pass filter kernel
@@ -426,7 +440,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CLOG(DEBUG, "sim") << "Set up low pass filter kernel";
 
     // These never change, so set them here
-    BandLimit.SetArg(0, clWaveFunction3, ArgumentType::InputOutput);
+    BandLimit.SetArg(0, clWaveFunctionTemp_1, ArgumentType::InputOutput);
     BandLimit.SetArg(1, resolution);
     BandLimit.SetArg(2, resolution);
     BandLimit.SetArg(3, static_cast<T>(bandwidthkmax));
@@ -596,13 +610,13 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
     /// Apply low pass filter to transmission function
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "FFT transmission function";
-    FourierTrans.run(clTransmissionFunction, clWaveFunction3, Direction::Forwards);
+    FourierTrans.run(clTransmissionFunction, clWaveFunctionTemp_1, Direction::Forwards);
     ctx.WaitForQueueFinish();
     CLOG(DEBUG, "sim") << "Band limit transmission function";
     BandLimit.run(Work);
     ctx.WaitForQueueFinish();
     CLOG(DEBUG, "sim") << "IFFT band limited transmission function";
-    FourierTrans.run(clWaveFunction3, clTransmissionFunction, Direction::Inverse);
+    FourierTrans.run(clWaveFunctionTemp_1, clTransmissionFunction, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -614,56 +628,67 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
 
         // Multiply transmission function with wavefunction
         ComplexMultiply.SetArg(0, clTransmissionFunction, ArgumentType::Input);
-        ComplexMultiply.SetArg(1, clWaveFunction1[i - 1], ArgumentType::Input);
-        ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
+        ComplexMultiply.SetArg(1, clWaveFunctionReal[i - 1], ArgumentType::Input);
+        ComplexMultiply.SetArg(2, clWaveFunctionRecip[i - 1], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
         ComplexMultiply.run(Work);
         ctx.WaitForQueueFinish();
 
         // go to reciprocal space
         CLOG(DEBUG, "sim") << "FFT to reciprocal space";
-        FourierTrans.run(clWaveFunction2[i - 1], clWaveFunction3, Direction::Forwards);
+        FourierTrans.run(clWaveFunctionRecip[i - 1], clWaveFunctionTemp_1, Direction::Forwards);
         ctx.WaitForQueueFinish();
 
         // convolve with propagator
-        ComplexMultiply.SetArg(0, clWaveFunction3, ArgumentType::Input);
+        ComplexMultiply.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clPropagator, ArgumentType::Input);
-        ComplexMultiply.SetArg(2, clWaveFunction2[i - 1], ArgumentType::Output);
+        ComplexMultiply.SetArg(2, clWaveFunctionRecip[i - 1], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Convolve with propagator";
         ComplexMultiply.run(Work);
         ctx.WaitForQueueFinish();
 
         // IFFT back to real space
         CLOG(DEBUG, "sim") << "IFFT to real space";
-        FourierTrans.run(clWaveFunction2[i - 1], clWaveFunction1[i - 1], Direction::Inverse);
+        FourierTrans.run(clWaveFunctionRecip[i - 1], clWaveFunctionReal[i - 1], Direction::Inverse);
         ctx.WaitForQueueFinish();
     }
 }
 
 template <class T>
-std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind)
-{
+std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, double tilt_x, double tilt_y) {
     CLOG(DEBUG, "sim") << "Getting diffraction image";
     unsigned int resolution = job->simManager->getResolution();
-    std::vector<double> data_out(resolution * resolution);
 
     // Original data is complex so copy complex version down first
     clWorkGroup Work(resolution, resolution, 1);
 
     CLOG(DEBUG, "sim") << "FFT shifting diffraction pattern";
-    fftShift.SetArg(0, clWaveFunction2[parallel_ind], ArgumentType::Input);
-    fftShift.run(Work);
+    FftShift.SetArg(0, clWaveFunctionRecip[parallel_ind], ArgumentType::Input);
+    FftShift.run(Work);
+
+    int output_type = 4; // square abs
+
+    CLOG(DEBUG, "sim") << "Getting abs of diffraction pattern";
+
+    if (tilt_x != 0.0 || tilt_y != 0.0) {
+        ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
+        ComplexToReal.SetArg(1, clWaveFunctionTemp_2, ArgumentType::Output);
+        ComplexToReal.SetArg(2, output_type); // should be 4
+        ComplexToReal.run(Work);
+
+        translateDiffImage(tilt_x, tilt_y);
+
+    } else {
+        ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
+        ComplexToReal.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
+        ComplexToReal.SetArg(2, output_type); // should be 4
+        ComplexToReal.run(Work);
+    }
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<std::complex<T>> compdata = clWaveFunction3.CreateLocalCopy();
+    std::vector<T> data_typed = clWaveFunctionTemp_3.CreateLocalCopy();
 
-    // TODO: this could be done on GPU?
-    CLOG(DEBUG, "sim") << "Calculating absolute squared value";
-    for (int i = 0; i < resolution * resolution; i++)
-        // Get absolute value for display...
-        data_out[i] = std::norm(compdata[i]); // norm is square amplitude
-
-    return data_out;
+    return std::vector<double>(data_typed.begin(), data_typed.end());
 }
 
 template <class T>
@@ -673,21 +698,47 @@ std::vector<double> SimulationGeneral<T>::getExitWaveImage(unsigned int t, unsig
     std::vector<double> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<std::complex<T>> compdata = clWaveFunction1[0].CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clWaveFunctionReal[0].CreateLocalCopy();
 
     CLOG(DEBUG, "sim") << "Process complex data";
     int cnt = 0;
-    for (int j = 0; j < resolution; ++j)
+    for (unsigned int j = 0; j < resolution; ++j)
         if (j >= b && j < (resolution - t))
-            for (int i = 0; i < resolution; ++i)
+            for (unsigned int i = 0; i < resolution; ++i)
                 if (i >= l && i < (resolution - r)) {
-                    int k = i + j * resolution;
+                    unsigned int k = i + j * resolution;
                     data_out[cnt] = compdata[k].real();
                     data_out[cnt + 1] = compdata[k].imag();
                     cnt += 2;
                 }
 
     return data_out;
+}
+
+template <typename T>
+void SimulationGeneral<T>::translateDiffImage(double tilt, double azimuth) {
+    unsigned int resolution = job->simManager->getResolution();
+    clWorkGroup Work(resolution, resolution, 1);
+
+    auto wv = job->simManager->getMicroscopeParams()->calculateWavevectorFromTilt(tilt, azimuth);
+    double scale = job->simManager->getInverseScale();
+    double shift_x = wv[0] / scale;
+    double shift_y = wv[1] / scale;
+
+    int int_shift_x = std::floor(shift_x);
+    int int_shift_y = std::floor(shift_y);
+
+    double sub_shift_x = shift_x - int_shift_x;
+    double sub_shift_y = shift_y - int_shift_y;
+
+    CLOG(DEBUG, "sim") << "Translating difraction pattern";
+
+    BilinearTranslate.SetArg(2, int_shift_x);
+    BilinearTranslate.SetArg(3, int_shift_y);
+    BilinearTranslate.SetArg(4, static_cast<T>(sub_shift_x));
+    BilinearTranslate.SetArg(5, static_cast<T>(sub_shift_y));
+
+    BilinearTranslate.run(Work);
 }
 
 template class SimulationGeneral<float>;
