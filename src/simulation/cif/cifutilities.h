@@ -67,31 +67,17 @@ namespace CIF::Utilities {
         }
 
         template<typename T>
-        Eigen::Matrix3d generateRotationMatrix(Eigen::Vector3d axis, double theta) {
-            axis = axis / std::sqrt(axis.dot(axis));
-            double a = std::cos(theta / 2);
-            auto bcd = -1 * axis * std::sin(theta / 2);
-            auto aa = a * a;
-            auto bb = bcd(0) * bcd(0);
-            auto cc = bcd(1) * bcd(1);
-            auto dd = bcd(2) * bcd(2);
-            auto ab = a * bcd(0);
-            auto ac = a * bcd(1);
-            auto ad = a * bcd(2);
-            auto bc = bcd(0) * bcd(1);
-            auto bd = bcd(0) * bcd(2);
-            auto cd = bcd(1) * bcd(2);
+        Eigen::Matrix3d generateRotationMatrix(Eigen::Vector3d ax, double theta) {
+            // https://computergraphics.stackexchange.com/a/2404
+            // normalize otherwise our rotation will modify the magnitude?
+            ax.normalize();
 
-            // row-major!
-//            std::vector<T> data = {aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac), 2 * (bc - ad), aa + cc - bb - dd,
-//                                   2 * (cd + ab), 2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc};
+            Eigen::Matrix3d c;
+            c << 0.0, -ax(2), ax(1),
+                    ax(2), 0.0, -ax(0),
+                    -ax(1), ax(0), 0.0;
 
-            // Column major!
-            std::vector<T> data = {aa + bb - cc - dd, 2 * (bc - ad), 2 * (bd + ac),
-                                   2 * (bc + ad), aa + cc - bb - dd, 2 * (cd - ab),
-                                   2 * (bd - ac), 2 * (cd + ab), aa + dd - bb - cc};
-
-            return Eigen::Matrix3d(data.data());
+            return Eigen::Matrix3d::Identity() + c * std::sin(theta) + c * c * (1 - std::cos(theta));
         }
 
         /// Removes CIF comments and whitespace at start or end of line

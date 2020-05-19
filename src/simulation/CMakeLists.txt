@@ -31,6 +31,11 @@ if(EASYLOGGINGPP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_NO_LOG_TO_FILE -DELPP_THREAD_SAFE -DELPP_FORCE_USE_STD_THREAD") #
 endif()
 
+find_package (Eigen3 REQUIRED)
+if(EIGEN3_FOUND)
+    message(STATUS "Found EIGEN3: " ${EIGEN3_INCLUDE_DIR})
+endif(EIGEN3_FOUND)
+
 set(SIM_HDRS
         simulationmanager.h
         kernels.h

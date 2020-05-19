@@ -47,7 +47,7 @@ protected:
 
     void doMultiSliceStep(int slice);
 
-    std::vector<double> getDiffractionImage(int parallel_ind, double tilt_x = 0.0, double tilt_y = 0.0);
+    std::vector<double> getDiffractionImage(int parallel_ind, double d_kx = 0.0, double d_ky = 0.0);
 
     std::vector<double> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
 
@@ -57,9 +57,9 @@ protected:
     void initialiseKernels();
 
     // this tilts the beam mid simulation - used for plasmon scattering.
-    void modifyBeamTilt(double d_tilt, double d_azimuth);
+    void modifyBeamTilt(double kx, double ky, double kz);
 
-    void translateDiffImage(double kx, double ky);
+    void translateDiffImage(double d_kx, double d_ky);
 
     // OpenCL stuff
     clMemory<GPU_Type, Manual> ClParameterisation;

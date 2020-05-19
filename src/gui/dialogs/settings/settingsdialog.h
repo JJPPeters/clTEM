@@ -144,6 +144,10 @@ signals:
     // this signal is picked up by the mainwindow aberrations frame
     void plasmonsChanged();
 
+private slots:
+    // this slot gets the signal from the fullaberrationsframe
+    void corePlasmonsChanged();
+
 private:
     PlasmonSettingsFrame* PlasmonFrame;
 

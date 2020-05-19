@@ -92,4 +92,6 @@ void PlasmonSettingsFrame::dlgApply_clicked()
     plasmon_manager->setIndividualEnabled(do_ind);
 
     plasmon_manager->setEnabled(enabled);
+
+    emit plasmonsApplied();
 }

@@ -15,6 +15,9 @@ class PlasmonSettingsFrame : public QWidget
 {
     Q_OBJECT
 
+signals:
+    void plasmonsApplied();
+
 private slots:
     void dlgOk_clicked();
 

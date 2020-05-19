@@ -536,31 +536,32 @@ void SimulationGeneral<T>::initialiseSimulation() {
 }
 
 template <class T>
-void SimulationGeneral<T>::modifyBeamTilt(double d_tilt, double d_azimuth){
+void SimulationGeneral<T>::modifyBeamTilt(double kx, double ky, double kz){
     auto mParams = job->simManager->getMicroscopeParams();
     bool isFull3D = job->simManager->isFull3d();
     int full3dints = job->simManager->getFull3dInts();
     double dz = job->simManager->getSliceThickness();
     unsigned int resolution = job->simManager->getResolution();
 
-    std::valarray<double> wavevector = mParams->Wavevector(d_tilt, d_azimuth);
-
     // The transmission function does not need to be recalculated here (it is done on every slice)
     if (isFull3D) {
-        double int_shift_x = (wavevector[0] / wavevector[2]) * dz / full3dints;
-        double int_shift_y = (wavevector[1] / wavevector[2]) * dz / full3dints;
+        double int_shift_x = (kx / kz) * dz / full3dints;
+        double int_shift_y = (kx / kz) * dz / full3dints;
 
         CalculateTransmissionFunction.SetArg(27, static_cast<T>(int_shift_x));
         CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_y));
     } else {
-        CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
-        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
+        double new_azimuth = std::atan(ky / kx);
+        double new_tilt = std::atan( std::sqrt(kx*kx + ky*ky) / kz );
+
+        CalculateTransmissionFunction.SetArg(27, static_cast<T>(new_azimuth));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(new_tilt));
     }
 
     // The propagator does need to be recalculated now
-    GeneratePropagator.SetArg(7, static_cast<T>(wavevector[0]));
-    GeneratePropagator.SetArg(8, static_cast<T>(wavevector[1]));
-    GeneratePropagator.SetArg(9, static_cast<T>(wavevector[2]));
+    GeneratePropagator.SetArg(7, static_cast<T>(kx));
+    GeneratePropagator.SetArg(8, static_cast<T>(ky));
+    GeneratePropagator.SetArg(9, static_cast<T>(kz));
 
     clWorkGroup WorkSize(resolution, resolution, 1);
     GeneratePropagator.run(WorkSize);
@@ -655,7 +656,7 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
 }
 
 template <class T>
-std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, double tilt_x, double tilt_y) {
+std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, double d_kx, double d_ky) {
     CLOG(DEBUG, "sim") << "Getting diffraction image";
     unsigned int resolution = job->simManager->getResolution();
 
@@ -670,14 +671,13 @@ std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, 
 
     CLOG(DEBUG, "sim") << "Getting abs of diffraction pattern";
 
-    if (tilt_x != 0.0 || tilt_y != 0.0) {
+    if (d_kx != 0.0 || d_ky != 0.0) {
         ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexToReal.SetArg(1, clWaveFunctionTemp_2, ArgumentType::Output);
         ComplexToReal.SetArg(2, output_type); // should be 4
         ComplexToReal.run(Work);
 
-        translateDiffImage(tilt_x, tilt_y);
-
+        translateDiffImage(d_kx, d_ky);
     } else {
         ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexToReal.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
@@ -716,14 +716,13 @@ std::vector<double> SimulationGeneral<T>::getExitWaveImage(unsigned int t, unsig
 }
 
 template <typename T>
-void SimulationGeneral<T>::translateDiffImage(double tilt, double azimuth) {
+void SimulationGeneral<T>::translateDiffImage(double d_kx, double d_ky) {
     unsigned int resolution = job->simManager->getResolution();
     clWorkGroup Work(resolution, resolution, 1);
 
-    auto wv = job->simManager->getMicroscopeParams()->calculateWavevectorFromTilt(tilt, azimuth);
     double scale = job->simManager->getInverseScale();
-    double shift_x = wv[0] / scale;
-    double shift_y = wv[1] / scale;
+    double shift_x = d_kx / scale;
+    double shift_y = d_ky / scale;
 
     int int_shift_x = std::floor(shift_x);
     int int_shift_y = std::floor(shift_y);

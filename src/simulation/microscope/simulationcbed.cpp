@@ -3,6 +3,7 @@
 //
 
 #include "simulationcbed.h"
+#include "utilities/vectorutils.h"
 
 template <class T>
 void SimulationCbed<T>::initialiseBuffers() {
@@ -143,8 +144,19 @@ void SimulationCbed<GPU_Type>::simulate() {
     int padding_slices = (int) job->simManager->getPaddedPreSlices();
     unsigned int scattering_count = 0;
     double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
-    double d_tilt = 0.0;
-    double d_azimuth = 0.0;
+
+    // this gives us our current wavevector, but also our axis for azimuth rotation
+    auto mp = job->simManager->getMicroscopeParams();
+    double k_v = mp->Wavenumber();
+    auto orig_k = mp->Wavevector();
+    Eigen::Vector3d k_vec(0.0, 0.0, k_v);
+    Eigen::Vector3d y_axis(0.0, 1.0, 0.0);
+
+    // apply any current rotation to the y_axis
+    double current_tilt = mp->BeamTilt;
+    double current_azimuth = mp->BeamAzimuth;
+    Utils::rotateVectorSpherical(k_vec, y_axis, current_tilt/1000.0, current_azimuth);
+
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
@@ -156,9 +168,12 @@ void SimulationCbed<GPU_Type>::simulate() {
         double current_depth = (i + 1 - padding_slices) * slice_dz;
         if (do_plasmons && current_depth >= next_scattering_depth) {
             // modify propagator/transmission function
-            d_tilt += plasmon->getScatteringPolar();
-            d_azimuth += plasmon->getScatteringAzimuth();
-            modifyBeamTilt(d_tilt, d_azimuth);
+            double p_tilt = plasmon->getScatteringPolar();
+            double p_azimuth = plasmon->getScatteringAzimuth();
+
+            Utils::rotateVectorSpherical(k_vec, y_axis, p_tilt/1000.0, p_azimuth);
+
+            modifyBeamTilt(k_vec(0), k_vec(1), k_vec(2));
 
             // update parameters for next scattering event!
             scattering_count++;
@@ -169,7 +184,7 @@ void SimulationCbed<GPU_Type>::simulate() {
             return;
 
         if (slice_step > 0 && (i+1) % slice_step == 0) {
-            diff.getSliceRef(output_counter) = getDiffractionImage(0, d_tilt, d_azimuth);
+            diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
             output_counter++;
         }
 
@@ -180,7 +195,7 @@ void SimulationCbed<GPU_Type>::simulate() {
     }
 
     if (output_counter < output_count) {
-        diff.getSliceRef(output_counter) = getDiffractionImage(0, d_tilt, d_azimuth);
+        diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
     }
 
     Images.insert(return_map::value_type("Diff", diff));

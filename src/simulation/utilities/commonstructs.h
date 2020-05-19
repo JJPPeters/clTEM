@@ -222,19 +222,11 @@ struct MicroscopeParameters {
         return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000));
     }
 
-    std::valarray<double> Wavevector(double diff_tilt=0.0, double diff_azimuth=0.0) {
-        double bt = BeamTilt + diff_tilt;
-        double ba = BeamAzimuth + diff_azimuth;
-
-        return calculateWavevectorFromTilt(bt, ba);
-    }
-
-    // This is used to calculating wavevectors from tilts, not necessarily the current tilt
-    std::valarray<double> calculateWavevectorFromTilt(double tilt, double azimuth) {
+    std::valarray<double> Wavevector() {
         double k = Wavenumber();
-        double k_x = k * std::sin(tilt / 1000.0) * std::cos(azimuth);
-        double k_y = k * std::sin(tilt / 1000.0) * std::sin(azimuth);
-        double k_z = k * std::cos(tilt / 1000.0);
+        double k_x = k * std::sin(BeamTilt / 1000.0) * std::cos(BeamAzimuth);
+        double k_y = k * std::sin(BeamTilt / 1000.0) * std::sin(BeamAzimuth);
+        double k_z = k * std::cos(BeamTilt / 1000.0);
 
         return {k_x, k_y, k_z};
     }

@@ -140,7 +140,14 @@ PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Plasmon scattering");
 
+    connect(PlasmonFrame, &PlasmonSettingsFrame::plasmonsApplied, this, &PlasmonDialog::corePlasmonsChanged);
+
     this->setFixedSize(this->minimumSizeHint());
+}
+
+void PlasmonDialog::corePlasmonsChanged()
+{
+    emit plasmonsChanged();
 }
 
 

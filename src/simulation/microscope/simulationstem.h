@@ -50,7 +50,7 @@ private:
     double doSumReduction(clMemory<GPU_Type, Manual> data, clWorkGroup globalSizeSum,
                           clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
-    double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double tilt_x=0.0, double tilt_y=0.0);
+    double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double d_kx=0.0, double d_ky=0.0);
 
     bool do_initialise_stem;
 };

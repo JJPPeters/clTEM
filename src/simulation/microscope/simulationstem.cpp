@@ -3,6 +3,7 @@
 //
 
 #include "simulationstem.h"
+#include "utilities/vectorutils.h"
 
 template <class T>
 void SimulationStem<T>::initialiseBuffers() {
@@ -76,7 +77,7 @@ double SimulationStem<T>::doSumReduction(clMemory<T, Manual> data, clWorkGroup g
 }
 
 template <class T>
-double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double tilt_x, double tilt_y)
+double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double d_kx, double d_ky)
 {
     CLOG(DEBUG, "sim") << "Getting STEM pixel";
     unsigned int resolution = job->simManager->getResolution();
@@ -92,13 +93,13 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
 
     CLOG(DEBUG, "sim") << "Getting abs of diffraction pattern";
 
-    if (tilt_x != 0.0 || tilt_y != 0.0) {
+    if (d_kx != 0.0 || d_ky != 0.0) {
         ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexToReal.SetArg(1, clWaveFunctionTemp_2, ArgumentType::Output);
         ComplexToReal.SetArg(2, output_type); // should be 4
         ComplexToReal.run(WorkSize);
 
-        translateDiffImage(tilt_x, tilt_y);
+        translateDiffImage(d_kx, d_ky);
 
     } else {
         ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
@@ -200,8 +201,18 @@ void SimulationStem<GPU_Type>::simulate() {
     int padding_slices = (int) job->simManager->getPaddedPreSlices();
     unsigned int scattering_count = 0;
     double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
-    double d_tilt = 0.0;
-    double d_azimuth = 0.0;
+
+    // this gives us our current wavevector, but also our axis for azimuth rotation
+    auto mp = job->simManager->getMicroscopeParams();
+    double k_v = mp->Wavenumber();
+    auto orig_k = mp->Wavevector();
+    Eigen::Vector3d k_vec(0.0, 0.0, k_v);
+    Eigen::Vector3d y_axis(0.0, 1.0, 0.0);
+
+    // apply any current rotation to the y_axis
+    double current_tilt = mp->BeamTilt;
+    double current_azimuth = mp->BeamAzimuth;
+    Utils::rotateVectorSpherical(k_vec, y_axis, current_tilt/1000.0, current_azimuth);
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
@@ -213,9 +224,12 @@ void SimulationStem<GPU_Type>::simulate() {
         double current_depth = (i + 1 - padding_slices) * slice_dz;
         if (do_plasmons && current_depth >= next_scattering_depth) {
             // modify propagator/transmission function
-            d_tilt += plasmon->getScatteringPolar();
-            d_azimuth += plasmon->getScatteringAzimuth();
-            modifyBeamTilt(d_tilt, d_azimuth);
+            double p_tilt = plasmon->getScatteringPolar();
+            double p_azimuth = plasmon->getScatteringAzimuth();
+
+            Utils::rotateVectorSpherical(k_vec, y_axis, p_tilt/1000.0, p_azimuth);
+
+            modifyBeamTilt(k_vec(0), k_vec(1), k_vec(2));
 
             // update parameters for next scattering event!
             scattering_count++;
@@ -230,7 +244,7 @@ void SimulationStem<GPU_Type>::simulate() {
                 std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 
                 for (int j = 0; j < job->pixels.size(); ++j) {
-                    im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j, d_tilt, d_azimuth);
+                    im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
                 }
 
                 Images[det.name].getSliceRef(output_counter) = im;
@@ -252,7 +266,7 @@ void SimulationStem<GPU_Type>::simulate() {
             std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 
             for (int i = 0; i < job->pixels.size(); ++i) {
-                im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i, d_tilt, d_azimuth);
+                im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
             }
 
             Images[det.name].getSliceRef(output_counter) = im;

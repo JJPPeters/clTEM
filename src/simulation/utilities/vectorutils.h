@@ -9,6 +9,9 @@
 #include <vector>
 #include <algorithm>
 #include <stddef.h>
+#include <valarray>
+
+#include <Eigen/Dense>
 
 namespace Utils
 {
@@ -34,6 +37,11 @@ namespace Utils
 
         return vec;
     }
+
+    Eigen::Matrix3d generateRotationAroundVector(Eigen::Vector3d ax, double angle);
+
+    // theta is about y, phi is about z
+    void rotateVectorSpherical(Eigen::Vector3d& z, Eigen::Vector3d& y, double theta, double phi);
 
 }
 
