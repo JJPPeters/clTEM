@@ -646,23 +646,21 @@ int main(int argc, char *argv[])
     }
 
     // sort plasmon stuff
-    if (man_ptr->getMode() == SimulationMode::CBED || man_ptr->getMode() == SimulationMode::STEM) {
-        if (man_ptr->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
-            int parts = man_ptr->getTotalParts();
-            man_ptr->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
-            auto z_lims = man_ptr->getStructLimitsZ();
-            double thk = z_lims[1] - z_lims[0];
+    if (man_ptr->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+        int parts = man_ptr->getTotalParts();
+        man_ptr->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+        auto z_lims = man_ptr->getStructLimitsZ();
+        double thk = z_lims[1] - z_lims[0];
 
-            bool valid = false;
-            for (int i = 0; i < parts; ++i) {
-                valid = man_ptr->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+        bool valid = false;
+        for (int i = 0; i < parts; ++i) {
+            valid = man_ptr->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
 
-            if (!valid) {
-                std::cout << "Could not generate valid plasmon configuration." << std::endl;
-                return 1;
-            }
+        if (!valid) {
+            std::cout << "Could not generate valid plasmon configuration." << std::endl;
+            return 1;
+        }
 
-            }
         }
     }
 

@@ -128,7 +128,7 @@ double SimulationManager::getInverseMaxAngle()
 unsigned long SimulationManager::getTotalParts()
 {
     if (Mode == SimulationMode::CTEM)
-        return 1;
+        return static_cast<unsigned long>(inelastic_scattering->getInelasticIterations());
     else if (Mode == SimulationMode::CBED)
         return static_cast<unsigned long>(inelastic_scattering->getInelasticIterations());
     else if (Mode == SimulationMode::STEM) {
@@ -162,7 +162,8 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
             }
             CLOG(DEBUG, "sim") << "Copying data";
             for (int j = 0; j < current.getDepth(); ++j)
-                for (int k = 0; k < current.getSliceSize(); ++k)
+                // we need to account for my complex number, that I have sort of bodged in, hence I calculate the k range as I have (and not slicesize)
+                for (int k = 0; k < current.getSliceRef(j).size(); ++k)
                     current.getSliceRef(j)[k] += im.getSliceRef(j)[k] / average_factor;
             Images[i.first] = current;
         } else {

@@ -25,6 +25,7 @@ protected:
     using SimulationGeneral<GPU_Type>::FourierTrans;
 
     using SimulationGeneral<GPU_Type>::doMultiSliceStep;
+    using SimulationGeneral<GPU_Type>::modifyBeamTilt;
     using SimulationGeneral<GPU_Type>::getDiffractionImage;
     using SimulationGeneral<GPU_Type>::getExitWaveImage;
 

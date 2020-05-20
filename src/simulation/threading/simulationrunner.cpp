@@ -54,7 +54,8 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
 
     // later on might want a way to combine (some of) the TDS runs into individual jobs.
     if (mode == SimulationMode::CTEM)
-        jobs[0] = std::make_shared<SimulationJob>(simManager, 0);
+        for (int i = 0; i < nJobs; ++i)
+            jobs[i] = std::make_shared<SimulationJob>(simManager, i);
     else if (mode == SimulationMode::CBED)
         for (int i = 0; i < nJobs; ++i)
             jobs[i] = std::make_shared<SimulationJob>(simManager, i);

@@ -358,31 +358,29 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // TODO: move to the manager class (then we can easily call it from the command line too)
     // TODO: operate on an exception basis...
     // Check our plasmon configuration is viable
-    if (Manager->getMode() == SimulationMode::CBED || Manager->getMode() == SimulationMode::STEM) {
-        if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
-            int parts = Manager->getTotalParts();
-            Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
-            auto z_lims = Manager->getStructLimitsZ();
-            double thk = z_lims[1] - z_lims[0];
+    if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+        int parts = Manager->getTotalParts();
+        Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+        auto z_lims = Manager->getStructLimitsZ();
+        double thk = z_lims[1] - z_lims[0];
 
-            bool valid = false;
-            for (int i = 0; i < parts; ++i) {
-                valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+        bool valid = false;
+        for (int i = 0; i < parts; ++i) {
+            valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
 
-                if (!valid) {
-                    QMessageBox msgBox(this);
-                    msgBox.setText("Error:");
-                    //            msgBox.setInformativeText(e.what());
-                    msgBox.setInformativeText("Could not generate valid plasmon configuration.");
-                    msgBox.setIcon(QMessageBox::Critical);
-                    msgBox.setStandardButtons(QMessageBox::Ok);
-                    msgBox.setMinimumSize(160, 125);
-                    msgBox.exec();
-                    setUiActive(true);
-                    return;
-                }
-
+            if (!valid) {
+                QMessageBox msgBox(this);
+                msgBox.setText("Error:");
+                //            msgBox.setInformativeText(e.what());
+                msgBox.setInformativeText("Could not generate valid plasmon configuration.");
+                msgBox.setIcon(QMessageBox::Critical);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setMinimumSize(160, 125);
+                msgBox.exec();
+                setUiActive(true);
+                return;
             }
+
         }
     }
 
