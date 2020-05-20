@@ -174,8 +174,9 @@ private:
                 QString s_default = in_default.readAll();
                 f_default.close();
 
-                s += s_default;
-            }
+                s.replace("{default_settings}", s_default);
+            } else
+                s.replace("{default_settings}", "");
 
             qApp->setStyleSheet(s);
         }
@@ -229,8 +230,9 @@ private:
                 QString s_default = in_default.readAll();
                 f_default.close();
 
-                s += s_default;
-            }
+                s.replace("{default_settings}", s_default);
+            } else
+                s.replace("{default_settings}", "");
 
             qApp->setStyleSheet(s);
         }

@@ -9,6 +9,7 @@
 #include <QtCore/QFileInfo>
 #include <QtWidgets/QFileIconProvider>
 #include "flattitlebar.h"
+#include <QScreen>
 
 FlatTitleBar::FlatTitleBar(QWidget *parent, bool is_dialog) {
     auto app_icon = new QLabel();
@@ -22,22 +23,30 @@ FlatTitleBar::FlatTitleBar(QWidget *parent, bool is_dialog) {
     btn_close->setObjectName("close");
     title->setObjectName("title");
 
+    app_icon->setAccessibleName("app_icon");
     btn_min->setAccessibleName("title_min");
     btn_max->setAccessibleName("title_max");
     btn_close->setAccessibleName("title_close");
     title->setAccessibleName("title_title");
 
+    QScreen* primary_screen = QGuiApplication::primaryScreen();
+    double dpi_normal = 96;
+    double dpi_current = primary_screen->logicalDotsPerInch();
+    double dpi_factor = dpi_current / dpi_normal;
+
     auto *layout = new QHBoxLayout(this);
     layout->setSpacing(1);
     layout->setMargin(0);
-    layout->setContentsMargins(10, 0, 0, 2);
+    layout->setContentsMargins(10*dpi_factor, 0, 0, 2*dpi_factor);
 
     QFileInfo fileInfo(qApp->arguments().at(0));
     auto icon = QFileIconProvider().icon(fileInfo);
-    app_icon->setPixmap(icon.pixmap(16, 16));
+    auto icon_pxmp = icon.pixmap(16, 16);
+    icon_pxmp.setDevicePixelRatio(primary_screen->devicePixelRatio());
+    app_icon->setPixmap(icon_pxmp);
 
     title->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    title->setContentsMargins(6, 0, 0, 0);
+    title->setContentsMargins(6*dpi_factor, 0, 0, 0);
 
     layout->addWidget(app_icon);
     layout->addWidget(title);
@@ -47,14 +56,15 @@ FlatTitleBar::FlatTitleBar(QWidget *parent, bool is_dialog) {
     }
     layout->addWidget(btn_close);
 
+//    layout->setStretch(0, 1);
     layout->setStretch(0, 0);
     layout->setStretch(1, 1);
 
-    int h = 30;
-    int w = (int) (h*1.5);
-    btn_min->setFixedSize(w, h);
-    btn_max->setFixedSize(w, h);
-    btn_close->setFixedSize(w, h);
+//    int h = 300 * dpi_factor;
+//    int w = (int) (h*1.5);
+//    btn_min->setFixedSize(w, h);
+//    btn_max->setFixedSize(w, h);
+//    btn_close->setFixedSize(w, h);
 
     btn_min->setIcon(QIcon(":/Theme/icons/minimise.png"));
     btn_close->setIcon(QIcon(":/Theme/icons/close.png"));
