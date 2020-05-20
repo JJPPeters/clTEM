@@ -12,7 +12,7 @@ QWidget:window {
 
 QLineEdit {
 	background: {d1};
-	border: 1px transparent {l2};
+	border: 1em transparent {l2};
 	color: {l1}; /*text colour*/
 	selection-background-color: {a1};
 }
@@ -357,3 +357,4 @@ QHeaderView::section {
     border: 0px solid transparent;
     color: {l1};
 }
+

@@ -92,7 +92,7 @@ public:
     }
 
 private:
-    static void setNativeTheme() {
+    static void setFontSize() {
         // This probably only works for windows and possibly only in a limited set of cases
         // maybe in fiture Qt this will be handled sensibly, but for now this is my bodge
         QFont font = QGuiApplication::font();
@@ -104,16 +104,18 @@ private:
         font_size *= dpi_current / dpi_normal;
         font_size = std::ceil(font_size);
 
-        font.setPixelSize(font_size);
+        font.setPixelSize((int) font_size);
         qApp->setFont(font);
+    }
+
+    static void setNativeTheme() {
+        setFontSize();
 
         QFile f(":/Theme/default-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
             QString s = in.readAll();
             f.close();
-
-            std::string test = s.toStdString();
 
             qApp->setStyleSheet(s);
         }
@@ -125,6 +127,8 @@ private:
     }
 
     static void setDarkTheme() {
+        setFontSize();
+
         QFile f(":/Theme/flat-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
@@ -164,12 +168,23 @@ private:
             s.replace("{c1}", c1);
             s.replace("{c2}", c2);
 
+            QFile f_default(":/Theme/default-theme.qss");
+            if (f_default.open(QFile::ReadOnly | QFile::Text)) {
+                QTextStream in_default(&f_default);
+                QString s_default = in_default.readAll();
+                f_default.close();
+
+                s += s_default;
+            }
+
             qApp->setStyleSheet(s);
         }
 
     }
 
     static void setLightTheme() {
+        setFontSize();
+
         QFile f(":/Theme/flat-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
@@ -207,6 +222,15 @@ private:
             s.replace("{a3}", a3);
             s.replace("{c1}", c1);
             s.replace("{c2}", c2);
+
+            QFile f_default(":/Theme/default-theme.qss");
+            if (f_default.open(QFile::ReadOnly | QFile::Text)) {
+                QTextStream in_default(&f_default);
+                QString s_default = in_default.readAll();
+                f_default.close();
+
+                s += s_default;
+            }
 
             qApp->setStyleSheet(s);
         }

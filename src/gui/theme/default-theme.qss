@@ -8,6 +8,7 @@ QPushButton {
 QLineEdit {
     min-height: 1.6em;
 	max-height: 1.6em;
+	padding: 0.1em;
 	min-width: 4em;
 	max-width: 12em;
 }
