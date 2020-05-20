@@ -127,6 +127,7 @@ void CrystalStructure::openXyz(std::string fPath) {
     std::vector<double> ux;
     std::vector<double> uy;
     std::vector<double> uz;
+    std::vector<bool> def_u(atom_count);
     bool defined_thermals = h_u != -1 || h_ux != -1 || h_uy != -1 || h_uz != -1;
     if (defined_thermals) {
         ux.resize(atom_count);
@@ -153,6 +154,9 @@ void CrystalStructure::openXyz(std::string fPath) {
         y[i] = std::stof(values[h_y]);
         z[i] = std::stof(values[h_z]);
 
+        // I think I could just leave this empty, and it will work, bit I'm setting it incase I need it later
+        def_u[i] = defined_thermals;
+
         if (h_occ != -1) // if this isn't present, it is defaulted to 1 in the constructor
             occ[i] = std::stof(values[h_occ]);
 
@@ -177,7 +181,7 @@ void CrystalStructure::openXyz(std::string fPath) {
         throw std::runtime_error("Number of atoms does not match .xyz first line: " + Utils::numToString(i) + " instead of " + Utils::numToString(atom_count));
 
     // now have a list of ALL our values, process them (i.e. occupancies) in this next function
-    processAtomList(A, x, y, z, occ, ux, uy, uz);
+    processAtomList(A, x, y, z, occ, def_u, ux, uy, uz);
 }
 
 void CrystalStructure::openCif(std::string fPath, CIF::SuperCellInfo info, bool fix_cif) {
@@ -191,11 +195,12 @@ void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {
     // need to create the vectors the data will be put into
     std::vector<std::string> A;
     std::vector<double> x, y, z, occ, ux, uy, uz;
+    std::vector<bool> def_u;
 
 
-    CIF::makeSuperCell(cif, info, A, x, y, z, occ, ux, uy, uz);
+    CIF::makeSuperCell(cif, info, A, x, y, z, occ, def_u, ux, uy, uz);
 
-    processAtomList(A, x, y, z, occ, ux, uy, uz);
+    processAtomList(A, x, y, z, occ, def_u, ux, uy, uz);
 }
 
 void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
@@ -276,7 +281,7 @@ void CrystalStructure::addAtom(AtomSite a) {
 //        AtomTypes.push_back(a.A);
 }
 
-void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz) {
+void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<bool> def_u, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz) {
 
     // TODO: error is sizes not all the same
     size_t count = A.size();
@@ -287,7 +292,8 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
     if (use_occ && occ.size() != count)
         throw std::runtime_error("Processing atom list with unequal length vectors");
 
-    file_defined_thermals = !ux.empty() && !uy.empty() && !uz.empty();
+    file_defined_thermals = std::find(begin(def_u), end(def_u), true) == end(def_u);
+
     if (file_defined_thermals && (ux.size() != count || uy.size() != count || uz.size() != count))
         throw std::runtime_error("Processing atom list with unequal length vectors");
 
@@ -299,7 +305,7 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
     for (int i = 0; i < count; ++i) {
         AtomSite thisAtom;
 
-        thisAtom.defined_u = file_defined_thermals;
+        thisAtom.defined_u = def_u[i];
 
         thisAtom.A = Utils::ElementSymbolToNumber(A[i]);
         thisAtom.x = x[i];
@@ -309,7 +315,8 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
         if (use_occ)
             thisAtom.occ = occ[i];
 
-        if (file_defined_thermals) {
+        // for loading cif files, the ux etc will have valid 0 values, but for xyz files they could be empty vectors
+        if (def_u[i]) {
             thisAtom.ux = ux[i];
             thisAtom.uy = uy[i];
             thisAtom.uz = uz[i];

@@ -121,11 +121,13 @@ void InelasticFrame::updatePhononsManager() {
 
     double def_u = ui->edtPhononDefault->text().toDouble();
     bool enabled = ui->chkPhonon->isChecked();
+    bool force_default = ui->chkPhononDefault->isChecked();
 
     auto phonon = Main->Manager->getInelasticScattering()->getPhonons();
 
     phonon->setFrozenPhononEnabled(enabled);
     phonon->setDefault(def_u);
+    phonon->force_default = force_default;
 }
 
 void InelasticFrame::updatePlasmonsManager() {

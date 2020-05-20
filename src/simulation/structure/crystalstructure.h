@@ -61,7 +61,7 @@ private:
 
     void addAtom(AtomSite a);
 
-    void processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz);
+    void processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<bool> def_u, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz);
 
 public:
     // mostly for opening .xyz files, but will handle .cif

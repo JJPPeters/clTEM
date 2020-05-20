@@ -7,14 +7,14 @@
 namespace CIF {
 
     void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<double> &x,
-                       std::vector<double> &y, std::vector<double> &z, std::vector<double> &occ, std::vector<double> &ux,
+                       std::vector<double> &y, std::vector<double> &z, std::vector<double> &occ, std::vector<bool> &defined_u, std::vector<double> &ux,
                        std::vector<double> &uy, std::vector<double> &uz) {
-        makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ, ux, uy, uz);
+        makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ, defined_u, ux, uy, uz);
     }
 
     void makeSuperCell(CIFReader cif, Eigen::Vector3d uvw, Eigen::Vector3d abc, Eigen::Vector3d widths,
                        Eigen::Vector3d tilts, std::vector<std::string> &A, std::vector<double> &x, std::vector<double> &y,
-                       std::vector<double> &z, std::vector<double> &occ, std::vector<double> &ux, std::vector<double> &uy,
+                       std::vector<double> &z, std::vector<double> &occ, std::vector<bool> &defined_u, std::vector<double> &ux, std::vector<double> &uy,
                        std::vector<double> &uz) {
         // TODO: check that the uvw and abc vectors are no colinear
         UnitCell cell = cif.getUnitCell();
@@ -106,6 +106,7 @@ namespace CIF {
         y.resize(count);
         z.resize(count);
         occ.resize(count);
+        defined_u.resize(count);
         ux.resize(count);
         uy.resize(count);
         uz.resize(count);
@@ -136,6 +137,7 @@ namespace CIF {
                                     y[it] = new_pos(1);
                                     z[it] = new_pos(2);
                                     occ[it] = at.getOccupancies()[ind];
+                                    defined_u[it] = at.isThermalDefined();
                                     ux[it] = at.getThermals()[ind](0);
                                     uy[it] = at.getThermals()[ind](1);
                                     uz[it] = at.getThermals()[ind](2);
