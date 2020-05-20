@@ -180,7 +180,7 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
     // Do the 'normal' image calculation
     //
 
-    simulateCtemImage();
+    simulateImagePerfect();
 
     //
     // Dose stuff starts here!
