@@ -48,7 +48,18 @@ namespace CIF::Utilities {
             // https://stackoverflow.com/questions/45142959/calculate-rotation-matrix-to-align-two-vectors-in-3d-space
             A.normalize();
             B.normalize();
+
+            if (A.isApprox(B))
+                return Eigen::Matrix3d::Identity();
+
             Eigen::Vector3d v = A.cross(B);
+            if (A.isApprox((-B))) {
+                Eigen::Vector3d temp(1.0, 0.0, 0.0);
+                if (temp.isApprox(A))
+                    temp(2) = 1.0;
+
+                v = A.cross(temp);
+            }
             double c = A.dot(B);
             // norm() gets the magnitude (normalize() normalises the vector)
             double s = v.norm();
@@ -62,7 +73,6 @@ namespace CIF::Utilities {
             // k * k is proper matrix multiplication
             Eigen::Matrix3d r = Eigen::Matrix3d::Identity() + k + k * k * (1 - c) / (s * s);
 //            Eigen::Matrix3d r = Eigen::Matrix3d::Identity() + k + k * k / (1 + c);
-//            r.normalize();
             return r;
         }
 

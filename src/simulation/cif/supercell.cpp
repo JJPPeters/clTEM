@@ -38,7 +38,7 @@ namespace CIF {
         // create vector from the zone axis we want
         Eigen::Vector3d uvw_vec = uvw(0) * a_vector + uvw(1) * b_vector + uvw(2) * c_vector;
         // create matrix with direction we want to map onto (here is is the z direction)
-        Eigen::Vector3d z_direction(std::vector<double>({0.0, 0.0, 1.0}).data());
+        Eigen::Vector3d z_direction(0.0, 0.0, 1.0);
         // create the rotation matrix
         auto za_rotation = Utilities::generateNormalisedRotationMatrix<double>(uvw_vec, z_direction);
 
@@ -52,13 +52,18 @@ namespace CIF {
             Eigen::Vector3d abc_vec = abc(0) * a_vector + abc(1) * b_vector + abc(2) * c_vector;
             abc_vec = za_rotation * abc_vec;
             abc_vec(2) = 0.0; // no rotate the z-axis!
-            if (abc_vec(0) < 1e-15)
+            if (std::fabs(abc_vec(0)) < 1e-15)
                 abc_vec(0) = 0.0;
-            if (abc_vec(1) < 1e-15)
+            if (std::fabs(abc_vec(1)) < 1e-15)
                 abc_vec(1) = 0.0;
             Eigen::Vector3d x_direction(std::vector<double>({1.0, 0.0, 0.0}).data()); // TODO: use << initialisation
-            // Need the negative angle here? so give inputs in opposite order?
-            xy_rotation = Utilities::generateNormalisedRotationMatrix<double>(x_direction, abc_vec);
+            // Need the negative angle here... so give inputs in opposite order.
+            if (x_direction.isApprox(-1 * abc_vec.normalized())) // note normalized() return a copy (that is normalized...)
+                // Vectors are opposite, generate 180 rotation about z
+                xy_rotation = Utilities::generateRotationMatrix<double>(z_direction, M_PI);
+            else
+                // Generate rotation (returns correctly if vectors are in the same direction)
+                xy_rotation = Utilities::generateNormalisedRotationMatrix<double>(x_direction, abc_vec);
         }
 
         if (xy_rotation.array().isNaN().sum() != 0) {
