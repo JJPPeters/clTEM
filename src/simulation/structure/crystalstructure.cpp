@@ -292,7 +292,7 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
     if (use_occ && occ.size() != count)
         throw std::runtime_error("Processing atom list with unequal length vectors");
 
-    file_defined_thermals = std::find(begin(def_u), end(def_u), true) == end(def_u);
+    file_defined_thermals = std::find(begin(def_u), end(def_u), false) == end(def_u);
 
     if (file_defined_thermals && (ux.size() != count || uy.size() != count || uz.size() != count))
         throw std::runtime_error("Processing atom list with unequal length vectors");
