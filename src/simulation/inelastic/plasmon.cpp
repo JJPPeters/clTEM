@@ -98,8 +98,10 @@ std::vector<double> PlasmonScattering::getDistancesforCombined(double thickness)
 
     if (c >= THICKNESS_IT_LIMIT)
         return std::vector<double>();
-    else
+    else {
+        depths.push_back(std::numeric_limits<double>::infinity());
         return depths;
+    }
 }
 
 double PlasmonScattering::getGeneratedDepth(unsigned int job_id, unsigned int scattering_count) {
@@ -127,7 +129,8 @@ std::vector<std::vector<unsigned int>> PlasmonScattering::getPlasmonNumbers() {
     std::vector<unsigned int> count;
 
     for (int i = 0; i < depths.size(); ++i) {
-        unsigned int pn = depths[i].size();
+        // assume we always have inf at the end
+        unsigned int pn = depths[i].size() - 1;
 
         auto it = std::find(number.begin(), number.end(), pn);
         if (it != number.end()) {
