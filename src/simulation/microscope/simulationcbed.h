@@ -17,20 +17,21 @@ protected:
     using SimulationGeneral<GPU_Type>::last_mode;
     using SimulationGeneral<GPU_Type>::ctx;
 
-    using SimulationGeneral<GPU_Type>::clWaveFunction1;
-    using SimulationGeneral<GPU_Type>::clWaveFunction2;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionReal;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionRecip;
     using SimulationGeneral<GPU_Type>::clXFrequencies;
     using SimulationGeneral<GPU_Type>::clYFrequencies;
     using SimulationGeneral<GPU_Type>::FourierTrans;
 
     using SimulationGeneral<GPU_Type>::doMultiSliceStep;
+    using SimulationGeneral<GPU_Type>::modifyBeamTilt;
     using SimulationGeneral<GPU_Type>::getDiffractionImage;
 
     void initialiseProbeWave(double posx, double posy, int n_parallel = 0);
 
     void initialiseSimulation();
 
-    void initialiseBuffers() {SimulationCtem<GPU_Type>::initialiseBuffers();}
+    void initialiseBuffers();
     void initialiseKernels();
 
 public:

@@ -13,6 +13,9 @@ class ThermalScatteringFrame : public QWidget
 {
     Q_OBJECT
 
+signals:
+    void phononsApplied();
+
 public:
     explicit ThermalScatteringFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
 
@@ -32,7 +35,9 @@ private slots:
 private:
     Ui::ThermalScatteringFrame *ui;
 
-    std::shared_ptr<SimulationManager> Manager;
+//    std::shared_ptr<SimulationManager> Manager;
+
+    std::shared_ptr<PhononScattering> Phonons;
 
     void addItemToList(std::string el, double vib);
 

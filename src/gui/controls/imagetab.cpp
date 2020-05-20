@@ -11,6 +11,7 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex
 
     if (!is_complex) {
         ui->cmbComplex->setEnabled(false);
+        ui->cmbComplex->setStyleSheet("QComboBox {min-width: 0px; border-left: 0px; border-right: 0px;}");
         ui->cmbComplex->setFixedWidth(0); // do this, so the ui doesnt resize
     }
 
@@ -20,6 +21,11 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex
     connect(ui->widget, &ImagePlotWidget::saveImageClicked, this, &ImageTab::forwardSaveImage);
 
     connect(ui->widget, &ImagePlotWidget::mouseHoverEvent, this, &ImageTab::updatePositionLabels);
+
+    QScreen* primary_screen = QGuiApplication::primaryScreen();
+    double pixel_ratio = primary_screen->devicePixelRatio();
+    ui->widget->setMinimumHeight(500 / pixel_ratio);
+    ui->widget->setMinimumWidth(500 / pixel_ratio);
 }
 
 ImageTab::~ImageTab()

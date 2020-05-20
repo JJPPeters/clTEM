@@ -11,7 +11,9 @@
 #include <mutex>
 #include <map>
 #include <valarray>
-#include <structure/thermalvibrations.h>
+#include <inelastic/phonon.h>
+#include <inelastic/plasmon.h>
+#include <inelastic/inelastic.h>
 
 #include "structure/crystalstructure.h"
 #include "structure/structureparameters.h"
@@ -26,25 +28,23 @@ public:
     SimulationManager();
 
     SimulationManager(const SimulationManager& sm)
-            : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution), TdsRunsStem(sm.TdsRunsStem), TdsRunsCbed(sm.TdsRunsCbed),
+            : structure_mutex(), image_update_mtx(), Resolution(sm.Resolution),
               numParallelPixels(sm.numParallelPixels), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
-              Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets), TdsEnabledStem(sm.TdsEnabledStem), TdsEnabledCbed(sm.TdsEnabledCbed),
+              Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets),
               default_xy_padding(sm.default_xy_padding), default_z_padding(sm.default_z_padding),
               padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
               slice_offset(sm.slice_offset), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
-              dist(std::normal_distribution<>(0, 1)), use_double_precision(sm.use_double_precision),
+              use_double_precision(sm.use_double_precision),
               intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
     {
-        rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
-
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
-        thermal_vibrations = std::make_shared<ThermalVibrations>(*(sm.thermal_vibrations));
+        inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
 
         if (sm.Structure)// structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -56,8 +56,6 @@ public:
         intermediate_slices = sm.intermediate_slices;
         use_double_precision = sm.use_double_precision;
         Resolution = sm.Resolution;
-        TdsRunsStem = sm.TdsRunsStem;
-        TdsRunsCbed = sm.TdsRunsCbed;
         numParallelPixels = sm.numParallelPixels;
         isF3D = sm.isF3D;
         full3dInts = sm.full3dInts;
@@ -68,8 +66,6 @@ public:
         Images = sm.Images;
         Mode = sm.Mode;
         StemDets = sm.StemDets;
-        TdsEnabledStem = sm.TdsEnabledStem;
-        TdsEnabledCbed = sm.TdsEnabledCbed;
         default_xy_padding = sm.default_xy_padding;
         default_z_padding = sm.default_z_padding;
         padding_x = sm.padding_x;
@@ -86,8 +82,6 @@ public:
         slice_offset = sm.slice_offset;
         structure_parameters_name = sm.structure_parameters_name;
         maintain_area = sm.maintain_area;
-        rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
-        dist = std::normal_distribution<>(0, 1);
 
         if (sm.Structure) // structure doesnt always exist
             Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
@@ -95,7 +89,7 @@ public:
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
-        thermal_vibrations = std::make_shared<ThermalVibrations>(*(sm.thermal_vibrations));
+        inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
 
         return *this;
     }
@@ -251,30 +245,25 @@ public:
     bool isFull3d(){return isF3D;}
 
     void setFull3d(bool use) {isF3D = use;}
-
     unsigned int getFull3dInts(){return full3dInts;}
-    unsigned int getStoredTdsRuns();
-    unsigned int getTdsRuns();
-    unsigned int getStoredTdsRunsCbed() { return TdsRunsCbed; }
-    unsigned int getStoredTdsRunsStem() { return TdsRunsStem; }
-    unsigned int getTdsRunsCbed() { return (!TdsEnabledCbed) ? 1 : TdsRunsCbed; }
-    unsigned int getTdsRunsStem() { return (!TdsEnabledStem) ? 1 : TdsRunsStem; }
     unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
-
-    bool getTdsEnabled();
-    bool getTdsEnabledStem() { return TdsEnabledStem; }
-    bool getTdsEnabledCbed() { return TdsEnabledCbed; }
-
-    void setTdsEnabledStem(bool use){TdsEnabledStem = use;}
-    void setTdsEnabledCbed(bool use){TdsEnabledCbed = use;}
-    void setTdsRunsStem(unsigned int runs){TdsRunsStem = runs;}
-    void setTdsRunsCbed(unsigned int runs){TdsRunsCbed = runs;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
     void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
+
+    //
+    // Inelastic scattering
+    //
+
+    std::shared_ptr<InelasticScattering> getInelasticScattering() {return inelastic_scattering;}
+
+    //
+    // Return functions
+    //
 
     void setImageReturnFunc(std::function<void(SimulationManager)> f) {imageReturn = std::move(f);}
     void setProgressTotalReporterFunc(std::function<void(double)> f) {progressTotalReporter = std::move(f);}
     void setProgressSliceReporterFunc(std::function<void(double)> f) {progressSliceReporter = std::move(f);}
+
 
     void updateImages(std::map<std::string, Image<double>> &ims, int jobCount);
     std::map<std::string, Image<double>> getImages() { return Images; }
@@ -310,10 +299,6 @@ public:
     std::vector<double> getStructureParameterData() {return StructureParameters::getParameterData(structure_parameters_name);}
     std::string getStructureParametersName() {return structure_parameters_name;}
 
-    std::shared_ptr<ThermalVibrations> getThermalVibrations() {return thermal_vibrations;}
-
-    double generateTdsFactor(AtomSite& at, int direction);
-
     void setMaintainAreas(bool maintain) {maintain_area = maintain;}
     bool getMaintainAreas() {return maintain_area;}
 
@@ -326,6 +311,8 @@ public:
 
     void setIntermediateSlices(unsigned int is) {intermediate_slices = is;}
     void setIntermediateSlicesEnabled(bool ise) {intermediate_slices_enabled = ise;}
+
+    unsigned int getPaddedPreSlices();
 
 private:
     bool use_double_precision;
@@ -370,10 +357,6 @@ private:
 
     bool maintain_area;
 
-    std::mt19937_64 rng;
-    std::normal_distribution<> dist;
-    std::shared_ptr<ThermalVibrations> thermal_vibrations;
-
     std::mutex structure_mutex;
 
     std::shared_ptr<CrystalStructure> Structure;
@@ -381,11 +364,17 @@ private:
     std::valarray<double> padding_x, padding_y, padding_z;
 
     unsigned int Resolution;
-    unsigned int TdsRunsStem;
-    unsigned int TdsRunsCbed;
-    bool TdsEnabledStem;
-    bool TdsEnabledCbed;
     bool simulateCtemImage;
+
+    //
+    // Inelastic scattering
+    //
+
+    std::shared_ptr<InelasticScattering> inelastic_scattering;
+
+    //
+    //
+    //
 
     double maxReciprocalFactor;
 

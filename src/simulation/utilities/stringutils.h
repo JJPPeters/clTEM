@@ -13,7 +13,11 @@ namespace Utils
     // https://stackoverflow.com/a/20446239
     bool stringEndsWith(const std::string &str, const std::string &suffix);
 
+    bool stringBeginsWith(const std::string &str, const std::string &prefix);
+
     std::vector<std::string> splitStringSpace(const std::string &in);
+
+    std::vector<std::string> splitStringDelimiter(const std::string &in, char delim);
 
     // Taken from http://stackoverflow.com/a/6089413
     std::istream& safeGetline(std::istream& is, std::string& t);

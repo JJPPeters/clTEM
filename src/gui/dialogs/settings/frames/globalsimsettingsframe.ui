@@ -326,8 +326,11 @@
  </customwidgets>
  <tabstops>
   <tabstop>tabWidget</tabstop>
+  <tabstop>chkDoublePrec</tabstop>
   <tabstop>cmbParams</tabstop>
   <tabstop>edt3dIntegrals</tabstop>
+  <tabstop>edtPaddingXY</tabstop>
+  <tabstop>edtPaddingZ</tabstop>
   <tabstop>edtParallelPx</tabstop>
  </tabstops>
  <resources/>

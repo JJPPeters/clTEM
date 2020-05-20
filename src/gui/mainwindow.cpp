@@ -20,6 +20,7 @@
 #include <cif/supercell.h>
 
 #include <variant>
+#include <frames/inelasticframe.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
@@ -40,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Manager = std::make_shared<SimulationManager>();
 
-    std::string exe_path = qApp->applicationDirPath().toStdString();
+    std::string exe_path = QGuiApplication::applicationDirPath().toStdString();
 
     // try loading default settings from the config location
     on_actionImport_default_triggered(true);
@@ -50,6 +51,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     setWindowTitle("clTEM");
+
+    // this just makes it look nice without fannying about with widgets and all that
+    int w = width();
+    resize(w, w*0.66);
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
@@ -70,11 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tSim->assignMainWindow(this);
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
-
-    ui->tStem->updateScaleLabels();
-
-    auto p = Manager->getMicroscopeParams();
-    ui->tAberr->updateTextBoxes();
+    ui->tInelastic->assignMainWindow(this);
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
@@ -190,6 +191,8 @@ void MainWindow::on_actionOpen_triggered()
     updateRanges();
 
     updateScales();
+
+    ui->tCbed->updateTextBoxes();
 
     ui->tStem->updateScaleLabels();
 
@@ -350,6 +353,35 @@ void MainWindow::on_actionSimulate_EW_triggered()
         msgBox.exec();
         setUiActive(true);
         return;
+    }
+
+    // TODO: move to the manager class (then we can easily call it from the command line too)
+    // TODO: operate on an exception basis...
+    // Check our plasmon configuration is viable
+    if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+        int parts = Manager->getTotalParts();
+        Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+        auto z_lims = Manager->getStructLimitsZ();
+        double thk = z_lims[1] - z_lims[0];
+
+        bool valid = false;
+        for (int i = 0; i < parts; ++i) {
+            valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+
+            if (!valid) {
+                QMessageBox msgBox(this);
+                msgBox.setText("Error:");
+                //            msgBox.setInformativeText(e.what());
+                msgBox.setInformativeText("Could not generate valid plasmon configuration.");
+                msgBox.setIcon(QMessageBox::Critical);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setMinimumSize(160, 125);
+                msgBox.exec();
+                setUiActive(true);
+                return;
+            }
+
+        }
     }
 
     std::vector<std::shared_ptr<SimulationManager>> man_list; //why is this a vector?
@@ -594,6 +626,8 @@ void MainWindow::loadExternalSources()
     Kernels::propagator_f = Utils_Qt::kernelToChar("propagator_f.cl");
     Kernels::sqabs_f = Utils_Qt::kernelToChar("sqabs_f.cl");
     Kernels::sum_reduction_f = Utils_Qt::kernelToChar("sum_reduction_f.cl");
+    Kernels::bilinear_translate_f = Utils_Qt::kernelToChar("bilinear_translate_f.cl");
+    Kernels::complex_to_real_f = Utils_Qt::kernelToChar("complex_to_real_f.cl");
 
     Kernels::atom_sort_d = Utils_Qt::kernelToChar("atom_sort_d.cl");
     Kernels::band_limit_d = Utils_Qt::kernelToChar("band_limit_d.cl");
@@ -610,10 +644,12 @@ void MainWindow::loadExternalSources()
     Kernels::propagator_d = Utils_Qt::kernelToChar("propagator_d.cl");
     Kernels::sqabs_d = Utils_Qt::kernelToChar("sqabs_d.cl");
     Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
+    Kernels::bilinear_translate_d = Utils_Qt::kernelToChar("bilinear_translate_d.cl");
+    Kernels::complex_to_real_d = Utils_Qt::kernelToChar("complex_to_real_d.cl");
     
     // load parameters
     // get all the files in the parameters folder
-    auto params_path = qApp->applicationDirPath() + "/params/";
+    auto params_path = QGuiApplication::applicationDirPath() + "/params/";
     QDir params_dir(params_path);
     QStringList params_filt;
     params_filt << "*.dat";
@@ -632,7 +668,7 @@ void MainWindow::loadExternalSources()
 
     // load DQE, NQE for the CTEM simulation
 
-    auto ccd_path = qApp->applicationDirPath() + "/ccds/";
+    auto ccd_path = QGuiApplication::applicationDirPath() + "/ccds/";
     QDir ccd_dir(ccd_path);
     QStringList ccd_filt;
     ccd_filt << "*.dat";
@@ -831,12 +867,7 @@ void MainWindow::updateManagerFromGui() {
     // CBED/STEM TDS
     // CTEM CCD stuff
 
-    // Sort out TDS bits
-    Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
-    Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
-
-    Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
-    Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
+    ui->tInelastic->updateManager();
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -854,11 +885,13 @@ void MainWindow::updateGuiFromManager() {
     ui->tAberr->updateTextBoxes();
 
     // set CBED stuff (position/TDS)
-    ui->tCbed->update_text_boxes();
+    ui->tCbed->updateTextBoxes();
 
     // set STEM TDS
-    ui->tStem->updateTdsText();
     ui->tStem->updateScaleLabels();
+
+    // set inelastic frame parameters
+    ui->tInelastic->updateGui();
 
     // set CTEM CCD stuff
     ui->tTem->update_ccd_boxes(Manager);
@@ -882,7 +915,7 @@ void MainWindow::on_actionSet_area_triggered()
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, ui->tSim, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, this, &MainWindow::set_active_mode);
-    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::updateTextBoxes);
     connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, this, &MainWindow::updateScales);
 
@@ -899,6 +932,13 @@ void MainWindow::on_actionAberrations_triggered()
 
 void MainWindow::on_actionThermal_scattering_triggered() {
     ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
+    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tInelastic, &InelasticFrame::updatePhononsGui);
+    myDialog->exec();
+}
+
+void MainWindow::on_actionPlasmons_triggered() {
+    PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
+    connect(myDialog, &PlasmonDialog::plasmonsChanged, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
 

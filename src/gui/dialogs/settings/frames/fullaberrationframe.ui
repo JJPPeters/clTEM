@@ -851,6 +851,41 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>edtVoltage</tabstop>
+  <tabstop>edtAperture</tabstop>
+  <tabstop>edtDefocusSpread</tabstop>
+  <tabstop>edtConverge</tabstop>
+  <tabstop>edtBeamTilt</tabstop>
+  <tabstop>edtBeamAzimuth</tabstop>
+  <tabstop>edtApertureSmooth</tabstop>
+  <tabstop>edtC10</tabstop>
+  <tabstop>edtC12Mag</tabstop>
+  <tabstop>edtC12Ang</tabstop>
+  <tabstop>edtC21Mag</tabstop>
+  <tabstop>edtC21Ang</tabstop>
+  <tabstop>edtC23Mag</tabstop>
+  <tabstop>edtC23Ang</tabstop>
+  <tabstop>edtC30</tabstop>
+  <tabstop>edtC32Mag</tabstop>
+  <tabstop>edtC32Ang</tabstop>
+  <tabstop>edtC34Mag</tabstop>
+  <tabstop>edtC34Ang</tabstop>
+  <tabstop>edtC41Mag</tabstop>
+  <tabstop>edtC41Ang</tabstop>
+  <tabstop>edtC43Mag</tabstop>
+  <tabstop>edtC43Ang</tabstop>
+  <tabstop>edtC45Mag</tabstop>
+  <tabstop>edtC45Ang</tabstop>
+  <tabstop>edtC50</tabstop>
+  <tabstop>edtC52Mag</tabstop>
+  <tabstop>edtC52Ang</tabstop>
+  <tabstop>edtC54Mag</tabstop>
+  <tabstop>edtC54Ang</tabstop>
+  <tabstop>edtC56Mag</tabstop>
+  <tabstop>edtC56Ang</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -47,7 +47,7 @@ protected:
 
     void doMultiSliceStep(int slice);
 
-    std::vector<double> getDiffractionImage(int parallel_ind = 0);
+    std::vector<double> getDiffractionImage(int parallel_ind, double d_kx = 0.0, double d_ky = 0.0);
 
     std::vector<double> getExitWaveImage(unsigned int t = 0, unsigned int l = 0, unsigned int b = 0, unsigned int r = 0);
 
@@ -55,6 +55,11 @@ protected:
 
     void initialiseBuffers();
     void initialiseKernels();
+
+    // this tilts the beam mid simulation - used for plasmon scattering.
+    void modifyBeamTilt(double kx, double ky, double kz);
+
+    void translateDiffImage(double d_kx, double d_ky);
 
     // OpenCL stuff
     clMemory<GPU_Type, Manual> ClParameterisation;
@@ -68,10 +73,11 @@ protected:
     clMemory<int, Manual> ClBlockIds;
     clMemory<int, Manual> ClZIds;
 
-    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction1;
-    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction2;
-    clMemory<std::complex<GPU_Type>, Manual> clWaveFunction3;
-    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunction4;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunctionReal;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clWaveFunctionRecip;
+    clMemory<std::complex<GPU_Type>, Manual> clWaveFunctionTemp_1;
+    clMemory<GPU_Type, Manual> clWaveFunctionTemp_2;
+    clMemory<GPU_Type, Manual> clWaveFunctionTemp_3;
 
     clMemory<GPU_Type, Manual> clXFrequencies;
     clMemory<GPU_Type, Manual> clYFrequencies;
@@ -82,10 +88,12 @@ protected:
     clFourier<GPU_Type> FourierTrans;
     clKernel AtomSort;
     clKernel BandLimit;
-    clKernel fftShift;
+    clKernel FftShift;
     clKernel CalculateTransmissionFunction;
     clKernel GeneratePropagator;
     clKernel ComplexMultiply;
+    clKernel BilinearTranslate;
+    clKernel ComplexToReal;
 };
 
 

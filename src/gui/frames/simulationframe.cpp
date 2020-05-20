@@ -9,7 +9,6 @@ SimulationFrame::SimulationFrame(QWidget *parent) :
     ui(new Ui::SimulationFrame)
 {
     ui->setupUi(this);
-    ui->chkFiniteDiff->setVisible(false);
 }
 
 SimulationFrame::~SimulationFrame()
@@ -49,9 +48,6 @@ void SimulationFrame::on_chkFull3D_toggled(bool checked)
     if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
-    if(checked && ui->chkFiniteDiff->isChecked())
-        ui->chkFiniteDiff->setChecked(false);
-
     Main->Manager->setFull3d(ui->chkFull3D->isChecked());
 }
 
@@ -67,7 +63,7 @@ void SimulationFrame::on_btnSimArea_clicked()
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, this, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);
-    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, Main->getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, Main->getCbedFrame(), &CbedFrame::updateTextBoxes);
     connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, Main->getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, Main, &MainWindow::updateScales);
 

@@ -3,6 +3,7 @@
 //
 
 #include "simulationstem.h"
+#include "utilities/vectorutils.h"
 
 template <class T>
 void SimulationStem<T>::initialiseBuffers() {
@@ -12,9 +13,7 @@ void SimulationStem<T>::initialiseBuffers() {
     auto sm = job->simManager;
     unsigned int rs = sm->getResolution();
 
-    auto sim_mode = sm->getMode();
-    if (sim_mode == SimulationMode::STEM && (sim_mode != last_mode || rs*rs != clTDSMaskDiff.GetSize())) {
-        clTDSMaskDiff = clMemory<T, Manual>(ctx, rs * rs);
+    if (rs*rs / 256 != clReductionBuffer.GetSize()) {
         clReductionBuffer = clMemory<T, Manual>(ctx, rs*rs / 256); // STEM only
     }
 }
@@ -26,7 +25,7 @@ void SimulationStem<float>::initialiseKernels() {
 
     if (do_initialise_stem) {
         SumReduction = Kernels::sum_reduction_f.BuildToKernel(ctx);
-        TDSMaskingAbsKernel = Kernels::band_pass_f.BuildToKernel(ctx);
+        BandPassAbs = Kernels::band_pass_f.BuildToKernel(ctx);
     }
 
     do_initialise_stem = false;
@@ -38,8 +37,8 @@ void SimulationStem<double>::initialiseKernels() {
     SimulationCbed<double>::initialiseKernels();
 
     if (do_initialise_stem) {
-        SumReduction = Kernels::sum_reduction_f.BuildToKernel(ctx);
-        TDSMaskingAbsKernel = Kernels::band_pass_f.BuildToKernel(ctx);
+        SumReduction = Kernels::sum_reduction_d.BuildToKernel(ctx);
+        BandPassAbs = Kernels::band_pass_d.BuildToKernel(ctx);
     }
 
     do_initialise_stem = false;
@@ -78,7 +77,7 @@ double SimulationStem<T>::doSumReduction(clMemory<T, Manual> data, clWorkGroup g
 }
 
 template <class T>
-double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind)
+double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double d_kx, double d_ky)
 {
     CLOG(DEBUG, "sim") << "Getting STEM pixel";
     unsigned int resolution = job->simManager->getResolution();
@@ -87,8 +86,27 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
     clWorkGroup WorkSize(resolution, resolution, 1);
 
     CLOG(DEBUG, "sim") << "FFT shifting diffraction pattern";
-    fftShift.SetArg(0, clWaveFunction2[parallel_ind], ArgumentType::Input);
-    fftShift.run(WorkSize);
+    FftShift.SetArg(0, clWaveFunctionRecip[parallel_ind], ArgumentType::Input);
+    FftShift.run(WorkSize);
+
+    int output_type = 4; // square abs
+
+    CLOG(DEBUG, "sim") << "Getting abs of diffraction pattern";
+
+    if (d_kx != 0.0 || d_ky != 0.0) {
+        ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
+        ComplexToReal.SetArg(1, clWaveFunctionTemp_2, ArgumentType::Output);
+        ComplexToReal.SetArg(2, output_type); // should be 4
+        ComplexToReal.run(WorkSize);
+
+        translateDiffImage(d_kx, d_ky);
+
+    } else {
+        ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
+        ComplexToReal.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
+        ComplexToReal.SetArg(2, output_type); // should be 4
+        ComplexToReal.run(WorkSize);
+    }
 
     double innerPx = inner / angle_scale;
     double outerPx = outer / angle_scale;
@@ -97,16 +115,16 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
     double ycPx = yc / angle_scale;
 
     CLOG(DEBUG, "sim") << "Masking diffraction pattern";
-    TDSMaskingAbsKernel.SetArg(0, clWaveFunction3, ArgumentType::Input);
-    TDSMaskingAbsKernel.SetArg(1, clTDSMaskDiff, ArgumentType::Output);
-    TDSMaskingAbsKernel.SetArg(2, resolution);
-    TDSMaskingAbsKernel.SetArg(3, resolution);
-    TDSMaskingAbsKernel.SetArg(4, static_cast<T>(innerPx));
-    TDSMaskingAbsKernel.SetArg(5, static_cast<T>(outerPx));
-    TDSMaskingAbsKernel.SetArg(6, static_cast<T>(xcPx));
-    TDSMaskingAbsKernel.SetArg(7, static_cast<T>(ycPx));
+    BandPassAbs.SetArg(0, clWaveFunctionTemp_3, ArgumentType::Input);
+    BandPassAbs.SetArg(1, clWaveFunctionTemp_2, ArgumentType::Output);
+    BandPassAbs.SetArg(2, resolution);
+    BandPassAbs.SetArg(3, resolution);
+    BandPassAbs.SetArg(4, static_cast<T>(innerPx));
+    BandPassAbs.SetArg(5, static_cast<T>(outerPx));
+    BandPassAbs.SetArg(6, static_cast<T>(xcPx));
+    BandPassAbs.SetArg(7, static_cast<T>(ycPx));
 
-    TDSMaskingAbsKernel.run(WorkSize);
+    BandPassAbs.run(WorkSize);
 
     ctx.WaitForQueueFinish();
 
@@ -116,7 +134,7 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
     clWorkGroup globalSizeSum(totalSize, 1, 1);
     clWorkGroup localSizeSum(256, 1, 1);
 
-    return doSumReduction(clTDSMaskDiff, globalSizeSum, localSizeSum, nGroups, totalSize);
+    return doSumReduction(clWaveFunctionTemp_2, globalSizeSum, localSizeSum, nGroups, totalSize);
 }
 
 template<class GPU_Type>
@@ -174,11 +192,49 @@ void SimulationStem<GPU_Type>::simulate() {
         initialiseProbeWave(x_pos, y_pos, i);
     }
 
+    //
+    // plasmon setup
+    //
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
+    bool do_plasmons = plasmon->getPlasmonEnabled();
+    double slice_dz = job->simManager->getSliceThickness();
+    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    unsigned int scattering_count = 0;
+    double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
+
+    // this gives us our current wavevector, but also our axis for azimuth rotation
+    auto mp = job->simManager->getMicroscopeParams();
+    double k_v = mp->Wavenumber();
+    auto orig_k = mp->Wavevector();
+    Eigen::Vector3d k_vec(0.0, 0.0, k_v);
+    Eigen::Vector3d y_axis(0.0, 1.0, 0.0);
+
+    // apply any current rotation to the y_axis
+    double current_tilt = mp->BeamTilt;
+    double current_azimuth = mp->BeamAzimuth;
+    Utils::rotateVectorSpherical(k_vec, y_axis, current_tilt/1000.0, current_azimuth);
+
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
     unsigned int output_counter = 0;
     for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
+
+        // remove padding slices and add one (as we are at the 'end' of the current slice
+        double current_depth = (i + 1 - padding_slices) * slice_dz;
+        if (do_plasmons && current_depth >= next_scattering_depth) {
+            // modify propagator/transmission function
+            double p_tilt = plasmon->getScatteringPolar();
+            double p_azimuth = plasmon->getScatteringAzimuth();
+
+            Utils::rotateVectorSpherical(k_vec, y_axis, p_tilt/1000.0, p_azimuth);
+
+            modifyBeamTilt(k_vec(0), k_vec(1), k_vec(2));
+
+            // update parameters for next scattering event!
+            scattering_count++;
+            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+        }
 
         if (pool.isStopped())
             return;
@@ -188,7 +244,7 @@ void SimulationStem<GPU_Type>::simulate() {
                 std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 
                 for (int j = 0; j < job->pixels.size(); ++j) {
-                    im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j);
+                    im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
                 }
 
                 Images[det.name].getSliceRef(output_counter) = im;
@@ -210,7 +266,7 @@ void SimulationStem<GPU_Type>::simulate() {
             std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 
             for (int i = 0; i < job->pixels.size(); ++i) {
-                im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i);
+                im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
             }
 
             Images[det.name].getSliceRef(output_counter) = im;

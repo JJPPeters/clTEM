@@ -36,11 +36,14 @@ namespace CIF {
 
         std::vector<Eigen::Vector3d> getThermals() {return thermal_u;}
 
+        bool isThermalDefined() {return thermal_defined;}
+
     private:
         std::vector<double> occupancy;
         std::vector<Eigen::Vector3d> thermal_u;
         std::vector<std::vector<double>> positions;
         std::vector<std::string> element, label;
+        bool thermal_defined;
 
         double wrapPosition(double pos);
 

@@ -23,18 +23,12 @@ public:
 
     ~StemFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m;}
-
-    bool isTdsEnabled();
-
-    unsigned int getTdsRuns();
+    void assignMainWindow(MainWindow* m) {Main = m; updateScaleLabels();}
 
     void setActive(bool active);
 
 public slots:
     void updateScaleLabels();
-
-    void updateTdsText();
 
 private slots:
     void on_btnDetectors_clicked();
@@ -46,8 +40,6 @@ private slots:
     void on_btnCancel_clicked();
 
     void updateDetectors();
-
-    void on_edtTds_textChanged(const QString &arg1);
 
 private:
     Ui::StemFrame *ui;

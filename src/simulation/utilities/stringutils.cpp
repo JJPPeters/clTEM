@@ -8,6 +8,10 @@ namespace Utils
         return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
     }
 
+    bool stringBeginsWith(const std::string &str, const std::string &prefix) {
+        return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+    }
+
     std::string uintToString(unsigned int num, unsigned int width)
     {
         std::ostringstream oss;
@@ -188,5 +192,19 @@ namespace Utils
 
         if (!found_dqe || !found_ntf)
             throw std::runtime_error("Could not find DQE and NTF in file: " + fileName);
+    }
+
+    std::vector<std::string> splitStringDelimiter(const std::string &in, char delim) {
+        // first split the string buy the commas
+        std::istringstream ss(in);
+        std::string part;
+        std::vector<std::string> vec;
+        while(ss.good()) {
+            getline( ss, part, delim );
+            if (part.length() > 0)
+                vec.emplace_back(part);
+        }
+
+        return vec;
     }
 }

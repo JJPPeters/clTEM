@@ -31,6 +31,11 @@ if(EASYLOGGINGPP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_NO_LOG_TO_FILE -DELPP_THREAD_SAFE -DELPP_FORCE_USE_STD_THREAD") #
 endif()
 
+find_package (Eigen3 REQUIRED)
+if(EIGEN3_FOUND)
+    message(STATUS "Found EIGEN3: " ${EIGEN3_INCLUDE_DIR})
+endif(EIGEN3_FOUND)
+
 set(SIM_HDRS
         simulationmanager.h
         kernels.h
@@ -39,7 +44,10 @@ set(SIM_HDRS
         structure/crystalstructure.h
         structure/atom.h
         structure/structureparameters.h
-        structure/thermalvibrations.h
+        #
+        inelastic/inelastic.h
+        inelastic/plasmon.h
+        inelastic/phonon.h
         #
         utilities/commonstructs.h
         utilities/stringutils.h
@@ -70,7 +78,10 @@ set(SIM_SCRS
         #
         structure/crystalstructure.cpp
         structure/structureparameters.cpp
-        structure/thermalvibrations.cpp
+        #
+        inelastic/inelastic.cpp
+        inelastic/plasmon.cpp
+        inelastic/phonon.cpp
         #
         utilities/commonstructs.cpp
         utilities/stringutils.cpp
@@ -90,8 +101,7 @@ set(SIM_SCRS
         microscope/simulationworker.cpp
         microscope/simulationctem.cpp
         microscope/simulationcbed.cpp
-        microscope/simulationstem.cpp
-        )
+        microscope/simulationstem.cpp)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 

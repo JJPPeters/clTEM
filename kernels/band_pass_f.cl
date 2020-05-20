@@ -12,7 +12,7 @@
 /// x_centre - centre x shift of the band pass ring
 /// y_centre - centre y shift of the band pass ring
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void band_pass_f( __global const float2* restrict input,
+__kernel void band_pass_f( __global const float* restrict input,
                                __global float* restrict output,
 							   unsigned int width,
 							   unsigned int height,
@@ -30,7 +30,7 @@ __kernel void band_pass_f( __global const float2* restrict input,
     	float centY = height / 2.0f + y_centre;
     	float radius = native_sqrt( (xid-centX) * (xid-centX) + (yid-centY) * (yid-centY) );
     	if (radius < outer && radius > inner) {
-		    output[id] = input[id].x * input[id].x + input[id].y * input[id].y;
+		    output[id] = input[id];
 		} else {
 		    output[id] = 0.0f;
 		}

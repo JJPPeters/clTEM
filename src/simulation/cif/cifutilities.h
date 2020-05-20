@@ -44,41 +44,50 @@ namespace CIF::Utilities {
         double regexFindDoubleTag(std::string input, std::string pattern);
 
         template<typename T>
-        Eigen::Matrix3d generateNormalisedRotationMatrix(const Eigen::Vector3d &A, const Eigen::Vector3d &B) {
-            Eigen::Vector3d wm = A.cross(B);
+        Eigen::Matrix3d generateNormalisedRotationMatrix(Eigen::Vector3d A, Eigen::Vector3d B) {
+            // https://stackoverflow.com/questions/45142959/calculate-rotation-matrix-to-align-two-vectors-in-3d-space
+            A.normalize();
+            B.normalize();
 
-            wm.normalize(); // I'm assuming that Eigen will handle the case of a zero vector...
+            if (A.isApprox(B))
+                return Eigen::Matrix3d::Identity();
 
-            std::vector<T> data = {0.0, -wm(2), wm(1), wm(2), 0.0, -wm(0), -wm(1), wm(0), 0.0};
-            Eigen::Matrix3d w_hat(data.data());
+            Eigen::Vector3d v = A.cross(B);
+            if (A.isApprox((-B))) {
+                Eigen::Vector3d temp(1.0, 0.0, 0.0);
+                if (temp.isApprox(A))
+                    temp(2) = 1.0;
 
-            double cos_tht = A.dot(B) / (A.norm() * B.norm());
+                v = A.cross(temp);
+            }
+            double c = A.dot(B);
+            // norm() gets the magnitude (normalize() normalises the vector)
+            double s = v.norm();
 
-            double tht = std::acos(cos_tht);
+            // Row major
+            // std::vector<T> data = {0.0, -v(2), v(1), v(2), 0.0, -v(0), -v(1), v(0), 0.0};
+            // Column maor
+            std::vector<T> data = {0.0, v(2), -v(1), -v(2), 0.0, v(0), v(1), -v(0), 0.0};
+            Eigen::Matrix3d k(data.data());
 
-            // This is the rotation matrix we want
-            return Eigen::Matrix3d::Identity() + w_hat * std::sin(tht) + w_hat * w_hat * (1 - cos_tht);
+            // k * k is proper matrix multiplication
+            Eigen::Matrix3d r = Eigen::Matrix3d::Identity() + k + k * k * (1 - c) / (s * s);
+//            Eigen::Matrix3d r = Eigen::Matrix3d::Identity() + k + k * k / (1 + c);
+            return r;
         }
 
         template<typename T>
-        Eigen::Matrix3d generateRotationMatrix(Eigen::Vector3d axis, double theta) {
-            axis = axis / std::sqrt(axis.dot(axis));
-            double a = std::cos(theta / 2);
-            auto bcd = -1 * axis * std::sin(theta / 2);
-            auto aa = a * a;
-            auto bb = bcd(0) * bcd(0);
-            auto cc = bcd(1) * bcd(1);
-            auto dd = bcd(2) * bcd(2);
-            auto ab = a * bcd(0);
-            auto ac = a * bcd(1);
-            auto ad = a * bcd(2);
-            auto bc = bcd(0) * bcd(1);
-            auto bd = bcd(0) * bcd(2);
-            auto cd = bcd(1) * bcd(2);
+        Eigen::Matrix3d generateRotationMatrix(Eigen::Vector3d ax, double theta) {
+            // https://computergraphics.stackexchange.com/a/2404
+            // normalize otherwise our rotation will modify the magnitude?
+            ax.normalize();
 
-            std::vector<T> data = {aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac), 2 * (bc - ad), aa + cc - bb - dd,
-                                   2 * (cd + ab), 2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc};
-            return Eigen::Matrix3d(data.data());
+            Eigen::Matrix3d c;
+            c << 0.0, -ax(2), ax(1),
+                    ax(2), 0.0, -ax(0),
+                    -ax(1), ax(0), 0.0;
+
+            return Eigen::Matrix3d::Identity() + c * std::sin(theta) + c * c * (1 - std::cos(theta));
         }
 
         /// Removes CIF comments and whitespace at start or end of line

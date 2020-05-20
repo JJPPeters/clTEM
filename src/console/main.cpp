@@ -642,6 +642,26 @@ int main(int argc, char *argv[])
         Utils::checkSimulationPrerequisites(man_ptr, device_list);
     } catch (const std::runtime_error &e) {
         std::cout << e.what() << std::endl;
+        return 1;
+    }
+
+    // sort plasmon stuff
+    if (man_ptr->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+        int parts = man_ptr->getTotalParts();
+        man_ptr->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+        auto z_lims = man_ptr->getStructLimitsZ();
+        double thk = z_lims[1] - z_lims[0];
+
+        bool valid = false;
+        for (int i = 0; i < parts; ++i) {
+            valid = man_ptr->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+
+        if (!valid) {
+            std::cout << "Could not generate valid plasmon configuration." << std::endl;
+            return 1;
+        }
+
+        }
     }
 
     // open the kernels
@@ -663,6 +683,8 @@ int main(int argc, char *argv[])
         Kernels::propagator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
         Kernels::sqabs_d = Utils::resourceToChar(kernel_path, "sqabs_d.cl");
         Kernels::sum_reduction_d = Utils::resourceToChar(kernel_path, "sum_reduction_d.cl");
+        Kernels::bilinear_translate_d = Utils::resourceToChar(kernel_path, "bilinear_translate_d.cl");
+        Kernels::complex_to_real_d = Utils::resourceToChar(kernel_path, "complex_to_real_d.cl");
     } else {
         Kernels::atom_sort_f = Utils::resourceToChar(kernel_path, "atom_sort_f.cl");
         Kernels::band_limit_f = Utils::resourceToChar(kernel_path, "band_limit_f.cl");
@@ -679,6 +701,8 @@ int main(int argc, char *argv[])
         Kernels::propagator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
         Kernels::sqabs_f = Utils::resourceToChar(kernel_path, "sqabs_f.cl");
         Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");
+        Kernels::bilinear_translate_f = Utils::resourceToChar(kernel_path, "bilinear_translate_f.cl");
+        Kernels::complex_to_real_f = Utils::resourceToChar(kernel_path, "complex_to_real_f.cl");
     }
 
     auto ccd_name = man_ptr->getCcdName();

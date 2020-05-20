@@ -54,10 +54,11 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
 
     // later on might want a way to combine (some of) the TDS runs into individual jobs.
     if (mode == SimulationMode::CTEM)
-        jobs[0] = std::make_shared<SimulationJob>(simManager);
+        for (int i = 0; i < nJobs; ++i)
+            jobs[i] = std::make_shared<SimulationJob>(simManager, i);
     else if (mode == SimulationMode::CBED)
         for (int i = 0; i < nJobs; ++i)
-            jobs[i] = std::make_shared<SimulationJob>(simManager);
+            jobs[i] = std::make_shared<SimulationJob>(simManager, i);
     else if (mode == SimulationMode::STEM)
     {
         int StemParallel = simManager->getParallelPixels();
@@ -71,7 +72,8 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
         std::mt19937_64 rng(std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count()));
 
         unsigned int jobCount = 0;
-        for (int i = 0; i < simManager->getTdsRuns(); ++i)
+        unsigned int inelastic_iterations = simManager->getInelasticScattering()->getInelasticIterations();
+        for (int i = 0; i < inelastic_iterations; ++i)
         {
             // this works in place (?) so we are continuously shuffling the same array, probably a good thing??
             std::shuffle(pixelIndices.begin(), pixelIndices.end(), rng);
@@ -101,7 +103,7 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
                 current += n; // TODO: check I don't need to increment this by an extra 1
 
                 // make that job
-                jobs[jobCount] = std::make_shared<SimulationJob>(simManager, temp);
+                jobs[jobCount] = std::make_shared<SimulationJob>(simManager, temp, jobCount);
                 jobCount++;
             }
 

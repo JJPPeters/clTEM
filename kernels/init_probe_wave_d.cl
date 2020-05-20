@@ -97,6 +97,7 @@ __kernel void init_probe_wave_d( __global double2* output,
 			double2 tC54 = cMult(C54, cMult(cPow(wc, 5), w)) / 6.0;
 			double2 tC56 = cMult(C56, cPow(wc, 6)) / 6.0;
 
+            // note because of the conjugates we only have real components left
 			double cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			double chi = 2.0 * M_PI * cchi / wavelength;
 

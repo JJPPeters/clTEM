@@ -8,18 +8,16 @@
 SimulationManager::SimulationManager() : Resolution(256), completeJobs(0), default_xy_padding({-8.0, 8.0}), default_z_padding({-3.0, 3.0}), padding_x(default_xy_padding),
                                          padding_y(default_xy_padding), padding_z(default_z_padding), slice_dz(1.0),
                                          blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(false),
-                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0), TdsRunsCbed(1), TdsRunsStem(1), TdsEnabledCbed(false), TdsEnabledStem(false),
+                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0),
                                          slice_offset(0.0), structure_parameters_name("kirkland"), maintain_area(false),
-                                         dist(std::normal_distribution<>(0, 1)), Mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
+                                         Mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
 {
-    rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
-
     // Here is where the default values are set!
     MicroParams = std::make_shared<MicroscopeParameters>();
     SimArea = std::make_shared<SimulationArea>();
     StemSimArea = std::make_shared<StemArea>();
     CbedPos = std::make_shared<CbedPosition>();
-    thermal_vibrations = std::make_shared<ThermalVibrations>();
+    inelastic_scattering = std::make_shared<InelasticScattering>();
 
     full3dInts = 20;
     isF3D = false;
@@ -130,12 +128,15 @@ double SimulationManager::getInverseMaxAngle()
 unsigned long SimulationManager::getTotalParts()
 {
     if (Mode == SimulationMode::CTEM)
-        return 1;
+        return static_cast<unsigned long>(inelastic_scattering->getInelasticIterations());
     else if (Mode == SimulationMode::CBED)
-        return static_cast<unsigned long>(getTdsRuns());
-    else if (Mode == SimulationMode::STEM)
+        return static_cast<unsigned long>(inelastic_scattering->getInelasticIterations());
+    else if (Mode == SimulationMode::STEM) {
         // round up as still need to complete that 'fraction of a job'
-        return static_cast<unsigned long>(getTdsRuns() * std::ceil(static_cast<double>(getStemArea()->getNumPixels()) / numParallelPixels));
+        unsigned int inelastic_runs = inelastic_scattering->getInelasticIterations();
+        return static_cast<unsigned long>(inelastic_runs * std::ceil(
+                static_cast<double>(getStemArea()->getNumPixels()) / numParallelPixels));
+    }
 
     return 0;
 }
@@ -146,7 +147,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     std::lock_guard<std::mutex> lck(image_update_mtx);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    auto average_factor = static_cast<double>(getTdsRuns());
+    auto average_factor = static_cast<double>(getInelasticScattering()->getInelasticIterations());
 
     for (auto const& i : ims)
     {
@@ -161,7 +162,8 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
             }
             CLOG(DEBUG, "sim") << "Copying data";
             for (int j = 0; j < current.getDepth(); ++j)
-                for (int k = 0; k < current.getSliceSize(); ++k)
+                // we need to account for my complex number, that I have sort of bodged in, hence I calculate the k range as I have (and not slicesize)
+                for (int k = 0; k < current.getSliceRef(j).size(); ++k)
                     current.getSliceRef(j)[k] += im.getSliceRef(j)[k] / average_factor;
             Images[i.first] = current;
         } else {
@@ -286,64 +288,6 @@ unsigned int SimulationManager::getNumberofSlices() {
     return n_slices;
 }
 
-unsigned int SimulationManager::getTdsRuns() {
-    if (Mode == SimulationMode::STEM && TdsEnabledStem)
-        return getStoredTdsRuns();
-    else if (Mode == SimulationMode::CBED && TdsEnabledCbed)
-        return getStoredTdsRuns();
-    else
-        return 1;
-}
-
-unsigned int SimulationManager::getStoredTdsRuns() {
-    if (Mode == SimulationMode::CTEM)
-        return 1;
-    else if (Mode == SimulationMode::STEM)
-        return TdsRunsStem;
-    else if (Mode == SimulationMode::CBED)
-        return TdsRunsCbed;
-
-    return 1;
-}
-
-bool SimulationManager::getTdsEnabled() {
-    if (Mode == SimulationMode::STEM)
-        return getTdsEnabledStem();
-    else if (Mode == SimulationMode::CBED)
-        return getTdsEnabledCbed();
-    else
-        return false;
-}
-
-double SimulationManager::generateTdsFactor(AtomSite& at, int direction) {
-    if (direction < 0 || direction > 2)
-        throw std::runtime_error("Error trying to apply thermal displacement to axis: " + std::to_string(direction));
-
-    // need element (just pass atom?)
-
-    // TODO: check this behaves as expected, may want to reset the random stuff
-    // sqrt as we have the mean squared displacement (variance), but want the standard deviation
-
-    double u = 0.0;
-
-    if ( thermal_vibrations->force_default )
-        u = thermal_vibrations->getDefault();
-    else if (thermal_vibrations->force_defined)
-        u = thermal_vibrations->getVibrations((unsigned int) at.A);
-    else if (Structure->isThermalFileDefined()) {
-        if (direction == 0)
-            u = at.ux;
-        else if (direction == 1)
-            u = at.uy;
-        else if (direction == 2)
-            u = at.uz;
-    } else {
-        // defaults are built into this
-        u = thermal_vibrations->getVibrations((unsigned int) at.A);
-    }
-
-    auto jj = dist(rng);
-    double randNormal = std::sqrt(u) * jj;
-
-    return randNormal;
+unsigned int SimulationManager::getPaddedPreSlices() {
+    return static_cast<unsigned int>(padding_z[1] / slice_dz);
 }

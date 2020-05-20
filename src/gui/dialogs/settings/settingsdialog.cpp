@@ -32,7 +32,9 @@ void SettingsDialog::showApplyButton(bool show) {
     ui->BtnApply->setVisible(show);
 }
 
-
+void SettingsDialog::setOkEnabled(bool enabled) {
+    ui->btnOk->setEnabled(enabled);
+}
 
 
 OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice>& current_devices) :
@@ -118,9 +120,34 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
     ThermalFrame = new ThermalScatteringFrame(this, simManager);
     ui->vLayout->insertWidget(0, ThermalFrame);
 
-    this->setWindowTitle("Thermal scattering");
+    this->setWindowTitle("Phonon scattering");
+
+    connect(ThermalFrame, &ThermalScatteringFrame::phononsApplied, this, &ThermalScatteringDialog::corePhononsChanged);
 
     this->setFixedSize(this->minimumSizeHint());
+}
+
+void ThermalScatteringDialog::corePhononsChanged()
+{
+    emit phononsChanged();
+}
+
+PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+        SettingsDialog(parent)
+{
+    PlasmonFrame = new PlasmonSettingsFrame(this, simManager);
+    ui->vLayout->insertWidget(0, PlasmonFrame);
+
+    this->setWindowTitle("Plasmon scattering");
+
+    connect(PlasmonFrame, &PlasmonSettingsFrame::plasmonsApplied, this, &PlasmonDialog::corePlasmonsChanged);
+
+    this->setFixedSize(this->minimumSizeHint());
+}
+
+void PlasmonDialog::corePlasmonsChanged()
+{
+    emit plasmonsChanged();
 }
 
 
@@ -157,5 +184,5 @@ CifCreatorDialog::CifCreatorDialog(QWidget *parent, CIF::CIFReader cif, std::sha
 
     this->setWindowTitle("Cif");
 
-//    this->setFixedSize(this->sizeHint());
+    this->setFixedSize(this->minimumSize());
 }

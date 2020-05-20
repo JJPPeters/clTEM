@@ -30,7 +30,12 @@ namespace Utils {
 
         // TODO: check beta (alpha) and delta?
 
-        // TODO: check TDS entries
+        // check TDS entries
+        if (Manager->getMode() == SimulationMode::CBED || Manager->getMode() == SimulationMode::STEM)
+            if (Manager->getInelasticScattering()->getInelasticEnabled() && Manager->getInelasticScattering()->getInelasticIterations() < 1)
+                errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
+
+        // TODO: Check plasmon values are sensible
 
         // TODO: CBED position in simulation area
 

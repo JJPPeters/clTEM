@@ -3,6 +3,12 @@
 //
 
 #include "simulationcbed.h"
+#include "utilities/vectorutils.h"
+
+template <class T>
+void SimulationCbed<T>::initialiseBuffers() {
+    SimulationCtem<T>::initialiseBuffers();
+}
 
 template <>
 void SimulationCbed<float>::initialiseKernels() {
@@ -58,7 +64,7 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     posx = resolution - posx;
     posy = resolution - posy;
 
-    InitProbeWavefunction.SetArg(0, clWaveFunction2[n_parallel]);
+    InitProbeWavefunction.SetArg(0, clWaveFunctionRecip[n_parallel]);
     InitProbeWavefunction.SetArg(1, resolution);
     InitProbeWavefunction.SetArg(2, resolution);
     InitProbeWavefunction.SetArg(3, clXFrequencies);
@@ -95,7 +101,7 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
 
     // IFFT
     CLOG(DEBUG, "sim") << "IFFT probe wavefunction";
-    FourierTrans.run(clWaveFunction2[n_parallel], clWaveFunction1[n_parallel], Direction::Inverse);
+    FourierTrans.run(clWaveFunctionRecip[n_parallel], clWaveFunctionReal[n_parallel], Direction::Inverse);
     ctx.WaitForQueueFinish();
 }
 
@@ -129,18 +135,56 @@ void SimulationCbed<GPU_Type>::simulate() {
 
     auto diff = Image<double>(resolution, resolution, output_count);
 
+    //
+    // plasmon setup
+    //
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
+    bool do_plasmons = plasmon->getPlasmonEnabled();
+    double slice_dz = job->simManager->getSliceThickness();
+    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    unsigned int scattering_count = 0;
+    double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
+
+    // this gives us our current wavevector, but also our axis for azimuth rotation
+    auto mp = job->simManager->getMicroscopeParams();
+    double k_v = mp->Wavenumber();
+    auto orig_k = mp->Wavevector();
+    Eigen::Vector3d k_vec(0.0, 0.0, k_v);
+    Eigen::Vector3d y_axis(0.0, 1.0, 0.0);
+
+    // apply any current rotation to the y_axis
+    double current_tilt = mp->BeamTilt;
+    double current_azimuth = mp->BeamAzimuth;
+    Utils::rotateVectorSpherical(k_vec, y_axis, current_tilt/1000.0, current_azimuth);
+
+
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
     unsigned int output_counter = 0;
     for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
 
+        // remove padding slices and add one (as we are at the 'end' of the current slice
+        double current_depth = (i + 1 - padding_slices) * slice_dz;
+        if (do_plasmons && current_depth >= next_scattering_depth) {
+            // modify propagator/transmission function
+            double p_tilt = plasmon->getScatteringPolar();
+            double p_azimuth = plasmon->getScatteringAzimuth();
+
+            Utils::rotateVectorSpherical(k_vec, y_axis, p_tilt/1000.0, p_azimuth);
+
+            modifyBeamTilt(k_vec(0), k_vec(1), k_vec(2));
+
+            // update parameters for next scattering event!
+            scattering_count++;
+            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+        }
+
         if (pool.isStopped())
             return;
 
         if (slice_step > 0 && (i+1) % slice_step == 0) {
-            diff.getSliceRef(output_counter) = getDiffractionImage();
-
+            diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
             output_counter++;
         }
 
@@ -150,8 +194,9 @@ void SimulationCbed<GPU_Type>::simulate() {
         job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
     }
 
-    if (output_counter < output_count)
-        diff.getSliceRef(output_counter) = getDiffractionImage();
+    if (output_counter < output_count) {
+        diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+    }
 
     Images.insert(return_map::value_type("Diff", diff));
 

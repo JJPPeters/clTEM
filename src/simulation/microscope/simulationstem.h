@@ -16,18 +16,28 @@ protected:
     using SimulationGeneral<GPU_Type>::last_mode;
     using SimulationGeneral<GPU_Type>::ctx;
 
-    using SimulationGeneral<GPU_Type>::clWaveFunction2;
-    using SimulationGeneral<GPU_Type>::clWaveFunction3;
-    using SimulationGeneral<GPU_Type>::fftShift;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionRecip;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionTemp_1;
+    using SimulationGeneral<GPU_Type>::FftShift;
 
     using SimulationGeneral<GPU_Type>::doMultiSliceStep;
+    using SimulationGeneral<GPU_Type>::modifyBeamTilt;
+    using SimulationGeneral<GPU_Type>::ComplexToReal;
 
     using SimulationCbed<GPU_Type>::initialiseProbeWave;
+    using SimulationCbed<GPU_Type>::clWaveFunctionTemp_2;
+    using SimulationCbed<GPU_Type>::clWaveFunctionTemp_3;
+
+    using SimulationGeneral<GPU_Type>::translateDiffImage;
 
     void initialiseSimulation();
 
     void initialiseBuffers();
     void initialiseKernels();
+
+    clKernel BandPassAbs;
+    clKernel SumReduction;
+    clMemory<GPU_Type, Manual> clReductionBuffer;
 
 public:
     explicit SimulationStem(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationCbed<GPU_Type>(_ctx, s, _id), do_initialise_stem(true) {}
@@ -40,14 +50,9 @@ private:
     double doSumReduction(clMemory<GPU_Type, Manual> data, clWorkGroup globalSizeSum,
                           clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
-    double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind);
+    double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double d_kx=0.0, double d_ky=0.0);
 
     bool do_initialise_stem;
-
-    clKernel TDSMaskingAbsKernel;
-    clKernel SumReduction;
-    clMemory<GPU_Type, Manual> clTDSMaskDiff;
-    clMemory<GPU_Type, Manual> clReductionBuffer;
 };
 
 #endif //CLTEM_SIMULATIONSTEM_H

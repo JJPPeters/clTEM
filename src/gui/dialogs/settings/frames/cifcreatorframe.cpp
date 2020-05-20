@@ -6,6 +6,7 @@
 #include <dialogs/settings/settingsdialog.h>
 #include "cifcreatorframe.h"
 #include "ui_cifcreatorframe.h"
+#include <QScreen>
 
 CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shared_ptr<CIF::SuperCellInfo> _info) : QWidget(parent), ui(new Ui::CifCreatorFrame), CellInfo(_info), cif(_cif) {
     ui->setupUi(this);
@@ -30,9 +31,13 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
 
         pltPreview = std::make_shared<PGL::PlotWidget>(this, msaa);
         pltPreview->setFormat(format);
+
         ui->vPlotLayout->addWidget(pltPreview.get(), 1);
-        pltPreview->setMinimumHeight(400);
-        pltPreview->setMinimumWidth(400);
+
+        QScreen* primary_screen = QGuiApplication::primaryScreen();
+        double pixel_ratio = primary_screen->devicePixelRatio();
+        pltPreview->setMinimumHeight(400 / pixel_ratio);
+        pltPreview->setMinimumWidth(400 / pixel_ratio);
 
         pltPreview->setAttribute(Qt::WA_TransparentForMouseEvents);
         connect(pltPreview.get(), &PGL::PlotWidget::initError, this, &CifCreatorFrame::processOpenGLError);
@@ -111,48 +116,39 @@ CifCreatorFrame::CifCreatorFrame(QWidget *parent, CIF::CIFReader _cif, std::shar
     connect(ui->edtZoneB, &QLineEdit::textChanged, this, &CifCreatorFrame::directionValuesChanged);
     connect(ui->edtZoneC, &QLineEdit::textChanged, this, &CifCreatorFrame::directionValuesChanged);
 
+    connect(ui->edtTiltA, &QLineEdit::textChanged, this, &CifCreatorFrame::angleValuesChanged);
+    connect(ui->edtTiltB, &QLineEdit::textChanged, this, &CifCreatorFrame::angleValuesChanged);
+    connect(ui->edtTiltC, &QLineEdit::textChanged, this, &CifCreatorFrame::angleValuesChanged);
+
     connect(ui->btnPreview, &QPushButton::clicked, this, &CifCreatorFrame::previewStructure);
     connect(ui->cmbViewDirection, qOverload<const QString &>(&QComboBox::activated), this, &CifCreatorFrame::viewDirectionChanged);
+}
+
+void CifCreatorFrame::angleValuesChanged(QString dud) {
+    double ta = ui->edtTiltA->text().toDouble();
+    double tb = ui->edtTiltB->text().toDouble();
+    double tc = ui->edtTiltC->text().toDouble();
+
+    if (pltCellInfo.equalTilts(ta, tb, tc))
+        return;
+
+    previewStructure();
 }
 
 void CifCreatorFrame::directionValuesChanged(QString dud) {
     double u = ui->edtZoneU->text().toDouble();
     double v = ui->edtZoneV->text().toDouble();
     double w = ui->edtZoneW->text().toDouble();
-//    Eigen::Vector3d uvw;
-//    uvw << u, v, w;
 
-//    double a = ui->edtZoneA->text().toDouble();
-//    double b = ui->edtZoneB->text().toDouble();
-//    double c = ui->edtZoneC->text().toDouble();
-//    Eigen::Vector3d abc;
-//    abc << a, b, c;
-//
-//    uvw.normalize();
-//    abc.normalize();
-
-//    if(uvw != abc) { // I think this check is fine?
-////        ui->edtZoneU->setStyleSheet("");
-////        ui->edtZoneV->setStyleSheet("");
-////        ui->edtZoneW->setStyleSheet("");
-//        ui->edtZoneA->setStyleSheet("");
-//        ui->edtZoneB->setStyleSheet("");
-//        ui->edtZoneC->setStyleSheet("");
-//    } else {
-////        ui->edtZoneU->setStyleSheet("color: #FF8C00");
-////        ui->edtZoneV->setStyleSheet("color: #FF8C00");
-////        ui->edtZoneW->setStyleSheet("color: #FF8C00");
-//        ui->edtZoneA->setStyleSheet("color: #FF8C00");
-//        ui->edtZoneB->setStyleSheet("color: #FF8C00");
-//        ui->edtZoneC->setStyleSheet("color: #FF8C00");
-//        return;
-//    }
+    auto parent_dlg = dynamic_cast<CifCreatorDialog*>(parentWidget());
 
     if (u != 0 || v != 0 || w != 0) {
+        parent_dlg->setOkEnabled(true);
         ui->edtZoneU->setStyleSheet("");
         ui->edtZoneV->setStyleSheet("");
         ui->edtZoneW->setStyleSheet("");
     } else {
+        parent_dlg->setOkEnabled(false);
         ui->edtZoneU->setStyleSheet("color: #FF8C00");
         ui->edtZoneV->setStyleSheet("color: #FF8C00");
         ui->edtZoneW->setStyleSheet("color: #FF8C00");
@@ -163,20 +159,32 @@ void CifCreatorFrame::directionValuesChanged(QString dud) {
 
 void CifCreatorFrame::rangeValuesChanged(QString dud) {
 
+    auto parent_dlg = dynamic_cast<CifCreatorDialog*>(parentWidget());
+
+    bool valid = true;
+
     if (ui->edtRangeX->text().toDouble() != 0)
         ui->edtRangeX->setStyleSheet("");
-    else
+    else {
         ui->edtRangeX->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
 
     if (ui->edtRangeY->text().toDouble() != 0)
         ui->edtRangeY->setStyleSheet("");
-    else
+    else {
         ui->edtRangeY->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
 
-    if (ui->edtRangeY->text().toDouble() != 0)
-        ui->edtRangeY->setStyleSheet("");
-    else
-        ui->edtRangeY->setStyleSheet("color: #FF8C00");
+    if (ui->edtRangeZ->text().toDouble() != 0)
+        ui->edtRangeZ->setStyleSheet("");
+    else {
+        ui->edtRangeZ->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
+
+    parent_dlg->setOkEnabled(valid);
 }
 
 void CifCreatorFrame::dlgCancel_clicked()
@@ -242,8 +250,6 @@ bool CifCreatorFrame::dlgApply_clicked()
     CellInfo->setABC(a, b, c);
     CellInfo->setTilts(ta, tb, tc);
 
-
-
     return true;
 }
 
@@ -254,13 +260,13 @@ void CifCreatorFrame::previewStructure(bool dummy) {
 
     pltPreview->clearItems();
 
-    CIF::SuperCellInfo preview_info;
+    bool changed = false;
 
     // get all the values we need
     double u = ui->edtZoneU->text().toDouble();
     double v = ui->edtZoneV->text().toDouble();
     double w = ui->edtZoneW->text().toDouble();
-    preview_info.setUVW(u, v, w);
+    pltCellInfo.setUVW(u, v, w);
 
     if (u == 0 && v == 0 && w == 0)
         return;
@@ -268,40 +274,61 @@ void CifCreatorFrame::previewStructure(bool dummy) {
     double a = ui->edtZoneA->text().toDouble();
     double b = ui->edtZoneB->text().toDouble();
     double c = ui->edtZoneC->text().toDouble();
-    preview_info.setABC(a, b, c);
+    pltCellInfo.setABC(a, b, c);
 
     double ta = ui->edtTiltA->text().toDouble();
     double tb = ui->edtTiltB->text().toDouble();
     double tc = ui->edtTiltC->text().toDouble();
-    preview_info.setTilts(ta, tb, tc);
+    pltCellInfo.setTilts(ta, tb, tc);
 
     // TODO: maye just draw one unit cell?
-    preview_info.setWidths(22, 22, 22);
+    pltCellInfo.setWidths(22, 22, 22);
 
-    CrystalStructure temp(cif, preview_info);
+    auto parent_dlg = dynamic_cast<CifCreatorDialog*>(parentWidget());
 
-    // get ranges (needed to define out 'cube'
-    auto xr = temp.getLimitsX();
-    auto yr = temp.getLimitsY();
-    auto zr = temp.getLimitsZ();
+    try {
+        CrystalStructure temp(cif, pltCellInfo);
 
-    auto atms = temp.getAtoms();
+        // get ranges (needed to define out 'cube'
+        auto xr = temp.getLimitsX();
+        auto yr = temp.getLimitsY();
+        auto zr = temp.getLimitsZ();
 
-    std::vector<Eigen::Vector3f> pos(atms.size());
-    std::vector<Eigen::Vector3f> col(atms.size());
+        auto atms = temp.getAtoms();
 
-    for (int i = 0; i < atms.size(); ++i) {
-        pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
+        std::vector<Eigen::Vector3f> pos(atms.size());
+        std::vector<Eigen::Vector3f> col(atms.size());
 
-        auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
-        col[i] = Eigen::Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
+        for (int i = 0; i < atms.size(); ++i) {
+            pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
+
+            auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
+            col[i] = Eigen::Vector3f(qc.red(), qc.green(), qc.blue()) / 255.0;
+        }
+
+        pltPreview->scatter(pos, col);
+//        pltPreview->SetViewDirection(View::Direction::Top);
+
+        parent_dlg->setOkEnabled(true);
+        ui->edtZoneU->setStyleSheet("");
+        ui->edtZoneV->setStyleSheet("");
+        ui->edtZoneW->setStyleSheet("");
+        //
+        ui->edtZoneA->setStyleSheet("");
+        ui->edtZoneB->setStyleSheet("");
+        ui->edtZoneC->setStyleSheet("");
+    } catch (const std::exception& e) {
+        parent_dlg->setOkEnabled(false);
+        ui->edtZoneU->setStyleSheet("color: #FF8C00");
+        ui->edtZoneV->setStyleSheet("color: #FF8C00");
+        ui->edtZoneW->setStyleSheet("color: #FF8C00");
+        //
+        ui->edtZoneA->setStyleSheet("color: #FF8C00");
+        ui->edtZoneB->setStyleSheet("color: #FF8C00");
+        ui->edtZoneC->setStyleSheet("color: #FF8C00");
     }
 
-    pltPreview->scatter(pos, col);
-    pltPreview->SetViewDirection(View::Direction::Top);
-
-    pltPreview->FitView(1.1);
-
+    pltPreview->FitView(0.8);
     pltPreview->repaint();
 }
 
@@ -328,6 +355,7 @@ void CifCreatorFrame::viewDirectionChanged() {
         return;
 
     pltPreview->SetViewDirection(getViewDirection());
+    pltPreview->FitView(0.8);
 
     pltPreview->repaint();
 }

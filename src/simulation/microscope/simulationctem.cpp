@@ -3,6 +3,7 @@
 //
 
 #include "simulationctem.h"
+#include "utilities/vectorutils.h"
 
 template <class T>
 void SimulationCtem<T>::initialiseBuffers() {
@@ -77,7 +78,7 @@ void SimulationCtem<T>::initialiseSimulation()
     InitPlaneWavefunction.SetArg(1, resolution);
     InitPlaneWavefunction.SetArg(2, resolution);
     InitPlaneWavefunction.SetArg(3, static_cast<T>(InitialValue));
-    InitPlaneWavefunction.SetArg(0, clWaveFunction1[0], ArgumentType::Output);
+    InitPlaneWavefunction.SetArg(0, clWaveFunctionReal[0], ArgumentType::Output);
     InitPlaneWavefunction.run(WorkSize);
 
     ctx.WaitForQueueFinish();
@@ -117,7 +118,7 @@ void SimulationCtem<T>::simulateImagePerfect()
 
     CLOG(DEBUG, "sim") << "Calculating CTEM image from wavefunction";
     // Set arguments for imaging kernel
-    ImagingKernel.SetArg(0, clWaveFunction2[0], ArgumentType::Input);
+    ImagingKernel.SetArg(0, clWaveFunctionRecip[0], ArgumentType::Input);
     ImagingKernel.SetArg(1, clImageWaveFunction, ArgumentType::Output);
     ImagingKernel.SetArg(2, resolution);
     ImagingKernel.SetArg(3, resolution);
@@ -149,11 +150,11 @@ void SimulationCtem<T>::simulateImagePerfect()
 
     // Now get and display absolute value
     CLOG(DEBUG, "sim") << "IFFT to real space";
-    FourierTrans.run(clImageWaveFunction, clWaveFunction3, Direction::Inverse);
+    FourierTrans.run(clImageWaveFunction, clWaveFunctionTemp_1, Direction::Inverse);
     ctx.WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Calculate absolute squared";
-    ABS2.SetArg(0, clWaveFunction3, ArgumentType::Input);
+    ABS2.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
     ABS2.SetArg(1, clImageWaveFunction, ArgumentType::Output);
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
@@ -179,7 +180,7 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
     // Do the 'normal' image calculation
     //
 
-    simulateCtemImage();
+    simulateImagePerfect();
 
     //
     // Dose stuff starts here!
@@ -307,10 +308,49 @@ void SimulationCtem<GPU_Type>::simulate() {
     if (sim_im)
         ctem_im = Image<double>(resolution, resolution, output_count, im_crop[0], im_crop[1], im_crop[2], im_crop[3]);
 
+    //
+    // plasmon setup
+    //
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
+    bool do_plasmons = plasmon->getPlasmonEnabled();
+    double slice_dz = job->simManager->getSliceThickness();
+    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    unsigned int scattering_count = 0;
+    double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
+
+    // this gives us our current wavevector, but also our axis for azimuth rotation
+    auto mp = job->simManager->getMicroscopeParams();
+    double k_v = mp->Wavenumber();
+    auto orig_k = mp->Wavevector();
+    Eigen::Vector3d k_vec(0.0, 0.0, k_v);
+    Eigen::Vector3d y_axis(0.0, 1.0, 0.0);
+
+    // apply any current rotation to the y_axis
+    double current_tilt = mp->BeamTilt;
+    double current_azimuth = mp->BeamAzimuth;
+    Utils::rotateVectorSpherical(k_vec, y_axis, current_tilt/1000.0, current_azimuth);
+
+
     // loop through slices
     unsigned int output_counter = 0;
     for (int i = 0; i < numberOfSlices; ++i) {
         doMultiSliceStep(i);
+
+        // remove padding slices and add one (as we are at the 'end' of the current slice
+        double current_depth = (i + 1 - padding_slices) * slice_dz;
+        if (do_plasmons && current_depth >= next_scattering_depth) {
+            // modify propagator/transmission function
+            double p_tilt = plasmon->getScatteringPolar();
+            double p_azimuth = plasmon->getScatteringAzimuth();
+
+            Utils::rotateVectorSpherical(k_vec, y_axis, p_tilt/1000.0, p_azimuth);
+
+            modifyBeamTilt(k_vec(0), k_vec(1), k_vec(2));
+
+            // update parameters for next scattering event!
+            scattering_count++;
+            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+        }
 
         // this is mostly here because large images can take an age to copy across (so skip that if we are cancelling)
         if (pool.isStopped())
@@ -319,7 +359,7 @@ void SimulationCtem<GPU_Type>::simulate() {
         // get data when we have the right number of slices (unless it is the end, that is always done after the loop)
         if (slice_step > 0 && (i + 1) % slice_step == 0) {
             ew.getSliceRef(output_counter) = getExitWaveImage();
-            diff.getSliceRef(output_counter) = getDiffractionImage();
+            diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
 
             if (sim_im) {
                 simulateCtemImage();
@@ -338,7 +378,7 @@ void SimulationCtem<GPU_Type>::simulate() {
     // get the final slice output
     if (output_counter < output_count) {
         ew.getSliceRef(output_counter) = getExitWaveImage();
-        diff.getSliceRef(output_counter) = getDiffractionImage();
+        diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
         if (sim_im) {
             simulateCtemImage();
             ctem_im.getSliceRef(output_counter) = getCtemImage();

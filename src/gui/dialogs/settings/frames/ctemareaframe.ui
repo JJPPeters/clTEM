@@ -290,8 +290,10 @@
  </customwidgets>
  <tabstops>
   <tabstop>edtStartX</tabstop>
+  <tabstop>edtRangeX</tabstop>
   <tabstop>edtFinishX</tabstop>
   <tabstop>edtStartY</tabstop>
+  <tabstop>edtRangeY</tabstop>
   <tabstop>edtFinishY</tabstop>
   <tabstop>btnReset</tabstop>
   <tabstop>btnDefault</tabstop>
