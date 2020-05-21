@@ -223,7 +223,7 @@
           </widget>
          </item>
          <item>
-          <widget class="EditUnitsBox" name="edtIndividual"/>
+          <widget class="NthUnitsBox" name="edtIndividual"/>
          </item>
          <item>
           <widget class="QLabel" name="label_8">
@@ -270,6 +270,11 @@
    <class>EditUnitsBox</class>
    <extends>QLineEdit</extends>
    <header>controls/editunitsbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NthUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/nthunitsbox.h</header>
   </customwidget>
   <customwidget>
    <class>tabPanel</class>

@@ -24,7 +24,7 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
     ui->edtMeanFreePath->setUnits("nm");
     ui->edtCharacteristicAngle->setUnits("mrad");
     ui->edtCriticalAngle->setUnits("mrad");
-    ui->edtIndividual->setUnits("th");
+//    ui->edtIndividual->setUnits("th");
 
     // sort out our integer text box
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));

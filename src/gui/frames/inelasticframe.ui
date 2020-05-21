@@ -120,7 +120,7 @@
    <item row="3" column="3">
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="EditUnitsBox" name="edtPlasmonSingle">
+      <widget class="NthUnitsBox" name="edtPlasmonSingle">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -398,6 +398,11 @@
    <class>EditUnitsBox</class>
    <extends>QLineEdit</extends>
    <header>controls/editunitsbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NthUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/nthunitsbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

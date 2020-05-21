@@ -24,7 +24,7 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
     ui->edtPlasmonSingle->setValidator(pIntValidator);
     ui->edtPhononDefault->setValidator(pmValidator);
 
-    ui->edtPlasmonSingle->setUnits("th");
+//    ui->edtPlasmonSingle->setUnits("th");
     ui->edtPhononDefault->setUnits("Å²");
 }
 

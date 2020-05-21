@@ -90,6 +90,7 @@ set ( clTEM_SRCS
         utils/stringutils.cpp
         utils/guiutils.cpp
         controls/editunitsbox.cpp
+        controls/nthunitsbox.cpp
         controls/borderlesswindow.cpp
         controls/borderlessdialog.cpp
         dialogs/settings/frames/generalsettingsframe.cpp)

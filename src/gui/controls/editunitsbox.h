@@ -69,7 +69,7 @@ public:
         units = s;
     }
 
-private:
+protected:
     std::string units;
 };
 
