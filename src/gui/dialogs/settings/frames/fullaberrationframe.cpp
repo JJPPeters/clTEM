@@ -237,7 +237,7 @@ bool FullAberrationFrame::dlgApply_clicked()
     MicroParams->C54 = ComplexAberration(C54m, C54a);
     MicroParams->C56 = ComplexAberration(C56m, C56a);
 
-    emit aberrationsApplied();
+    emit dynamic_cast<AberrationsDialog*>(parentWidget())->appliedSignal();
 
     return true;
 }

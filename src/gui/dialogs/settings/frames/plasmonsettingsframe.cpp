@@ -31,7 +31,6 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
 
     ui->edtIndividual->setValidator(pIntValidator);
 
-    //TODO: remove this
     plasmon_manager = simManager->getInelasticScattering()->getPlasmons();
 
     ui->edtMeanFreePath->setText(QString::number(plasmon_manager->getMeanFreePath() / 10)); // angstroms to nm
@@ -50,6 +49,9 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
     connect(parent_dlg, &PlasmonDialog::okSignal, this, &PlasmonSettingsFrame::dlgOk_clicked);
     connect(parent_dlg, &PlasmonDialog::cancelSignal, this, &PlasmonSettingsFrame::dlgCancel_clicked);
     connect(parent_dlg, &PlasmonDialog::applySignal, this, &PlasmonSettingsFrame::dlgApply_clicked);
+
+    connect(ui->edtMeanFreePath, &QLineEdit::textChanged, this, &PlasmonSettingsFrame::checkValidInputs);
+    connect(ui->edtCharacteristicAngle, &QLineEdit::textChanged, this, &PlasmonSettingsFrame::checkValidInputs);
 }
 
 PlasmonSettingsFrame::~PlasmonSettingsFrame()
@@ -93,5 +95,25 @@ void PlasmonSettingsFrame::dlgApply_clicked()
 
     plasmon_manager->setEnabled(enabled);
 
-    emit plasmonsApplied();
+    emit dynamic_cast<PlasmonDialog*>(parentWidget())->appliedSignal();
+}
+
+void PlasmonSettingsFrame::checkValidInputs() {
+    bool valid = true;
+
+    if (ui->edtMeanFreePath->text().toDouble() > 0.0)
+        ui->edtMeanFreePath->setStyleSheet("");
+    else {
+        ui->edtMeanFreePath->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
+
+    if (ui->edtCharacteristicAngle->text().toDouble() > 0.0)
+        ui->edtCharacteristicAngle->setStyleSheet("");
+    else {
+        ui->edtCharacteristicAngle->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
+
+    // don't do anything with valid right now, but I could disable the  apply button?
 }

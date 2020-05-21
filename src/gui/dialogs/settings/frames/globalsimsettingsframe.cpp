@@ -50,10 +50,33 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     ui->lblPaddingZ->setMinimumWidth(w);
 
     populateParamsCombo();
+
+    connect(ui->edt3dIntegrals, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
+    connect(ui->edtParallelPx, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
 }
 
 GlobalSimSettingsFrame::~GlobalSimSettingsFrame() {
     delete ui;
+}
+
+void GlobalSimSettingsFrame::checkValidInputs() {
+    bool valid = true;
+
+    if (ui->edt3dIntegrals->text().toInt() > 0)
+        ui->edt3dIntegrals->setStyleSheet("");
+    else {
+        ui->edt3dIntegrals->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
+
+    if (ui->edtParallelPx->text().toInt() > 0)
+        ui->edtParallelPx->setStyleSheet("");
+    else {
+        ui->edtParallelPx->setStyleSheet("color: #FF8C00");
+        valid = false;
+    }
+
+    // don't do anything with valid right now, but I could disable the  apply button?
 }
 
 void GlobalSimSettingsFrame::dlgCancel_clicked() {
@@ -81,6 +104,8 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     Manager->setDefaultPaddingXY({-pad_xy, pad_xy});
     Manager->setDefaultPaddingZ({-pad_z, pad_z});
     Manager->setDoDoublePrecision(do_double);
+
+    emit dynamic_cast<GlobalSettingsDialog*>(parentWidget())->appliedSignal();
 }
 
 void GlobalSimSettingsFrame::populateParamsCombo() {

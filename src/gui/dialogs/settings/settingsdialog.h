@@ -32,6 +32,8 @@ signals:
     void cancelSignal();
     void applySignal();
 
+    void appliedSignal();
+
 public:
     explicit SettingsDialog(QWidget *parent = 0);
     ~SettingsDialog() override;
@@ -98,16 +100,8 @@ class AberrationsDialog : public SettingsDialog
 {
     Q_OBJECT
 
-signals:
-    // this signal is picked up by the mainwindow aberrations frame
-    void aberrationsChanged();
-
 private:
     FullAberrationFrame* AberrFrame;
-
-private slots:
-    // this slot gets the signal from the fullaberrationsframe
-    void coreAberrationsChanged();
 
 public:
     explicit AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
@@ -119,16 +113,8 @@ class ThermalScatteringDialog : public SettingsDialog
 {
     Q_OBJECT
 
-signals:
-    // this signal is picked up by the mainwindow aberrations frame
-    void phononsChanged();
-
 private:
     ThermalScatteringFrame* ThermalFrame;
-
-private slots:
-    // this slot gets the signal from the fullaberrationsframe
-    void corePhononsChanged();
 
 public:
     explicit ThermalScatteringDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
@@ -139,14 +125,6 @@ public:
 class PlasmonDialog : public SettingsDialog
 {
 Q_OBJECT
-
-signals:
-    // this signal is picked up by the mainwindow aberrations frame
-    void plasmonsChanged();
-
-private slots:
-    // this slot gets the signal from the fullaberrationsframe
-    void corePlasmonsChanged();
 
 private:
     PlasmonSettingsFrame* PlasmonFrame;

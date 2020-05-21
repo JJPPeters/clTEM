@@ -59,7 +59,7 @@ void InelasticFrame::on_btnPhononMore_clicked() {
     updateManager();
 
     auto myDialog = new ThermalScatteringDialog(this, Main->Manager);
-    connect(myDialog, &ThermalScatteringDialog::phononsChanged, this, &InelasticFrame::updatePhononsGui);
+    connect(myDialog, &ThermalScatteringDialog::appliedSignal, this, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
 
@@ -71,7 +71,7 @@ void InelasticFrame::on_btnPlasmonMore_clicked() {
     updateManager();
 
     auto myDialog = new PlasmonDialog(this, Main->Manager);
-    connect(myDialog, &PlasmonDialog::plasmonsChanged, this, &InelasticFrame::updatePlasmonsGui);
+    connect(myDialog, &PlasmonDialog::appliedSignal, this, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
 

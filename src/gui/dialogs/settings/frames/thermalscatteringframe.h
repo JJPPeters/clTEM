@@ -13,9 +13,6 @@ class ThermalScatteringFrame : public QWidget
 {
     Q_OBJECT
 
-signals:
-    void phononsApplied();
-
 public:
     explicit ThermalScatteringFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
 

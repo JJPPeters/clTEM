@@ -21,6 +21,8 @@ private slots:
 
     void dlgCancel_clicked();
 
+    void checkValidInputs();
+
 public:
     explicit GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
     ~GlobalSimSettingsFrame();

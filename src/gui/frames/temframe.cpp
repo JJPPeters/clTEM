@@ -29,6 +29,8 @@ TemFrame::TemFrame(QWidget *parent) :
     ui->edtDose->setValidator(pValidator);
 
     ui->edtDose->setUnits("e⁻A⁻²");
+
+
 }
 
 TemFrame::~TemFrame()
@@ -41,10 +43,10 @@ void TemFrame::on_edtDose_textChanged(const QString &arg1)
     (void)arg1; // don't want this.
     auto v = ui->edtDose->text();
 
-    if(v.toDouble() < 0)
-        ui->edtDose->setStyleSheet("color: #FF8C00");
-    else
+    if(v.toDouble() > 0.0)
         ui->edtDose->setStyleSheet("");
+    else
+        ui->edtDose->setStyleSheet("color: #FF8C00");
 }
 
 void TemFrame::on_btnSim_clicked()

@@ -816,6 +816,9 @@ void MainWindow::saveBmp(bool full_stack) {
 void MainWindow::on_actionGeneral_triggered() {
     GlobalSettingsDialog *myDialog = new GlobalSettingsDialog(this, Manager);
 
+    // this is in case of padding changes or stem parallel pixels
+    connect(myDialog, &GlobalSettingsDialog::appliedSignal, this, &MainWindow::updateScales);
+
     myDialog->exec();
 }
 
@@ -913,6 +916,9 @@ void MainWindow::on_actionSet_area_triggered()
 
     SimAreaDialog* myDialog = new SimAreaDialog(this, Manager);
 
+    // I could simplify this to  use the 'appliedSignal' but there is a lot going on.
+    // I also need to think about the behaviour of clicking apply whilst data has changed on the various tabs
+    // i.e. do I update all of them, or just the one being shown at the moment
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, ui->tSim, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, this, &MainWindow::set_active_mode);
     connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::updateTextBoxes);
@@ -926,19 +932,19 @@ void MainWindow::on_actionAberrations_triggered()
 {
     ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
     AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->getMicroscopeParams());
-    connect(myDialog, &AberrationsDialog::aberrationsChanged, ui->tAberr, &AberrationFrame::updateTextBoxes);
+    connect(myDialog, &AberrationsDialog::appliedSignal, ui->tAberr, &AberrationFrame::updateTextBoxes);
     myDialog->exec();
 }
 
 void MainWindow::on_actionThermal_scattering_triggered() {
     ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
-    connect(myDialog, &ThermalScatteringDialog::phononsChanged, ui->tInelastic, &InelasticFrame::updatePhononsGui);
+    connect(myDialog, &ThermalScatteringDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
 
 void MainWindow::on_actionPlasmons_triggered() {
     PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
-    connect(myDialog, &PlasmonDialog::plasmonsChanged, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
+    connect(myDialog, &PlasmonDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
 

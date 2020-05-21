@@ -15,15 +15,14 @@ class PlasmonSettingsFrame : public QWidget
 {
     Q_OBJECT
 
-signals:
-    void plasmonsApplied();
-
 private slots:
     void dlgOk_clicked();
 
     void dlgApply_clicked();
 
     void dlgCancel_clicked();
+
+    void checkValidInputs();
 
 public:
     explicit PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);

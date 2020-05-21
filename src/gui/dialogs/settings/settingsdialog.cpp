@@ -70,15 +70,7 @@ AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<Microscope
 
     this->setWindowTitle("Aberrations");
 
-    // don't think I ever need to disconnect this, should be handles by Qt when the objects are destroyed
-    connect(AberrFrame, &FullAberrationFrame::aberrationsApplied, this, &AberrationsDialog::coreAberrationsChanged);
-
     this->setFixedSize(this->minimumSizeHint());
-}
-
-void AberrationsDialog::coreAberrationsChanged()
-{
-    emit aberrationsChanged();
 }
 
 
@@ -122,14 +114,7 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
 
     this->setWindowTitle("Phonon scattering");
 
-    connect(ThermalFrame, &ThermalScatteringFrame::phononsApplied, this, &ThermalScatteringDialog::corePhononsChanged);
-
     this->setFixedSize(this->minimumSizeHint());
-}
-
-void ThermalScatteringDialog::corePhononsChanged()
-{
-    emit phononsChanged();
 }
 
 PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
@@ -140,14 +125,7 @@ PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Plasmon scattering");
 
-    connect(PlasmonFrame, &PlasmonSettingsFrame::plasmonsApplied, this, &PlasmonDialog::corePlasmonsChanged);
-
     this->setFixedSize(this->minimumSizeHint());
-}
-
-void PlasmonDialog::corePlasmonsChanged()
-{
-    emit plasmonsChanged();
 }
 
 

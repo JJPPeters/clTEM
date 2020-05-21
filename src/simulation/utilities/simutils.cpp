@@ -28,30 +28,38 @@ namespace Utils {
         if (Manager->getStructureParameterData().empty())
             errorList.emplace_back("Potentials have not been loaded correctly.");
 
-        // TODO: check beta (alpha) and delta?
+        if (Manager->isFull3d() && Manager->getFull3dInts() < 1)
+            errorList.emplace_back("Full 3d integrals must be non-zero positive number.");
+
+        if (Manager->getMode() == SimulationMode::STEM && Manager->getParallelPixels() < 1)
+            errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
         // check TDS entries
-        if (Manager->getMode() == SimulationMode::CBED || Manager->getMode() == SimulationMode::STEM)
-            if (Manager->getInelasticScattering()->getInelasticEnabled() && Manager->getInelasticScattering()->getInelasticIterations() < 1)
-                errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
+        if (Manager->getInelasticScattering()->getInelasticEnabled() && Manager->getInelasticScattering()->getInelasticIterations() < 1)
+            errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
 
-        // TODO: Check plasmon values are sensible
+        // plasmon settings
+        if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+            auto plasmon = Manager->getInelasticScattering()->getPlasmons();
+            if (plasmon->getMeanFreePath() <= 0.0)
+                errorList.emplace_back("Plasmon mean free path must be non-zero positive number.");
 
-        // TODO: CBED position in simulation area
+            if (plasmon->getCharacteristicAngle() <= 0.0)
+                errorList.emplace_back("Plasmon characteristic angle must be non-zero positive number.");
 
-        // TODO: STEM area in simulation area
+        }
 
         // Check STEM detectors exist
         if (Manager->getMode() == SimulationMode::STEM)
             if (Manager->getDetectors().empty())
                 errorList.emplace_back("STEM simulation requires at least 1 detector.");
 
-        // TODO: dose sim for TEM checks
+        // dose sim for TEM checks
         if (Manager->getMode() == SimulationMode::CTEM)
             if (Manager->getCcdDose() <= 0.0)
                 errorList.emplace_back("CCD dose cannot be 0.");
 
-        // TODO: warnings option (stem detector radius checks...
+        // TODO: warnings option i.e. things that wont cause a crash, but will cause a silly output...)
 
         if (!errorList.empty()) {
             std::string final;

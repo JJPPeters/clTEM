@@ -111,7 +111,7 @@ bool ThermalScatteringFrame::dlgApply_clicked()
     // (but it is set from the other ui elements)
     Phonons->setFrozenPhononEnabled(ui->chkEnabled->isChecked());
 
-    emit phononsApplied();
+    emit dynamic_cast<ThermalScatteringDialog*>(parentWidget())->appliedSignal();
 
     return true;
 }

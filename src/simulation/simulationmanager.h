@@ -343,14 +343,12 @@ private:
     SimulationArea getCurrentAreaBase(int pixel) {
         // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
         // limits
-        SimulationArea sa;
 
-        if (Mode == SimulationMode::STEM)
-            sa = StemSimArea->getPixelSimArea(pixel);
+        if (Mode == SimulationMode::STEM && numParallelPixels == 1)
+            // if parallel pixels are used, we need the full sim area...
+            return StemSimArea->getPixelSimArea(pixel);
         else
-            sa = getFullAreaBase(); // These don't ever change!
-
-        return sa;
+            return getFullAreaBase(); // These don't ever change!
     }
 
     std::string structure_parameters_name;
