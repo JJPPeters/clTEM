@@ -5,29 +5,86 @@
 #include <memory>
 #include <utilities/fileio.h>
 
-SimulationManager::SimulationManager() : Resolution(256), completeJobs(0),
-                                         blocks_x(80), blocks_y(80), maxReciprocalFactor(2.0 / 3.0), numParallelPixels(1), simulateCtemImage(false),
+SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
+                                         blocks_x(80), blocks_y(80), max_inverse_factor(2.0 / 3.0), parallel_pixels(1), simulate_ctem_image(false),
                                          ccd_name(""), ccd_binning(1), ccd_dose(10000.0),
                                          structure_parameters_name("kirkland"), maintain_area(false),
-                                         Mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
+                                         simulation_mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
 {
     // Here is where the default values are set!
-    MicroParams = std::make_shared<MicroscopeParameters>();
-    SimArea = std::make_shared<SimulationArea>();
-    StemSimArea = std::make_shared<StemArea>();
-    CbedPos = std::make_shared<CbedPosition>();
+    micro_params = std::make_shared<MicroscopeParameters>();
+    sim_area = std::make_shared<SimulationArea>();
+    stem_sim_area = std::make_shared<StemArea>();
+    cbed_pos = std::make_shared<CbedPosition>();
     inelastic_scattering = std::make_shared<InelasticScattering>();
     simulation_cell = std::make_shared<SimulationCell>();
 
-    full3dInts = 20;
-    isF3D = false;
+    full_3d_integrals = 20;
+    use_full_3d = false;
 
     // I'm really assuming the rest of the aberrations are default 0
-    MicroParams->Aperture = 20;
-    MicroParams->Voltage = 200;
-    MicroParams->Delta = 30;
-    MicroParams->Alpha = 0.3;
-    MicroParams->C30 = 10000;
+    micro_params->Aperture = 20;
+    micro_params->Voltage = 200;
+    micro_params->Delta = 30;
+    micro_params->Alpha = 0.3;
+    micro_params->C30 = 10000;
+}
+
+SimulationManager::SimulationManager(const SimulationManager &sm)
+        : structure_mutex(), image_update_mutex(), sim_resolution(sm.sim_resolution),
+          parallel_pixels(sm.parallel_pixels), use_full_3d(sm.use_full_3d), full_3d_integrals(sm.full_3d_integrals),
+          complete_jobs(sm.complete_jobs), image_return_func(sm.image_return_func), report_progress_total_func(sm.report_progress_total_func), report_progress_slice_func(sm.report_progress_slice_func),
+          image_container(sm.image_container), simulation_mode(sm.simulation_mode), stem_dets(sm.stem_dets),
+          blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulate_ctem_image(sm.simulate_ctem_image),
+          max_inverse_factor(sm.max_inverse_factor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
+          structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
+          use_double_precision(sm.use_double_precision),
+          intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
+{
+    micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
+    sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
+    stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
+    cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
+    inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
+
+    if (sm.simulation_cell)// structure doesnt always exist
+        simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
+}
+
+SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
+    intermediate_slices_enabled = sm.intermediate_slices_enabled;
+    intermediate_slices = sm.intermediate_slices;
+    use_double_precision = sm.use_double_precision;
+    sim_resolution = sm.sim_resolution;
+    parallel_pixels = sm.parallel_pixels;
+    use_full_3d = sm.use_full_3d;
+    full_3d_integrals = sm.full_3d_integrals;
+    complete_jobs = sm.complete_jobs;
+    image_return_func = sm.image_return_func;
+    report_progress_total_func = sm.report_progress_total_func;
+    report_progress_slice_func = sm.report_progress_slice_func;
+    image_container = sm.image_container;
+    simulation_mode = sm.simulation_mode;
+    stem_dets = sm.stem_dets;
+    blocks_x = sm.blocks_x;
+    blocks_y = sm.blocks_y;
+    simulate_ctem_image = sm.simulate_ctem_image;
+    max_inverse_factor = sm.max_inverse_factor;
+    ccd_name = sm.ccd_name;
+    ccd_binning = sm.ccd_binning;
+    ccd_dose = sm.ccd_dose;
+    structure_parameters_name = sm.structure_parameters_name;
+    maintain_area = sm.maintain_area;
+
+    if (sm.simulation_cell) // structure doesnt always exist
+        simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
+    micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
+    sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
+    stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
+    cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
+    inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
+
+    return *this;
 }
 
 void SimulationManager::setStructure(std::string filePath, CIF::SuperCellInfo info, bool fix_cif)
@@ -38,8 +95,8 @@ void SimulationManager::setStructure(std::string filePath, CIF::SuperCellInfo in
     simulation_cell->setCrystalStructure(filePath, info, fix_cif);
 
     if (!maintain_area) {
-        auto x_lims = simulation_cell->crystalStructure()->getLimitsX();
-        auto y_lims = simulation_cell->crystalStructure()->getLimitsY();
+        auto x_lims = simulation_cell->crystalStructure()->limitsX();
+        auto y_lims = simulation_cell->crystalStructure()->limitsY();
 
         simulationArea()->setRawLimitsX(x_lims[0], x_lims[1]);
         simulationArea()->setRawLimitsY(y_lims[0], y_lims[1]);
@@ -60,8 +117,8 @@ void SimulationManager::setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info
     simulation_cell->setCrystalStructure(cif, info);
 
     if (!maintain_area) {
-        auto x_lims = simulation_cell->crystalStructure()->getLimitsX();
-        auto y_lims = simulation_cell->crystalStructure()->getLimitsY();
+        auto x_lims = simulation_cell->crystalStructure()->limitsX();
+        auto y_lims = simulation_cell->crystalStructure()->limitsY();
 
         simulationArea()->setRawLimitsX(x_lims[0], x_lims[1]);
         simulationArea()->setRawLimitsY(y_lims[0], y_lims[1]);
@@ -82,7 +139,7 @@ std::tuple<double, double, double, int> SimulationManager::simRanges()
     double xRange = px[1] - px[0];
     double yRange = py[1] - py[0];
     double zRange = simulation_cell->paddedStructLimitsZ()[1] - simulation_cell->paddedStructLimitsZ()[0];
-    int numAtoms = simulation_cell->crystalStructure()->getAtomCountInRange(px[0], px[1], py[0], py[1]);
+    int numAtoms = simulation_cell->crystalStructure()->atomCountInRange(px[0], px[1], py[0], py[1]);
 
     return std::make_tuple(xRange, yRange, zRange, numAtoms);
 }
@@ -97,7 +154,7 @@ double SimulationManager::realScale()
 
     auto x_r = lim_x[1] - lim_x[0];
     auto y_r = lim_y[1] - lim_y[0];
-    return std::max(x_r, y_r) / Resolution;
+    return std::max(x_r, y_r) / sim_resolution;
 }
 
 double SimulationManager::inverseScale()
@@ -105,7 +162,7 @@ double SimulationManager::inverseScale()
     if(!simulation_cell->crystalStructure() || !resolutionValid())
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
-    return 1.0 / (realScale() * Resolution);
+    return 1.0 / (realScale() * sim_resolution);
 }
 
 double SimulationManager::inverseMax()
@@ -114,37 +171,37 @@ double SimulationManager::inverseMax()
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     double inv_scale = inverseScale();
-    return 0.5 * inv_scale * Resolution * inverseLimitFactor();
+    return 0.5 * inv_scale * sim_resolution * inverseLimitFactor();
 }
 
 double SimulationManager::inverseScaleAngle() {
-    if(!simulation_cell->crystalStructure() || !resolutionValid() || !(MicroParams && MicroParams->Voltage > 0))
+    if(!simulation_cell->crystalStructure() || !resolutionValid() || !(micro_params && micro_params->Voltage > 0))
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     double inv_scale = inverseScale();
-    return 1000.0 * inv_scale * MicroParams->Wavelength();
+    return 1000.0 * inv_scale * micro_params->Wavelength();
 }
 
 double SimulationManager::inverseMaxAngle()
 {
     // need to do this in mrad, eventually should also pass inverse Angstrom for hover text?
-    if(!simulation_cell->crystalStructure() || !resolutionValid() || !(MicroParams && MicroParams->Voltage > 0))
+    if(!simulation_cell->crystalStructure() || !resolutionValid() || !(micro_params && micro_params->Voltage > 0))
         throw std::runtime_error("Can't calculate scales without resolution and structure");
 
     // this is the max reciprocal space scale for the entire image
     double angle_scale = inverseScaleAngle(); // apply cut off here, because we can
-    return 0.5 * angle_scale * Resolution * inverseLimitFactor(); // half because we have a centered 0, 1000 to be in mrad
+    return 0.5 * angle_scale * sim_resolution * inverseLimitFactor(); // half because we have a centered 0, 1000 to be in mrad
 }
 
 unsigned long SimulationManager::totalParts()
 {
-    if (Mode == SimulationMode::CTEM || Mode == SimulationMode::CBED)
+    if (simulation_mode == SimulationMode::CTEM || simulation_mode == SimulationMode::CBED)
         return static_cast<unsigned long>(inelastic_scattering->iterations());
-    else if (Mode == SimulationMode::STEM) {
+    else if (simulation_mode == SimulationMode::STEM) {
         // round up as still need to complete that 'fraction of a job'
         unsigned int inelastic_runs = inelastic_scattering->iterations();
         return static_cast<unsigned long>(inelastic_runs * std::ceil(
-                static_cast<double>(stemArea()->getNumPixels()) / numParallelPixels));
+                static_cast<double>(stemArea()->getNumPixels()) / parallel_pixels));
     }
 
     return 0;
@@ -153,7 +210,7 @@ unsigned long SimulationManager::totalParts()
 void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, int jobCount)
 {
     CLOG(DEBUG, "sim") << "Updating images";
-    std::lock_guard<std::mutex> lck(image_update_mtx);
+    std::lock_guard<std::mutex> lck(image_update_mutex);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
     auto average_factor = static_cast<double>(inelasticScattering()->iterations());
@@ -161,9 +218,9 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     for (auto const& i : ims)
     {
         CLOG(DEBUG, "sim") << "Processing image " << i.first;
-        if (Images.find(i.first) != Images.end()) {
+        if (image_container.find(i.first) != image_container.end()) {
             CLOG(DEBUG, "sim") << "Adding to existing image";
-            auto current = Images[i.first];
+            auto current = image_container[i.first];
             auto im = i.second;
             if (im.getSliceSize() != current.getSliceSize()) {
                 CLOG(ERROR, "sim") << "Tried to merge simulation jobs with different output size";
@@ -174,57 +231,57 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
                 // we need to account for my complex number, that I have sort of bodged in, hence I calculate the k range as I have (and not slicesize)
                 for (int k = 0; k < current.getSliceRef(j).size(); ++k)
                     current.getSliceRef(j)[k] += im.getSliceRef(j)[k] / average_factor;
-            Images[i.first] = current;
+            image_container[i.first] = current;
         } else {
             CLOG(DEBUG, "sim") << "First time so creating image";
             auto new_averaged = i.second;
             for (int j = 0; j < new_averaged.getDepth(); ++j)
                 for (double &d : new_averaged.getSliceRef(j))
                     d /= average_factor; // need to average this as the image is created (if TDS)
-            Images[i.first] = new_averaged;
+            image_container[i.first] = new_averaged;
         }
     }
 
     // count how many jobs have been done...
-    completeJobs += jobCount;
+    complete_jobs += jobCount;
 
     auto v = totalParts();
 
-    if (completeJobs > v) {
+    if (complete_jobs > v) {
         CLOG(ERROR, "sim") << "Simulation received more parts than it expected";
         throw std::runtime_error("Simulation received more parts than it expected");
     }
 
-    auto prgrss = static_cast<double>(completeJobs) / v;
+    auto prgrss = static_cast<double>(complete_jobs) / v;
 
     CLOG(DEBUG, "sim") << "Report progress: " << prgrss*100 << "%";
 
     reportTotalProgress(prgrss);
 
     // this means this simulation is finished
-    if (completeJobs == v && imageReturn) {
+    if (complete_jobs == v && image_return_func) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
-        imageReturn(*this);
+        image_return_func(*this);
     }
 }
 
 void SimulationManager::failedSimulation() {
-    if (imageReturn) {
+    if (image_return_func) {
         CLOG(DEBUG, "sim") << "Returning blank data";
-        imageReturn(*this);
+        image_return_func(*this);
     }
 }
 
 
 void SimulationManager::reportTotalProgress(double prog)
 {
-    if (progressTotalReporter)
-        progressTotalReporter(prog);
+    if (report_progress_total_func)
+        report_progress_total_func(prog);
 }
 
 void SimulationManager::reportSliceProgress(double prog) {
-    if (progressSliceReporter)
-        progressSliceReporter(prog);
+    if (report_progress_slice_func)
+        report_progress_slice_func(prog);
 }
 
 double SimulationManager::blockScaleX() {
@@ -264,4 +321,90 @@ void SimulationManager::calculateBlocks() {
 
     blocks_x = n_blocks;
     blocks_y = n_blocks;
+}
+
+std::valarray<unsigned int> SimulationManager::imageCrop() {
+    double real_scale = realScale();
+
+    auto x_im_range = rawSimLimitsX(0)[1] - rawSimLimitsX(0)[0];
+    auto x_sim_range = paddedSimLimitsX(0)[1] - paddedSimLimitsX(0)[0];
+    auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
+
+    auto y_im_range = rawSimLimitsY(0)[1] - rawSimLimitsY(0)[0];
+    auto y_sim_range = paddedSimLimitsY(0)[1] - paddedSimLimitsY(0)[0];
+    auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
+
+    auto crop_l = static_cast<unsigned int>(std::floor(crop_lr_total / 2.0));
+    auto crop_b = static_cast<unsigned int>(std::floor(crop_tb_total / 2.0));
+
+    auto crop_r = static_cast<unsigned int>(crop_lr_total - crop_l);
+    auto crop_t = static_cast<unsigned int>(crop_tb_total - crop_b);
+
+    return {crop_t, crop_l, crop_b, crop_r};
+}
+
+bool SimulationManager::resolutionValid() {
+    return sim_resolution == 256 || sim_resolution == 512 || sim_resolution == 768 || sim_resolution == 1024 || sim_resolution == 1536 || sim_resolution == 2048 || sim_resolution == 3072 || sim_resolution == 4096 || sim_resolution == 8192;
+}
+
+std::valarray<double> SimulationManager::paddedSimLimitsX(int pixel) {
+    return currentAreaBase(pixel).getCorrectedLimitsX() + simulation_cell->paddingX();
+}
+
+std::valarray<double> SimulationManager::paddedSimLimitsY(int pixel) {
+    return currentAreaBase(pixel).getCorrectedLimitsY() + simulation_cell->paddingY();
+}
+
+std::valarray<double> SimulationManager::paddedSimLimitsZ() {
+    return simulation_cell->paddedStructLimitsZ();
+}
+
+std::valarray<double> SimulationManager::paddedFullLimitsX() {
+    return fullAreaBase().getCorrectedLimitsX() + simulation_cell->paddingX();
+}
+
+std::valarray<double> SimulationManager::paddedFullLimitsY() {
+    return fullAreaBase().getCorrectedLimitsY() + simulation_cell->paddingY();
+}
+
+std::valarray<double> SimulationManager::rawSimLimitsX(int pixel) {
+    return currentAreaBase(pixel).getRawLimitsX();
+}
+
+std::valarray<double> SimulationManager::rawSimLimitsY(int pixel) {
+    return currentAreaBase(pixel).getRawLimitsY();
+}
+
+std::valarray<double> SimulationManager::rawFullLimitsX() {
+    return fullAreaBase().getRawLimitsX();
+}
+
+std::valarray<double> SimulationManager::rawFullLimitsY() {
+    return fullAreaBase().getRawLimitsY();
+}
+
+SimulationArea SimulationManager::fullAreaBase() {
+    // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
+    // limits
+    SimulationArea sa;
+
+    if (simulation_mode == SimulationMode::STEM)
+        sa = static_cast<SimulationArea>(*stem_sim_area);
+    else if (simulation_mode == SimulationMode::CBED)
+        sa = cbed_pos->getSimArea();
+    else if (simulation_mode == SimulationMode::CTEM)
+        sa = *sim_area;
+
+    return sa;
+}
+
+SimulationArea SimulationManager::currentAreaBase(int pixel) {
+    // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
+    // limits
+
+    if (simulation_mode == SimulationMode::STEM && parallel_pixels == 1)
+        // if parallel pixels are used, we need the full sim area...
+        return stem_sim_area->getPixelSimArea(pixel);
+    else
+        return fullAreaBase(); // These don't ever change!
 }

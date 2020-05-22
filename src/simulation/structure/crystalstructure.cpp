@@ -11,12 +11,12 @@
 #include "utilities/structureutils.h"
 
 CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, bool fix_cif)
-        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false),
-          dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
+        : scale_factor(1.0), atom_count(0), file_defined_thermals(false),
+          dist(std::uniform_real_distribution<>(0, 1)), max_atomic_number(0) {
     rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
 
     resetLimits();
-    Atoms = std::vector<AtomSite>();
+    atom_list = std::vector<AtomSite>();
 
     std::string ext = fPath.substr(fPath.length() - 4);
 
@@ -28,21 +28,21 @@ CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, 
 }
 
 CrystalStructure::CrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info)
-        : ScaleFactor(1.0), AtomCount(0), file_defined_thermals(false),
-          dist(std::uniform_real_distribution<>(0, 1)), MaxAtomicNumber(0) {
+        : scale_factor(1.0), atom_count(0), file_defined_thermals(false),
+          dist(std::uniform_real_distribution<>(0, 1)), max_atomic_number(0) {
     rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
 
     resetLimits();
-    Atoms = std::vector<AtomSite>();
+    atom_list = std::vector<AtomSite>();
 
     openCif(cif, info);
 }
 
 void CrystalStructure::openXyz(std::string fPath) {
-    filePath = std::move(fPath);
+    file_path = std::move(fPath);
     // open the file
     std::ifstream inputStream;
-    inputStream.open(filePath);
+    inputStream.open(file_path);
     if(!inputStream)
         throw std::runtime_error("Error opening .xyz file.");
 
@@ -67,7 +67,7 @@ void CrystalStructure::openXyz(std::string fPath) {
 
     // find and remove the 'nm' modifier tag whilst settings the scale factor
     if (Utils::findItemIndex(headers, std::string("nm")) != -1){
-        ScaleFactor = 10;
+        scale_factor = 10;
         headers.erase(std::remove(headers.begin(), headers.end(), "nm"), headers.end());
     }
 
@@ -190,7 +190,7 @@ void CrystalStructure::openCif(std::string fPath, CIF::SuperCellInfo info, bool 
 
 void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {
     // open our cif here
-    filePath = cif.getFilePath();
+    file_path = cif.getFilePath();
 
     // need to create the vectors the data will be put into
     std::vector<std::string> A;
@@ -229,43 +229,43 @@ void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
 
 void CrystalStructure::updateLimits(const Atom &a)
 {
-    if (a.x > MaxX)
-        MaxX = a.x;
-    if (a.y > MaxY)
-        MaxY = a.y;
-    if (a.z > MaxZ)
-        MaxZ = a.z;
-    if (a.x < MinX)
-        MinX = a.x;
-    if (a.y < MinY)
-        MinY = a.y;
-    if (a.z < MinZ)
-        MinZ = a.z;
+    if (a.x > max_x)
+        max_x = a.x;
+    if (a.y > max_y)
+        max_y = a.y;
+    if (a.z > max_z)
+        max_z = a.z;
+    if (a.x < min_x)
+        min_x = a.x;
+    if (a.y < min_y)
+        min_y = a.y;
+    if (a.z < min_z)
+        min_z = a.z;
 
-    if (a.A > MaxAtomicNumber)
-        MaxAtomicNumber = a.A;
+    if (a.A > max_atomic_number)
+        max_atomic_number = a.A;
 }
 
 void CrystalStructure::resetLimits()
 {
-    MinX = std::numeric_limits<double>::max();
-    MaxX = std::numeric_limits<double>::min();
+    min_x = std::numeric_limits<double>::max();
+    max_x = std::numeric_limits<double>::min();
 
-    MinY = std::numeric_limits<double>::max();
-    MaxY = std::numeric_limits<double>::min();
+    min_y = std::numeric_limits<double>::max();
+    max_y = std::numeric_limits<double>::min();
 
-    MinZ = std::numeric_limits<double>::max();
-    MaxZ = std::numeric_limits<double>::min();
+    min_z = std::numeric_limits<double>::max();
+    max_z = std::numeric_limits<double>::min();
 }
 
-int CrystalStructure::getAtomCountInRange(double xs, double xf, double ys, double yf)
+int CrystalStructure::atomCountInRange(double xs, double xf, double ys, double yf)
 {
     // this might be stupidly slow, but it's nice to know how many atoms you are actually simulating through
     // TODO: could subtract the min values when first opening the structure somehow???
 
     int count = 0;
-    for (auto a : Atoms)
-        if (a.x-MinX >= xs && a.x-MinX <= xf && a.y-MinY >= ys && a.y-MinY <= yf)
+    for (auto a : atom_list)
+        if (a.x - min_x >= xs && a.x - min_x <= xf && a.y - min_y >= ys && a.y - min_y <= yf)
             ++count;
 
     return count;
@@ -273,9 +273,9 @@ int CrystalStructure::getAtomCountInRange(double xs, double xf, double ys, doubl
 
 void CrystalStructure::addAtom(AtomSite a) {
     // add the atom
-    Atoms.emplace_back(a * ScaleFactor);
+    atom_list.emplace_back(a * scale_factor);
     // update limits
-    updateLimits(a * ScaleFactor);
+    updateLimits(a * scale_factor);
     // update our list of atoms
 //    if(std::find(AtomTypes.begin(), AtomTypes.end(), a.A) == AtomTypes.end())
 //        AtomTypes.push_back(a.A);
@@ -297,7 +297,7 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
     if (file_defined_thermals && (ux.size() != count || uy.size() != count || uz.size() != count))
         throw std::runtime_error("Processing atom list with unequal length vectors");
 
-    Atoms.reserve(count);
+    atom_list.reserve(count);
 
     std::vector<AtomSite> prevAtoms;
     prevAtoms.reserve(10); //this array will be resized a lot so reserve space. 10 should be plenty for any atoms sharing same sites

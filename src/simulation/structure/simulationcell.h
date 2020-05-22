@@ -57,9 +57,9 @@ public:
     std::valarray<double> paddingY() {roundPaddingY(); return padding_y;}
     std::valarray<double> paddingZ() {roundPaddingZ(); return padding_z;}
 
-    std::valarray<double> paddedStructLimitsX() { return crystal_structure->getLimitsX() + paddingX(); }
-    std::valarray<double> paddedStructLimitsY() { return crystal_structure->getLimitsY() + paddingY(); }
-    std::valarray<double> paddedStructLimitsZ() { return crystal_structure->getLimitsZ() + paddingZ(); }
+    std::valarray<double> paddedStructLimitsX() { return crystal_structure->limitsX() + paddingX(); }
+    std::valarray<double> paddedStructLimitsY() { return crystal_structure->limitsY() + paddingY(); }
+    std::valarray<double> paddedStructLimitsZ() { return crystal_structure->limitsZ() + paddingZ(); }
 
     // setters
     void setSliceThickness(bool thickness) {slice_thickness = thickness;}

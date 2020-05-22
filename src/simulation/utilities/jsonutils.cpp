@@ -574,7 +574,7 @@ namespace JSONUtils {
             // don't export if we have file defined vibrations and no override
             bool export_thermals = true;
             if (man.simulationCell()->crystalStructure()) // structure does not always exist
-                export_thermals = !(man.simulationCell()->crystalStructure()->isThermalFileDefined() &&
+                export_thermals = !(man.simulationCell()->crystalStructure()->thermalFileDefined() &&
                                     !man.inelasticScattering()->phonons()->force_default &&
                                     !man.inelasticScattering()->phonons()->force_defined);
 

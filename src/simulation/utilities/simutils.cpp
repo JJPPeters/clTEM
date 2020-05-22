@@ -12,12 +12,19 @@ namespace Utils {
 
         if (!Manager->simulationCell()->crystalStructure())
             errorList.emplace_back("No structure loaded.");
-        else if (Manager->structureParameters().Max_Atomic_Number < Manager->simulationCell()->crystalStructure()->getMaxAtomicNumber())
+        else if (Manager->structureParameters().Max_Atomic_Number <
+                Manager->simulationCell()->crystalStructure()->maxAtomicNumber())
             errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " +
                                    std::to_string(Manager->structureParameters().Max_Atomic_Number));
 
         if (!Manager->resolutionValid())
             errorList.emplace_back("No valid simulation resolution set.");
+
+        if(Manager->simulationCell()->sliceThickness() <= 0.0)
+            errorList.emplace_back("Slice thickness must be a non-zero positive number.");
+
+        if(Manager->intermediateSlicesEnabled() && Manager->intermediateSliceStep() <= 0)
+            errorList.emplace_back("Intermediate slice output step must be a non-zero positive number.");
 
         auto mp = Manager->microscopeParams();
         if (mp->Voltage <= 0)
@@ -59,7 +66,7 @@ namespace Utils {
             if (Manager->ccdDose() <= 0.0)
                 errorList.emplace_back("CCD dose cannot be 0.");
 
-        // TODO: warnings option i.e. things that wont cause a crash, but will cause a silly output...)
+        // TODO: warnings option i.e. things that wont cause a crash, but will cause a silly output...
 
         if (!errorList.empty()) {
             std::string final;

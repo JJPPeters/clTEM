@@ -45,7 +45,7 @@ void SimulationCell::roundPaddingZ() {
     auto pad_slices_pre = (int) std::ceil((std::abs(p_z[1]) - slice_offset) / slice_thickness);
     double pre_pad = slice_offset + pad_slices_pre * slice_thickness;
 
-    double zw = crystal_structure->getLimitsZ()[1] - crystal_structure->getLimitsZ()[0];
+    double zw = crystal_structure->limitsZ()[1] - crystal_structure->limitsZ()[0];
     auto struct_slices = (int) std::ceil((zw + slice_offset) / slice_thickness); // slice offset needed here?
     double struct_slice_thick = struct_slices * slice_thickness;
 

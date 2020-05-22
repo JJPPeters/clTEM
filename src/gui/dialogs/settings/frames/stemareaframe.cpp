@@ -205,8 +205,8 @@ void StemAreaFrame::on_btnDefault_clicked() {
     // TODO: set to structure limits
     // TODO: Pixels are defined in the json file -> get them here somehow?
     if (Structure) {
-        auto xLims = Structure->getLimitsX();
-        auto yLims = Structure->getLimitsY();
+        auto xLims = Structure->limitsX();
+        auto yLims = Structure->limitsY();
         double padding = 0.f;
         ui->edtStartX->setText(Utils_Qt::numToQString(xLims[0]));
         ui->edtFinishX->setText(Utils_Qt::numToQString(xLims[1]));

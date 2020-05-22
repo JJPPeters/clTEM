@@ -428,7 +428,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
     }
 
     nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
-    original_settings["filename"] = sm.simulationCell()->crystalStructure()->getFileName();
+    original_settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)

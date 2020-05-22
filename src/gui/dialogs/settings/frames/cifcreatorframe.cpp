@@ -290,11 +290,11 @@ void CifCreatorFrame::previewStructure(bool dummy) {
         CrystalStructure temp(cif, pltCellInfo);
 
         // get ranges (needed to define out 'cube'
-        auto xr = temp.getLimitsX();
-        auto yr = temp.getLimitsY();
-        auto zr = temp.getLimitsZ();
+        auto xr = temp.limitsX();
+        auto yr = temp.limitsY();
+        auto zr = temp.limitsZ();
 
-        auto atms = temp.getAtoms();
+        auto atms = temp.atoms();
 
         std::vector<Eigen::Vector3f> pos(atms.size());
         std::vector<Eigen::Vector3f> col(atms.size());

@@ -290,7 +290,7 @@ void SimulationCtem<GPU_Type>::simulate() {
     // Get all the variables we will be needing in one go
     unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
     unsigned int resolution = job->simManager->resolution();
-    std::valarray<unsigned int> im_crop = job->simManager->imageCropEnabled();
+    std::valarray<unsigned int> im_crop = job->simManager->imageCrop();
     bool sim_im = job->simManager->ctemImageEnabled();
 
     // TODO: set this properly

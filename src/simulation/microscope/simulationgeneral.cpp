@@ -15,7 +15,7 @@ void SimulationGeneral<T>::initialiseBuffers() {
         ClParameterisation = clMemory<T, Manual>(ctx, ps);
 
     // these need to change if the atom_count changes
-    if (size_t as = sm->simulationCell()->crystalStructure()->getAtoms().size(); as != ClAtomA.GetSize()) {
+    if (size_t as = sm->simulationCell()->crystalStructure()->atoms().size(); as != ClAtomA.GetSize()) {
         ClAtomA = clMemory<int, Manual>(ctx, as);
         ClAtomX = clMemory<T, Manual>(ctx, as);
         ClAtomY = clMemory<T, Manual>(ctx, as);
@@ -133,7 +133,7 @@ void SimulationGeneral<T>::sortAtoms() {
     }
     current_manager = job->simManager;
 
-    std::vector<AtomSite> atoms = job->simManager->simulationCell()->crystalStructure()->getAtoms();
+    std::vector<AtomSite> atoms = job->simManager->simulationCell()->crystalStructure()->atoms();
     auto atom_count = static_cast<unsigned int>(atoms.size()); // Needs to be cast to int as opencl kernel expects that size
 
     std::vector<int> AtomANum;

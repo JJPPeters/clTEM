@@ -60,8 +60,8 @@ void CbedAreaFrame::on_btnReset_clicked()
 void CbedAreaFrame::on_btnDefault_clicked() {
     //TODO: this default is set in the json file -> get it here somehow?
     if (Structure) {
-        auto xLims = Structure->getLimitsX();
-        auto yLims = Structure->getLimitsY();
+        auto xLims = Structure->limitsX();
+        auto yLims = Structure->limitsY();
         double padding = 0.f;
 
         ui->edtPosX->setText(Utils_Qt::numToQString((xLims[0] + xLims[1]) / 2));

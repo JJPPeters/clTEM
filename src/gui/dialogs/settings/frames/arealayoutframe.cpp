@@ -49,6 +49,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
     connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
+    connect(ui->edtSliceOutput, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
 
     auto parent_dlg = dynamic_cast<SimAreaDialog*>(parentWidget());
     connect(parent_dlg, &SimAreaDialog::okSignal, this, &AreaLayoutFrame::dlgOk_clicked);
@@ -116,33 +117,6 @@ void AreaLayoutFrame::areasChanged() {
     // should probably be it's own slot
     emit modeChanged(mode);
 
-//    double realScale = 0.0f;
-
-//    auto pd = SimManager->simulationCell()->paddingX();
-//    auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
-//
-//    if (mode == 0) { // CTEM
-//        auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
-//        auto xlims = sa.getCorrectedLimitsX();
-//        auto range = xlims[1] - xlims[0];
-//        realScale = (range + pd_range) / SimManager->resolution();
-//    }
-//    else if (mode == 1) { // STEM
-//        auto stema = StemFrame->stemArea();
-//        auto range = stema.getPadding();
-//        realScale = (range + pd_range) / SimManager->resolution();
-//
-//        ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
-//        ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
-//    }
-//    else if (mode == 2) { // CBED
-//        auto pos = CbedFrame->getCbedPos();
-//        auto sa = pos.getSimArea();
-//        auto xlims = sa.getCorrectedLimitsX();
-//        auto range = xlims[1] - xlims[0]; // x lims should be the same as y
-//        realScale = (range + pd_range) / SimManager->resolution();
-//    }
-
     if (mode == 1) {
         ui->lblStemXHeader->setVisible(true);
         ui->lblStemYHeader->setVisible(true);
@@ -173,7 +147,7 @@ void AreaLayoutFrame::areasChanged() {
 void AreaLayoutFrame::updateSlices() {
     double dz = SimManager->simulationCell()->sliceThickness();
     double oz = SimManager->simulationCell()->sliceOffset();
-    unsigned int so = SimManager->intermediateSliceStep();
+    unsigned int so = SimManager->storedIntermediateSliceStep();
     bool iso = SimManager->intermediateSlicesEnabled();
 
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
@@ -323,6 +297,11 @@ void AreaLayoutFrame::checkEditZero(QString txt) {
     else
         ui->edtSliceThickness->setStyleSheet("color: #FF8C00");
 
+    if (ui->edtSliceOutput->text().toInt() > 0)
+        ui->edtSliceOutput->setStyleSheet("");
+    else
+        ui->edtSliceOutput->setStyleSheet("color: #FF8C00");
+
     if (ui->edtSliceOffset->text().toDouble() >= 0)
         ui->edtSliceOffset->setStyleSheet("");
     else
@@ -333,8 +312,8 @@ void AreaLayoutFrame::setStructLimits() {
     if (!SimManager->simulationCell()->crystalStructure())
         return;
 
-    auto lims_x = SimManager->simulationCell()->crystalStructure()->getLimitsX();
-    auto lims_y = SimManager->simulationCell()->crystalStructure()->getLimitsY();
+    auto lims_x = SimManager->simulationCell()->crystalStructure()->limitsX();
+    auto lims_y = SimManager->simulationCell()->crystalStructure()->limitsY();
 
     ui->lblStructStartX->setText(Utils_Qt::numToQString(lims_x[0]) + " Å");
     ui->lblStructFinishX->setText(Utils_Qt::numToQString(lims_x[1]) + " Å");
@@ -365,11 +344,11 @@ void AreaLayoutFrame::plotStructure() {
         return;
 
     // get ranges (needed to define out 'cube'
-    auto xr = SimManager->simulationCell()->crystalStructure()->getLimitsX();
-    auto yr = SimManager->simulationCell()->crystalStructure()->getLimitsY();
-    auto zr = SimManager->simulationCell()->crystalStructure()->getLimitsZ();
+    auto xr = SimManager->simulationCell()->crystalStructure()->limitsX();
+    auto yr = SimManager->simulationCell()->crystalStructure()->limitsY();
+    auto zr = SimManager->simulationCell()->crystalStructure()->limitsZ();
 
-    auto atms = SimManager->simulationCell()->crystalStructure()->getAtoms();
+    auto atms = SimManager->simulationCell()->crystalStructure()->atoms();
 
     std::vector<Eigen::Vector3f> pos(atms.size());
     std::vector<Eigen::Vector3f> col(atms.size());
