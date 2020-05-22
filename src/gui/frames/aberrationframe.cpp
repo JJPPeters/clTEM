@@ -81,7 +81,7 @@ void AberrationFrame::on_btnMore_clicked()
 
     updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
 
-    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->getMicroscopeParams());
+    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
 
     // how this is dosconnected when the dialog is destroyed...
     connect(myDialog, &AberrationsDialog::appliedSignal, this, &AberrationFrame::updateTextBoxes);
@@ -94,7 +94,7 @@ void AberrationFrame::updateTextBoxes()
 {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
-    auto p = Main->Manager->getMicroscopeParams();
+    auto p = Main->Manager->microscopeParams();
 
     ui->edtDefocus->setText(Utils_Qt::numToQString(p->C10 / 10)); // nm
     ui->edtSphere->setText(Utils_Qt::numToQString(p->C30 / 10000)); // um
@@ -120,7 +120,7 @@ void AberrationFrame::updateAberrations()
 
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
-    auto params = Main->getMicroscopeParams();
+    auto params = Main->Manager->microscopeParams();
 
     auto test = ui->edtDefocus->text().toStdString();
     double C10 = ui->edtDefocus->text().toDouble() * 10; // Angstrom

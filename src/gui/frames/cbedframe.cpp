@@ -47,7 +47,7 @@ void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
 
     double v = ui->edtPosY->text().toDouble();
 
-    Main->Manager->getCBedPosition()->setYPos(v);
+    Main->Manager->cbedPosition()->setYPos(v);
 }
 
 void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
@@ -59,7 +59,7 @@ void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
 
     double v = ui->edtPosX->text().toDouble();
 
-    Main->Manager->getCBedPosition()->setXPos(v);
+    Main->Manager->cbedPosition()->setXPos(v);
 }
 
 void CbedFrame::on_btnSim_clicked()
@@ -85,6 +85,6 @@ void CbedFrame::updateTextBoxes()
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
-    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
+    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->cbedPosition()->getXPos()) );
+    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->cbedPosition()->getYPos()) );
 }

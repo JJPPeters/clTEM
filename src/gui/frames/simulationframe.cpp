@@ -48,7 +48,7 @@ void SimulationFrame::on_chkFull3D_toggled(bool checked)
     if (Main == nullptr)
         throw std::runtime_error("Error connecting simulation frame to main window.");
 
-    Main->Manager->setFull3d(ui->chkFull3D->isChecked());
+    Main->Manager->setFull3dEnabled(ui->chkFull3D->isChecked());
 }
 
 void SimulationFrame::on_btnSimArea_clicked()
@@ -76,10 +76,10 @@ void SimulationFrame::on_btnSimArea_clicked()
 //    if (Main == nullptr)
 //        throw std::runtime_error("Error connecting simulation frame to main window.");
 //
-//    auto r = Main->getSimulationArea();
+//    auto r = Main->simulationArea();
 //
-//    Main->getStemArea()->setRangeX(r->getLimitsX()[0], r->getLimitsX()[1]);
-//    Main->getStemArea()->setRangeY(r->getLimitsY()[0], r->getLimitsY()[1]);
+//    Main->stemArea()->setRangeX(r->getLimitsX()[0], r->getLimitsX()[1]);
+//    Main->stemArea()->setRangeY(r->getLimitsY()[0], r->getLimitsY()[1]);
 //
 //    Main->updateScales();
 //    Main->updateRanges();
@@ -88,7 +88,7 @@ void SimulationFrame::on_btnSimArea_clicked()
 void SimulationFrame::assignMainWindow(MainWindow *m)
 {
     Main = m;
-    ui->chkFull3D->setChecked(Main->Manager->isFull3d());
+    ui->chkFull3D->setChecked(Main->Manager->full3dEnabled());
 }
 
 void SimulationFrame::setResolutionIndex(int ind) {

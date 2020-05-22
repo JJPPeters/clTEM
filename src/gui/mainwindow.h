@@ -39,12 +39,6 @@ public:
 
     std::shared_ptr<SimulationManager> Manager;
 
-    std::shared_ptr<MicroscopeParameters> getMicroscopeParams() {return Manager->getMicroscopeParams();}
-    std::shared_ptr<CrystalStructure> getStructure() {return Manager->getStructure();}
-    std::shared_ptr<SimulationArea> getSimulationArea() {return Manager->getSimulationArea();}
-    std::vector<StemDetector>& getDetectors() {return Manager->getDetectors();}
-    std::shared_ptr<StemArea> getStemArea() {return Manager->getStemArea();}
-
     void setDetectors();
 
     void updateRanges();

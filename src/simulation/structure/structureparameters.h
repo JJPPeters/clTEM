@@ -43,7 +43,7 @@ public:
         Params.emplace_back(name, p, atom_count);
     }
 
-    static Parameterisation getParameter(const std::string &name) {
+    static Parameterisation getParameters(const std::string &name) {
         std::lock_guard<std::mutex> lck(mtx);
 
         auto ind = std::find(Params.begin(), Params.end(), name);
@@ -64,7 +64,7 @@ public:
         return names;
     }
 
-    static std::vector<double> getParameterData(const std::string &name) {
+    static std::vector<double> getParametersData(const std::string &name) {
         // I could cal the getParameter function, but I will try to lock the mutex twice...
         std::lock_guard<std::mutex> lck(mtx);
 

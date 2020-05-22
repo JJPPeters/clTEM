@@ -14,8 +14,8 @@
 #include <inelastic/phonon.h>
 #include <inelastic/plasmon.h>
 #include <inelastic/inelastic.h>
+#include <structure/simulationcell.h>
 
-#include "structure/crystalstructure.h"
 #include "structure/structureparameters.h"
 #include "utilities/commonstructs.h"
 #include "utilities/enums.h"
@@ -32,11 +32,9 @@ public:
               numParallelPixels(sm.numParallelPixels), isF3D(sm.isF3D), full3dInts(sm.full3dInts),
               completeJobs(sm.completeJobs), imageReturn(sm.imageReturn), progressTotalReporter(sm.progressTotalReporter), progressSliceReporter(sm.progressSliceReporter),
               Images(sm.Images), Mode(sm.Mode), StemDets(sm.StemDets),
-              default_xy_padding(sm.default_xy_padding), default_z_padding(sm.default_z_padding),
-              padding_x(sm.padding_x), padding_y(sm.padding_y), padding_z(sm.padding_z), slice_dz(sm.slice_dz),
               blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulateCtemImage(sm.simulateCtemImage),
               maxReciprocalFactor(sm.maxReciprocalFactor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
-              slice_offset(sm.slice_offset), structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
+              structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
               use_double_precision(sm.use_double_precision),
               intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
     {
@@ -46,8 +44,8 @@ public:
         CbedPos = std::make_shared<CbedPosition>(*(sm.CbedPos));
         inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
 
-        if (sm.Structure)// structure doesnt always exist
-            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+        if (sm.simulation_cell)// structure doesnt always exist
+            simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
     }
 
     SimulationManager& operator=(const SimulationManager& sm)
@@ -66,12 +64,6 @@ public:
         Images = sm.Images;
         Mode = sm.Mode;
         StemDets = sm.StemDets;
-        default_xy_padding = sm.default_xy_padding;
-        default_z_padding = sm.default_z_padding;
-        padding_x = sm.padding_x;
-        padding_y = sm.padding_y;
-        padding_z = sm.padding_z;
-        slice_dz = sm.slice_dz;
         blocks_x = sm.blocks_x;
         blocks_y = sm.blocks_y;
         simulateCtemImage = sm.simulateCtemImage;
@@ -79,12 +71,11 @@ public:
         ccd_name = sm.ccd_name;
         ccd_binning = sm.ccd_binning;
         ccd_dose = sm.ccd_dose;
-        slice_offset = sm.slice_offset;
         structure_parameters_name = sm.structure_parameters_name;
         maintain_area = sm.maintain_area;
 
-        if (sm.Structure) // structure doesnt always exist
-            Structure = std::make_shared<CrystalStructure>(*(sm.Structure));
+        if (sm.simulation_cell) // structure doesnt always exist
+            simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
         MicroParams = std::make_shared<MicroscopeParameters>(*(sm.MicroParams));
         SimArea = std::make_shared<SimulationArea>(*(sm.SimArea));
         StemSimArea = std::make_shared<StemArea>(*(sm.StemSimArea));
@@ -98,112 +89,65 @@ public:
 
     void setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
 
-    unsigned long getTotalParts();
+    unsigned long totalParts();
 
-    std::shared_ptr<CrystalStructure> getStructure() {return Structure;}
+    std::shared_ptr<SimulationCell> simulationCell() {return simulation_cell;}
 
-    std::shared_ptr<MicroscopeParameters> getMicroscopeParams() {return MicroParams;}
+    std::shared_ptr<MicroscopeParameters> microscopeParams() {return MicroParams;}
 
-    std::shared_ptr<SimulationArea> getSimulationArea() {return SimArea;}
+    std::shared_ptr<SimulationArea> simulationArea() {return SimArea;}
 
-    std::vector<StemDetector>& getDetectors() {return StemDets;}
+    std::vector<StemDetector>& stemDetectors() {return StemDets;}
 
-    std::shared_ptr<StemArea> getStemArea() {return StemSimArea;}
+    std::shared_ptr<StemArea> stemArea() {return StemSimArea;}
 
-    std::shared_ptr<CbedPosition> getCBedPosition() {return CbedPos;}
+    std::shared_ptr<CbedPosition> cbedPosition() {return CbedPos;}
 
-    bool haveStructure() {
-        if (Structure)
-            return true;
-        return false;
-    }
-
-    SimulationArea getCtemArea() {return *SimArea;}
-
-    void setDefaultPaddingXY(const std::valarray<double> &pd_xy) {
-        if(pd_xy.size() != 2)
-            throw std::runtime_error("XY padding value must be valarray with 2 values");
-        default_xy_padding = pd_xy;
-    }
-
-    void setDefaultPaddingZ(const std::valarray<double> &pd_z) {
-        if(pd_z.size() != 2)
-            throw std::runtime_error("Z padding value must be valarray with 2 values");
-        default_z_padding = pd_z;
-    }
-
-    // The rounding doesnt always do something, but is for a uniform style so stuff can be added in later
-    std::valarray<double> getDefaultPaddingXY() {return default_xy_padding;}
-    std::valarray<double> getDefaultPaddingZ() {return default_z_padding;}
-
-    std::valarray<double> getPaddingX() {round_X_padding(); return padding_x;}
-    std::valarray<double> getPaddingY() {round_Y_padding(); return padding_y;}
-    std::valarray<double> getPaddingZ() {round_Z_padding(); return padding_z;}
-
-    std::valarray<double> getStructLimitsX() {
-        if (Structure)
-            return Structure->getLimitsX();
-        else
-            return {0.0, 0.0};
-    }
-
-    std::valarray<double> getStructLimitsY() {
-        if (Structure)
-            return Structure->getLimitsY();
-        else
-            return {0.0, 0.0};
-    }
-    std::valarray<double> getStructLimitsZ() {
-        if (Structure)
-            return Structure->getLimitsZ();
-        else
-            return {0.0, 0.0};
-    }
-
-    std::valarray<double> getPaddedStructLimitsX() { return getStructLimitsX() + getPaddingX(); }
-    std::valarray<double> getPaddedStructLimitsY() { return getStructLimitsY() + getPaddingY(); }
-    std::valarray<double> getPaddedStructLimitsZ() { return getStructLimitsZ() + getPaddingZ(); }
+    SimulationArea ctemArea() {return *SimArea;}
 
     // should have corrected the shift issue so this more intuitive version works!!
     // this covers only the area that is needed right now (i.e. for just this pixel)
-    std::valarray<double> getPaddedSimLimitsX(int pixel) {
-        return getCurrentAreaBase(pixel).getCorrectedLimitsX() + getPaddingX();
+    std::valarray<double> paddedSimLimitsX(int pixel) {
+        return currentAreaBase(pixel).getCorrectedLimitsX() + simulation_cell->paddingX();
     }
-    std::valarray<double> getPaddedSimLimitsY(int pixel) {
-        return getCurrentAreaBase(pixel).getCorrectedLimitsY() + getPaddingY();
+    std::valarray<double> paddedSimLimitsY(int pixel) {
+        return currentAreaBase(pixel).getCorrectedLimitsY() + simulation_cell->paddingY();
+    }
+    std::valarray<double> paddedSimLimitsZ() {
+        return simulation_cell->paddedStructLimitsZ();
     }
 
     // this one covers the total sim area (even if it is not all needed for each simulation, ie area covered by all pixels)
-    std::valarray<double> getPaddedFullLimitsX() {
-        return getFullAreaBase().getCorrectedLimitsX() + getPaddingX();
+    std::valarray<double> paddedFullLimitsX() {
+        return fullAreaBase().getCorrectedLimitsX() + simulation_cell->paddingX();
     }
-    std::valarray<double> getPaddedFullLimitsY() {
-        return getFullAreaBase().getCorrectedLimitsY() + getPaddingY();
-    }
-
-    std::valarray<double> getRawSimLimitsX(int pixel) {
-        return getCurrentAreaBase(pixel).getRawLimitsX();
-    }
-    std::valarray<double> getRawSimLimitsY(int pixel) {
-        return getCurrentAreaBase(pixel).getRawLimitsY();
+    std::valarray<double> paddedFullLimitsY() {
+        return fullAreaBase().getCorrectedLimitsY() + simulation_cell->paddingY();
     }
 
-    std::valarray<double> getRawFullLimitsX() {
-        return getFullAreaBase().getRawLimitsX();
+    std::valarray<double> rawSimLimitsX(int pixel) {
+        return currentAreaBase(pixel).getRawLimitsX();
     }
-    std::valarray<double> getRawFullLimitsY() {
-        return getFullAreaBase().getRawLimitsY();
+    std::valarray<double> rawSimLimitsY(int pixel) {
+        return currentAreaBase(pixel).getRawLimitsY();
     }
 
-    std::valarray<unsigned int> getImageCrop() {
-        double real_scale = getRealScale();
+    std::valarray<double> rawFullLimitsX() {
+        return fullAreaBase().getRawLimitsX();
+    }
+    std::valarray<double> rawFullLimitsY() {
+        return fullAreaBase().getRawLimitsY();
+    }
 
-        auto x_im_range = getRawSimLimitsX(0)[1] - getRawSimLimitsX(0)[0];
-        auto x_sim_range = getPaddedSimLimitsX(0)[1] - getPaddedSimLimitsX(0)[0];
+    std::valarray<unsigned int> imageCropEnabled() {
+        double real_scale = realScale();
+
+        auto x_im_range = rawSimLimitsX(0)[1] - rawSimLimitsX(0)[0];
+        auto x_sim_range = paddedSimLimitsX(0)[1] - paddedSimLimitsX(0)[0];
         auto crop_lr_total = (std::floor(x_sim_range - x_im_range)  / real_scale);
 
-        auto y_im_range = getRawSimLimitsY(0)[1] - getRawSimLimitsY(0)[0];
-        auto y_sim_range = getPaddedSimLimitsY(0)[1] - getPaddedSimLimitsY(0)[0];
+        auto y_im_range = rawSimLimitsY(0)[1] - rawSimLimitsY(0)[0];
+        auto y_sim_range = paddedSimLimitsY(0)[1] - paddedSimLimitsY(0)[0];
         auto crop_tb_total = (std::floor(y_sim_range - y_im_range)  / real_scale);
 
         auto crop_l = static_cast<unsigned int>(std::floor(crop_lr_total / 2.0));
@@ -215,46 +159,47 @@ public:
         return {crop_t, crop_l, crop_b, crop_r};
     }
 
-    int getBlocksX();
-    int getBlocksY();
+    int blocksX();
+    int blocksY();
 
-    double getBlockScaleX();
-    double getBlockScaleY();
+    double blockScaleX();
+    double blockScaleY();
 
-    std::tuple<double, double, double, int> getSimRanges();
+    std::tuple<double, double, double, int> simRanges();
 
     void setResolution(unsigned int res) {Resolution = res;}
-    unsigned int getResolution() {return Resolution;}
+    unsigned int resolution() {return Resolution;}
     void setMode(SimulationMode md){Mode = md;}
-    SimulationMode getMode(){return Mode;}
-    std::string getModeString() {return Utils::simModeToString(Mode);}
+    SimulationMode mode(){return Mode;}
+    std::string modeString() {return Utils::simModeToString(Mode);}
 
-    bool haveResolution() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096 || Resolution == 8192;}
+    bool resolutionValid() {return Resolution == 256 || Resolution == 512 || Resolution == 768 || Resolution == 1024 || Resolution == 1536 || Resolution == 2048 || Resolution == 3072 || Resolution == 4096 || Resolution == 8192;}
 
     /// Get the simulation scale in Angstroms per pixel
-    double getRealScale();
+    double realScale();
     /// Get the simulation inverse scale in inverse Angstroms per pixel
-    double getInverseScale();
+    double inverseScale();
+    /// GGet the max band limited simulation inverse in inverse Angstroms per pixel
+    double inverseMax();
     /// Get the simulation inverse scale in mrad per pixel
-    double getInverseScaleAngle();
+    double inverseScaleAngle();
     /// Get the max band limited simulation inverse in mrad
-    double getInverseMaxAngle();
-    double getInverseLimitFactor() {return maxReciprocalFactor;}
+    double inverseMaxAngle();
+    double inverseLimitFactor() {return maxReciprocalFactor;}
 
-    double getWavelength() {return MicroParams->Wavelength();}
-    bool isFull3d(){return isF3D;}
+    bool full3dEnabled(){return isF3D;}
 
-    void setFull3d(bool use) {isF3D = use;}
-    unsigned int getFull3dInts(){return full3dInts;}
-    unsigned int getParallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
+    void setFull3dEnabled(bool use) {isF3D = use;}
+    unsigned int full3dIntegrals(){return full3dInts;}
+    unsigned int parallelPixels() {return (Mode != SimulationMode::STEM) ? 1 : numParallelPixels;}
     void setParallelPixels(unsigned int npp) {numParallelPixels = npp;}
-    void setFull3dInts(unsigned int n3d){full3dInts= n3d;}
+    void setFull3dIntegrals(unsigned int n3d){full3dInts= n3d;}
 
     //
     // Inelastic scattering
     //
 
-    std::shared_ptr<InelasticScattering> getInelasticScattering() {return inelastic_scattering;}
+    std::shared_ptr<InelasticScattering> inelasticScattering() {return inelastic_scattering;}
 
     //
     // Return functions
@@ -266,66 +211,47 @@ public:
 
 
     void updateImages(std::map<std::string, Image<double>> &ims, int jobCount);
-    std::map<std::string, Image<double>> getImages() { return Images; }
+    std::map<std::string, Image<double>> images() { return Images; }
     void failedSimulation();
-
 
     void reportTotalProgress(double prog);
     void reportSliceProgress(double prog);
 
-    bool getSimulateCtemImage() {return simulateCtemImage;}
-    void setSimulateCtemImage(bool val) {simulateCtemImage = val;}
+    bool ctemImageEnabled() {return simulateCtemImage;}
+    void setCtemImageEnabled(bool val) {simulateCtemImage = val;}
 
-    std::string getCcdName() {return ccd_name;}
+    std::string ccdName() {return ccd_name;}
     void setCcdName(std::string nm) {ccd_name = std::move(nm);}
 
-    int getCcdBinning() {return ccd_binning;}
+    int ccdBinning() {return ccd_binning;}
     void setCcdBinning(int bin) {ccd_binning = bin;}
 
-    double getCcdDose() {return ccd_dose;}
+    double const ccdDose() {return ccd_dose;}
     void setCcdDose(double dose) {ccd_dose = dose;}
-
-    double getSliceThickness() {return slice_dz;}
-    double getSliceOffset() {return slice_offset;}
-
-    unsigned int getNumberofSlices();
-
-    void setSliceThickness(double thk) { slice_dz = thk; }
-    void setSliceOffset(double off) { slice_offset = off; }
 
     void setStructureParameters(std::string name) { structure_parameters_name = std::move(name); }
 
-    Parameterisation getStructureParameter() {return StructureParameters::getParameter(structure_parameters_name);}
-    std::vector<double> getStructureParameterData() {return StructureParameters::getParameterData(structure_parameters_name);}
-    std::string getStructureParametersName() {return structure_parameters_name;}
+    Parameterisation structureParameters() {return StructureParameters::getParameters(structure_parameters_name);}
+    std::vector<double> structureParametersData() {return StructureParameters::getParametersData(structure_parameters_name);}
+    std::string structureParametersName() {return structure_parameters_name;}
 
     void setMaintainAreas(bool maintain) {maintain_area = maintain;}
-    bool getMaintainAreas() {return maintain_area;}
+    bool maintainAreas() {return maintain_area;}
 
-    bool getDoDoublePrecision() {return use_double_precision;}
-    void setDoDoublePrecision(bool ddp) {use_double_precision = ddp;}
+    bool doublePrecisionEnabled() {return use_double_precision;}
+    void setDoublePrecisionEnabled(bool ddp) {use_double_precision = ddp;}
 
-    unsigned int getUsedIntermediateSlices() {return intermediate_slices_enabled ? intermediate_slices : 0;}
-    unsigned int getIntermediateSlices() {return intermediate_slices;}
-    bool getIntermediateSlicesEnabled() {return intermediate_slices_enabled;}
+    unsigned int intermediateSliceStep() {return intermediate_slices_enabled ? intermediate_slices : 0;}
+    unsigned int storedintermediateSliceStep() {return intermediate_slices;}
+    bool intermediateSlicesEnabled() {return intermediate_slices_enabled;}
 
     void setIntermediateSlices(unsigned int is) {intermediate_slices = is;}
     void setIntermediateSlicesEnabled(bool ise) {intermediate_slices_enabled = ise;}
 
-    unsigned int getPaddedPreSlices();
-
 private:
     bool use_double_precision;
 
-    std::valarray<double> default_xy_padding;
-    std::valarray<double> default_z_padding;
-
-    // Nothing happens with the xy padding now, but z needs to be rounded to get the correct slice offset
-    void round_X_padding() {padding_x = default_xy_padding;}
-    void round_Y_padding() {padding_y = default_xy_padding;}
-    void round_Z_padding();
-
-    SimulationArea getFullAreaBase() {
+    SimulationArea fullAreaBase() {
         // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
         // limits
         SimulationArea sa;
@@ -340,7 +266,7 @@ private:
         return sa;
     }
 
-    SimulationArea getCurrentAreaBase(int pixel) {
+    SimulationArea currentAreaBase(int pixel) {
         // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
         // limits
 
@@ -348,7 +274,7 @@ private:
             // if parallel pixels are used, we need the full sim area...
             return StemSimArea->getPixelSimArea(pixel);
         else
-            return getFullAreaBase(); // These don't ever change!
+            return fullAreaBase(); // These don't ever change!
     }
 
     std::string structure_parameters_name;
@@ -357,9 +283,7 @@ private:
 
     std::mutex structure_mutex;
 
-    std::shared_ptr<CrystalStructure> Structure;
-
-    std::valarray<double> padding_x, padding_y, padding_z;
+    std::shared_ptr<SimulationCell> simulation_cell;
 
     unsigned int Resolution;
     bool simulateCtemImage;
@@ -379,10 +303,7 @@ private:
     // STEM only
     unsigned int numParallelPixels;
 
-    double slice_dz;
-    double slice_offset;
-
-    void calculate_blocks();
+    void calculateBlocks();
     int blocks_x, blocks_y;
 
     bool isF3D;

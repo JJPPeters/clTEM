@@ -31,18 +31,23 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
 
     ui->edtIndividual->setValidator(pIntValidator);
 
-    plasmon_manager = simManager->getInelasticScattering()->getPlasmons();
+    plasmon_manager = simManager->inelasticScattering()->plasmons();
 
-    ui->edtMeanFreePath->setText(QString::number(plasmon_manager->getMeanFreePath() / 10)); // angstroms to nm
-    ui->edtCharacteristicAngle->setText(QString::number(plasmon_manager->getCharacteristicAngle()));
-    ui->edtCriticalAngle->setText(QString::number(plasmon_manager->getCriticalAngle()));
+    ui->edtMeanFreePath->setText(QString::number(plasmon_manager->meanFreePath() / 10)); // angstroms to nm
+    ui->edtCharacteristicAngle->setText(QString::number(plasmon_manager->characteristicAngle()));
+    ui->edtCriticalAngle->setText(QString::number(plasmon_manager->criticalAngle()));
 
-    ui->edtIndividual->setText(QString::number(plasmon_manager->getIndividualPlasmon()));
+    ui->edtIndividual->setText(QString::number(plasmon_manager->individualPlasmon()));
 
-    ui->rdioCombined->setChecked(plasmon_manager->getCombinedEnabled());
-    ui->rdioIndividual->setChecked(plasmon_manager->getIndividualEnabled());
+    if (plasmon_manager->simType() == PlasmonType::Full) {
+        ui->rdioCombined->setChecked(true);
+        ui->rdioIndividual->setChecked(false);
+    } else if (plasmon_manager->simType() == PlasmonType::Individual) {
+        ui->rdioCombined->setChecked(false);
+        ui->rdioIndividual->setChecked(true);
+    }
 
-    ui->chkEnabled->setChecked(plasmon_manager->getPlasmonEnabled());
+    ui->chkEnabled->setChecked(plasmon_manager->enabled());
 
     // connect up our OK, etc... buttons
     auto parent_dlg = dynamic_cast<PlasmonDialog*>(parentWidget());
@@ -90,8 +95,10 @@ void PlasmonSettingsFrame::dlgApply_clicked()
     plasmon_manager->setCriticalAngle(cra);
     plasmon_manager->setIndividualPlasmon(individual);
 
-    plasmon_manager->setCombinedEnabled(do_comb);
-    plasmon_manager->setIndividualEnabled(do_ind);
+    if (do_comb)
+        plasmon_manager->setSimType(PlasmonType::Full);
+    else if (do_ind)
+        plasmon_manager->setSimType(PlasmonType::Individual);
 
     plasmon_manager->setEnabled(enabled);
 

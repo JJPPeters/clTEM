@@ -101,7 +101,7 @@ set(SIM_SCRS
         microscope/simulationworker.cpp
         microscope/simulationctem.cpp
         microscope/simulationcbed.cpp
-        microscope/simulationstem.cpp)
+        microscope/simulationstem.cpp structure/simulationcell.cpp structure/simulationcell.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 

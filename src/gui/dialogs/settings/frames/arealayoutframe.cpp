@@ -45,7 +45,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     ui->edtSliceThickness->setUnits("Å");
     ui->edtSliceOffset->setUnits("Å");
 
-    ui->chkKeep->setChecked(simMan->getMaintainAreas());
+    ui->chkKeep->setChecked(simMan->maintainAreas());
 
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
     connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::checkEditZero);
@@ -55,20 +55,20 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
     connect(parent_dlg, &SimAreaDialog::cancelSignal, this, &AreaLayoutFrame::dlgCancel_clicked);
     connect(parent_dlg, &SimAreaDialog::applySignal, this, &AreaLayoutFrame::dlgApply_clicked);
 
-    SimulationArea ctemArea = *SimManager->getSimulationArea();
-    StemArea stemArea = *SimManager->getStemArea();
-    CbedPosition cbedPos = *SimManager->getCBedPosition();
+    SimulationArea ctemArea = *SimManager->simulationArea();
+    StemArea stemArea = *SimManager->stemArea();
+    CbedPosition cbedPos = *SimManager->cbedPosition();
 
-    CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->getStructure());
-    StemFrame = new StemAreaFrame(this, stemArea, SimManager->getStructure());
-    CbedFrame = new CbedAreaFrame(this, cbedPos, SimManager->getStructure());
+    CtemFrame = new CtemAreaFrame(this, ctemArea, SimManager->simulationCell()->crystalStructure());
+    StemFrame = new StemAreaFrame(this, stemArea, SimManager->simulationCell()->crystalStructure());
+    CbedFrame = new CbedAreaFrame(this, cbedPos, SimManager->simulationCell()->crystalStructure());
 
     ui->vCtemLayout->insertWidget(0, CtemFrame);
     ui->vStemLayout->insertWidget(0, StemFrame);
     ui->vCbedLayout->insertWidget(0, CbedFrame);
 
     // set current tab to view
-    auto mode = SimManager->getMode();
+    auto mode = SimManager->mode();
     if (mode == SimulationMode::STEM)
         ui->tabAreaWidget->setCurrentIndex(1);
     else if (mode == SimulationMode::CBED)
@@ -88,7 +88,7 @@ AreaLayoutFrame::AreaLayoutFrame(QWidget *parent, std::shared_ptr<SimulationMana
 
     // set resolution combo box
     // this has to be called here as changingit will call its slot when other values havent been initialised
-    int ind = ui->cmbResolution->findText( QString::number(SimManager->getResolution()) );
+    int ind = ui->cmbResolution->findText( QString::number(SimManager->resolution()) );
     ui->cmbResolution->setCurrentIndex(ind);
 
     setStructLimits();
@@ -116,32 +116,32 @@ void AreaLayoutFrame::areasChanged() {
     // should probably be it's own slot
     emit modeChanged(mode);
 
-    double realScale = 0.0f;
+//    double realScale = 0.0f;
 
-    auto pd = SimManager->getPaddingX();
-    auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
-
-    if (mode == 0) { // CTEM
-        auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
-        auto xlims = sa.getCorrectedLimitsX();
-        auto range = xlims[1] - xlims[0];
-        realScale = (range + pd_range) / SimManager->getResolution();
-    }
-    else if (mode == 1) { // STEM
-        auto stema = StemFrame->getStemArea();
-        auto range = stema.getPadding();
-        realScale = (range + pd_range) / SimManager->getResolution();
-
-        ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
-        ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
-    }
-    else if (mode == 2) { // CBED
-        auto pos = CbedFrame->getCbedPos();
-        auto sa = pos.getSimArea();
-        auto xlims = sa.getCorrectedLimitsX();
-        auto range = xlims[1] - xlims[0]; // x lims should be the same as y
-        realScale = (range + pd_range) / SimManager->getResolution();
-    }
+//    auto pd = SimManager->simulationCell()->paddingX();
+//    auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
+//
+//    if (mode == 0) { // CTEM
+//        auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
+//        auto xlims = sa.getCorrectedLimitsX();
+//        auto range = xlims[1] - xlims[0];
+//        realScale = (range + pd_range) / SimManager->resolution();
+//    }
+//    else if (mode == 1) { // STEM
+//        auto stema = StemFrame->stemArea();
+//        auto range = stema.getPadding();
+//        realScale = (range + pd_range) / SimManager->resolution();
+//
+//        ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
+//        ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
+//    }
+//    else if (mode == 2) { // CBED
+//        auto pos = CbedFrame->getCbedPos();
+//        auto sa = pos.getSimArea();
+//        auto xlims = sa.getCorrectedLimitsX();
+//        auto range = xlims[1] - xlims[0]; // x lims should be the same as y
+//        realScale = (range + pd_range) / SimManager->resolution();
+//    }
 
     if (mode == 1) {
         ui->lblStemXHeader->setVisible(true);
@@ -155,10 +155,11 @@ void AreaLayoutFrame::areasChanged() {
         ui->lblStemScaleY->setVisible(false);
     }
 
-    double freqScale = 1.0 / (realScale  * SimManager->getResolution());
-    double freqMax = 0.5 * freqScale * SimManager->getResolution() * SimManager->getInverseLimitFactor();
-    double angleScale = freqScale * SimManager->getWavelength() * 1000.0;
-    double angleMax = freqMax * SimManager->getWavelength() * 1000.0;
+    double realScale = SimManager->realScale();
+    double freqScale = SimManager->inverseScale();
+    double freqMax = SimManager->inverseMax();
+    double angleScale = SimManager->inverseScaleAngle();
+    double angleMax = SimManager->inverseMaxAngle();
 
     ui->lblRealScale->setText(Utils_Qt::numToQString(realScale) + " Å");
     ui->lblFreqScale->setText(Utils_Qt::numToQString(freqScale) + " Å<sup>-1</sup>");
@@ -170,10 +171,10 @@ void AreaLayoutFrame::areasChanged() {
 }
 
 void AreaLayoutFrame::updateSlices() {
-    double dz = SimManager->getSliceThickness();
-    double oz = SimManager->getSliceOffset();
-    unsigned int so = SimManager->getIntermediateSlices();
-    bool iso = SimManager->getIntermediateSlicesEnabled();
+    double dz = SimManager->simulationCell()->sliceThickness();
+    double oz = SimManager->simulationCell()->sliceOffset();
+    unsigned int so = SimManager->intermediateSliceStep();
+    bool iso = SimManager->intermediateSlicesEnabled();
 
     connect(ui->edtSliceThickness, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
     connect(ui->edtSliceOffset, &QLineEdit::textChanged, this, &AreaLayoutFrame::slicesChanged);
@@ -256,8 +257,8 @@ bool AreaLayoutFrame::apply_pressed() {
         return valid;
     }
 
-    SimManager->setSliceThickness(dz);
-    SimManager->setSliceOffset(oz);
+    SimManager->simulationCell()->setSliceThickness(dz);
+    SimManager->simulationCell()->setSliceOffset(oz);
     SimManager->setIntermediateSlices(so);
     SimManager->setIntermediateSlicesEnabled(iso);
 
@@ -268,19 +269,19 @@ bool AreaLayoutFrame::apply_pressed() {
 
     if (mode == 0) { // CTEM
         auto sa = CtemFrame->getSimArea();
-        *SimManager->getSimulationArea() = sa;
+        *SimManager->simulationArea() = sa;
         // update the frame so it has the correct reset point
         CtemFrame->updateCurrentArea(sa);
     }
     else if (mode == 1) { // STEM
-        auto stema = StemFrame->getStemArea();
-        *SimManager->getStemArea() = stema;
+        auto stema = StemFrame->stemArea();
+        *SimManager->stemArea() = stema;
         StemFrame->updateCurrentArea(stema);
         emit updateMainStem();
     }
     else if (mode == 2) { // CBED
         auto pos = CbedFrame->getCbedPos();
-        *SimManager->getCBedPosition() = pos;
+        *SimManager->cbedPosition() = pos;
         CbedFrame->updateCurrentArea(pos);
         emit updateMainCbed();
     }
@@ -329,11 +330,11 @@ void AreaLayoutFrame::checkEditZero(QString txt) {
 }
 
 void AreaLayoutFrame::setStructLimits() {
-    if (!SimManager->getStructure())
+    if (!SimManager->simulationCell()->crystalStructure())
         return;
 
-    auto lims_x = SimManager->getStructure()->getLimitsX();
-    auto lims_y = SimManager->getStructure()->getLimitsY();
+    auto lims_x = SimManager->simulationCell()->crystalStructure()->getLimitsX();
+    auto lims_y = SimManager->simulationCell()->crystalStructure()->getLimitsY();
 
     ui->lblStructStartX->setText(Utils_Qt::numToQString(lims_x[0]) + " Å");
     ui->lblStructFinishX->setText(Utils_Qt::numToQString(lims_x[1]) + " Å");
@@ -342,12 +343,12 @@ void AreaLayoutFrame::setStructLimits() {
 }
 
 void AreaLayoutFrame::slicesChanged() {
-    if (!SimManager->getStructure())
+    if (!SimManager->simulationCell()->crystalStructure())
         return;
 
     double dz = ui->edtSliceThickness->text().toDouble();
 
-    auto z_lims = SimManager->getPaddedStructLimitsZ();
+    auto z_lims = SimManager->paddedSimLimitsZ();
     double z_range = z_lims[1] - z_lims[0];
 
     auto n_slices = (unsigned int) std::ceil(z_range / dz);
@@ -360,15 +361,15 @@ void AreaLayoutFrame::slicesChanged() {
 void AreaLayoutFrame::plotStructure() {
 
     // test if we have a structure to plot...
-    if (!SimManager->getStructure() || !pltStructure)
+    if (!SimManager->simulationCell()->crystalStructure() || !pltStructure)
         return;
 
     // get ranges (needed to define out 'cube'
-    auto xr = SimManager->getStructure()->getLimitsX();
-    auto yr = SimManager->getStructure()->getLimitsY();
-    auto zr = SimManager->getStructure()->getLimitsZ();
+    auto xr = SimManager->simulationCell()->crystalStructure()->getLimitsX();
+    auto yr = SimManager->simulationCell()->crystalStructure()->getLimitsY();
+    auto zr = SimManager->simulationCell()->crystalStructure()->getLimitsZ();
 
-    auto atms = SimManager->getStructure()->getAtoms();
+    auto atms = SimManager->simulationCell()->crystalStructure()->getAtoms();
 
     std::vector<Eigen::Vector3f> pos(atms.size());
     std::vector<Eigen::Vector3f> col(atms.size());
@@ -393,7 +394,7 @@ void AreaLayoutFrame::showEvent(QShowEvent *event) {
 
     // test if we have a structure to plot...
     // This is mostly for the fitView method (the others protect themselves)
-    if (!SimManager->getStructure())
+    if (!SimManager->simulationCell()->crystalStructure())
         return;
 
     plotStructure();
@@ -446,7 +447,7 @@ void AreaLayoutFrame::updatePlotRects() {
     // Add in the rectangles showing the simulation areas and slices
 
     // test if we have a structure to plot...
-    if (!SimManager->getStructure() || !pltStructure)
+    if (!SimManager->simulationCell()->crystalStructure() || !pltStructure)
         return;
 
     // clear the old stuff first
@@ -455,17 +456,17 @@ void AreaLayoutFrame::updatePlotRects() {
 
     _plot_rects.clear();
 
-    auto test = SimManager->getSimulationArea();
+    auto test = SimManager->simulationArea();
 
-    auto szr = SimManager->getPaddedStructLimitsZ();
-    auto ixr = SimManager->getRawFullLimitsX();
-    auto iyr = SimManager->getRawFullLimitsY();
-    auto sxr = SimManager->getPaddedFullLimitsX();
-    auto syr = SimManager->getPaddedFullLimitsY();
+    auto szr = SimManager->paddedSimLimitsZ();
+    auto ixr = SimManager->rawFullLimitsX();
+    auto iyr = SimManager->rawFullLimitsY();
+    auto sxr = SimManager->paddedFullLimitsX();
+    auto syr = SimManager->paddedFullLimitsY();
 
     // get these now so we know how many we will have
-    auto dz = SimManager->getSliceThickness();
-    auto nz = SimManager->getNumberofSlices();
+    auto dz = SimManager->simulationCell()->sliceThickness();
+    auto nz = SimManager->simulationCell()->sliceCount();
 
     unsigned int rect_count = 4 * nz + 4;
 

@@ -40,13 +40,13 @@ bool PlasmonScattering::generateScatteringDepths(unsigned int job_id, double thi
 
     std::vector<double> ds;
 
-    if (simulate_combined_plasmons) {
+    if (plasmon_sim_type == PlasmonType::Full) {
         ds = getDistancesforCombined(thickness);
 
         if (ds.empty())
             return false;
     }
-    else if (simulate_individual_plasmon) {
+    else if (plasmon_sim_type == PlasmonType::Individual) {
         ds = getDistancesForIndividual(thickness);
 
         if (ds.size() != individual_plasmon)

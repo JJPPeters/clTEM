@@ -10,53 +10,53 @@ namespace Utils {
         if (Devices.empty())
             errorList.emplace_back("No OpenCL devices selected.");
 
-        if (!Manager->getStructure())
+        if (!Manager->simulationCell()->crystalStructure())
             errorList.emplace_back("No structure loaded.");
-        else if (Manager->getStructureParameter().Max_Atomic_Number < Manager->getStructure()->getMaxAtomicNumber())
+        else if (Manager->structureParameters().Max_Atomic_Number < Manager->simulationCell()->crystalStructure()->getMaxAtomicNumber())
             errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " +
-                                   std::to_string(Manager->getStructureParameter().Max_Atomic_Number));
+                                   std::to_string(Manager->structureParameters().Max_Atomic_Number));
 
-        if (!Manager->haveResolution())
+        if (!Manager->resolutionValid())
             errorList.emplace_back("No valid simulation resolution set.");
 
-        auto mp = Manager->getMicroscopeParams();
+        auto mp = Manager->microscopeParams();
         if (mp->Voltage <= 0)
             errorList.emplace_back("Voltage must be a non-zero positive number.");
         if (mp->Aperture <= 0)
             errorList.emplace_back("Aperture must be a non-zero positive number.");
 
-        if (Manager->getStructureParameterData().empty())
+        if (Manager->structureParametersData().empty())
             errorList.emplace_back("Potentials have not been loaded correctly.");
 
-        if (Manager->isFull3d() && Manager->getFull3dInts() < 1)
+        if (Manager->full3dEnabled() && Manager->full3dIntegrals() < 1)
             errorList.emplace_back("Full 3d integrals must be non-zero positive number.");
 
-        if (Manager->getMode() == SimulationMode::STEM && Manager->getParallelPixels() < 1)
+        if (Manager->mode() == SimulationMode::STEM && Manager->parallelPixels() < 1)
             errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
         // check TDS entries
-        if (Manager->getInelasticScattering()->getInelasticEnabled() && Manager->getInelasticScattering()->getInelasticIterations() < 1)
+        if (Manager->inelasticScattering()->enabled() && Manager->inelasticScattering()->iterations() < 1)
             errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
 
         // plasmon settings
-        if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
-            auto plasmon = Manager->getInelasticScattering()->getPlasmons();
-            if (plasmon->getMeanFreePath() <= 0.0)
+        if (Manager->inelasticScattering()->plasmons()->enabled()) {
+            auto plasmon = Manager->inelasticScattering()->plasmons();
+            if (plasmon->meanFreePath() <= 0.0)
                 errorList.emplace_back("Plasmon mean free path must be non-zero positive number.");
 
-            if (plasmon->getCharacteristicAngle() <= 0.0)
+            if (plasmon->characteristicAngle() <= 0.0)
                 errorList.emplace_back("Plasmon characteristic angle must be non-zero positive number.");
 
         }
 
         // Check STEM detectors exist
-        if (Manager->getMode() == SimulationMode::STEM)
-            if (Manager->getDetectors().empty())
+        if (Manager->mode() == SimulationMode::STEM)
+            if (Manager->stemDetectors().empty())
                 errorList.emplace_back("STEM simulation requires at least 1 detector.");
 
         // dose sim for TEM checks
-        if (Manager->getMode() == SimulationMode::CTEM)
-            if (Manager->getCcdDose() <= 0.0)
+        if (Manager->mode() == SimulationMode::CTEM)
+            if (Manager->ccdDose() <= 0.0)
                 errorList.emplace_back("CCD dose cannot be 0.");
 
         // TODO: warnings option i.e. things that wont cause a crash, but will cause a silly output...)

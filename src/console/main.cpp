@@ -170,7 +170,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
 void imageReturned(SimulationManager sm)
 {
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
-    settings["filename"] = sm.getStructure()->getFileName();
+    settings["filename"] = sm.structure()->getFileName();
 
 #ifdef _WIN32
     std::wstring w_sep(&fs::path::preferred_separator);
@@ -646,15 +646,15 @@ int main(int argc, char *argv[])
     }
 
     // sort plasmon stuff
-    if (man_ptr->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
+    if (man_ptr->inelasticScattering()->plasmons()->enabled()) {
         int parts = man_ptr->getTotalParts();
-        man_ptr->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
+        man_ptr->inelasticScattering()->plasmons()->initDepthVectors(parts);
         auto z_lims = man_ptr->getStructLimitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
         for (int i = 0; i < parts; ++i) {
-            valid = man_ptr->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+            valid = man_ptr->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
 
         if (!valid) {
             std::cout << "Could not generate valid plasmon configuration." << std::endl;
@@ -667,7 +667,7 @@ int main(int argc, char *argv[])
     // open the kernels
     std::string kernel_path = exe_path_string + sep + "kernels";
 
-    if (man_ptr->getDoDoublePrecision()) {
+    if (man_ptr->doublePrecisionEnabled()) {
         Kernels::atom_sort_d = Utils::resourceToChar(kernel_path, "atom_sort_d.cl");
         Kernels::band_limit_d = Utils::resourceToChar(kernel_path, "band_limit_d.cl");
         Kernels::band_pass_d = Utils::resourceToChar(kernel_path, "band_pass_d.cl");
@@ -722,7 +722,7 @@ int main(int argc, char *argv[])
 
     man_list.emplace_back(man_ptr);
 
-    auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list, man_ptr->getDoDoublePrecision());
+    auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list, man_ptr->doublePrecisionEnabled());
 
     simRunner->runSimulations();
 

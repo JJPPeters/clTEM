@@ -39,10 +39,10 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    unsigned int resolution = job->simManager->getResolution();
-    double wavelength = job->simManager->getWavelength();
-    double pixelscale = job->simManager->getRealScale();
-    auto mParams = job->simManager->getMicroscopeParams();
+    unsigned int resolution = job->simManager->resolution();
+    double pixelscale = job->simManager->realScale();
+    auto mParams = job->simManager->microscopeParams();
+    double wavelength = mParams->Wavelength();
 
     clWorkGroup WorkSize(resolution, resolution, 1);
 
@@ -53,8 +53,8 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     // convert from angstroms to pixel position (this bit seemed to make results 'more' sensible)
     auto current_pixel = job->getPixel();
 
-    double start_x = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
-    double start_y = job->simManager->getPaddedSimLimitsY(current_pixel)[0];
+    double start_x = job->simManager->paddedSimLimitsX(current_pixel)[0];
+    double start_y = job->simManager->paddedSimLimitsY(current_pixel)[0];
 
     // account for the simulation area start point and convert to pixels
     posx = (posx - start_x) / pixelscale;
@@ -120,15 +120,15 @@ void SimulationCbed<GPU_Type>::simulate() {
     typedef std::map<std::string, Image<double>> return_map;
     return_map Images;
 
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
-    auto pos = job->simManager->getCBedPosition();
-    unsigned int resolution = job->simManager->getResolution();
+    unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
+    auto pos = job->simManager->cbedPosition();
+    unsigned int resolution = job->simManager->resolution();
 
     initialiseProbeWave(pos->getXPos(), pos->getYPos());
 
     // TODO: set this properly
     // This will be a pre-calculated variable to set how often we pull our our slice data
-    unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
+    unsigned int slice_step = job->simManager->intermediateSliceStep();
     unsigned int output_count = 1;
     if (slice_step > 0)
         output_count = std::ceil((float) numberOfSlices / slice_step);
@@ -138,15 +138,15 @@ void SimulationCbed<GPU_Type>::simulate() {
     //
     // plasmon setup
     //
-    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
-    bool do_plasmons = plasmon->getPlasmonEnabled();
-    double slice_dz = job->simManager->getSliceThickness();
-    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->inelasticScattering()->plasmons();
+    bool do_plasmons = plasmon->enabled();
+    double slice_dz = job->simManager->simulationCell()->sliceThickness();
+    int padding_slices = (int) job->simManager->simulationCell()->preSliceCount();
     unsigned int scattering_count = 0;
     double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
 
     // this gives us our current wavevector, but also our axis for azimuth rotation
-    auto mp = job->simManager->getMicroscopeParams();
+    auto mp = job->simManager->microscopeParams();
     double k_v = mp->Wavenumber();
     auto orig_k = mp->Wavevector();
     Eigen::Vector3d k_vec(0.0, 0.0, k_v);
@@ -177,7 +177,7 @@ void SimulationCbed<GPU_Type>::simulate() {
 
             // update parameters for next scattering event!
             scattering_count++;
-            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+            next_scattering_depth = job->simManager->inelasticScattering()->plasmons()->getGeneratedDepth(job->id, scattering_count);
         }
 
         if (pool.isStopped())

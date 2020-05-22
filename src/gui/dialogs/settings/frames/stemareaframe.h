@@ -22,7 +22,7 @@ public:
 
     ~StemAreaFrame();
 
-    StemArea getStemArea();
+    StemArea stemArea();
 
     void updateCurrentArea(StemArea new_area) {Area = new_area;}
 

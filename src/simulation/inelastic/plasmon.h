@@ -14,6 +14,10 @@
 #define THICKNESS_IT_LIMIT 1e10
 #define INDIVIDUAL_IT_LIMIT 1e10
 
+enum class PlasmonType {
+    Full,
+    Individual};
+
 class PlasmonScattering {
 
 private:
@@ -28,12 +32,9 @@ private:
     // allows us to store other parameters even when we don't want to activate them
     bool plasmons_enabled;
 
-    // TODO: could combine these into one enum for the type?
-    // data for simulating combined plasmon image
-    bool simulate_combined_plasmons;
+    // are we simulating an individual plasmon or all of them
+    PlasmonType plasmon_sim_type;
 
-    // data for selected plasmons
-    bool simulate_individual_plasmon;
     unsigned int individual_plasmon;
 
     std::mt19937_64 rng;
@@ -50,43 +51,36 @@ public:
         characteristic_angle = 1;
         critical_angle = 0.1;
 
-        simulate_combined_plasmons = true;
-
-        simulate_individual_plasmon = false;
+        plasmon_sim_type = PlasmonType::Full;
         individual_plasmon = 1;
 
         dist = std::uniform_real_distribution<>(0, 1);
         rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
     }
 
+    bool enabled() {return plasmons_enabled;}
     void setEnabled(bool enabled) {plasmons_enabled = enabled;}
-    bool getPlasmonEnabled() {return plasmons_enabled;}
-//    bool getPlasmonEnabled() {return simulate_combined_plasmons || (simulate_individual_plasmon && individual_plasmon > 0);}
 
+    double meanFreePath(){return mean_free_path;}
     void setMeanFreePath(double mfp){mean_free_path = mfp;}
-    void setCharacteristicAngle(double angle) {characteristic_angle = angle;}
-    void setCriticalAngle(double angle) {critical_angle = angle;}
-    void setIndividualPlasmon(unsigned int n) {individual_plasmon = n;}
-    void setCombinedEnabled(bool do_sim) {
-        simulate_combined_plasmons = do_sim;
-        simulate_individual_plasmon = !do_sim;
-    }
-    void setIndividualEnabled(bool do_sim) {
-        simulate_individual_plasmon = do_sim;
-        simulate_combined_plasmons = !do_sim;
-    }
 
-    double getMeanFreePath(){return mean_free_path;}
-    double getCharacteristicAngle() {return characteristic_angle;}
-    double getCriticalAngle() {return critical_angle;}
-    unsigned int getIndividualPlasmon() {return individual_plasmon;}
-    bool getCombinedEnabled() {return simulate_combined_plasmons;}
-    bool getIndividualEnabled() {return simulate_individual_plasmon;}
+    double characteristicAngle() {return characteristic_angle;}
+    void setCharacteristicAngle(double angle) {characteristic_angle = angle;}
+
+    double criticalAngle() {return critical_angle;}
+    void setCriticalAngle(double angle) {critical_angle = angle;}
+
+    unsigned int individualPlasmon() {return individual_plasmon;}
+    void setIndividualPlasmon(unsigned int n) {individual_plasmon = n;}
+
+    PlasmonType simType() {return plasmon_sim_type;}
+    void setSimType(PlasmonType sim_type) {
+        plasmon_sim_type = sim_type;
+    }
 
     double getScatteringDistance();
     double getScatteringAzimuth();
     double getScatteringPolar();
-
 
     void initDepthVectors(unsigned int job_count);
     bool generateScatteringDepths(unsigned int job_id, double thickness);

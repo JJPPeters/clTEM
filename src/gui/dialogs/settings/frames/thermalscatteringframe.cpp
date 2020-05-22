@@ -11,7 +11,7 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
 {
     ui->setupUi(this);
 
-    Phonons = simManager->getInelasticScattering()->getPhonons();
+    Phonons = simManager->inelasticScattering()->phonons();
     
     // fiddle with the table
     ui->tblDisplacements->setColumnWidth(0, 80);

@@ -13,33 +13,37 @@ class InelasticScattering {
 private:
     unsigned int inelastic_iterations;
 
-    std::shared_ptr<PlasmonScattering> plasmons;
-    std::shared_ptr<PhononScattering> phonons;
+    std::shared_ptr<PlasmonScattering> plasmon_scattering;
+    std::shared_ptr<PhononScattering> phonon_scattering;
 
 public:
 
     InelasticScattering() {
         inelastic_iterations = 1;
-        plasmons = std::make_shared<PlasmonScattering>();
-        phonons = std::make_shared<PhononScattering>();
+        plasmon_scattering = std::make_shared<PlasmonScattering>();
+        phonon_scattering = std::make_shared<PhononScattering>();
     }
 
-    std::shared_ptr<PlasmonScattering> getPlasmons() {return plasmons;}
-    std::shared_ptr<PhononScattering> getPhonons() {return phonons;}
+    std::shared_ptr<PlasmonScattering> plasmons() {return plasmon_scattering;}
+    std::shared_ptr<PhononScattering> phonons() {return phonon_scattering;}
 
-//    void setPhononsEnabled(bool enabled) {phonons->frozen_phonon_enabled = enabled;}
-    void setInelasticIterations(unsigned int it) {inelastic_iterations = it;}
+    bool enabled() {
+        return phonon_scattering->getFrozenPhononEnabled() || plasmon_scattering->enabled();
+    }
 
-//    bool getPhononEnabled() { return phonons->getFrozenPhononEnabled(); }
-//    bool getPlasmonEnabled() { return plasmons->getPlasmonEnabled(); }
-    bool getInelasticEnabled(){ return phonons->getFrozenPhononEnabled() || plasmons->getPlasmonEnabled(); }
-
-    unsigned int getStoredInelasticIterations() { return inelastic_iterations;}
-    unsigned int getInelasticIterations() {
-        if (getInelasticEnabled())
+    unsigned int iterations() {
+        if (enabled())
             return inelastic_iterations;
         else
             return 1;
+    }
+
+    [[nodiscard]] unsigned int storedIterations() const {
+        return inelastic_iterations;
+    }
+
+    void setIterations(unsigned int it) {
+        inelastic_iterations = it;
     }
 
 };

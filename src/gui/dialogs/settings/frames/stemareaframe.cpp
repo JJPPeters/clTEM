@@ -162,7 +162,7 @@ void StemAreaFrame::setInvalidYWarning(bool valid) {
 bool StemAreaFrame::checkValidXValues()  { return ui->edtRangeX->text().toDouble() > 0.0f; }
 bool StemAreaFrame::checkValidYValues()  { return ui->edtRangeY->text().toDouble() > 0.0f; }
 
-StemArea StemAreaFrame::getStemArea() {
+StemArea StemAreaFrame::stemArea() {
     if (!checkValidXValues() || !checkValidYValues())
         return Area;
 

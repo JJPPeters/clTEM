@@ -11,7 +11,7 @@ void SimulationStem<T>::initialiseBuffers() {
     SimulationCbed<T>::initialiseBuffers();
 
     auto sm = job->simManager;
-    unsigned int rs = sm->getResolution();
+    unsigned int rs = sm->resolution();
 
     if (rs*rs / 256 != clReductionBuffer.GetSize()) {
         clReductionBuffer = clMemory<T, Manual>(ctx, rs*rs / 256); // STEM only
@@ -80,8 +80,8 @@ template <class T>
 double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double d_kx, double d_ky)
 {
     CLOG(DEBUG, "sim") << "Getting STEM pixel";
-    unsigned int resolution = job->simManager->getResolution();
-    double angle_scale = job->simManager->getInverseScaleAngle();
+    unsigned int resolution = job->simManager->resolution();
+    double angle_scale = job->simManager->inverseScaleAngle();
 
     clWorkGroup WorkSize(resolution, resolution, 1);
 
@@ -155,8 +155,8 @@ void SimulationStem<GPU_Type>::simulate() {
     return_map Images;
 
     // now need to work out where our probes need to be made
-    auto stemPixels = job->simManager->getStemArea();
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    auto stemPixels = job->simManager->stemArea();
+    unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
 
     double start_x = stemPixels->getRawLimitsX()[0];
     double start_y = stemPixels->getRawLimitsY()[0];
@@ -166,16 +166,16 @@ void SimulationStem<GPU_Type>::simulate() {
     double step_x = stemPixels->getScaleX();
     double step_y = stemPixels->getScaleY();
 
-    unsigned int px_x = job->simManager->getStemArea()->getPixelsX();
-    unsigned int px_y = job->simManager->getStemArea()->getPixelsY();
+    unsigned int px_x = job->simManager->stemArea()->getPixelsX();
+    unsigned int px_y = job->simManager->stemArea()->getPixelsY();
 
-    unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
+    unsigned int slice_step = job->simManager->intermediateSliceStep();
     unsigned int output_count = 1;
     if (slice_step > 0)
         output_count = std::ceil((float) numberOfSlices / slice_step);
 
     // initialise our images
-    for (const auto &det : job->simManager->getDetectors()) {
+    for (const auto &det : job->simManager->stemDetectors()) {
         Images[det.name] = Image<double>(px_x, px_y, output_count);
     }
 
@@ -195,15 +195,15 @@ void SimulationStem<GPU_Type>::simulate() {
     //
     // plasmon setup
     //
-    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
-    bool do_plasmons = plasmon->getPlasmonEnabled();
-    double slice_dz = job->simManager->getSliceThickness();
-    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->inelasticScattering()->plasmons();
+    bool do_plasmons = plasmon->enabled();
+    double slice_dz = job->simManager->simulationCell()->sliceThickness();
+    int padding_slices = (int) job->simManager->simulationCell()->preSliceCount();
     unsigned int scattering_count = 0;
     double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
 
     // this gives us our current wavevector, but also our axis for azimuth rotation
-    auto mp = job->simManager->getMicroscopeParams();
+    auto mp = job->simManager->microscopeParams();
     double k_v = mp->Wavenumber();
     auto orig_k = mp->Wavevector();
     Eigen::Vector3d k_vec(0.0, 0.0, k_v);
@@ -233,14 +233,14 @@ void SimulationStem<GPU_Type>::simulate() {
 
             // update parameters for next scattering event!
             scattering_count++;
-            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+            next_scattering_depth = job->simManager->inelasticScattering()->plasmons()->getGeneratedDepth(job->id, scattering_count);
         }
 
         if (pool.isStopped())
             return;
 
         if (slice_step > 0 && (i+1) % slice_step == 0) {
-            for (const auto &det : job->simManager->getDetectors()) {
+            for (const auto &det : job->simManager->stemDetectors()) {
                 std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 
                 for (int j = 0; j < job->pixels.size(); ++j) {
@@ -262,7 +262,7 @@ void SimulationStem<GPU_Type>::simulate() {
 
 
     if (output_counter < output_count) {
-        for (const auto &det : job->simManager->getDetectors()) {
+        for (const auto &det : job->simManager->stemDetectors()) {
             std::vector<double> im(stemPixels->getNumPixels(), 0.0);
 
             for (int i = 0; i < job->pixels.size(); ++i) {

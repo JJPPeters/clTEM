@@ -108,9 +108,9 @@ double TemFrame::getDose() {
 }
 
 void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
-    double dse = sm->getCcdDose();
-    auto nm = sm->getCcdName();
-    int bn = sm->getCcdBinning();
+    double dse = sm->ccdDose();
+    auto nm = sm->ccdName();
+    int bn = sm->ccdBinning();
 
     ui->edtDose->setText( Utils_Qt::numToQString(dse) );
 

@@ -230,22 +230,22 @@ void MainWindow::resolution_changed(int resolution)
 
 void MainWindow::updateScales()
 {
-    if (!Manager->haveStructure() || !Manager->haveResolution())
+    if (!Manager->simulationCell()->crystalStructure() || !Manager->resolutionValid())
         return;
 
     try {
-        ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(),
-                                       Manager->getInverseMaxAngle());
+        ui->tSim->updateResolutionInfo(Manager->realScale(), Manager->inverseScale(),
+                                       Manager->inverseMaxAngle());
     } catch (...) {}
-    ui->tSim->updateStructureInfo(Manager->getSimRanges());
+    ui->tSim->updateStructureInfo(Manager->simRanges());
 }
 
 void MainWindow::updateRanges()
 {
-    if (!Manager->haveStructure())
+    if (!Manager->simulationCell()->crystalStructure())
         return;
 
-    ui->tSim->updateStructureInfo(Manager->getSimRanges());;
+    ui->tSim->updateStructureInfo(Manager->simRanges());;
 }
 
 void MainWindow::setDetectors()
@@ -253,7 +253,7 @@ void MainWindow::setDetectors()
     //Manager->setDetectors(d);
 
     // this adds any detectors that are new
-    for (auto d : Manager->getDetectors())
+    for (auto d : Manager->stemDetectors())
     {
         bool exists = false;
         for (int i = 0; i < ui->twReal->count() && !exists; ++i)
@@ -280,7 +280,7 @@ void MainWindow::setDetectors()
         if (t->getType() == TabType::STEM)
         {
             bool exists = false;
-            for (auto d : Manager->getDetectors())
+            for (auto d : Manager->stemDetectors())
             {
                 if (ui->twReal->tabText(i).toStdString() == d.name)
                 {
@@ -358,15 +358,15 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // TODO: move to the manager class (then we can easily call it from the command line too)
     // TODO: operate on an exception basis...
     // Check our plasmon configuration is viable
-    if (Manager->getInelasticScattering()->getPlasmons()->getPlasmonEnabled()) {
-        int parts = Manager->getTotalParts();
-        Manager->getInelasticScattering()->getPlasmons()->initDepthVectors(parts);
-        auto z_lims = Manager->getStructLimitsZ();
+    if (Manager->inelasticScattering()->plasmons()->enabled()) {
+        int parts = Manager->totalParts();
+        Manager->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        auto z_lims = Manager->paddedSimLimitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
         for (int i = 0; i < parts; ++i) {
-            valid = Manager->getInelasticScattering()->getPlasmons()->generateScatteringDepths(i, thk);
+            valid = Manager->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
 
             if (!valid) {
                 QMessageBox msgBox(this);
@@ -395,7 +395,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
-    bool use_double_precision = Manager->getDoDoublePrecision();
+    bool use_double_precision = Manager->doublePrecisionEnabled();
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
@@ -421,14 +421,14 @@ void MainWindow::totalProgressChanged(double prog)
 void MainWindow::imagesChanged(SimulationManager sm)
 {
 
-    auto ims = sm.getImages();
+    auto ims = sm.images();
 
     if (ims.empty()) {
         simulationFailed();
     }
 
     nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
-    original_settings["filename"] = sm.getStructure()->getFileName();
+    original_settings["filename"] = sm.simulationCell()->crystalStructure()->getFileName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -461,9 +461,9 @@ void MainWindow::imagesChanged(SimulationManager sm)
                         comp_im.getSliceRef(jj) = comp_data;
                     }
 
-                    double lx = sm.getPaddedSimLimitsX(0)[0];
-                    double ly = sm.getPaddedSimLimitsY(0)[0];
-                    double sc = sm.getRealScale();
+                    double lx = sm.paddedSimLimitsX(0)[0];
+                    double ly = sm.paddedSimLimitsY(0)[0];
+                    double sc = sm.realScale();
                     tab->setPlotWithComplexData(comp_im, "Å", sc, sc, lx, ly, settings);
                 }
             }
@@ -476,9 +476,9 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
                     auto settings = original_settings;
-                    double lx = sm.getPaddedSimLimitsX(0)[0];
-                    double ly = sm.getPaddedSimLimitsY(0)[0];
-                    double sc = sm.getRealScale();
+                    double lx = sm.paddedSimLimitsX(0)[0];
+                    double ly = sm.paddedSimLimitsY(0)[0];
+                    double sc = sm.realScale();
                     tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
                 }
             }
@@ -496,11 +496,11 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     settings["microscope"].erase("delta");
                     double sc;
                     QString unit;
-                    if (sm.getMode() == SimulationMode::CBED) {
-                        sc = sm.getInverseScaleAngle();
+                    if (sm.mode() == SimulationMode::CBED) {
+                        sc = sm.inverseScaleAngle();
                         unit = "mrad";
                     } else {
-                        sc = sm.getInverseScale();
+                        sc = sm.inverseScale();
                         unit = "A⁻¹";
                     }
                     tab->setPlotWithData(im, unit, sc, sc, 0.0, 0.0, settings, IntensityScale::Log, ZeroPosition::Centre);
@@ -517,16 +517,16 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 if (tab->getTabName() == name) {
                     // add the specific detector info here!
                     auto settings = original_settings;
-                    for (auto d : sm.getDetectors())
+                    for (auto d : sm.stemDetectors())
                         if (d.name == name)
                             settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
 
-                    double lx = sm.getStemArea()->getRawLimitsX()[0];
-                    double ly = sm.getStemArea()->getRawLimitsY()[0];
-                    double scx = sm.getStemArea()->getScaleX();
-                    double scy = sm.getStemArea()->getScaleY();
+                    double lx = sm.stemArea()->getRawLimitsX()[0];
+                    double ly = sm.stemArea()->getRawLimitsY()[0];
+                    double scx = sm.stemArea()->getScaleX();
+                    double scy = sm.stemArea()->getScaleY();
 
                     tab->setPlotWithData(im, "Å", scx, scy, lx, ly, settings);
                 }
@@ -878,7 +878,7 @@ void MainWindow::updateManagerFromGui() {
 
     // load variables for potential TEM stuff
     Manager->setCcdBinning(ui->tTem->getBinning());
-    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
+    Manager->setCtemImageEnabled(ui->tTem->getSimImage());
     Manager->setCcdName(ui->tTem->getCcd());
     Manager->setCcdDose(ui->tTem->getDose());
 }
@@ -902,12 +902,12 @@ void MainWindow::updateGuiFromManager() {
     // update the detector tabs
     setDetectors();
 
-    ui->tTem->setSimImageCheck( Manager->getSimulateCtemImage() );
+    ui->tTem->setSimImageCheck( Manager->ctemImageEnabled() );
 
-    ui->twMode->setCurrentIndex( (int) Manager->getMode()-1 ); // -1 due to the 0 element being a null value
+    ui->twMode->setCurrentIndex( (int) Manager->mode()-1 ); // -1 due to the 0 element being a null value
 
     // set resolution last, this should update the structure area stuff if it needs to be
-    ui->tSim->setResolution( Manager->getResolution() );
+    ui->tSim->setResolution( Manager->resolution() );
 }
 
 void MainWindow::on_actionSet_area_triggered()
@@ -931,7 +931,7 @@ void MainWindow::on_actionSet_area_triggered()
 void MainWindow::on_actionAberrations_triggered()
 {
     ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
-    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->getMicroscopeParams());
+    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
     connect(myDialog, &AberrationsDialog::appliedSignal, ui->tAberr, &AberrationFrame::updateTextBoxes);
     myDialog->exec();
 }
@@ -949,14 +949,14 @@ void MainWindow::on_actionPlasmons_triggered() {
 }
 
 void MainWindow::updateVoltageMrad(double voltage) {
-    if (!Manager->haveStructure() || !Manager->haveResolution())
+    if (!Manager->simulationCell()->crystalStructure() || !Manager->resolutionValid())
         return;
 
     // update the voltage in teh manager
-    Manager->getMicroscopeParams()->Voltage = voltage;
+    Manager->microscopeParams()->Voltage = voltage;
 
     try {
-    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
+    ui->tSim->updateResolutionInfo(Manager->realScale(), Manager->inverseScale(), Manager->inverseMaxAngle());
     } catch (...) {}
 }
 

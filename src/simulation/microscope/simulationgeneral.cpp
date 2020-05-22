@@ -10,12 +10,12 @@ void SimulationGeneral<T>::initialiseBuffers() {
     auto sm = job->simManager;
 
     // this needs to change if the parameter sizes have changed
-    size_t p_sz = job->simManager->getStructureParameterData().size();
+    size_t p_sz = job->simManager->structureParametersData().size();
     if (size_t ps = p_sz; ps != ClParameterisation.GetSize())
         ClParameterisation = clMemory<T, Manual>(ctx, ps);
 
     // these need to change if the atom_count changes
-    if (size_t as = sm->getStructure()->getAtoms().size(); as != ClAtomA.GetSize()) {
+    if (size_t as = sm->simulationCell()->crystalStructure()->getAtoms().size(); as != ClAtomA.GetSize()) {
         ClAtomA = clMemory<int, Manual>(ctx, as);
         ClAtomX = clMemory<T, Manual>(ctx, as);
         ClAtomY = clMemory<T, Manual>(ctx, as);
@@ -28,7 +28,7 @@ void SimulationGeneral<T>::initialiseBuffers() {
 //    ClBlockStartPositions is not here as it is sorted every time the atoms are sorted (depends on block size etc..
 
     // change when the resolution does
-    unsigned int rs = sm->getResolution();
+    unsigned int rs = sm->resolution();
     if (rs != clXFrequencies.GetSize()) {
         clXFrequencies = clMemory<T, Manual>(ctx, rs);
         clYFrequencies = clMemory<T, Manual>(ctx, rs);
@@ -41,17 +41,17 @@ void SimulationGeneral<T>::initialiseBuffers() {
         clWaveFunctionReal.clear();
         clWaveFunctionRecip.clear();
 
-        for (int i = 0; i < sm->getParallelPixels(); ++i) {
+        for (int i = 0; i < sm->parallelPixels(); ++i) {
             clWaveFunctionReal.emplace_back(ctx, rs * rs);
             clWaveFunctionRecip.emplace_back(ctx, rs * rs);
         }
     }
 
-    if (sm->getParallelPixels() < clWaveFunctionReal.size()) {
-        clWaveFunctionReal.resize(sm->getParallelPixels());
-        clWaveFunctionRecip.resize(sm->getParallelPixels());
-    } else if (sm->getParallelPixels() > clWaveFunctionReal.size()) {
-        for (int i = 0; i < sm->getParallelPixels() - clWaveFunctionReal.size(); ++i) {
+    if (sm->parallelPixels() < clWaveFunctionReal.size()) {
+        clWaveFunctionReal.resize(sm->parallelPixels());
+        clWaveFunctionRecip.resize(sm->parallelPixels());
+    } else if (sm->parallelPixels() > clWaveFunctionReal.size()) {
+        for (int i = 0; i < sm->parallelPixels() - clWaveFunctionReal.size(); ++i) {
             clWaveFunctionReal.emplace_back(ctx, rs * rs);
             clWaveFunctionRecip.emplace_back(ctx, rs * rs);
         }
@@ -64,11 +64,11 @@ template <>
 void SimulationGeneral<float>::initialiseKernels() {
     auto sm = job->simManager;
 
-    unsigned int rs = sm->getResolution();
+    unsigned int rs = sm->resolution();
     if (rs != FourierTrans.GetWidth() || rs != FourierTrans.GetHeight())
         FourierTrans = clFourier<float>(ctx, rs, rs);
 
-    bool isFull3D = sm->isFull3d();
+    bool isFull3D = sm->full3dEnabled();
     if (do_initialise_general || isFull3D != last_do_3d) {
         if (isFull3D)
             CalculateTransmissionFunction = Kernels::transmission_potentials_full_3d_f.BuildToKernel(ctx);
@@ -94,11 +94,11 @@ template <>
 void SimulationGeneral<double>::initialiseKernels() {
     auto sm = job->simManager;
 
-    unsigned int rs = sm->getResolution();
+    unsigned int rs = sm->resolution();
     if (rs != FourierTrans.GetWidth() || rs != FourierTrans.GetHeight())
         FourierTrans = clFourier<double>(ctx, rs, rs);
 
-    bool isFull3D = sm->isFull3d();
+    bool isFull3D = sm->full3dEnabled();
     if (do_initialise_general || isFull3D != last_do_3d) {
         if (isFull3D)
             CalculateTransmissionFunction = Kernels::transmission_potentials_full_3d_d.BuildToKernel(ctx);
@@ -124,7 +124,7 @@ template <class T>
 void SimulationGeneral<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
 
-    bool do_phonon = job->simManager->getInelasticScattering()->getPhonons()->getFrozenPhononEnabled();
+    bool do_phonon = job->simManager->inelasticScattering()->phonons()->getFrozenPhononEnabled();
 
     // TODO: check that this is only useful here
     if (job->simManager == current_manager && !do_phonon) {
@@ -133,7 +133,7 @@ void SimulationGeneral<T>::sortAtoms() {
     }
     current_manager = job->simManager;
 
-    std::vector<AtomSite> atoms = job->simManager->getStructure()->getAtoms();
+    std::vector<AtomSite> atoms = job->simManager->simulationCell()->crystalStructure()->getAtoms();
     auto atom_count = static_cast<unsigned int>(atoms.size()); // Needs to be cast to int as opencl kernel expects that size
 
     std::vector<int> AtomANum;
@@ -154,17 +154,17 @@ void SimulationGeneral<T>::sortAtoms() {
     // Basically, this only applies to STEM, so this atom sorting covered all the pixels,
     // even if we aren't going to be using all these atoms for each pixel
     // also used to limit the atoms we have to sort
-    std::valarray<double> x_lims = job->simManager->getPaddedFullLimitsX();
-    std::valarray<double> y_lims = job->simManager->getPaddedFullLimitsY();
-    std::valarray<double> z_lims = job->simManager->getPaddedStructLimitsZ();
+    std::valarray<double> x_lims = job->simManager->paddedFullLimitsX();
+    std::valarray<double> y_lims = job->simManager->paddedFullLimitsY();
+    std::valarray<double> z_lims = job->simManager->paddedSimLimitsZ();
 
     for(int i = 0; i < atom_count; i++) {
         double dx = 0.0, dy = 0.0, dz = 0.0;
         if (do_phonon) {
             // TODO: need a log guard here or in the structure file?
-            dx = job->simManager->getInelasticScattering()->getPhonons()->generateTdsFactor(atoms[i], 0);
-            dy = job->simManager->getInelasticScattering()->getPhonons()->generateTdsFactor(atoms[i], 1);
-            dz = job->simManager->getInelasticScattering()->getPhonons()->generateTdsFactor(atoms[i], 2);
+            dx = job->simManager->inelasticScattering()->phonons()->generateTdsFactor(atoms[i], 0);
+            dy = job->simManager->inelasticScattering()->phonons()->generateTdsFactor(atoms[i], 1);
+            dz = job->simManager->inelasticScattering()->phonons()->generateTdsFactor(atoms[i], 2);
         }
 
         // TODO: could move this check before the TDS if I can get a good estimate of the maximum displacement
@@ -199,11 +199,11 @@ void SimulationGeneral<T>::sortAtoms() {
 
     // NOTE: DONT CHANGE UNLESS CHANGE ELSEWHERE ASWELL!
     // Or fix it so they are all referencing same variable.
-    unsigned int BlocksX = job->simManager->getBlocksX();
-    unsigned int BlocksY = job->simManager->getBlocksY();
+    unsigned int BlocksX = job->simManager->blocksX();
+    unsigned int BlocksY = job->simManager->blocksY();
 
-    double dz = job->simManager->getSliceThickness();
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    double dz = job->simManager->simulationCell()->sliceThickness();
+    unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
 
     AtomSort.SetArg(0, ClAtomX, ArgumentType::Input);
     AtomSort.SetArg(1, ClAtomY, ArgumentType::Input);
@@ -321,7 +321,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
     initialiseKernels();
 
     CLOG(DEBUG, "sim") << "Getting parameters";
-    std::vector<double> params_d = job->simManager->getStructureParameterData();
+    std::vector<double> params_d = job->simManager->structureParametersData();
     std::vector<T> params(params_d.begin(), params_d.end()); // TODO: avoid the copy if we are using a double type?
     CLOG(DEBUG, "sim") << "Uploading parameters";
     ClParameterisation.Write(params);
@@ -332,16 +332,16 @@ void SimulationGeneral<T>::initialiseSimulation() {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     auto current_pixel = job->getPixel();
 
-    bool isFull3D = job->simManager->isFull3d();
-    unsigned int resolution = job->simManager->getResolution();
-    auto mParams = job->simManager->getMicroscopeParams();
+    bool isFull3D = job->simManager->full3dEnabled();
+    unsigned int resolution = job->simManager->resolution();
+    auto mParams = job->simManager->microscopeParams();
     double wavenumber = mParams->Wavenumber();
     std::valarray<double> wavevector = mParams->Wavevector();
-    double pixelscale = job->simManager->getRealScale();
-    double startx = job->simManager->getPaddedSimLimitsX(current_pixel)[0];
-    double starty = job->simManager->getPaddedSimLimitsY(current_pixel)[0];
-    int full3dints = job->simManager->getFull3dInts();
-    std::string param_name = job->simManager->getStructureParametersName();
+    double pixelscale = job->simManager->realScale();
+    double startx = job->simManager->paddedSimLimitsX(current_pixel)[0];
+    double starty = job->simManager->paddedSimLimitsY(current_pixel)[0];
+    int full3dints = job->simManager->full3dIntegrals();
+    std::string param_name = job->simManager->structureParametersName();
 
     // Work out area that is to be simulated (in real space)
     double SimSizeX = pixelscale * resolution;
@@ -444,7 +444,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
     BandLimit.SetArg(1, resolution);
     BandLimit.SetArg(2, resolution);
     BandLimit.SetArg(3, static_cast<T>(bandwidthkmax));
-    BandLimit.SetArg(4, static_cast<T>(job->simManager->getInverseLimitFactor()));
+    BandLimit.SetArg(4, static_cast<T>(job->simManager->inverseLimitFactor()));
     BandLimit.SetArg(5, clXFrequencies, ArgumentType::Input);
     BandLimit.SetArg(6, clYFrequencies, ArgumentType::Input);
 
@@ -457,10 +457,10 @@ void SimulationGeneral<T>::initialiseSimulation() {
     // TODO: check this is doing what the above comment says it is doing...
     // TODO: I think the 8.0 and 3.0 should be the padding as set in the manager...
 
-    int load_blocks_x = (int) std::ceil(8.0 / job->simManager->getBlockScaleX());
-    int load_blocks_y = (int) std::ceil(8.0 / job->simManager->getBlockScaleY());
+    int load_blocks_x = (int) std::ceil(8.0 / job->simManager->blockScaleX());
+    int load_blocks_y = (int) std::ceil(8.0 / job->simManager->blockScaleY());
 
-    double dz = job->simManager->getSliceThickness();
+    double dz = job->simManager->simulationCell()->sliceThickness();
     int load_blocks_z = (int) std::ceil(3.0 / dz);
 
     // Set some of the arguments which dont change each iteration
@@ -478,12 +478,12 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CalculateTransmissionFunction.SetArg(9, resolution);
     CalculateTransmissionFunction.SetArg(13, static_cast<T>(dz));
     CalculateTransmissionFunction.SetArg(14, static_cast<T>(pixelscale)); // TODO: does this want to be different?
-    CalculateTransmissionFunction.SetArg(15, job->simManager->getBlocksX());
-    CalculateTransmissionFunction.SetArg(16, job->simManager->getBlocksY());
-    CalculateTransmissionFunction.SetArg(17, static_cast<T>(job->simManager->getPaddedFullLimitsX()[1]));
-    CalculateTransmissionFunction.SetArg(18, static_cast<T>(job->simManager->getPaddedFullLimitsX()[0]));
-    CalculateTransmissionFunction.SetArg(19, static_cast<T>(job->simManager->getPaddedFullLimitsY()[1]));
-    CalculateTransmissionFunction.SetArg(20, static_cast<T>(job->simManager->getPaddedFullLimitsY()[0]));
+    CalculateTransmissionFunction.SetArg(15, job->simManager->blocksX());
+    CalculateTransmissionFunction.SetArg(16, job->simManager->blocksY());
+    CalculateTransmissionFunction.SetArg(17, static_cast<T>(job->simManager->paddedFullLimitsX()[1]));
+    CalculateTransmissionFunction.SetArg(18, static_cast<T>(job->simManager->paddedFullLimitsX()[0]));
+    CalculateTransmissionFunction.SetArg(19, static_cast<T>(job->simManager->paddedFullLimitsY()[1]));
+    CalculateTransmissionFunction.SetArg(20, static_cast<T>(job->simManager->paddedFullLimitsY()[0]));
     CalculateTransmissionFunction.SetArg(21, load_blocks_x);
     CalculateTransmissionFunction.SetArg(22, load_blocks_y);
     CalculateTransmissionFunction.SetArg(23, load_blocks_z);
@@ -516,7 +516,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
     GeneratePropagator.SetArg(7, static_cast<T>(wavevector[0]));
     GeneratePropagator.SetArg(8, static_cast<T>(wavevector[1]));
     GeneratePropagator.SetArg(9, static_cast<T>(wavevector[2]));
-    GeneratePropagator.SetArg(10, static_cast<T>(bandwidthkmax * job->simManager->getInverseLimitFactor()));
+    GeneratePropagator.SetArg(10, static_cast<T>(bandwidthkmax * job->simManager->inverseLimitFactor()));
 
     // actually run this kernel now
     GeneratePropagator.run(WorkSize);
@@ -537,11 +537,11 @@ void SimulationGeneral<T>::initialiseSimulation() {
 
 template <class T>
 void SimulationGeneral<T>::modifyBeamTilt(double kx, double ky, double kz){
-    auto mParams = job->simManager->getMicroscopeParams();
-    bool isFull3D = job->simManager->isFull3d();
-    int full3dints = job->simManager->getFull3dInts();
-    double dz = job->simManager->getSliceThickness();
-    unsigned int resolution = job->simManager->getResolution();
+    auto mParams = job->simManager->microscopeParams();
+    bool isFull3D = job->simManager->full3dEnabled();
+    int full3dints = job->simManager->full3dIntegrals();
+    double dz = job->simManager->simulationCell()->sliceThickness();
+    unsigned int resolution = job->simManager->resolution();
 
     // The transmission function does not need to be recalculated here (it is done on every slice)
     if (isFull3D) {
@@ -575,11 +575,11 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    double dz = job->simManager->getSliceThickness();
-    unsigned int resolution = job->simManager->getResolution();
+    double dz = job->simManager->simulationCell()->sliceThickness();
+    unsigned int resolution = job->simManager->resolution();
     // in the current format, Tds is handled by job splitting so this is always 1??
-    int n_parallel = job->simManager->getParallelPixels(); // total number of parallel pixels
-    auto z_lim = job->simManager->getPaddedStructLimitsZ();
+    int n_parallel = job->simManager->parallelPixels(); // total number of parallel pixels
+    auto z_lim = job->simManager->paddedSimLimitsZ();
 
     // Didn't have MinimumZ so it wasnt correctly rescaled z-axis from 0 to SizeZ...
     double currentz = z_lim[1] - slice * dz;
@@ -590,7 +590,7 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Get our *transmission* function for the current slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
+    unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
 
     CalculateTransmissionFunction.SetArg(1, ClAtomX, ArgumentType::Input);
     CalculateTransmissionFunction.SetArg(2, ClAtomY, ArgumentType::Input);
@@ -658,7 +658,7 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
 template <class T>
 std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, double d_kx, double d_ky) {
     CLOG(DEBUG, "sim") << "Getting diffraction image";
-    unsigned int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->resolution();
 
     // Original data is complex so copy complex version down first
     clWorkGroup Work(resolution, resolution, 1);
@@ -694,7 +694,7 @@ std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, 
 template <class T>
 std::vector<double> SimulationGeneral<T>::getExitWaveImage(unsigned int t, unsigned int l, unsigned int b, unsigned int r) {
     CLOG(DEBUG, "sim") << "Getting exit wave image";
-    unsigned int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->resolution();
     std::vector<double> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
@@ -717,10 +717,10 @@ std::vector<double> SimulationGeneral<T>::getExitWaveImage(unsigned int t, unsig
 
 template <typename T>
 void SimulationGeneral<T>::translateDiffImage(double d_kx, double d_ky) {
-    unsigned int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->resolution();
     clWorkGroup Work(resolution, resolution, 1);
 
-    double scale = job->simManager->getInverseScale();
+    double scale = job->simManager->inverseScale();
     double shift_x = d_kx / scale;
     double shift_y = d_ky / scale;
 

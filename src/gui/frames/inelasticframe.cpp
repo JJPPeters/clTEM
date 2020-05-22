@@ -14,7 +14,6 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
     auto pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
@@ -24,7 +23,6 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
     ui->edtPlasmonSingle->setValidator(pIntValidator);
     ui->edtPhononDefault->setValidator(pmValidator);
 
-//    ui->edtPlasmonSingle->setUnits("th");
     ui->edtPhononDefault->setUnits("Å²");
 }
 
@@ -79,7 +77,7 @@ void InelasticFrame::updatePhononsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    auto phonon = Main->Manager->getInelasticScattering()->getPhonons();
+    auto phonon = Main->Manager->inelasticScattering()->phonons();
 
     bool enabled = phonon->getFrozenPhononEnabled();
     double def_u = phonon->getDefault();
@@ -92,13 +90,13 @@ void InelasticFrame::updatePlasmonsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    auto plasmon = Main->Manager->getInelasticScattering()->getPlasmons();
+    auto plasmon = Main->Manager->inelasticScattering()->plasmons();
 
-    bool enabled = plasmon->getPlasmonEnabled();
-    bool full_enabled = plasmon->getCombinedEnabled();
+    bool enabled = plasmon->enabled();
+    bool full_enabled = plasmon->simType() == PlasmonType::Full;
     bool single_enabled = !full_enabled;
 
-    unsigned int single = plasmon->getIndividualPlasmon();
+    unsigned int single = plasmon->individualPlasmon();
 
     ui->chkPlasmon->setChecked(enabled);
     ui->rdioPlasmonAll->setChecked(full_enabled);
@@ -110,7 +108,7 @@ void InelasticFrame::updateIterationsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    unsigned int its = Main->Manager->getInelasticScattering()->getStoredInelasticIterations();
+    unsigned int its = Main->Manager->inelasticScattering()->storedIterations();
 
     ui->edtIterations->setText(QString::number(its));
 }
@@ -123,7 +121,7 @@ void InelasticFrame::updatePhononsManager() {
     bool enabled = ui->chkPhonon->isChecked();
     bool force_default = ui->chkPhononDefault->isChecked();
 
-    auto phonon = Main->Manager->getInelasticScattering()->getPhonons();
+    auto phonon = Main->Manager->inelasticScattering()->phonons();
 
     phonon->setFrozenPhononEnabled(enabled);
     phonon->setDefault(def_u);
@@ -139,10 +137,13 @@ void InelasticFrame::updatePlasmonsManager() {
     bool do_single = ui->rdioPlasmonSingle->isChecked();
     unsigned int single = ui->edtPlasmonSingle->text().toUInt();
 
-    auto plasmon = Main->Manager->getInelasticScattering()->getPlasmons();
+    auto plasmon = Main->Manager->inelasticScattering()->plasmons();
 
     plasmon->setEnabled(enabled);
-    plasmon->setCombinedEnabled(do_full);
+    if (do_full)
+        plasmon->setSimType(PlasmonType::Full);
+    else if (do_single)
+        plasmon->setSimType(PlasmonType::Individual);
     plasmon->setIndividualPlasmon(single);
 }
 
@@ -152,5 +153,5 @@ void InelasticFrame::updateIterationsManager() {
 
     unsigned int in_it = ui->edtIterations->text().toUInt();
 
-    Main->Manager->getInelasticScattering()->setInelasticIterations(in_it);
+    Main->Manager->inelasticScattering()->setIterations(in_it);
 }

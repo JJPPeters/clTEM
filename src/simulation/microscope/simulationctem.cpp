@@ -11,10 +11,10 @@ void SimulationCtem<T>::initialiseBuffers() {
     SimulationGeneral<T>::initialiseBuffers();
 
     auto sm = job->simManager;
-    unsigned int rs = sm->getResolution();
+    unsigned int rs = sm->resolution();
 
     // when resolution changes (or if enabled)
-    auto sim_mode = sm->getMode();
+    auto sim_mode = sm->mode();
     if (sim_mode == SimulationMode::CTEM && (sim_mode != last_mode || rs*rs != clImageWaveFunction.GetSize())) {
         clImageWaveFunction = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
 
@@ -66,7 +66,7 @@ void SimulationCtem<T>::initialiseSimulation()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    unsigned int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->resolution();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create plane wave function
@@ -87,18 +87,18 @@ void SimulationCtem<T>::initialiseSimulation()
 template <class T>
 void SimulationCtem<T>::simulateCtemImage() {
     // Check if have a CCD set, then do that method instead
-    std::string ccd = job->simManager->getCcdName();
+    std::string ccd = job->simManager->ccdName();
     if (CCDParams::nameExists(ccd)) {
         std::vector<double> dqe_d = CCDParams::getDQE(ccd);
         std::vector<double> ntf_d = CCDParams::getNTF(ccd);
         // convert these to our GPU type
         std::vector<T> dqe(dqe_d.begin(), dqe_d.end());
         std::vector<T> ntf(ntf_d.begin(), ntf_d.end());
-        int binning = job->simManager->getCcdBinning();
+        int binning = job->simManager->ccdBinning();
         // get dose
-        double dose = job->simManager->getCcdDose(); // electrons per area
+        double dose = job->simManager->ccdDose(); // electrons per area
         // get electrons per pixel
-        double scale = job->simManager->getRealScale();
+        double scale = job->simManager->realScale();
         scale *= scale; // square it to get area of pixel
         double dose_per_pix = dose * scale;
 
@@ -112,9 +112,9 @@ template <class T>
 void SimulationCtem<T>::simulateImagePerfect()
 {
     CLOG(DEBUG, "sim") << "Start CTEM image simulation (no dose calculation)";
-    unsigned int resolution = job->simManager->getResolution();
-    double wavelength = job->simManager->getWavelength();
-    auto mParams = job->simManager->getMicroscopeParams();
+    unsigned int resolution = job->simManager->resolution();
+    auto mParams = job->simManager->microscopeParams();
+    double wavelength = mParams->Wavelength();
 
     CLOG(DEBUG, "sim") << "Calculating CTEM image from wavefunction";
     // Set arguments for imaging kernel
@@ -171,8 +171,8 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
     // all the NTF, DQE stuff can be found here: 10.1016/j.jsb.2013.05.008
     CLOG(DEBUG, "sim") << "Start CTEM image simulation (with calculation)";
 
-    unsigned int resolution = job->simManager->getResolution();
-    auto mParams = job->simManager->getMicroscopeParams();
+    unsigned int resolution = job->simManager->resolution();
+    auto mParams = job->simManager->microscopeParams();
 
     clWorkGroup Work(resolution, resolution, 1);
 
@@ -264,7 +264,7 @@ template <class T>
 std::vector<double> SimulationCtem<T>::getCtemImage()
 {
     CLOG(DEBUG, "sim") << "Getting CTEM image image";
-    unsigned int resolution = job->simManager->getResolution();
+    unsigned int resolution = job->simManager->resolution();
     std::vector<double> data_out(resolution*resolution);
 
     // Original data is complex so copy complex version down first
@@ -288,15 +288,15 @@ void SimulationCtem<GPU_Type>::simulate() {
     typedef std::map<std::string, Image<double>> return_map;
     return_map Images;
     // Get all the variables we will be needing in one go
-    unsigned int numberOfSlices = job->simManager->getNumberofSlices();
-    unsigned int resolution = job->simManager->getResolution();
-    std::valarray<unsigned int> im_crop = job->simManager->getImageCrop();
-    bool sim_im = job->simManager->getSimulateCtemImage();
+    unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
+    unsigned int resolution = job->simManager->resolution();
+    std::valarray<unsigned int> im_crop = job->simManager->imageCropEnabled();
+    bool sim_im = job->simManager->ctemImageEnabled();
 
     // TODO: set this properly
     // This will be a pre-calculated variable to set how often we pull our our slice data
 
-    unsigned int slice_step = job->simManager->getUsedIntermediateSlices();
+    unsigned int slice_step = job->simManager->intermediateSliceStep();
     unsigned int output_count = 1;
     if (slice_step > 0)
         output_count = std::ceil((float) numberOfSlices / slice_step);
@@ -311,15 +311,15 @@ void SimulationCtem<GPU_Type>::simulate() {
     //
     // plasmon setup
     //
-    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->getInelasticScattering()->getPlasmons();
-    bool do_plasmons = plasmon->getPlasmonEnabled();
-    double slice_dz = job->simManager->getSliceThickness();
-    int padding_slices = (int) job->simManager->getPaddedPreSlices();
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->inelasticScattering()->plasmons();
+    bool do_plasmons = plasmon->enabled();
+    double slice_dz = job->simManager->simulationCell()->sliceThickness();
+    int padding_slices = (int) job->simManager->simulationCell()->preSliceCount();
     unsigned int scattering_count = 0;
     double next_scattering_depth = plasmon->getGeneratedDepth(job->id, scattering_count);
 
     // this gives us our current wavevector, but also our axis for azimuth rotation
-    auto mp = job->simManager->getMicroscopeParams();
+    auto mp = job->simManager->microscopeParams();
     double k_v = mp->Wavenumber();
     auto orig_k = mp->Wavevector();
     Eigen::Vector3d k_vec(0.0, 0.0, k_v);
@@ -349,7 +349,7 @@ void SimulationCtem<GPU_Type>::simulate() {
 
             // update parameters for next scattering event!
             scattering_count++;
-            next_scattering_depth = job->simManager->getInelasticScattering()->getPlasmons()->getGeneratedDepth(job->id, scattering_count);
+            next_scattering_depth = job->simManager->inelasticScattering()->plasmons()->getGeneratedDepth(job->id, scattering_count);
         }
 
         // this is mostly here because large images can take an age to copy across (so skip that if we are cancelling)

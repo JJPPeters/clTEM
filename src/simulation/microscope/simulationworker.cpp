@@ -29,7 +29,7 @@ void SimulationWorker<GPU_Type>::Run(const std::shared_ptr<SimulationJob> &_job)
     }
 
     // do teh actual simulation here
-    auto mode = _job->simManager->getMode();
+    auto mode = _job->simManager->mode();
 
     try {
         if (mode == SimulationMode::CTEM) {

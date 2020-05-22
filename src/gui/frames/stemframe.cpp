@@ -34,7 +34,7 @@ void StemFrame::on_btnDetectors_clicked()
 {
     if (Main == 0)
         throw std::runtime_error("Error connecting STEM frame to main window.");
-    StemDetectorDialog* myDialog = new StemDetectorDialog(nullptr, Main->getDetectors());
+    StemDetectorDialog* myDialog = new StemDetectorDialog(nullptr, Main->Manager->stemDetectors());
 
     connect(myDialog, &StemDetectorDialog::detectorsChanged, this, &StemFrame::updateDetectors);
 
@@ -73,8 +73,8 @@ void StemFrame::updateScaleLabels()
     if (Main == nullptr)
         throw std::runtime_error("Error connecting STEM frame to main window.");
 
-    double scaleX = Main->getStemArea()->getScaleX();
-    double scaleY = Main->getStemArea()->getScaleY();
+    double scaleX = Main->Manager->stemArea()->getScaleX();
+    double scaleY = Main->Manager->stemArea()->getScaleY();
 
     ui->lblStemScaleX->setText( "x: " + Utils_Qt::numToQString(scaleX, 2) + " Å" );
     ui->lblStemScaleY->setText( "y: " + Utils_Qt::numToQString(scaleY, 2) + " Å" );

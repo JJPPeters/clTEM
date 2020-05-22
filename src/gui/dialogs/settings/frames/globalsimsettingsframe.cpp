@@ -25,16 +25,16 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     ui->edtPaddingXY->setValidator(pValidator);
     ui->edtPaddingZ->setValidator(pValidator);
 
-    int three_d_int = simManager->getFull3dInts();
-    int num_parallel = simManager->getParallelPixels();
+    int three_d_int = simManager->full3dIntegrals();
+    int num_parallel = simManager->parallelPixels();
 
-    ui->chkDoublePrec->setChecked(simManager->getDoDoublePrecision());
+    ui->chkDoublePrec->setChecked(simManager->doublePrecisionEnabled());
 
     ui->edt3dIntegrals->setText(QString::number(three_d_int));
     ui->edtParallelPx->setText(QString::number(num_parallel));
 
-    ui->edtPaddingXY->setText(QString::number(Manager->getDefaultPaddingXY()[1]));
-    ui->edtPaddingZ->setText(QString::number(Manager->getDefaultPaddingZ()[1]));
+    ui->edtPaddingXY->setText(QString::number(Manager->simulationCell()->defaultPaddingXY()[1]));
+    ui->edtPaddingZ->setText(QString::number(Manager->simulationCell()->defaultPaddingZ()[1]));
 
     // make the label widths the same so they line up
     auto w1 = ui->lbl3d->width();
@@ -98,12 +98,12 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     double pad_z = ui->edtPaddingZ->text().toDouble();
     bool do_double = ui->chkDoublePrec->isChecked();
 
-    Manager->setFull3dInts(n_3d);
+    Manager->setFull3dIntegrals(n_3d);
     Manager->setParallelPixels(n_parallel);
     Manager->setStructureParameters(param_name);
-    Manager->setDefaultPaddingXY({-pad_xy, pad_xy});
-    Manager->setDefaultPaddingZ({-pad_z, pad_z});
-    Manager->setDoDoublePrecision(do_double);
+    Manager->simulationCell()->setDefaultPaddingXY({-pad_xy, pad_xy});
+    Manager->simulationCell()->setDefaultPaddingZ({-pad_z, pad_z});
+    Manager->setDoublePrecisionEnabled(do_double);
 
     emit dynamic_cast<GlobalSettingsDialog*>(parentWidget())->appliedSignal();
 }
@@ -111,7 +111,7 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
 void GlobalSimSettingsFrame::populateParamsCombo() {
     auto names = StructureParameters::getNames();
 
-    auto cur = Manager->getStructureParametersName();
+    auto cur = Manager->structureParametersName();
 
     unsigned int current = 0;
     for (unsigned int i = 0; i < names.size(); ++i) {
