@@ -35,7 +35,28 @@ public:
 
     clKernel BuildToKernel(clContext ctx) {
         std::lock_guard<std::mutex> lck(mtx);
-        return clKernel(ctx, source, name, num_args);
+        return clKernel(ctx, source, name, num_args, cl_opts);
+    }
+
+    static void setOptions(bool mad, bool no_signed_0, bool unsafe_math, bool finite_math) {
+        std::string opt_string = "";
+
+        if (mad)
+            opt_string += "-cl-mad-enable ";
+
+        if (no_signed_0)
+            opt_string += "-cl-no-signed-zeros ";
+
+        if (unsafe_math)
+            opt_string += "-cl-unsafe-math-optimizations ";
+
+        if (finite_math)
+            opt_string += "-cl-finite-math-only ";
+
+        if (opt_string != "")
+            opt_string = opt_string.substr(0, opt_string.size()-1);
+
+        cl_opts = opt_string;
     }
 
 private:
@@ -44,6 +65,8 @@ private:
     std::string source;
     std::string name;
     unsigned int num_args;
+
+    static std::string cl_opts;
 
     void parseKernelString() {
         // This is designed to try and gather the information directly from the source using regex

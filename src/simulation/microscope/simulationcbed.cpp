@@ -12,24 +12,26 @@ void SimulationCbed<T>::initialiseBuffers() {
 
 template <>
 void SimulationCbed<float>::initialiseKernels() {
-    SimulationGeneral<float>::initialiseKernels();
 
     if (do_initialise_cbed) {
         InitProbeWavefunction = Kernels::init_probe_wave_f.BuildToKernel(ctx);
     }
 
     do_initialise_cbed = false;
+
+    SimulationGeneral<float>::initialiseKernels();
 }
 
 template <>
 void SimulationCbed<double>::initialiseKernels() {
-    SimulationGeneral<double>::initialiseKernels();
 
     if (do_initialise_cbed) {
         InitProbeWavefunction = Kernels::init_probe_wave_d.BuildToKernel(ctx);
     }
 
     do_initialise_cbed = false;
+
+    SimulationGeneral<double>::initialiseKernels();
 }
 
 // n_parallel is the index (from 0) of the current parallel pixel

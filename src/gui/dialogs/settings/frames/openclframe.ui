@@ -18,13 +18,13 @@
     <widget class="QTableWidget" name="tblDevices">
      <property name="minimumSize">
       <size>
-       <width>500</width>
-       <height>400</height>
+       <width>0</width>
+       <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>400</width>
+       <width>16777215</width>
        <height>16777215</height>
       </size>
      </property>
@@ -176,19 +176,6 @@
         </widget>
        </item>
        <item>
-        <spacer name="vSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
         <widget class="QPushButton" name="btnAdd">
          <property name="minimumSize">
           <size>
@@ -223,6 +210,54 @@
          </property>
          <property name="text">
           <string>Delete</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="vSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkMad">
+         <property name="text">
+          <string>MAD enabled</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkSignedZero">
+         <property name="text">
+          <string>No signed zeros</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkUnsafeMaths">
+         <property name="text">
+          <string>Unsafe maths optimisations</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkFiniteMaths">
+         <property name="text">
+          <string>Finite maths only</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkNativeFuncs">
+         <property name="text">
+          <string>Use native_* functions</string>
          </property>
         </widget>
        </item>

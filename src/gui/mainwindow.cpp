@@ -215,19 +215,6 @@ void MainWindow::on_actionOpenCL_triggered()
     OpenClDialog *myDialog = new OpenClDialog(this, Devices);
 
     myDialog->exec();
-
-    // remove all current device entries in the settings and reset them
-    QSettings settings;
-    settings.remove("opencl");
-    int counter = 0;
-    for (auto& dev : Devices)
-    {
-        settings.setValue("opencl/" + QString::number(counter) + "/platform", dev.GetPlatformNumber());
-        settings.setValue("opencl/" + QString::number(counter) + "/device", dev.GetDeviceNumber());
-        settings.setValue("opencl/" + QString::number(counter) + "/platform_name", QString::fromStdString(dev.GetPlatformName()));
-        settings.setValue("opencl/" + QString::number(counter) + "/device_name", QString::fromStdString(dev.GetDeviceName()));
-        ++counter;
-    }
 }
 
 void MainWindow::resolution_changed(int resolution)
@@ -562,6 +549,14 @@ void MainWindow::loadSavedOpenClSettings()
     // these might change with hardware changes, but not enough to be annoying (I think)
     QSettings settings;
     settings.beginGroup("opencl");
+
+    bool mad = settings.value("opts/mad").toBool();
+    bool no_signed = settings.value("opts/no_signed").toBool();
+    bool unsafe_maths = settings.value("opts/unsafe_maths").toBool();
+    bool finite_maths = settings.value("opts/finite_maths").toBool();
+
+    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths);
+
     QStringList devs = settings.childGroups();
     std::vector<clDevice> dev_list;
     auto present_devs = OpenCL::GetDeviceList();

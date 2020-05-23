@@ -26,7 +26,6 @@ void SimulationCtem<T>::initialiseBuffers() {
 
 template <>
 void SimulationCtem<float>::initialiseKernels() {
-    SimulationGeneral<float>::initialiseKernels();
 
     if (do_initialise_ctem) {
         InitPlaneWavefunction = Kernels::init_plane_wave_f.BuildToKernel(ctx);
@@ -37,11 +36,12 @@ void SimulationCtem<float>::initialiseKernels() {
     }
 
     do_initialise_ctem = false;
+
+    SimulationGeneral<float>::initialiseKernels();
 }
 
 template <>
 void SimulationCtem<double>::initialiseKernels() {
-    SimulationGeneral<double>::initialiseKernels();
 
     if (do_initialise_ctem) {
         InitPlaneWavefunction = Kernels::init_plane_wave_d.BuildToKernel(ctx);
@@ -52,6 +52,8 @@ void SimulationCtem<double>::initialiseKernels() {
     }
 
     do_initialise_ctem = false;
+
+    SimulationGeneral<double>::initialiseKernels();
 }
 
 template <class T>

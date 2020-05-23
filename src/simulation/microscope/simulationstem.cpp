@@ -21,20 +21,18 @@ void SimulationStem<T>::initialiseBuffers() {
 template <>
 void SimulationStem<float>::initialiseKernels() {
 
-    SimulationCbed<float>::initialiseKernels();
-
     if (do_initialise_stem) {
         SumReduction = Kernels::sum_reduction_f.BuildToKernel(ctx);
         BandPassAbs = Kernels::band_pass_f.BuildToKernel(ctx);
     }
 
     do_initialise_stem = false;
+
+    SimulationCbed<float>::initialiseKernels();
 }
 
 template <>
 void SimulationStem<double>::initialiseKernels() {
-
-    SimulationCbed<double>::initialiseKernels();
 
     if (do_initialise_stem) {
         SumReduction = Kernels::sum_reduction_d.BuildToKernel(ctx);
@@ -42,6 +40,8 @@ void SimulationStem<double>::initialiseKernels() {
     }
 
     do_initialise_stem = false;
+
+    SimulationCbed<double>::initialiseKernels();
 }
 
 template <class T>

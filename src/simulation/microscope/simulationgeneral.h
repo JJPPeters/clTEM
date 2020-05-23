@@ -18,12 +18,6 @@
 template <class GPU_Type>
 class SimulationGeneral : public ThreadWorker
 {
-//    friend class SimulationCtem<GPU_Type>;
-//    friend class SimulationCbed<GPU_Type>;
-
-private:
-    bool do_initialise_general;
-
 public:
     explicit SimulationGeneral(const clContext &_ctx, ThreadPool &s, unsigned int _id) : ThreadWorker(s, _id), ctx(_ctx), last_mode(SimulationMode::None), last_do_3d(false), do_initialise_general(true) {}
 
@@ -32,6 +26,8 @@ public:
 protected:
     SimulationMode last_mode;
     bool last_do_3d;
+    bool last_double_precision;
+    bool do_initialise_general;
 
     clContext ctx;
 

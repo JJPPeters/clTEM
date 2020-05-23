@@ -1,5 +1,7 @@
 # include "kernels.h"
 
+std::string KernelSource::cl_opts = "";
+
 KernelSource Kernels::atom_sort_f;
 KernelSource Kernels::band_limit_f;
 KernelSource Kernels::band_pass_f;

@@ -39,6 +39,8 @@ protected:
     clKernel SumReduction;
     clMemory<GPU_Type, Manual> clReductionBuffer;
 
+    bool do_initialise_stem;
+
 public:
     explicit SimulationStem(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationCbed<GPU_Type>(_ctx, s, _id), do_initialise_stem(true) {}
 
@@ -51,8 +53,6 @@ private:
                           clWorkGroup localSizeSum, unsigned int nGroups, int totalSize);
 
     double getStemPixel(double inner, double outer, double xc, double yc, int parallel_ind, double d_kx=0.0, double d_ky=0.0);
-
-    bool do_initialise_stem;
 };
 
 #endif //CLTEM_SIMULATIONSTEM_H

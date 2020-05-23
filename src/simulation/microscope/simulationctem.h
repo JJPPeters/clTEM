@@ -32,6 +32,8 @@ protected:
     void initialiseBuffers();
     void initialiseKernels();
 
+    bool do_initialise_ctem;
+
 public:
     explicit SimulationCtem(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationGeneral<GPU_Type>(_ctx, s, _id), do_initialise_ctem(true) {}
 
@@ -49,8 +51,6 @@ private:
     void simulateImageDose(std::vector<GPU_Type> dqe_data, std::vector<GPU_Type> ntf_data, int binning, double doseperpix, double conversionfactor = 1);
 
     std::vector<double> getCtemImage();
-
-    bool do_initialise_ctem;
 
     clMemory<std::complex<GPU_Type>, Manual> clImageWaveFunction;
 

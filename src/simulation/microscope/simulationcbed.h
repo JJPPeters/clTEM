@@ -34,6 +34,8 @@ protected:
     void initialiseBuffers();
     void initialiseKernels();
 
+    bool do_initialise_cbed;
+
 public:
     explicit SimulationCbed(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationCtem<GPU_Type>(_ctx, s, _id), do_initialise_cbed(true) {}
 
@@ -42,8 +44,6 @@ public:
     void simulate();
 
 private:
-
-    bool do_initialise_cbed;
 
     clKernel InitProbeWavefunction;
 };

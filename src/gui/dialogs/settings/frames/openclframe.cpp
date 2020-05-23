@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include <utilities/commonstructs.h>
 #include <dialogs/settings/settingsdialog.h>
+#include <kernels.h>
 
 #include "utilities/stringutils.h"
 
@@ -39,6 +40,20 @@ OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice>& current_devices
     // so we that will be dealt with automatically
     populatePlatformCombo();
 
+    QSettings settings;
+    settings.beginGroup("opencl/opts");
+
+    bool mad = settings.value("mad").toBool();
+    bool no_signed = settings.value("no_signed").toBool();
+    bool unsafe_maths = settings.value("unsafe_maths").toBool();
+    bool finite_maths = settings.value("finite_maths").toBool();
+//    bool native_maths = settings.value("").toBool();
+
+    ui->chkMad->setChecked(mad);
+    ui->chkSignedZero->setChecked(no_signed);
+    ui->chkUnsafeMaths->setChecked(unsafe_maths);
+    ui->chkFiniteMaths->setChecked(finite_maths);
+//    ui->chkNativeFuncs->setChecked();
 }
 
 OpenClFrame::~OpenClFrame()
@@ -211,5 +226,34 @@ void OpenClFrame::dlgApply_clicked()
 
         chosenDevs[i] = dev;
     }
+
+    bool mad = ui->chkMad->isChecked();
+    bool no_signed = ui->chkSignedZero->isChecked();
+    bool unsafe_maths = ui->chkUnsafeMaths->isChecked();
+    bool finite_maths = ui->chkFiniteMaths->isChecked();
+    bool native_maths = ui->chkNativeFuncs->isChecked();
+
+    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths);
+
+    // remove all current device entries in the settings and reset them
+    QSettings settings;
+    settings.remove("opencl");
+
+    settings.setValue("opencl/opts/mad", mad);
+    settings.setValue("opencl/opts/no_signed", no_signed);
+    settings.setValue("opencl/opts/unsafe_maths", unsafe_maths);
+    settings.setValue("opencl/opts/finite_maths", finite_maths);
+//    settings.setValue("opencl/opts/native_maths", native_maths);
+
+    int counter = 0;
+    for (auto& dev : chosenDevs)
+    {
+        settings.setValue("opencl/" + QString::number(counter) + "/platform", dev.GetPlatformNumber());
+        settings.setValue("opencl/" + QString::number(counter) + "/device", dev.GetDeviceNumber());
+        settings.setValue("opencl/" + QString::number(counter) + "/platform_name", QString::fromStdString(dev.GetPlatformName()));
+        settings.setValue("opencl/" + QString::number(counter) + "/device_name", QString::fromStdString(dev.GetDeviceName()));
+        ++counter;
+    }
+
 
 }

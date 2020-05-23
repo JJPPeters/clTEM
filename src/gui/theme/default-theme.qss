@@ -32,3 +32,8 @@ QComboBox#cmbDevice
 {
 	min-width: 16em;
 }
+
+QTableWidget#tblDevices
+{
+	min-width: 36em;
+}
