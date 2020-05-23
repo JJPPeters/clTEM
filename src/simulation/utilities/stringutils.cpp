@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <algorithm>
+#include <structure/structureparameters.h>
 #include "stringutils.h"
 
 namespace Utils
@@ -112,17 +113,46 @@ namespace Utils
         return fileContents;
     }
 
-    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count)
-    {
-        std::ifstream inStream(full_directory + "/" + fileName);
+//    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count)
+//    {
+//        std::ifstream inStream(full_directory + "/" + fileName);
+//
+//
+//
+//        // here we just want the number of rows (a.k.a. the number of atoms
+//        // https://stackoverflow.com/questions/3482064/counting-the-number-of-lines-in-a-text-file
+//        row_count = 0;
+//        std::string temp;
+//        while (std::getline(inStream, temp))
+//            ++row_count;
+//
+//        // start back at the beginning to do the actual reading
+//        inStream.clear();
+//        inStream.seekg(0, std::ifstream::beg);
+//
+//        std::vector<double> out;
+//        double p;
+//
+//        while (inStream >> p)
+//            out.push_back(p);
+//
+//        inStream.close();
+//
+//        return out;
+//    }
+
+    void readParams(std::string full_directory, std::string file_name) {
+
+        std::string full_path = full_directory + "/" + file_name;
+
+        std::ifstream inStream(full_path);
 
         if (inStream.fail())
-            throw std::runtime_error("Error opening resource file: " + full_directory + "/" + fileName);
+            throw std::runtime_error("Error opening resource file: " + full_directory + "/" + file_name);
 
-        // here we just want the number of rows (a.k.a. the number of atoms
-        // https://stackoverflow.com/questions/3482064/counting-the-number-of-lines-in-a-text-file
-        row_count = 0;
+        unsigned int row_count = 0;
         std::string temp;
+
         while (std::getline(inStream, temp))
             ++row_count;
 
@@ -130,15 +160,24 @@ namespace Utils
         inStream.clear();
         inStream.seekg(0, std::ifstream::beg);
 
-        std::vector<double> out;
+        std::string name, form;
+        unsigned int params_per;
+        std::vector<double> params;
         double p;
 
+        std::getline(inStream, name);
+
+        std::getline(inStream, form);
+
+        std::getline(inStream, temp);
+        params_per = std::stoi(temp);
+
         while (inStream >> p)
-            out.push_back(p);
+            params.push_back(p);
 
         inStream.close();
 
-        return out;
+        StructureParameters::setParams(full_path, name, form, params_per, params);
     }
 
     void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io)

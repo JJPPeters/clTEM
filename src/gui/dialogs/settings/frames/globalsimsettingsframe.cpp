@@ -111,7 +111,7 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
 void GlobalSimSettingsFrame::populateParamsCombo() {
     auto names = StructureParameters::getNames();
 
-    auto cur = Manager->structureParametersName();
+    auto cur = Manager->structureParameters().name;
 
     unsigned int current = 0;
     for (unsigned int i = 0; i < names.size(); ++i) {

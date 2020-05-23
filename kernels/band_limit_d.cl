@@ -14,7 +14,7 @@ __kernel void band_limit_d( __global double2* input_output,
 						   unsigned int width,
 						   unsigned int height,
 						   double k_max,
-						   float limit_factor,
+						   double limit_factor,
 						   __global double* k_x,
 						   __global double* k_y)
 {

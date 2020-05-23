@@ -149,8 +149,8 @@ public:
 
     //
     Parameterisation structureParameters() {return StructureParameters::getParameters(structure_parameters_name);}
-    std::vector<double> structureParametersData() {return StructureParameters::getParametersData(structure_parameters_name);}
-    std::string structureParametersName() {return structure_parameters_name;}
+//    std::vector<double> structureParametersData() {return StructureParameters::getParametersData(structure_parameters_name);}
+//    std::string structureParametersName() {return structure_parameters_name;}
     void setStructureParameters(std::string name) { structure_parameters_name = std::move(name); }
 
     // Return functions

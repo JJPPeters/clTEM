@@ -12,10 +12,14 @@ namespace Utils {
 
         if (!Manager->simulationCell()->crystalStructure())
             errorList.emplace_back("No structure loaded.");
-        else if (Manager->structureParameters().Max_Atomic_Number <
+        else if (Manager->structureParameters().max_atomic_number <
                 Manager->simulationCell()->crystalStructure()->maxAtomicNumber())
             errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " +
-                                   std::to_string(Manager->structureParameters().Max_Atomic_Number));
+                                   std::to_string(Manager->structureParameters().max_atomic_number));
+        else if (Manager->structureParameters().max_atomic_number == 0)
+            errorList.emplace_back("Potentials do not include any atomic numbers.");
+        else if (Manager->simulationCell()->crystalStructure()->maxAtomicNumber() == 0 || Manager->simulationCell()->crystalStructure()->atoms().empty())
+            errorList.emplace_back("No atoms in structure.");
 
         if (!Manager->resolutionValid())
             errorList.emplace_back("No valid simulation resolution set.");
@@ -32,7 +36,7 @@ namespace Utils {
         if (mp->Aperture <= 0)
             errorList.emplace_back("Aperture must be a non-zero positive number.");
 
-        if (Manager->structureParametersData().empty())
+        if (Manager->structureParameters().parameters.empty())
             errorList.emplace_back("Potentials have not been loaded correctly.");
 
         if (Manager->full3dEnabled() && Manager->full3dIntegrals() < 1)

@@ -40,7 +40,9 @@ namespace Utils
 
     std::string resourceToChar(std::string full_directory, std::string fileName);
 
-    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count);
+//    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count);
+
+    void readParams(std::string full_directory, std::string file_name);
 
     void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io);
 }

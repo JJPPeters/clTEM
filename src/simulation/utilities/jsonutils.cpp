@@ -362,7 +362,7 @@ namespace JSONUtils {
         j["mode"]["id"] = mode;
         j["mode"]["name"] = man.modeString();
 
-        j["potentials"] = man.structureParametersName();
+        j["potentials"] = man.structureParameters().name;
 
         j["resolution"] = man.resolution();
 

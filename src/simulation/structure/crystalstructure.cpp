@@ -11,8 +11,9 @@
 #include "utilities/structureutils.h"
 
 CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, bool fix_cif)
-        : scale_factor(1.0), atom_count(0), file_defined_thermals(false),
-          dist(std::uniform_real_distribution<>(0, 1)), max_atomic_number(0) {
+        : scale_factor(1.0), atom_count(0), file_defined_thermals(false), max_atomic_number(0) {
+    // create our random number stuffs
+    dist = std::uniform_real_distribution<>(0, 1);
     rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
 
     resetLimits();
@@ -28,8 +29,9 @@ CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, 
 }
 
 CrystalStructure::CrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info)
-        : scale_factor(1.0), atom_count(0), file_defined_thermals(false),
-          dist(std::uniform_real_distribution<>(0, 1)), max_atomic_number(0) {
+        : scale_factor(1.0), atom_count(0), file_defined_thermals(false), max_atomic_number(0) {
+    // create our random number stuffs
+    dist = std::uniform_real_distribution<>(0, 1);
     rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
 
     resetLimits();

@@ -41,7 +41,7 @@ __kernel void propagator_d( __global double2* propagator,
             double f = beam_k_z / beam_k;
             double s_u = beam_k*beam_k - beam_k_z*beam_k_z - (beam_k_x + k_x[xid])*(beam_k_x + k_x[xid]) - (beam_k_y + k_y[yid])*(beam_k_y + k_y[yid]);
             s_u = s_u / (beam_k_z);
-            propagator[id].x = f * native_cos(M_PI * s_u * dz);
+            propagator[id].x = f * cos(M_PI * s_u * dz);
             propagator[id].y = f * native_sin(M_PI * s_u * dz);
         } else {
             propagator[id].x = 0.0;

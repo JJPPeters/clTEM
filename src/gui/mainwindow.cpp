@@ -107,7 +107,17 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
 
-    loadExternalSources();
+    try {
+        loadExternalSources();
+    } catch (std::exception& e) {
+        QMessageBox msgBox(this);
+        msgBox.setText("Error:");
+        msgBox.setInformativeText(e.what());
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
+        msgBox.exec();
+    }
 
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
@@ -658,13 +668,9 @@ void MainWindow::loadExternalSources()
     if (params_files.empty())
         throw std::runtime_error("Need at least one valid parameters file");
 
-    for (int k = 0; k < params_files.size(); ++k) {
-        unsigned int row_count;
-        std::vector<double> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
-        std::string p_name = params_files[k].toStdString();
-        p_name.erase(p_name.find(".dat"), 4);
-        StructureParameters::setParams(params, p_name, row_count);
-    }
+    for (int k = 0; k < params_files.size(); ++k)
+        Utils_Qt::readParamsFile(params_files[k].toStdString());
+
 
     // load DQE, NQE for the CTEM simulation
 

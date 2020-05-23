@@ -159,11 +159,13 @@ float bessk1(float x) {
     return sum;
 }
 
-float kirkland(__constant float* params, int ZNum, float rad) {
+float kirkland(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float suml, sumg, x;
     suml = 0.0f;
     sumg = 0.0f;
+
+    int z_ofst = (ZNum - 1) * 12;
 
     //
     // Lorentzians
@@ -171,9 +173,9 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
-    for(i = 0; i < 6; i += 2) {
-        float a = params[(ZNum-1) * 12 + i];
-        float b = params[(ZNum-1) * 12 + i + 1];
+    for(i = 0; i < i_lim*2; i+=2) {
+        float a = params[z_ofst + i];
+        float b = params[z_ofst + i + 1];
         suml += a * bessk0( x * native_sqrt(b) );
     }
 
@@ -184,9 +186,9 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     x = x * x;
 
     // Loop through our parameters (a and b)
-    for(i = 6; i < 12; i += 2) {
-        float c = params[(ZNum-1) * 12 + i];
-        float d = params[(ZNum-1) * 12 + i + 1];
+    for(i = i_lim*2; i < i_lim*4; i+=2) {
+        float c = params[z_ofst + i];
+        float d = params[z_ofst + i + 1];
         float d_inv = native_recip(d);
         sumg += (c * d_inv) * native_exp(-x * d_inv);
     }
@@ -196,16 +198,18 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     return 300.8242834f * suml + 150.4121417f * sumg;
  }
 
-float lobato(__constant float* params, int ZNum, float rad) {
+float lobato(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float sum, x;
     sum = 0.0f;
 
+    int z_ofst = (ZNum - 1) * 10;
+
     x = 2.0f * M_PI_F * rad;
 
-    for(i=0; i < 5; ++i) {
-        float a = params[(ZNum-1)*10+i];
-        float b = params[(ZNum-1)*10+i+5];
+    for(i=0; i < i_lim; ++i) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+5];
         float b_inv_root = native_rsqrt(b);
         sum += a * (b_inv_root * b_inv_root * b_inv_root) * (bessk0(x * b_inv_root) + rad * bessk1(x * b_inv_root));
     }
@@ -213,17 +217,19 @@ float lobato(__constant float* params, int ZNum, float rad) {
     return 945.090144399935f * sum;
 }
 
-float peng(__constant float* params, int ZNum, float rad) {
+float peng(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float sum, x;
     sum = 0.0f;
 
+    int z_ofst = (ZNum - 1) * 10;
+
     x = M_PI_F * rad;
     x = x * x;
 
-    for(i=0; i<5; ++i) {
-        float a = params[(ZNum-1)*10+i];
-        float b = params[(ZNum-1)*10+i+5];
+    for(i=0; i < i_lim; ++i) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+5];
         float b_inv = native_recip(b);
 
         sum += a * b_inv * native_exp(-x * b_inv);
@@ -239,6 +245,7 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 								     __global const int* restrict atomic_num,
 								     __constant float* params,
 								     unsigned int param_selector,
+									 unsigned int param_i_count,
 						 		     __global const int* restrict block_start_pos,
 								     unsigned int width,
 								     unsigned int height,
@@ -352,11 +359,11 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 
 			if( rad <= 8.0f) { // Should also make sure is not too small
 				if (param_selector == 0)
-                    sumz += kirkland(params, atZ[l], rad);
+                    sumz += kirkland(params, param_i_count, atZ[l], rad);
                 else if (param_selector == 1)
-                    sumz += peng(params, atZ[l], rad);
+                    sumz += peng(params, param_i_count, atZ[l], rad);
                 else if (param_selector == 2)
-                    sumz += lobato(params, atZ[l], rad);
+                    sumz += lobato(params, param_i_count, atZ[l], rad);
 			}
 		}
 

@@ -52,20 +52,23 @@
 /// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float kirkland(__constant float* params, int ZNum, float rad) {
+float kirkland(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float suml, sumg, x;
     suml = 0.0f;
     sumg = 0.0f;
+
+    int z_ofst = (ZNum - 1) * 12;
+
     //
     // Lorentzians
     //
     x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
-    for(i=0; i<6; i+=2) {
-        float a = params[(ZNum-1)*12+i];
-        float b = params[(ZNum-1)*12+i+1];
+    for(i = 0; i < i_lim*2; i+=2) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+1];
         suml += a * native_exp(-x * native_sqrt(b) );
     }
 
@@ -76,9 +79,9 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     x = x * x;
 
     // Loop through our parameters (a and b)
-    for(i=6; i<12; i+=2) {
-        float c = params[(ZNum-1)*12+i];
-        float d = params[(ZNum-1)*12+i+1];
+    for(i = i_lim*2; i < i_lim*4; i+=2) {
+        float c = params[z_ofst+i];
+        float d = params[z_ofst+i+1];
         float d_inv_root = native_rsqrt(d);
         sumg += c * (d_inv_root*d_inv_root*d_inv_root) * native_exp(-x * native_recip(d));
     }
@@ -88,16 +91,18 @@ float kirkland(__constant float* params, int ZNum, float rad) {
     return 150.4121417f * native_recip(rad) * suml + 266.5157269f * sumg;
  }
 
-float lobato(__constant float* params, int ZNum, float rad) {
+float lobato(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float sum, x;
     sum = 0.0f;
 
+    int z_ofst = (ZNum - 1) * 10;
+
     x = M_PI_F * rad;
 
-    for(i=0; i < 5; ++i) {
-        float a = params[(ZNum-1)*10+i];
-        float b = params[(ZNum-1)*10+i+5];
+    for(i=0; i < i_lim; ++i) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+5];
         float b_inv_root = native_rsqrt(b);
         sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-2.0f * x * b_inv_root) * (native_sqrt(b) * native_recip(x) + 1.0f);
     }
@@ -105,17 +110,19 @@ float lobato(__constant float* params, int ZNum, float rad) {
     return 472.545072199968f * sum;
 }
 
-float peng(__constant float* params, int ZNum, float rad) {
+float peng(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float sum, x;
     sum = 0.0f;
 
+    int z_ofst = (ZNum - 1) * 10;
+
     x = M_PI_F * rad;
     x = x * x;
 
-    for(i=0; i<5; ++i) {
-        float a = params[(ZNum-1)*10+i];
-        float b = params[(ZNum-1)*10+i+5];
+    for(i=0; i < i_lim; ++i) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+5];
         float b_inv_root = native_rsqrt(b);
 
         sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-x * native_recip(b));
@@ -131,6 +138,7 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
 										  __global const int* restrict atomic_num,
 										  __constant float* params,
                                           unsigned int param_selector,
+									      unsigned int param_i_count,
 										  __global const int* restrict block_start_pos,
 										  unsigned int width,
 										  unsigned int height,
@@ -250,11 +258,11 @@ __kernel void transmission_potentials_full_3d_f( __global float2* potential,
 					if(xyrad2 <= 64.0f && rad_z <= 3.0f) {
     					float p1;
     					if (param_selector == 0)
-    					    p1 = kirkland(params, atZ[l], rad);
+    					    p1 = kirkland(params, param_i_count, atZ[l], rad);
                         else if (param_selector == 1)
-                            p1 = peng(params, atZ[l], rad);
+                            p1 = peng(params, param_i_count, atZ[l], rad);
                         else if (param_selector == 2)
-                            p1 = lobato(params, atZ[l], rad);
+                            p1 = lobato(params, param_i_count, atZ[l], rad);
 
     					// why make sure h!=0 when we can just remove it from the loop?
     					// surely h == 0 will be in the previous slice??

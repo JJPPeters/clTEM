@@ -10,7 +10,7 @@ void SimulationGeneral<T>::initialiseBuffers() {
     auto sm = job->simManager;
 
     // this needs to change if the parameter sizes have changed
-    size_t p_sz = job->simManager->structureParametersData().size();
+    size_t p_sz = job->simManager->structureParameters().parameters.size();
     if (size_t ps = p_sz; ps != ClParameterisation.GetSize())
         ClParameterisation = clMemory<T, Manual>(ctx, ps);
 
@@ -321,7 +321,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
     initialiseKernels();
 
     CLOG(DEBUG, "sim") << "Getting parameters";
-    std::vector<double> params_d = job->simManager->structureParametersData();
+    std::vector<double> params_d = job->simManager->structureParameters().parameters;
     std::vector<T> params(params_d.begin(), params_d.end()); // TODO: avoid the copy if we are using a double type?
     CLOG(DEBUG, "sim") << "Uploading parameters";
     ClParameterisation.Write(params);
@@ -341,7 +341,9 @@ void SimulationGeneral<T>::initialiseSimulation() {
     double startx = job->simManager->paddedSimLimitsX(current_pixel)[0];
     double starty = job->simManager->paddedSimLimitsY(current_pixel)[0];
     int full3dints = job->simManager->full3dIntegrals();
-    std::string param_name = job->simManager->structureParametersName();
+
+
+    std::string param_name = job->simManager->structureParameters().name;
 
     // Work out area that is to be simulated (in real space)
     double SimSizeX = pixelscale * resolution;
@@ -466,40 +468,34 @@ void SimulationGeneral<T>::initialiseSimulation() {
     // Set some of the arguments which dont change each iteration
     CalculateTransmissionFunction.SetArg(0, clTransmissionFunction, ArgumentType::Output);
     CalculateTransmissionFunction.SetArg(5, ClParameterisation, ArgumentType::Input);
-    if (param_name == "kirkland")
-        CalculateTransmissionFunction.SetArg(6, 0);
-    else if (param_name == "peng")
-        CalculateTransmissionFunction.SetArg(6, 1);
-    else if (param_name == "lobato")
-        CalculateTransmissionFunction.SetArg(6, 2);
-    else
-        throw std::runtime_error("Trying to use parameterisation I do not understand");
-    CalculateTransmissionFunction.SetArg(8, resolution);
+    CalculateTransmissionFunction.SetArg(6, static_cast<int>(job->simManager->structureParameters().form));
+    CalculateTransmissionFunction.SetArg(7, job->simManager->structureParameters().i_per_atom);
     CalculateTransmissionFunction.SetArg(9, resolution);
-    CalculateTransmissionFunction.SetArg(13, static_cast<T>(dz));
-    CalculateTransmissionFunction.SetArg(14, static_cast<T>(pixelscale)); // TODO: does this want to be different?
-    CalculateTransmissionFunction.SetArg(15, job->simManager->blocksX());
-    CalculateTransmissionFunction.SetArg(16, job->simManager->blocksY());
-    CalculateTransmissionFunction.SetArg(17, static_cast<T>(job->simManager->paddedFullLimitsX()[1]));
-    CalculateTransmissionFunction.SetArg(18, static_cast<T>(job->simManager->paddedFullLimitsX()[0]));
-    CalculateTransmissionFunction.SetArg(19, static_cast<T>(job->simManager->paddedFullLimitsY()[1]));
-    CalculateTransmissionFunction.SetArg(20, static_cast<T>(job->simManager->paddedFullLimitsY()[0]));
-    CalculateTransmissionFunction.SetArg(21, load_blocks_x);
-    CalculateTransmissionFunction.SetArg(22, load_blocks_y);
-    CalculateTransmissionFunction.SetArg(23, load_blocks_z);
-    CalculateTransmissionFunction.SetArg(24, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
-    CalculateTransmissionFunction.SetArg(25, static_cast<T>(startx));
-    CalculateTransmissionFunction.SetArg(26, static_cast<T>(starty));
+    CalculateTransmissionFunction.SetArg(10, resolution);
+    CalculateTransmissionFunction.SetArg(14, static_cast<T>(dz));
+    CalculateTransmissionFunction.SetArg(15, static_cast<T>(pixelscale)); // TODO: does this want to be different?
+    CalculateTransmissionFunction.SetArg(16, job->simManager->blocksX());
+    CalculateTransmissionFunction.SetArg(17, job->simManager->blocksY());
+    CalculateTransmissionFunction.SetArg(18, static_cast<T>(job->simManager->paddedFullLimitsX()[1]));
+    CalculateTransmissionFunction.SetArg(19, static_cast<T>(job->simManager->paddedFullLimitsX()[0]));
+    CalculateTransmissionFunction.SetArg(20, static_cast<T>(job->simManager->paddedFullLimitsY()[1]));
+    CalculateTransmissionFunction.SetArg(21, static_cast<T>(job->simManager->paddedFullLimitsY()[0]));
+    CalculateTransmissionFunction.SetArg(22, load_blocks_x);
+    CalculateTransmissionFunction.SetArg(23, load_blocks_y);
+    CalculateTransmissionFunction.SetArg(24, load_blocks_z);
+    CalculateTransmissionFunction.SetArg(25, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
+    CalculateTransmissionFunction.SetArg(26, static_cast<T>(startx));
+    CalculateTransmissionFunction.SetArg(27, static_cast<T>(starty));
     if (isFull3D) {
         double int_shift_x = (wavevector[0] / wavevector[2]) * dz / full3dints;
         double int_shift_y = (wavevector[1] / wavevector[2]) * dz / full3dints;
 
-        CalculateTransmissionFunction.SetArg(27, static_cast<T>(int_shift_x));
-        CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_y));
-        CalculateTransmissionFunction.SetArg(29, full3dints);
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_x));
+        CalculateTransmissionFunction.SetArg(29, static_cast<T>(int_shift_y));
+        CalculateTransmissionFunction.SetArg(30, full3dints);
     } else {
-        CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
-        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamTilt));
+        CalculateTransmissionFunction.SetArg(29, static_cast<T>(mParams->BeamAzimuth));
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up the propagator
@@ -548,14 +544,14 @@ void SimulationGeneral<T>::modifyBeamTilt(double kx, double ky, double kz){
         double int_shift_x = (kx / kz) * dz / full3dints;
         double int_shift_y = (kx / kz) * dz / full3dints;
 
-        CalculateTransmissionFunction.SetArg(27, static_cast<T>(int_shift_x));
-        CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_y));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_x));
+        CalculateTransmissionFunction.SetArg(29, static_cast<T>(int_shift_y));
     } else {
         double new_azimuth = std::atan(ky / kx);
         double new_tilt = std::atan( std::sqrt(kx*kx + ky*ky) / kz );
 
-        CalculateTransmissionFunction.SetArg(27, static_cast<T>(new_azimuth));
-        CalculateTransmissionFunction.SetArg(28, static_cast<T>(new_tilt));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(new_azimuth));
+        CalculateTransmissionFunction.SetArg(29, static_cast<T>(new_tilt));
     }
 
     // The propagator does need to be recalculated now
@@ -596,10 +592,10 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice)
     CalculateTransmissionFunction.SetArg(2, ClAtomY, ArgumentType::Input);
     CalculateTransmissionFunction.SetArg(3, ClAtomZ, ArgumentType::Input);
     CalculateTransmissionFunction.SetArg(4, ClAtomA, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(7, ClBlockStartPositions, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(10, slice);
-    CalculateTransmissionFunction.SetArg(11, numberOfSlices);
-    CalculateTransmissionFunction.SetArg(12, static_cast<T>(currentz));
+    CalculateTransmissionFunction.SetArg(8, ClBlockStartPositions, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(11, slice);
+    CalculateTransmissionFunction.SetArg(12, numberOfSlices);
+    CalculateTransmissionFunction.SetArg(13, static_cast<T>(currentz));
 
     CLOG(DEBUG, "sim") << "Calculating potentials";
 
