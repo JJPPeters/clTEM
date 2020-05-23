@@ -46,9 +46,15 @@ void printHelp()
                  "    -h : (--help) print this help message and exit\n"
                  "    -v : (--version) print the clTEM command line version number and exit\n"
                  "    -l : (--list) print the available OpenCL devices and exit\n"
+                 "    -f : (--flags) comma separated list of optimisation flags for OpenCL kernels. Options are:\n"
+                 "             enable-mad       : optimise a * b + c with reduced accuracy\n"
+                 "             no-signed-zeros  : ignore the sign of zeros\n"
+                 "             unsafe-maths     : disregard IEEE 754 standards and OpenCL numerical compliance\n"
+                 "             finite-maths     : disregard NaNs and infinities\n"
+                 "             native-functions : use (often) faster but less accurate native functions\n"
                  "    -o : (--output) REQUIRED set the output directory for the simulation results\n"
                  "    -c : (--config) REQUIRED set the .json config file for the simulation\n"
-                 "    -d : (--device) REQUIRED set the OpenCL device(s). Accepts format:\n"
+                 "    -d : (--device) REQUIRED set the OpenCL device(s). Options are:\n"
                  "             default : uses the default OpenCL device(s)\n"
                  "             all     : uses all available OpenCL device(s)\n"
                  "             gpus    : use all available gpus\n"
@@ -67,7 +73,7 @@ void printHelp()
 
 void printVersion()
 {
-    std::cout << "clTEM command line interface v0.2a" << std::endl;
+    std::cout << "clTEM command line interface v0.3a" << std::endl;
 }
 
 void listDevices()
@@ -85,20 +91,31 @@ void listDevices()
     }
 }
 
-/// Parse a string with 3 numbers separated by commas
-template <typename T>
-bool parseThreeCommaList(std::string lst, T& a, T& b, T& c)
-{
+template<typename T>
+std::vector<T> parseCommaList(std::string lst) {
+    if (lst.empty())
+        return std::vector<T>();
+
     std::istringstream ss(lst);
     std::string part;
     T v;
     std::vector<T> vec;
+
     while(ss.good()) {
         getline( ss, part, ',' );
         std::istringstream ssp(part);
         ssp >> v;
         vec.emplace_back(v);
     }
+
+    return vec;
+}
+
+/// Parse a string with 3 numbers separated by commas
+template <typename T>
+bool parseThreeCommaList(std::string lst, T& a, T& b, T& c)
+{
+    std::vector<T> vec = parseCommaList<T>(lst);
 
     if (vec.size() != 3)
         return false;
@@ -260,7 +277,7 @@ int main(int argc, char *argv[])
 
     std::vector<std::string> non_option_args;
 
-    std::string size_arg, zone_arg, normal_arg, tilt_arg;
+    std::string size_arg, zone_arg, normal_arg, tilt_arg, flag_arg;
 
     while (true)
     {
@@ -268,7 +285,8 @@ int main(int argc, char *argv[])
                 {
                         {"help",     no_argument,       nullptr,       'h'},
                         {"version",  no_argument,       nullptr,       'v'},
-                        {"list_devices",  no_argument,       nullptr,       'l'},
+                        {"list",  no_argument,       nullptr,       'l'},
+                        {"flags",  no_argument,       nullptr,       'f'},
                         {"output",   required_argument, nullptr,       'o'},
                         {"config",   required_argument, nullptr,       'c'},
                         {"device",   required_argument, nullptr,       'd'},
@@ -282,7 +300,7 @@ int main(int argc, char *argv[])
                 };
         // getopt_long stores the option index here.
         int option_index = 0;
-        c = getopt_long(argc, argv, "hvlo:c:d:s:z:n:t:", long_options, &option_index);
+        c = getopt_long(argc, argv, "hvlf:o:c:d:s:z:n:t:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1)
@@ -301,6 +319,9 @@ int main(int argc, char *argv[])
             case 'l':
                 listDevices();
                 return 0;
+            case 'f':
+                flag_arg = optarg;
+                break;
             case 'o':
                 output_dir = optarg;
                 break;
@@ -532,6 +553,40 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
     // now have all our files/folders
     // need to check that they are all valid!
+
+    //
+    // Get and set kernel flags
+    //
+    std::vector<std::string> flag_vec = parseCommaList<std::string>(flag_arg);
+
+    bool enable_mad = false;
+    bool no_signed_zeros = false;
+    bool unsafe_maths = false;
+    bool finite_maths = false;
+    bool native_functions = false;
+
+    for(const auto& fl : flag_vec) {
+        if (fl == "all") {
+            enable_mad = true;
+            no_signed_zeros = true;
+            unsafe_maths = true;
+            finite_maths = true;
+            native_functions = true;
+        } else if (fl == "enable-mad")
+            enable_mad = true;
+        else if (fl == "no-signed-zeros")
+            no_signed_zeros = true;
+        else if (fl == "unsafe-maths")
+            unsafe_maths = true;
+        else if (fl == "finite-maths")
+            finite_maths = true;
+        else if (fl == "native-functions")
+            native_functions = true;
+        else
+            std::cout << "Found unknown kernel flag: " << fl << ", ignoring it." << std::endl;
+    }
+
+    KernelSource::setOptions(enable_mad, no_signed_zeros, unsafe_maths, finite_maths, native_functions);
 
     // read the config file in
     nlohmann::json j;
