@@ -44,6 +44,8 @@ namespace Utils
 
     void readParams(std::string full_directory, std::string file_name);
 
+    void readParams(std::string full_path);
+
     void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io);
 
     // https://stackoverflow.com/a/3418285

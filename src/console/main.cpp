@@ -12,6 +12,7 @@
 #include "parseopencl.h"
 
 #include <boost/filesystem.hpp>
+
 #include <threading/simulationrunner.h>
 #include <structure/structureparameters.h>
 #include <kernels.h>
@@ -170,7 +171,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
 void imageReturned(SimulationManager sm)
 {
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
-    settings["filename"] = sm.structure()->getFileName();
+    settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
 #ifdef _WIN32
     std::wstring w_sep(&fs::path::preferred_separator);
@@ -179,7 +180,7 @@ void imageReturned(SimulationManager sm)
     std::string sep = &fs::path::preferred_separator;
 #endif
 
-    auto ims = sm.getImages();
+    auto ims = sm.images();
 
     // save the images....
     // we've been given a list of images, got to display them now....
@@ -200,7 +201,7 @@ void imageReturned(SimulationManager sm)
         }
         else {
             // add the specific detector info here!
-            for (const auto &d : sm.getDetectors())
+            for (const auto &d : sm.stemDetectors())
                 if (d.name == name)
                     settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
             settings["microscope"].erase("alpha");
@@ -632,10 +633,10 @@ int main(int argc, char *argv[])
     // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
     std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
-    unsigned int row_count;
-    std::vector<double> params = Utils::paramsToVector(params_path, p_name+ ".dat", row_count);
-    StructureParameters::setParams(params, p_name, row_count);
     man_ptr->setStructureParameters(p_name);
+
+    for (const auto& params_file: boost::filesystem::directory_iterator(params_path))
+        Utils::readParams(params_file.path().string());
 
     // check all our prerequisites here (some repeated?)
     try {
@@ -647,9 +648,9 @@ int main(int argc, char *argv[])
 
     // sort plasmon stuff
     if (man_ptr->inelasticScattering()->plasmons()->enabled()) {
-        int parts = man_ptr->getTotalParts();
+        int parts = man_ptr->totalParts();
         man_ptr->inelasticScattering()->plasmons()->initDepthVectors(parts);
-        auto z_lims = man_ptr->getStructLimitsZ();
+        auto z_lims = man_ptr->simulationCell()->crystalStructure()->limitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
@@ -705,7 +706,7 @@ int main(int argc, char *argv[])
         Kernels::complex_to_real_f = Utils::resourceToChar(kernel_path, "complex_to_real_f.cl");
     }
 
-    auto ccd_name = man_ptr->getCcdName();
+    auto ccd_name = man_ptr->ccdName();
 
     if (ccd_name != "" && ccd_name != "Perfect") {
         std::string ccds_path = exe_path_string + sep + "ccds";

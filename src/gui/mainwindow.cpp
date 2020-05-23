@@ -358,7 +358,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
     if (Manager->inelasticScattering()->plasmons()->enabled()) {
         int parts = Manager->totalParts();
         Manager->inelasticScattering()->plasmons()->initDepthVectors(parts);
-        auto z_lims = Manager->paddedSimLimitsZ();
+        auto z_lims = Manager->simulationCell()->crystalStructure()->limitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;

@@ -142,13 +142,16 @@ namespace Utils
 //    }
 
     void readParams(std::string full_directory, std::string file_name) {
-
         std::string full_path = full_directory + "/" + file_name;
+        readParams(full_path);
+    }
+
+    void readParams(std::string full_path) {
 
         std::ifstream inStream(full_path);
 
         if (inStream.fail())
-            throw std::runtime_error("Error opening resource file: " + full_directory + "/" + file_name);
+            throw std::runtime_error("Error opening resource file: " + full_path);
 
         unsigned int row_count = 0;
         std::string temp;
