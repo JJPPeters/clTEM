@@ -117,7 +117,7 @@ void AreaLayoutFrame::areasChanged() {
     // should probably be it's own slot
     emit modeChanged(mode);
 
-    if (mode == 1) {
+    if (mode == 1) { // STEM
         ui->lblStemXHeader->setVisible(true);
         ui->lblStemYHeader->setVisible(true);
         ui->lblStemScaleX->setVisible(true);
@@ -129,11 +129,42 @@ void AreaLayoutFrame::areasChanged() {
         ui->lblStemScaleY->setVisible(false);
     }
 
-    double realScale = SimManager->realScale();
-    double freqScale = SimManager->inverseScale();
-    double freqMax = SimManager->inverseMax();
-    double angleScale = SimManager->inverseScaleAngle();
-    double angleMax = SimManager->inverseMaxAngle();
+    // Note that I cant call methods of manager here because the values may not have been set yet.
+    // I should maybe move these to their own functions that everything accesses though?
+
+    double realScale = 0.0f;
+
+    // assuming padding is the same in x and y
+    auto pd = SimManager->simulationCell()->paddingX();
+    auto pd_range = std::abs(pd[1]) + std::abs(pd[0]);
+
+    if (mode == 0) { // CTEM
+        auto sa = CtemFrame->getSimArea(); // this is just the user set area, no padding etc
+        auto xlims = sa.getCorrectedLimitsX();
+        auto range = xlims[1] - xlims[0];
+        realScale = (range + pd_range) / SimManager->resolution();
+    }
+    else if (mode == 1) { // STEM
+        auto stema = StemFrame->stemArea();
+        auto xlims = stema.getCorrectedLimitsX();
+        auto range = xlims[1] - xlims[0]; // x lims should be the same as y
+        realScale = (range + pd_range) / SimManager->resolution();
+
+        ui->lblStemScaleX->setText(Utils_Qt::numToQString(stema.getScaleX()) + " Å");
+        ui->lblStemScaleY->setText(Utils_Qt::numToQString(stema.getScaleY()) + " Å");
+    }
+    else if (mode == 2) { // CBED
+        auto pos = CbedFrame->getCbedPos();
+        auto sa = pos.getSimArea();
+        auto xlims = sa.getCorrectedLimitsX();
+        auto range = xlims[1] - xlims[0]; // x lims should be the same as y
+        realScale = (range + pd_range) / SimManager->resolution();
+    }
+
+    double freqScale = 1.0 / (realScale  * SimManager->resolution());
+    double freqMax = 0.5 * freqScale * SimManager->resolution() * SimManager->inverseLimitFactor();
+    double angleScale = freqScale * SimManager->microscopeParams()->Wavelength() * 1000.0;
+    double angleMax = freqMax * SimManager->microscopeParams()->Wavelength() * 1000.0;
 
     ui->lblRealScale->setText(Utils_Qt::numToQString(realScale) + " Å");
     ui->lblFreqScale->setText(Utils_Qt::numToQString(freqScale) + " Å<sup>-1</sup>");
