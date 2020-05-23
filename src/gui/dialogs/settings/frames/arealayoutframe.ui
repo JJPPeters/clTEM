@@ -272,7 +272,7 @@
        <item row="1" column="2">
         <widget class="QLabel" name="label_11">
          <property name="text">
-          <string>Slice output count</string>
+          <string>Slice output step</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -813,15 +813,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>EditUnitsBox</class>
-   <extends>QLineEdit</extends>
-   <header>controls/editunitsbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>
    <header>controls/tabpanel.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

@@ -62,8 +62,8 @@ public:
     std::valarray<double> paddedStructLimitsZ() { return crystal_structure->limitsZ() + paddingZ(); }
 
     // setters
-    void setSliceThickness(bool thickness) {slice_thickness = thickness;}
-    void setSliceOffset(bool offset) {slice_offset = offset;}
+    void setSliceThickness(double thickness) {slice_thickness = thickness;}
+    void setSliceOffset(double offset) {slice_offset = offset;}
 
     void setDefaultPaddingXY(const std::valarray<double> &pd_xy);
     void setDefaultPaddingZ(const std::valarray<double> &pd_z);
