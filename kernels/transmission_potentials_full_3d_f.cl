@@ -52,6 +52,8 @@
 /// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define recip(x) (1.0f / (x))
+
 float kirkland(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
     float suml, sumg, x;

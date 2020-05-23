@@ -47,13 +47,13 @@ OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice>& current_devices
     bool no_signed = settings.value("no_signed").toBool();
     bool unsafe_maths = settings.value("unsafe_maths").toBool();
     bool finite_maths = settings.value("finite_maths").toBool();
-//    bool native_maths = settings.value("").toBool();
+    bool native_maths = settings.value("native_maths").toBool();
 
     ui->chkMad->setChecked(mad);
     ui->chkSignedZero->setChecked(no_signed);
     ui->chkUnsafeMaths->setChecked(unsafe_maths);
     ui->chkFiniteMaths->setChecked(finite_maths);
-//    ui->chkNativeFuncs->setChecked();
+    ui->chkNativeFuncs->setChecked(native_maths);
 }
 
 OpenClFrame::~OpenClFrame()
@@ -233,7 +233,7 @@ void OpenClFrame::dlgApply_clicked()
     bool finite_maths = ui->chkFiniteMaths->isChecked();
     bool native_maths = ui->chkNativeFuncs->isChecked();
 
-    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths);
+    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths, native_maths);
 
     // remove all current device entries in the settings and reset them
     QSettings settings;
@@ -243,7 +243,7 @@ void OpenClFrame::dlgApply_clicked()
     settings.setValue("opencl/opts/no_signed", no_signed);
     settings.setValue("opencl/opts/unsafe_maths", unsafe_maths);
     settings.setValue("opencl/opts/finite_maths", finite_maths);
-//    settings.setValue("opencl/opts/native_maths", native_maths);
+    settings.setValue("opencl/opts/native_maths", native_maths);
 
     int counter = 0;
     for (auto& dev : chosenDevs)

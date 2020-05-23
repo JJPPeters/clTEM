@@ -37,3 +37,8 @@ QTableWidget#tblDevices
 {
 	min-width: 36em;
 }
+
+QMessageBox
+{
+    min-width: 100em;
+}

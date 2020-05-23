@@ -45,6 +45,9 @@ namespace Utils
     void readParams(std::string full_directory, std::string file_name);
 
     void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io);
+
+    // https://stackoverflow.com/a/3418285
+    void replace(std::string& str, const std::string& from, const std::string& to);
 }
 
 #endif // STRINGUTILS_H

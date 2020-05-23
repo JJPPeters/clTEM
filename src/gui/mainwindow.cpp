@@ -554,8 +554,9 @@ void MainWindow::loadSavedOpenClSettings()
     bool no_signed = settings.value("opts/no_signed").toBool();
     bool unsafe_maths = settings.value("opts/unsafe_maths").toBool();
     bool finite_maths = settings.value("opts/finite_maths").toBool();
+    bool native_maths = settings.value("opts/native_maths").toBool();
 
-    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths);
+    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths, native_maths);
 
     QStringList devs = settings.childGroups();
     std::vector<clDevice> dev_list;

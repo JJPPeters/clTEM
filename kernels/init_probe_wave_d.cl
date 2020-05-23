@@ -107,8 +107,8 @@ __kernel void init_probe_wave_d( __global double2* output,
             if (fabs(k-cond_ap2) < ap_smooth_radius)
                 edge_factor = 1.0f - smoothstep(cond_ap2 - ap_smooth_radius, cond_ap2 + ap_smooth_radius, k);
 
-			output[id].x = cos(posTerm - chi);
-            output[id].y = sin(posTerm - chi);
+			output[id].x = native_cos(posTerm - chi);
+            output[id].y = native_sin(posTerm - chi);
 		}
 		else
 		{

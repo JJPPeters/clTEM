@@ -23,6 +23,8 @@
 /// n_slices - number of slices
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define recip(x) (1.0 / (x))
+
 __kernel void atom_sort_d( __global const double* x_input,
 						  __global const double* y_input,
 						  __global const double* z_input,

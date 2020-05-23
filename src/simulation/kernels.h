@@ -16,6 +16,7 @@
 #include <mutex>
 #include "clwrapper/clwrapper.h"
 #include <regex>
+#include "utilities/stringutils.h"
 
 /// A simple class to hold the kernels that should be loaded at the start of program execution
 class KernelSource {
@@ -35,10 +36,18 @@ public:
 
     clKernel BuildToKernel(clContext ctx) {
         std::lock_guard<std::mutex> lck(mtx);
-        return clKernel(ctx, source, name, num_args, cl_opts);
+
+        std::string kernel_string = source;
+        if (!use_native_funcs)
+            Utils::replace(kernel_string, "native_", "");
+
+        return clKernel(ctx, kernel_string, name, num_args, cl_opts);
     }
 
-    static void setOptions(bool mad, bool no_signed_0, bool unsafe_math, bool finite_math) {
+    static void setOptions(bool mad, bool no_signed_0, bool unsafe_math, bool finite_math, bool use_native) {
+        // this one is just set
+        use_native_funcs = use_native;
+
         std::string opt_string = "";
 
         if (mad)
@@ -65,6 +74,7 @@ private:
     std::string source;
     std::string name;
     unsigned int num_args;
+    static bool use_native_funcs;
 
     static std::string cl_opts;
 

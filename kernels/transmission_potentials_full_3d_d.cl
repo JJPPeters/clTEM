@@ -52,6 +52,8 @@
 /// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define recip(x) (1.0 / (x))
+
 double kirkland(__constant double* params, int i_lim, int ZNum, double rad) {
     int i;
     double suml, sumg, x;
@@ -276,7 +278,7 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 		}
 	}
 	if(xid < width && yid < height) {
-		potential[id].x = cos((dz * int_r) * sigma * sumz);
-		potential[id].y = sin((dz * int_r) * sigma * sumz);
+		potential[id].x = native_cos((dz * int_r) * sigma * sumz);
+		potential[id].y = native_sin((dz * int_r) * sigma * sumz);
 	}
 }

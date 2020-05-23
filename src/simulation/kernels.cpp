@@ -1,6 +1,7 @@
 # include "kernels.h"
 
 std::string KernelSource::cl_opts = "";
+bool KernelSource::use_native_funcs = false;
 
 KernelSource Kernels::atom_sort_f;
 KernelSource Kernels::band_limit_f;

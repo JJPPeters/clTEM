@@ -54,11 +54,20 @@
 /// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define recip(x) (1.0 / (x))
+
+__constant double i0a[7] = {1.0, 3.5156229, 3.0899424, 1.2067492, 0.2659732, 0.0360768, 0.0045813};
+__constant double i0b[9] = {0.39894228, 0.01328592, 0.00225319, -0.00157565, 0.00916281, -0.02057706, 0.02635537, -0.01647633, 0.00392377};
+__constant double i1a[7] = {0.5, 0.87890594, 0.51498869, 0.15084934, 0.02658733, 0.00301532, 0.00032411};
+__constant double i1b[9] = {0.39894228, -0.03988024, -0.00362018, 0.00163801, -0.01031555, 0.02282967, -0.02895312, 0.01787654, 0.00420059};
+__constant double k0a[7] = {-0.57721566, 0.42278420, 0.23069756, 0.03488590, 0.00262698, 0.00010750, 0.00000740};
+__constant double k0b[7] = {1.25331414, -0.07832358, 0.02189568, -0.01062446, 0.00587872, -0.00251540, 0.00053208};
+__constant double k1a[7] = {1.0, 0.15443144, -0.67278579, -0.18156897, -0.01919402, -0.00110404, -0.00004686};
+__constant double k1b[7] = {1.25331414, 0.23498619, -0.03655620, 0.01504268, -0.00780353, 0.00325614, -0.00068245};
+
 double bessi0(double x) {
 	int i;
 	double ax, x2, sum;
-	double i0a[] = {1.0, 3.5156229, 3.0899424, 1.2067492, 0.2659732, 0.0360768, 0.0045813};
-	double i0b[] = {0.39894228, 0.01328592, 0.00225319, -0.00157565, 0.00916281, -0.02057706, 0.02635537, -0.01647633, 0.00392377};
 
 	ax = fabs(x);
 
@@ -82,8 +91,6 @@ double bessi0(double x) {
 double bessi1(double x) {
     int i;
     double ax, x2, sum;
-    double i1a[] = {0.5, 0.87890594, 0.51498869, 0.15084934, 0.02658733, 0.00301532, 0.00032411};
-    double i1b[] = {0.39894228, -0.03988024, -0.00362018, 0.00163801, -0.01031555, 0.02282967, -0.02895312, 0.01787654, 0.00420059};
 
     ax = fabs(x);
 
@@ -108,8 +115,6 @@ double bessi1(double x) {
 double bessk0(double x) {
 	int i;
 	double ax, x2, sum;
-	double k0a[] = {-0.57721566, 0.42278420, 0.23069756, 0.03488590, 0.00262698, 0.00010750, 0.00000740};
-	double k0b[] = {1.25331414, -0.07832358, 0.02189568, -0.01062446, 0.00587872, -0.00251540, 0.00053208};
 
 	ax = fabs(x);
 
@@ -119,7 +124,7 @@ double bessk0(double x) {
 		sum = k0a[6];
 		for(i = 5; i >= 0; --i)
 			sum = sum*x2 + k0a[i];
-		sum = -log(ax/2.0) * bessi0(x) + sum;
+		sum = -native_log(ax/2.0) * bessi0(x) + sum;
 	} else if(ax > 2.0) {
 		x2 = 2.0/ax;
 		sum = k0b[6];
@@ -135,8 +140,6 @@ double bessk0(double x) {
 double bessk1(double x) {
     int i;
     double ax, x2, sum;
-    double k1a[] = {1.0, 0.15443144, -0.67278579, -0.18156897, -0.01919402, -0.00110404, -0.00004686};
-    double k1b[] = {1.25331414, 0.23498619, -0.03655620, 0.01504268, -0.00780353, 0.00325614, -0.00068245};
 
     ax = fabs(x);
 
@@ -146,7 +149,7 @@ double bessk1(double x) {
         sum = k1a[6];
         for(i = 5; i >= 0; --i)
             sum = sum*x2 + k1a[i];
-        sum = log(ax/2.0) * bessi1(x) + sum / ax;
+        sum = native_log(ax/2.0) * bessi1(x) + sum / ax;
     } else if( ax > 2.0 ) {
         x2 = 2.0/ax;
         sum = k1b[6];
@@ -336,7 +339,7 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
                 double rad_y = im_pos_y - aty[l];
 
                 //double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
-                double cos_beam_phi = cos(beam_phi);
+                double cos_beam_phi = native_cos(beam_phi);
                 double sin_beam_phi = native_sin(beam_phi);
                 double sin_beam_2theta = native_sin(2.0 * beam_theta);
 
@@ -368,7 +371,7 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 	}
 
 	if(xid < width && yid < height) {
-		potential[id].x = cos(sigma*sumz);
-		potential[id].y = sin(sigma*sumz);
+		potential[id].x = native_cos(sigma*sumz);
+		potential[id].y = native_sin(sigma*sumz);
 	}
 }
