@@ -17,19 +17,20 @@ public:
 
     ~IncoherenceFrame();
 
-//    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
+    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
-//    void updateAberrations();
 
 //private slots:
 //    void checkEditZero(QString dud);
 
-//    void on_btnMore_clicked();
+public slots:
+    void updateTemTextBoxes();
+    void updateTextBoxes() {updateTemTextBoxes();}
 
-//    void on_edtVoltage_textChanged(const QString &arg1);
+    void updateTemManager();
+    void updateManager() {updateTemManager();}
 
-//public slots:
-//    void updateTextBoxes();
+
 
 private:
     Ui::IncoherenceFrame *ui;

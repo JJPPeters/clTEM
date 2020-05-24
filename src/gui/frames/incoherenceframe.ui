@@ -145,7 +145,7 @@
     </spacer>
    </item>
    <item row="2" column="6">
-    <widget class="EditUnitsBox" name="edtAperture_2">
+    <widget class="EditUnitsBox" name="edtSourceSpread">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -177,36 +177,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="EditUnitsBox" name="edtBeamTilt">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="EditUnitsBox" name="edtBeamAzimuth">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
    <item row="1" column="3" colspan="2">
     <widget class="Line" name="line">
      <property name="orientation">
@@ -231,7 +201,7 @@
     </widget>
    </item>
    <item row="2" column="4">
-    <widget class="EditUnitsBox" name="edtAperture">
+    <widget class="EditUnitsBox" name="edtCc">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -263,7 +233,7 @@
     </spacer>
    </item>
    <item row="2" column="2">
-    <widget class="EditUnitsBox" name="edtVoltage">
+    <widget class="EditUnitsBox" name="edtDelta">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -291,7 +261,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="chkChromatic">
        <property name="text">
         <string/>
        </property>
@@ -350,7 +320,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox_2">
+      <widget class="QCheckBox" name="chkSourceSize">
        <property name="text">
         <string/>
        </property>
@@ -396,7 +366,7 @@
    <item row="3" column="4">
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="EditUnitsBox" name="edtBeamTilt_2">
+      <widget class="EditUnitsBox" name="edtDeMinus">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -409,7 +379,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EditUnitsBox" name="edtBeamAzimuth_2">
+      <widget class="EditUnitsBox" name="edtDePlus">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -423,6 +393,19 @@
      </item>
     </layout>
    </item>
+   <item row="3" column="2">
+    <widget class="EditUnitsBox" name="edtAlpha">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -432,10 +415,6 @@
    <header>controls/editunitsbox.h</header>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>edtBeamTilt</tabstop>
-  <tabstop>edtBeamAzimuth</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>

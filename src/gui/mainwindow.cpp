@@ -68,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->twReal->addTab(Img, QString::fromStdString(Img->getTabName()));
     ui->twReal->addTab(EwAmp, QString::fromStdString(EwAmp->getTabName()));
-
     ui->twReal->addTab(Diff, QString::fromStdString(Diff->getTabName()));
 
     // this is required so the frame and then dialog can access the current aberrations at any time
@@ -79,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tMicroscope->assignMainWindow(this);
     ui->tAberr->assignMainWindow(this);
     ui->tInelastic->assignMainWindow(this);
-//    ui->tIncoherent->assignMainWindow(this);
+    ui->tIncoherence->assignMainWindow(this);
 
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
@@ -94,6 +93,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::sliceProgressUpdated, this, &MainWindow::sliceProgressChanged);
     connect(this, &MainWindow::totalProgressUpdated, this, &MainWindow::totalProgressChanged);
     connect(this, &MainWindow::imagesReturned, this, &MainWindow::imagesChanged);
+
+    connect(ui->edtIterations, &QLineEdit::textChanged, this, &MainWindow::checkEditZero);
 
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j) {
@@ -691,7 +692,7 @@ CbedFrame *MainWindow::getCbedFrame() {return ui->tCbed;}
 void MainWindow::updateAberrationBoxes() {
     ui->tAberr->updateTextBoxes();
     ui->tMicroscope->updateTextBoxes();
-//    ui->tIncoherent
+    ui->tIncoherence->updateTemTextBoxes();
 }
 
 void MainWindow::set_ctem_crop(bool state) {
@@ -865,13 +866,15 @@ void MainWindow::on_actionExport_parameters_triggered() {
 }
 
 void MainWindow::updateManagerFromGui() {
-    // things to do:
-    // CBED position is set when it is changed...
-    // Aberrations
-    // CBED/STEM TDS
-    // CTEM CCD stuff
+    // update incoherent/inelastic iterations
+    unsigned int its = ui->edtIterations->text().toUInt();
+    Manager->inelasticScattering()->setIterations(its);
+
+    ui->tMicroscope->updateManagerFromGui();
 
     ui->tInelastic->updateManager();
+
+    ui->tIncoherence->updateManager();
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -885,6 +888,9 @@ void MainWindow::updateManagerFromGui() {
 }
 
 void MainWindow::updateGuiFromManager() {
+    // update the iterations textbox
+    ui->edtIterations->setText(QString::number(Manager->inelasticScattering()->storedIterations()));
+
     // set aberrations frame
     // set microscope frame
     // set inelastic frame
@@ -898,6 +904,8 @@ void MainWindow::updateGuiFromManager() {
 
     // set inelastic frame parameters
     ui->tInelastic->updateGui();
+
+    ui->tIncoherence->updateTextBoxes();
 
     // set CTEM CCD stuff
     ui->tTem->update_ccd_boxes(Manager);

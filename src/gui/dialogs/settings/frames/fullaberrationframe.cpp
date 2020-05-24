@@ -22,8 +22,6 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
 
     connect(ui->edtConAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtObjAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
-    connect(ui->edtDefocusSpread, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
-    connect(ui->edtConverge, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtVoltage, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
 
     setValidators();

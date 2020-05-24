@@ -19,7 +19,7 @@ public:
 
     void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
-    void updateMicroscope();
+    void updateManagerFromGui();
 
 private slots:
     void checkEditZero(QString dud);

@@ -77,7 +77,7 @@ void SourceFrame::on_btnMore_clicked()
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
 
-    updateMicroscope(); // here we update the current aberrations from the text boxes here so the dialog can show the same
+    updateManagerFromGui(); // here we update the current aberrations from the text boxes here so the dialog can show the same
 
     AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
 
@@ -106,7 +106,7 @@ void SourceFrame::updateTextBoxes()
     ui->edtBeamAzimuth->setText(Utils_Qt::numToQString((180 / Constants::Pi) * p->BeamAzimuth)); // degrees
 }
 
-void SourceFrame::updateMicroscope()
+void SourceFrame::updateManagerFromGui()
 {
     // here we upload the textbox vales to the MicroscopeParameters class
     // designed to only really be called before it matters, not after every edit...

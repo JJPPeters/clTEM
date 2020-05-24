@@ -14,9 +14,12 @@ IncoherenceFrame::IncoherenceFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    auto pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 //    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
-//
+
+    ui->edtDelta->setValidator(pValidator);
+    ui->edtAlpha->setValidator(pValidator);
+
 //    ui->edtDefocus->setValidator(pmValidator);
 //    ui->edtSphere->setValidator(pmValidator);
 //    ui->edtStigMag->setValidator(pmValidator);
@@ -29,7 +32,10 @@ IncoherenceFrame::IncoherenceFrame(QWidget *parent) :
 //
 //    ui->edtBeamTilt->setValidator(pmValidator);
 //    ui->edtBeamAzimuth->setValidator(pmValidator);
-//
+
+    ui->edtDelta->setUnits("nm");
+    ui->edtAlpha->setUnits("mrad");
+
 //    ui->edtDefocus->setUnits("nm");
 //    ui->edtSphere->setUnits("μm");
 //    ui->edtStigMag->setUnits("nm");
@@ -56,6 +62,19 @@ IncoherenceFrame::~IncoherenceFrame()
     delete ui;
 }
 
+void IncoherenceFrame::updateTemTextBoxes() {
+    ui->edtDelta->setText(QString::number(Main->Manager->microscopeParams()->Delta / 10.0)); // to nm
+    ui->edtAlpha->setText(QString::number(Main->Manager->microscopeParams()->Alpha )); // mrad
+}
+
+void IncoherenceFrame::updateTemManager() {
+    double delta = ui->edtDelta->text().toDouble();
+    double alpha = ui->edtAlpha->text().toDouble();
+
+    Main->Manager->microscopeParams()->Delta = delta * 10; // nm to A
+    Main->Manager->microscopeParams()->Alpha = alpha; // rad
+}
+
 //void IncoherenceFrame::checkEditZero(QString dud)
 //{
 //    (void)dud; // we don't use this
@@ -72,22 +91,6 @@ IncoherenceFrame::~IncoherenceFrame()
 //        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
 //    else
 //        edt->setStyleSheet("");
-//}
-
-//void IncoherenceFrame::on_btnMore_clicked()
-//{
-//    if (Main == nullptr)
-//        throw std::runtime_error("Error connecting aberration frame to main window.");
-//
-//    updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
-//
-//    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
-//
-//    // how this is dosconnected when the dialog is destroyed...
-//    connect(myDialog, &AberrationsDialog::appliedSignal, this, &IncoherenceFrame::updateTextBoxes);
-//
-//    // we don't need to try and get anything from this dialog as it just updates the pointers we gave it!
-//    myDialog->exec();
 //}
 
 //void IncoherenceFrame::updateTextBoxes()

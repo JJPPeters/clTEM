@@ -8,6 +8,7 @@
 #include <frames/cbedframe.h>
 #include <controls/flattitlebar.h>
 #include <controls/borderlesswindow.h>
+#include <controls/editunitsbox.h>
 
 #include "simulationmanager.h"
 #include "simulationthread.h"
@@ -116,6 +117,23 @@ private slots:
     void saveTiff(bool full_stack);
 
     void saveBmp(bool full_stack);
+
+    void checkEditZero(QString dud)
+    {
+        (void)dud; // make it explicit that this is not used
+
+        auto * edt = dynamic_cast<EditUnitsBox*>(sender());
+
+        if(edt == nullptr)
+            return;
+
+        double val = edt->text().toDouble();
+
+        if (val <= 0)
+            edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
+        else
+            edt->setStyleSheet("");
+    }
 
 private:
     FlatTitleBar *m_title;
