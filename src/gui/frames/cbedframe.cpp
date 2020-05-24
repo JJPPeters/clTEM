@@ -11,16 +11,16 @@ CbedFrame::CbedFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QScreen* primary_screen = QGuiApplication::primaryScreen();
-    double pixel_ratio = primary_screen->devicePixelRatio();
+//    QScreen* primary_screen = QGuiApplication::primaryScreen();
+//    double pixel_ratio = primary_screen->devicePixelRatio();
 
-    int col1 = 75  / pixel_ratio;
+//    int col1 = 75  / pixel_ratio;
 //    int col2 = 100 / pixel_ratio;
 //    int col3 = 100 / pixel_ratio;
 
-    auto test = dynamic_cast<QGridLayout*>(this->layout());
+//    auto test = dynamic_cast<QGridLayout*>(this->layout());
 
-    test->setColumnMinimumWidth(0, col1);
+//    test->setColumnMinimumWidth(0, col1);
 //    test->setColumnMinimumWidth(1, col2);
 //    test->setColumnMinimumWidth(2, col3);
 
@@ -72,7 +72,7 @@ void CbedFrame::on_btnSim_clicked()
 
 void CbedFrame::setActive(bool active)
 {
-    ui->btnSim->setEnabled(active);
+//    ui->btnSim->setEnabled(active);
 }
 
 void CbedFrame::on_btnCancel_clicked()

@@ -4,6 +4,8 @@
 #include <QtWidgets>
 #include <QTabWidget>
 
+#include "tabpanelbar.h"
+
 // Class that implements a tabwidget without the tabbar section
 // I mainly use this because I want the background colour the tab pane uses.
 class tabPanel : public QTabWidget
@@ -12,6 +14,8 @@ class tabPanel : public QTabWidget
 
 public:
     explicit tabPanel(QWidget *parent = 0);
+
+    void setPreserveHeightEnabled(bool enable) { dynamic_cast<tabPanelBar*>(tabBar())->setPreserveHeightEnabled(enable); }
 
 signals:
 

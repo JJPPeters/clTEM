@@ -21,6 +21,7 @@
 
 #include <variant>
 #include <frames/inelasticframe.h>
+#include <controls/tabpanel.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
@@ -52,13 +53,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle("clTEM");
 
+    dynamic_cast<tabPanel*>(ui->twSim)->setPreserveHeightEnabled(true);
+
     // this just makes it look nice without fannying about with widgets and all that
     int w = width();
     resize(w, w*0.66);
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
-    ImageTab* Diff = new ImageTab(ui->twRecip, "Diffraction", TabType::DIFF);
+    ImageTab* Diff = new ImageTab(ui->twReal, "Diffraction", TabType::DIFF);
 
     StatusBar = new StatusLayout();
 
@@ -67,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->twReal->addTab(Img, QString::fromStdString(Img->getTabName()));
     ui->twReal->addTab(EwAmp, QString::fromStdString(EwAmp->getTabName()));
 
-    ui->twRecip->addTab(Diff, QString::fromStdString(Diff->getTabName()));
+    ui->twReal->addTab(Diff, QString::fromStdString(Diff->getTabName()));
 
     // this is required so the frame and then dialog can access the current aberrations at any time
     // could be avoided but I've used Qt designer with the .ui files and so on
@@ -97,12 +100,6 @@ MainWindow::MainWindow(QWidget *parent) :
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j) {
         auto *tab = (ImageTab *) ui->twReal->widget(j);
-        connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
-        connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
-    }
-    n = ui->twRecip->count();
-    for (int j = 0; j < n; ++j) {
-        auto *tab = (ImageTab *) ui->twRecip->widget(j);
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
@@ -482,10 +479,10 @@ void MainWindow::imagesChanged(SimulationManager sm)
         }
         else if (name == "Diff")
         {
-            int n = ui->twRecip->count();
+            int n = ui->twReal->count();
             for (int j = 0; j < n; ++j)
             {
-                ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
+                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Diffraction") {
                     auto settings = original_settings;
                     settings["microscope"].erase("aberrations");

@@ -75,6 +75,7 @@ set ( clTEM_SRCS
         frames/aberrationframe.cpp
         frames/inelasticframe.cpp
         frames/sourceframe.cpp
+        frames/incoherenceframe.cpp
         #
         dialogs/settings/settingsdialog.cpp
         dialogs/settings/frames/openclframe.cpp
@@ -106,6 +107,7 @@ set ( clTEM_UIS
         frames/aberrationframe.ui
         frames/inelasticframe.ui
         frames/sourceframe.ui
+        frames/incoherenceframe.ui
         #
         controls/imagetab.ui
         controls/statuslayout.ui
