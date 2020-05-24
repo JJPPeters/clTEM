@@ -23,7 +23,8 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     use_full_3d = false;
 
     // I'm really assuming the rest of the aberrations are default 0
-    micro_params->Aperture = 20;
+    micro_params->CondenserAperture = 20;
+    micro_params->ObjectiveAperture = 100;
     micro_params->Voltage = 200;
     micro_params->Delta = 30;
     micro_params->Alpha = 0.3;

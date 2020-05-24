@@ -20,7 +20,8 @@ FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<Micros
 
     MicroParams = std::move(params);
 
-    connect(ui->edtAperture, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtConAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtObjAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtDefocusSpread, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtConverge, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtVoltage, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
@@ -41,14 +42,17 @@ void FullAberrationFrame::setValidators()
     QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtVoltage->setValidator(pValidator);
-    ui->edtAperture->setValidator(pValidator);
     ui->edtDefocusSpread->setValidator(pValidator);
     ui->edtConverge->setValidator(pValidator);
 
     ui->edtBeamTilt->setValidator(pmValidator);
     ui->edtBeamAzimuth->setValidator(pmValidator);
 
-    ui->edtApertureSmooth->setValidator(pValidator);
+    ui->edtConAp->setValidator(pValidator);
+    ui->edtConApSmooth->setValidator(pValidator);
+
+    ui->edtObjAp->setValidator(pValidator);
+    ui->edtObjApSmooth->setValidator(pValidator);
 
     ui->edtC10->setValidator(pmValidator);
     ui->edtC12Mag->setValidator(pmValidator);
@@ -85,13 +89,18 @@ void FullAberrationFrame::setValues()
 {
     // this is fun, right?
     ui->edtVoltage->setText(Utils_Qt::numToQString(MicroParams->Voltage)); // kV
-    ui->edtAperture->setText(Utils_Qt::numToQString(MicroParams->Aperture)); // mrad
+
+    ui->edtConAp->setText(Utils_Qt::numToQString(MicroParams->CondenserAperture)); // mrad
+    ui->edtConApSmooth->setText(Utils_Qt::numToQString(MicroParams->CondenserApertureSmoothing)); // mrad
+
+    ui->edtObjAp->setText(Utils_Qt::numToQString(MicroParams->ObjectiveAperture)); // mrad
+    ui->edtObjApSmooth->setText(Utils_Qt::numToQString(MicroParams->ObjectiveApertureSmoothing)); // mrad
+
     ui->edtDefocusSpread->setText(Utils_Qt::numToQString(MicroParams->Delta / 10)); // nm
     ui->edtConverge->setText(Utils_Qt::numToQString(MicroParams->Alpha)); // mrad
 
     ui->edtBeamTilt->setText(Utils_Qt::numToQString(MicroParams->BeamTilt)); // mrad
     ui->edtBeamAzimuth->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->BeamAzimuth)); // mrad
-    ui->edtApertureSmooth->setText(Utils_Qt::numToQString(MicroParams->ApertureSmoothing)); // mrad
 
     ui->edtC10->setText(Utils_Qt::numToQString(MicroParams->C10 / 10)); // nm
     ui->edtC12Mag->setText(Utils_Qt::numToQString(MicroParams->C12.Mag / 10)); // nm
@@ -170,12 +179,16 @@ bool FullAberrationFrame::dlgApply_clicked()
 
     double voltage = ui->edtVoltage->text().toDouble();
     double dfSpread = ui->edtDefocusSpread->text().toDouble() * 10;
-    double apert = ui->edtAperture->text().toDouble();
     double converge = ui->edtConverge->text().toDouble();
+
+    double con_ap = ui->edtConAp->text().toDouble();
+    double con_ap_sig = ui->edtConApSmooth->text().toDouble();
+
+    double obj_ap = ui->edtObjAp->text().toDouble();
+    double obj_ap_sig = ui->edtObjApSmooth->text().toDouble();
 
     double beam_tilt = ui->edtBeamTilt->text().toDouble();
     double beam_azimuth = ui->edtBeamAzimuth->text().toDouble() * Constants::Pi / 180;
-    double apert_smooth = ui->edtApertureSmooth->text().toDouble();
 
     double C10 = ui->edtC10->text().toDouble() * 10;
     double C12m = ui->edtC12Mag->text().toDouble() * 10;
@@ -210,13 +223,17 @@ bool FullAberrationFrame::dlgApply_clicked()
     // now we have all the data, assign it to our class storing everything
 
     MicroParams->Voltage = voltage;
-    MicroParams->Aperture = apert;
+    MicroParams->CondenserAperture = con_ap;
+    MicroParams->CondenserApertureSmoothing = con_ap_sig;
+
+    MicroParams->ObjectiveAperture = obj_ap;
+    MicroParams->ObjectiveApertureSmoothing = obj_ap_sig;
+
     MicroParams->Delta = dfSpread;
     MicroParams->Alpha = converge;
 
     MicroParams->BeamTilt = beam_tilt;
     MicroParams->BeamAzimuth = beam_azimuth;
-    MicroParams->ApertureSmoothing = apert_smooth;
 
     MicroParams->C10 = C10;
     MicroParams->C12 = ComplexAberration(C12m, C12a);
@@ -244,14 +261,17 @@ bool FullAberrationFrame::dlgApply_clicked()
 
 void FullAberrationFrame::setUnits() {
     ui->edtVoltage->setUnits("kV");
-    ui->edtAperture->setUnits("mrad");
     ui->edtDefocusSpread->setUnits("nm");
     ui->edtConverge->setUnits("mrad");
 
     ui->edtBeamTilt->setUnits("mrad");
     ui->edtBeamAzimuth->setUnits("°");
 
-    ui->edtApertureSmooth->setUnits("mrad");
+    ui->edtConAp->setUnits("mrad");
+    ui->edtConApSmooth->setUnits("mrad");
+
+    ui->edtObjAp->setUnits("mrad");
+    ui->edtObjApSmooth->setUnits("mrad");
 
     ui->edtC10->setUnits("nm");
     ui->edtC12Mag->setUnits("nm");

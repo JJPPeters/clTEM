@@ -73,12 +73,20 @@ namespace JSONUtils {
         try { mp->Voltage = readJsonEntry<double>(j, "microscope", "voltage", "val");
         } catch (std::exception& e) {}
 
-        try { mp->Aperture = readJsonEntry<double>(j, "microscope", "aperture", "val");
+        // apertures
+        try { mp->CondenserAperture = readJsonEntry<double>(j, "microscope", "condenser aperture", "semi-angle");
         } catch (std::exception& e) {}
 
-        try { mp->ApertureSmoothing = readJsonEntry<double>(j, "microscope", "aperture smooth radius", "val");
+        try { mp->CondenserApertureSmoothing = readJsonEntry<double>(j, "microscope", "condenser aperture", "smoothing");
         } catch (std::exception& e) {}
 
+        try { mp->ObjectiveAperture = readJsonEntry<double>(j, "microscope", "objective aperture", "semi-angle");
+        } catch (std::exception& e) {}
+
+        try { mp->ObjectiveApertureSmoothing = readJsonEntry<double>(j, "microscope", "objective aperture", "smoothing");
+        } catch (std::exception& e) {}
+
+        //
         try { mp->BeamTilt = readJsonEntry<double>(j, "microscope", "beam tilt", "inclination", "val");
         } catch (std::exception& e) {}
 
@@ -428,14 +436,17 @@ namespace JSONUtils {
         // TODO: check which parameters are relevant to which modes
         // TODO: get whether CTEM is image, EW or diff...
 
-        // apert
-        j["microscope"]["aperture"]["val"] = mp->Aperture;
-        j["microscope"]["aperture"]["units"] = "mrad";
+        // apertures
+        if (mode == SimulationMode::CTEM || force_all) {
+            j["microscope"]["objective aperture"]["semi-angle"] = mp->ObjectiveAperture;
+            j["microscope"]["objective aperture"]["smoothing"] =  mp->ObjectiveApertureSmoothing;
+            j["microscope"]["objective aperture"]["units"] = "mrad";
+        }
 
         if (mode != SimulationMode::CTEM || force_all) {
-            // alpha
-            j["microscope"]["aperture smooth radius"]["val"] = mp->ApertureSmoothing;
-            j["microscope"]["aperture smooth radius"]["units"] = "mrad";
+            j["microscope"]["condenser aperture"]["semi-angle"] = mp->CondenserAperture;
+            j["microscope"]["condenser aperture"]["smoothing"] = mp->CondenserApertureSmoothing;
+            j["microscope"]["condenser aperture"]["units"] = "mrad";
         }
 
         j["microscope"]["beam tilt"]["inclination"]["val"] = mp->BeamTilt;

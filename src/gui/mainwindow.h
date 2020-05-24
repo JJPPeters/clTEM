@@ -55,6 +55,8 @@ public:
     StemFrame* getStemFrame();
     CbedFrame* getCbedFrame();
 
+    void updateAberrationBoxes();
+
 public slots:
     void updateScales();
 

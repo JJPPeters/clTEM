@@ -158,8 +158,11 @@ struct ComplexAberration {
 };
 
 struct MicroscopeParameters {
-    MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), ApertureSmoothing(0.0f), Alpha(1.0f), Delta(1.0f),
-                             BeamTilt(0.0), BeamAzimuth(0.0) {}
+    MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f),
+                             CondenserAperture(1.0f), CondenserApertureSmoothing(0.0f),
+                             ObjectiveAperture(1.0f), ObjectiveApertureSmoothing(0.0f),
+                             Alpha(1.0f), Delta(1.0f), BeamTilt(0.0), BeamAzimuth(0.0)
+                             {}
 
     // Defocus
     double C10;
@@ -192,11 +195,15 @@ struct MicroscopeParameters {
 
     // Voltage (kV) == (kg m^2 C^-1 s^-2)
     double Voltage;
-    // TEM: Objective aperture radius (mrad)
     // STEM: Condenser aperture radius (mrad)
-    double Aperture;
+    double CondenserAperture;
     // Aperture smoothing radius (mrad)
-    double ApertureSmoothing;
+    double CondenserApertureSmoothing;
+
+    // TEM: Objective aperture radius (mrad)
+    double ObjectiveAperture;
+    // Aperture smoothing radius (mrad)
+    double ObjectiveApertureSmoothing;
 
     // Beam tilt inclination (mrad)
     double BeamTilt;

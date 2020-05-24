@@ -149,12 +149,3 @@ void AberrationFrame::updateAberrations()
 //    params->BeamTilt = beam_tilt;
 //    params->BeamAzimuth = beam_azimuth;
 }
-
-void AberrationFrame::on_edtVoltage_textChanged(const QString &arg1) {
-    // this slot is used to update the other panels for the mrad scale change
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting aberration frame to main window.");
-
-//    double volt = ui->edtVoltage->text().toDouble();
-//    Main->updateVoltageMrad( volt );
-}

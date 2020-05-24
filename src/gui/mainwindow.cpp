@@ -16,7 +16,6 @@
 #include <ccdparams.h>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
-#include <frames/aberrationframe.h>
 #include <cif/supercell.h>
 
 #include <variant>
@@ -74,11 +73,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // this is required so the frame and then dialog can access the current aberrations at any time
     // could be avoided but I've used Qt designer with the .ui files and so on
-    ui->tAberr->assignMainWindow(this);
+
     ui->tSim->assignMainWindow(this);
+
+    ui->tMicroscope->assignMainWindow(this);
+    ui->tAberr->assignMainWindow(this);
+    ui->tInelastic->assignMainWindow(this);
+//    ui->tIncoherent->assignMainWindow(this);
+
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
-    ui->tInelastic->assignMainWindow(this);
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
@@ -691,6 +695,12 @@ void MainWindow::set_active_mode(int mode)
 SimulationFrame *MainWindow::getSimulationFrame() {return ui->tSim;}
 StemFrame *MainWindow::getStemFrame() {return ui->tStem;}
 CbedFrame *MainWindow::getCbedFrame() {return ui->tCbed;}
+
+void MainWindow::updateAberrationBoxes() {
+    ui->tAberr->updateTextBoxes();
+    ui->tMicroscope->updateTextBoxes();
+//    ui->tIncoherent
+}
 
 void MainWindow::set_ctem_crop(bool state) {
     // do the real images

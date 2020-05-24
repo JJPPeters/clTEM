@@ -17,19 +17,19 @@ public:
 
     ~SourceFrame();
 
-//    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
+    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
-//    void updateAberrations();
+    void updateMicroscope();
 
-//private slots:
-//    void checkEditZero(QString dud);
+private slots:
+    void checkEditZero(QString dud);
 
-//    void on_btnMore_clicked();
+    void on_btnMore_clicked();
 
-//    void on_edtVoltage_textChanged(const QString &arg1);
+    void on_edtVoltage_textChanged(const QString &arg1);
 
-//public slots:
-//    void updateTextBoxes();
+public slots:
+    void updateTextBoxes();
 
 private:
     Ui::SourceFrame *ui;

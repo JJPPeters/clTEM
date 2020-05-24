@@ -25,7 +25,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="2" column="5" colspan="2">
-        <widget class="EditUnitsBox" name="edtAperture">
+        <widget class="EditUnitsBox" name="edtConAp">
          <property name="text">
           <string/>
          </property>
@@ -99,14 +99,14 @@
         </widget>
        </item>
        <item row="3" column="5" colspan="2">
-        <widget class="EditUnitsBox" name="edtApertureSmooth">
+        <widget class="EditUnitsBox" name="edtConApSmooth">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="2" column="8" colspan="2">
-        <widget class="EditUnitsBox" name="edtAperture_8">
+        <widget class="EditUnitsBox" name="edtObjAp">
          <property name="text">
           <string/>
          </property>
@@ -163,7 +163,7 @@
         </spacer>
        </item>
        <item row="3" column="8" colspan="2">
-        <widget class="EditUnitsBox" name="edtApertureSmooth_8">
+        <widget class="EditUnitsBox" name="edtObjApSmooth">
          <property name="text">
           <string/>
          </property>

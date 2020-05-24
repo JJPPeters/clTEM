@@ -141,9 +141,10 @@ void SimulationCtem<T>::simulateImagePerfect()
     ImagingKernel.SetArg(18, static_cast<std::complex<T>>(mParams->C52.getComplex()));
     ImagingKernel.SetArg(19, static_cast<std::complex<T>>(mParams->C54.getComplex()));
     ImagingKernel.SetArg(20, static_cast<std::complex<T>>(mParams->C56.getComplex()));
-    ImagingKernel.SetArg(21, static_cast<T>(mParams->Aperture));
-    ImagingKernel.SetArg(22, static_cast<T>(mParams->Alpha)); //TODO check this is right...
-    ImagingKernel.SetArg(23, static_cast<T>(mParams->Delta));
+    ImagingKernel.SetArg(21, static_cast<T>(mParams->ObjectiveAperture));
+    ImagingKernel.SetArg(22, static_cast<T>(mParams->ObjectiveAperture));
+    ImagingKernel.SetArg(23, static_cast<T>(mParams->Alpha)); //TODO check this is right...
+    ImagingKernel.SetArg(24, static_cast<T>(mParams->Delta));
 
     clWorkGroup Work(resolution, resolution, 1);
 

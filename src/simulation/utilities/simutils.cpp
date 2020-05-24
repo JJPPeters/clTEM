@@ -33,7 +33,9 @@ namespace Utils {
         auto mp = Manager->microscopeParams();
         if (mp->Voltage <= 0)
             errorList.emplace_back("Voltage must be a non-zero positive number.");
-        if (mp->Aperture <= 0)
+        if (Manager->mode() != SimulationMode::CTEM && mp->CondenserAperture <= 0)
+            errorList.emplace_back("Aperture must be a non-zero positive number.");
+        if (Manager->mode() == SimulationMode::CTEM && mp->ObjectiveAperture <= 0)
             errorList.emplace_back("Aperture must be a non-zero positive number.");
 
         if (Manager->structureParameters().parameters.empty())

@@ -41,7 +41,7 @@
     </widget>
    </item>
    <item row="2" column="4">
-    <widget class="EditUnitsBox" name="edtAperture">
+    <widget class="EditUnitsBox" name="edtConAper">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -262,7 +262,7 @@
     </widget>
    </item>
    <item row="2" column="6">
-    <widget class="EditUnitsBox" name="edtAperture_2">
+    <widget class="EditUnitsBox" name="edtObjAper">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -336,7 +336,7 @@
     </widget>
    </item>
    <item row="3" column="4">
-    <widget class="EditUnitsBox" name="edtApertureSigma">
+    <widget class="EditUnitsBox" name="edtConAperSig">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -355,7 +355,7 @@
     </widget>
    </item>
    <item row="3" column="6">
-    <widget class="EditUnitsBox" name="edtApertureSigma_2">
+    <widget class="EditUnitsBox" name="edtObjAperSig">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -389,7 +389,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="btnMore">
        <property name="text">
         <string>More</string>
        </property>
