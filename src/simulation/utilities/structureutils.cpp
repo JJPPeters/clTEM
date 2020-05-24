@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "structureutils.h"
 
 namespace Utils

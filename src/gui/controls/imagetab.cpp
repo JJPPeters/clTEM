@@ -7,17 +7,25 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex
     ui(new Ui::ImageTab)
 {
     ui->setupUi(this);
-    ui->widget;
+    ui->hScrlSlice->setVisible(false);
 
     if (!is_complex) {
         ui->cmbComplex->setEnabled(false);
+        ui->cmbComplex->setStyleSheet("QComboBox {min-width: 0px; border-left: 0px; border-right: 0px;}");
         ui->cmbComplex->setFixedWidth(0); // do this, so the ui doesnt resize
     }
+
+    connect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
 
     connect(ui->widget, &ImagePlotWidget::saveDataClicked, this, &ImageTab::forwardSaveData);
     connect(ui->widget, &ImagePlotWidget::saveImageClicked, this, &ImageTab::forwardSaveImage);
 
     connect(ui->widget, &ImagePlotWidget::mouseHoverEvent, this, &ImageTab::updatePositionLabels);
+
+    QScreen* primary_screen = QGuiApplication::primaryScreen();
+    double pixel_ratio = primary_screen->devicePixelRatio();
+    ui->widget->setMinimumHeight(500 / pixel_ratio);
+    ui->widget->setMinimumWidth(500 / pixel_ratio);
 }
 
 ImageTab::~ImageTab()
@@ -62,4 +70,8 @@ ShowComplex ImageTab::getComplexDisplayOption() {
 void ImageTab::on_cmbComplex_currentIndexChanged(const QString &selection) {
     // the widget handles whether it has a plot or not
     ui->widget->setComplexDisplay(getComplexDisplayOption());
+}
+
+void ImageTab::sliceSliderChanged(int value) {
+    ui->widget->setSlice(value);
 }

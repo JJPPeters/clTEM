@@ -25,6 +25,7 @@ ImagePlotWidget::ImagePlotWidget(QWidget *parent) : QCustomPlot(parent)
     yAxis->setRange(-500, 500);
 
     matchPlotToPalette();
+    is_complex = false;
 
     axisRect()->setAutoMargins(QCP::msNone);
     // minus 10 means we can't accidentally scroll on it...
@@ -187,12 +188,21 @@ void ImagePlotWidget::contextMenuRequest(QPoint pos) {
     menu->addAction("Reset zoom", this, &ImagePlotWidget::resetAxes_slot);
 
     if (haveImage) {
-        QMenu *save_menu = new QMenu("Export...", menu);
+        QMenu *save_menu_single = new QMenu("Export displayed...", menu);
 
-        save_menu->addAction("Data", this, &ImagePlotWidget::exportTiff);
-        save_menu->addAction("RGB", this, &ImagePlotWidget::exportBmp);
+        save_menu_single->addAction("Data", this, &ImagePlotWidget::exportTiff);
+        save_menu_single->addAction("RGB", this, &ImagePlotWidget::exportBmp);
 
-        menu->addMenu(save_menu);
+        menu->addMenu(save_menu_single);
+
+        if ((is_complex && data_complex.getDepth() > 1) || (!is_complex && data_real.getDepth() > 1)) {
+            QMenu *save_menu_stack = new QMenu("Export stack...", menu);
+
+            save_menu_stack->addAction("Data", this, &ImagePlotWidget::exportTiffStack);
+            save_menu_stack->addAction("RGB", this, &ImagePlotWidget::exportBmpStack);
+
+            menu->addMenu(save_menu_stack);
+        }
     }
 
     menu->popup(mapToGlobal(pos));
@@ -219,58 +229,60 @@ void ImagePlotWidget::cropImage(bool doReplot) {
 }
 
 void ImagePlotWidget::exportTiff() {
-    emit saveDataClicked();
+    emit saveDataClicked(false);
+}
+
+void ImagePlotWidget::exportTiffStack() {
+    emit saveDataClicked(true);
 }
 
 void ImagePlotWidget::exportBmp() {
-    emit saveImageClicked();
+    emit saveImageClicked(false);
+}
+
+void ImagePlotWidget::exportBmpStack() {
+    emit saveImageClicked(true);
 }
 
 void
-ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw, bool reset) {
+ImagePlotWidget::SetImageData(const std::vector<double> &image, bool redraw, bool reset) {
 
     // simple check that all our data is compatible
-    if (sx*sy != (int)image.size())
+    if (full_size_x*full_size_y != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
 
     if(!ImageObject) {
-        SetImagePlot(image, sx, sy, intensity_scale, redraw); // this function creates what is needed, then calls this function
+        SetImagePlot(image, redraw); // this function creates what is needed, then calls this function
         return;
     }
 
-    ImageObject->data()->setSize(sx, sy);
+    ImageObject->data()->setSize(full_size_x, full_size_y);
 
     double r_x_low, r_x_high, r_y_low, r_y_high;
 
     if (zero_pos == ZeroPosition::Centre) {
         // these plus and minus ones may only work for the even images we have
-        r_x_low = -scale_x * ((double) sx + 1) / 2.0;
-        r_y_low = -scale_y * ((double) sy + 1) / 2.0;
-        r_x_high = scale_x * ((double) sx - 1) / 2.0;
-        r_y_high = scale_y * ((double) sy - 1) / 2.0;
+        r_x_low = -scale_x * ((double) full_size_x + 1) / 2.0;
+        r_y_low = -scale_y * ((double) full_size_y + 1) / 2.0;
+        r_x_high = scale_x * ((double) full_size_x - 1) / 2.0;
+        r_y_high = scale_y * ((double) full_size_y - 1) / 2.0;
     } else {
         r_x_low = zero_x;
         r_y_low = zero_y;
-        r_x_high = zero_x + scale_x * ((double) sx - 1.0);
-        r_y_high = zero_y + scale_y * ((double) sy - 1.0);
+        r_x_high = zero_x + scale_x * ((double) full_size_x - 1.0);
+        r_y_high = zero_y + scale_y * ((double) full_size_y - 1.0);
     }
 
     ImageObject->data()->setRange(QCPRange(r_x_low, r_x_high), QCPRange(r_y_low, r_y_high));
 
-    if (intensity_scale != IntensityScale::Linear)
+    if (int_scale != IntensityScale::Linear)
         ImageObject->setDataScaleType(QCPAxis::ScaleType::stLogarithmic);
     else
         ImageObject->setDataScaleType(QCPAxis::ScaleType::stLinear);
 
-    for (int xIndex=0; xIndex<sx; ++xIndex)
-        for (int yIndex=0; yIndex<sy; ++yIndex)
-            ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*sx+xIndex]);
-
-    full_size_x = sx;
-    full_size_y = sy;
-
-    crop_size_x = sx - crop_l - crop_r;
-    crop_size_y = sy - crop_t - crop_b;
+    for (int xIndex=0; xIndex<full_size_x; ++xIndex)
+        for (int yIndex=0; yIndex<full_size_y; ++yIndex)
+            ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*full_size_x+xIndex]);
 
     // calculate the aspect ration (so we can maintain it)
     if (crop_image) {
@@ -289,9 +301,9 @@ ImagePlotWidget::SetImageData(const std::vector<double> &image, int sx, int sy, 
 }
 
 void
-ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, IntensityScale intensity_scale, bool redraw) {
+ImagePlotWidget::SetImagePlot(const std::vector<double> &image, bool redraw) {
     // simple check that all our data is compatible
-    if (sx*sy != (int)image.size())
+    if (full_size_x*full_size_y != (int)image.size())
         throw std::runtime_error("Attempting to display image with size not matching given dimensions.");
 
     // clear any old images
@@ -302,5 +314,5 @@ ImagePlotWidget::SetImagePlot(const std::vector<double> &image, int sx, int sy, 
     ImageObject->setGradient(QCPColorGradient::gpGrayscale); // default
     ImageObject->setInterpolate(false);
 
-    SetImageData(image, sx, sy, intensity_scale, true, true);
+    SetImageData(image, true, true);
 }

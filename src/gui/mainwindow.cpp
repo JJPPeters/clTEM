@@ -20,6 +20,7 @@
 #include <cif/supercell.h>
 
 #include <variant>
+#include <frames/inelasticframe.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
@@ -40,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Manager = std::make_shared<SimulationManager>();
 
-    std::string exe_path = qApp->applicationDirPath().toStdString();
+    std::string exe_path = QGuiApplication::applicationDirPath().toStdString();
 
     // try loading default settings from the config location
     on_actionImport_default_triggered(true);
@@ -50,6 +51,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     setWindowTitle("clTEM");
+
+    // this just makes it look nice without fannying about with widgets and all that
+    int w = width();
+    resize(w, w*0.66);
 
     ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
     ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
@@ -70,11 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tSim->assignMainWindow(this);
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
-
-    ui->tStem->updateScaleLabels();
-
-    auto p = Manager->getMicroscopeParams();
-    ui->tAberr->updateTextBoxes();
+    ui->tInelastic->assignMainWindow(this);
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
@@ -106,7 +107,17 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
 
-    loadExternalSources();
+    try {
+        loadExternalSources();
+    } catch (std::exception& e) {
+        QMessageBox msgBox(this);
+        msgBox.setText("Error:");
+        msgBox.setInformativeText(e.what());
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setMinimumSize(160, 125);
+        msgBox.exec();
+    }
 
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
@@ -191,6 +202,8 @@ void MainWindow::on_actionOpen_triggered()
 
     updateScales();
 
+    ui->tCbed->updateTextBoxes();
+
     ui->tStem->updateScaleLabels();
 
     StatusBar->setFileLabel(fileName);
@@ -202,19 +215,6 @@ void MainWindow::on_actionOpenCL_triggered()
     OpenClDialog *myDialog = new OpenClDialog(this, Devices);
 
     myDialog->exec();
-
-    // remove all current device entries in the settings and reset them
-    QSettings settings;
-    settings.remove("opencl");
-    int counter = 0;
-    for (auto& dev : Devices)
-    {
-        settings.setValue("opencl/" + QString::number(counter) + "/platform", dev.GetPlatformNumber());
-        settings.setValue("opencl/" + QString::number(counter) + "/device", dev.GetDeviceNumber());
-        settings.setValue("opencl/" + QString::number(counter) + "/platform_name", QString::fromStdString(dev.GetPlatformName()));
-        settings.setValue("opencl/" + QString::number(counter) + "/device_name", QString::fromStdString(dev.GetDeviceName()));
-        ++counter;
-    }
 }
 
 void MainWindow::resolution_changed(int resolution)
@@ -227,19 +227,22 @@ void MainWindow::resolution_changed(int resolution)
 
 void MainWindow::updateScales()
 {
-    if (!Manager->haveStructure() || !Manager->haveResolution())
+    if (!Manager->simulationCell()->crystalStructure() || !Manager->resolutionValid())
         return;
 
-    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
-    ui->tSim->updateStructureInfo(Manager->getSimRanges());
+    try {
+        ui->tSim->updateResolutionInfo(Manager->realScale(), Manager->inverseScale(),
+                                       Manager->inverseMaxAngle());
+    } catch (...) {}
+    ui->tSim->updateStructureInfo(Manager->simRanges());
 }
 
 void MainWindow::updateRanges()
 {
-    if (!Manager->haveStructure())
+    if (!Manager->simulationCell()->crystalStructure())
         return;
 
-    ui->tSim->updateStructureInfo(Manager->getSimRanges());;
+    ui->tSim->updateStructureInfo(Manager->simRanges());;
 }
 
 void MainWindow::setDetectors()
@@ -247,7 +250,7 @@ void MainWindow::setDetectors()
     //Manager->setDetectors(d);
 
     // this adds any detectors that are new
-    for (auto d : Manager->getDetectors())
+    for (auto d : Manager->stemDetectors())
     {
         bool exists = false;
         for (int i = 0; i < ui->twReal->count() && !exists; ++i)
@@ -274,7 +277,7 @@ void MainWindow::setDetectors()
         if (t->getType() == TabType::STEM)
         {
             bool exists = false;
-            for (auto d : Manager->getDetectors())
+            for (auto d : Manager->stemDetectors())
             {
                 if (ui->twReal->tabText(i).toStdString() == d.name)
                 {
@@ -349,6 +352,35 @@ void MainWindow::on_actionSimulate_EW_triggered()
         return;
     }
 
+    // TODO: move to the manager class (then we can easily call it from the command line too)
+    // TODO: operate on an exception basis...
+    // Check our plasmon configuration is viable
+    if (Manager->inelasticScattering()->plasmons()->enabled()) {
+        int parts = Manager->totalParts();
+        Manager->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        auto z_lims = Manager->simulationCell()->crystalStructure()->limitsZ();
+        double thk = z_lims[1] - z_lims[0];
+
+        bool valid = false;
+        for (int i = 0; i < parts; ++i) {
+            valid = Manager->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
+
+            if (!valid) {
+                QMessageBox msgBox(this);
+                msgBox.setText("Error:");
+                //            msgBox.setInformativeText(e.what());
+                msgBox.setInformativeText("Could not generate valid plasmon configuration.");
+                msgBox.setIcon(QMessageBox::Critical);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setMinimumSize(160, 125);
+                msgBox.exec();
+                setUiActive(true);
+                return;
+            }
+
+        }
+    }
+
     std::vector<std::shared_ptr<SimulationManager>> man_list; //why is this a vector?
 
     auto sliceRep = std::bind(&MainWindow::updateSlicesProgress, this, std::placeholders::_1);
@@ -360,7 +392,7 @@ void MainWindow::on_actionSimulate_EW_triggered()
     auto imageRet = std::bind(&MainWindow::updateImages, this, std::placeholders::_1);
     Manager->setImageReturnFunc(imageRet);
 
-    bool use_double_precision = Manager->getDoDoublePrecision();
+    bool use_double_precision = Manager->doublePrecisionEnabled();
 
     auto temp = std::make_shared<SimulationManager>(*Manager);
 
@@ -386,14 +418,14 @@ void MainWindow::totalProgressChanged(double prog)
 void MainWindow::imagesChanged(SimulationManager sm)
 {
 
-    auto ims = sm.getImages();
+    auto ims = sm.images();
 
     if (ims.empty()) {
         simulationFailed();
     }
 
     nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
-    original_settings["filename"] = sm.getStructure()->getFileName();
+    original_settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
     // we've been given a list of images, got to display them now....
     for (auto const& i : ims)
@@ -414,15 +446,21 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
 
-                    // convert our float data to complex
-                    std::vector<std::complex<double>> comp_data(im.height*im.width);
-                    for (int i = 0; i < comp_data.size(); ++i)
-                        comp_data[i] = std::complex<double>(im.data[2*i], im.data[2*i+1]);
-                    Image<std::complex<double>> comp_im(im.width, im.height, comp_data, im.pad_t, im.pad_l, im.pad_b, im.pad_r);
+                    auto pd = im.getPadding(); // t l b r
+                    Image<std::complex<double>> comp_im(im.getWidth(), im.getHeight(), im.getDepth(), pd[0], pd[1], pd[2], pd[3]);
 
-                    double lx = sm.getPaddedSimLimitsX()[0];
-                    double ly = sm.getPaddedSimLimitsY()[0];
-                    double sc = sm.getRealScale();
+                    for (int jj = 0; jj < im.getDepth(); ++jj) {
+                        // convert our float data to complex
+                        std::vector<std::complex<double>> comp_data(im.getSliceSize());
+                        for (int ii = 0; ii < comp_data.size(); ++ii)
+                            comp_data[ii] = std::complex<double>(im.getSliceRef(jj)[2 * ii], im.getSliceRef(jj)[2 * ii + 1]);
+
+                        comp_im.getSliceRef(jj) = comp_data;
+                    }
+
+                    double lx = sm.paddedSimLimitsX(0)[0];
+                    double ly = sm.paddedSimLimitsY(0)[0];
+                    double sc = sm.realScale();
                     tab->setPlotWithComplexData(comp_im, "Å", sc, sc, lx, ly, settings);
                 }
             }
@@ -435,9 +473,9 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Image") {
                     auto settings = original_settings;
-                    double lx = sm.getPaddedSimLimitsX()[0];
-                    double ly = sm.getPaddedSimLimitsY()[0];
-                    double sc = sm.getRealScale();
+                    double lx = sm.paddedSimLimitsX(0)[0];
+                    double ly = sm.paddedSimLimitsY(0)[0];
+                    double sc = sm.realScale();
                     tab->setPlotWithData(im, "Å", sc, sc, lx, ly, settings);
                 }
             }
@@ -455,11 +493,11 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     settings["microscope"].erase("delta");
                     double sc;
                     QString unit;
-                    if (sm.getMode() == SimulationMode::CBED) {
-                        sc = sm.getInverseScaleAngle();
+                    if (sm.mode() == SimulationMode::CBED) {
+                        sc = sm.inverseScaleAngle();
                         unit = "mrad";
                     } else {
-                        sc = sm.getInverseScale();
+                        sc = sm.inverseScale();
                         unit = "A⁻¹";
                     }
                     tab->setPlotWithData(im, unit, sc, sc, 0.0, 0.0, settings, IntensityScale::Log, ZeroPosition::Centre);
@@ -476,16 +514,16 @@ void MainWindow::imagesChanged(SimulationManager sm)
                 if (tab->getTabName() == name) {
                     // add the specific detector info here!
                     auto settings = original_settings;
-                    for (auto d : sm.getDetectors())
+                    for (auto d : sm.stemDetectors())
                         if (d.name == name)
                             settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
 
-                    double lx = sm.getStemArea()->getRawLimitsX()[0];
-                    double ly = sm.getStemArea()->getRawLimitsY()[0];
-                    double scx = sm.getStemArea()->getScaleX();
-                    double scy = sm.getStemArea()->getScaleY();
+                    double lx = sm.stemArea()->getRawLimitsX()[0];
+                    double ly = sm.stemArea()->getRawLimitsY()[0];
+                    double scx = sm.stemArea()->getScaleX();
+                    double scy = sm.stemArea()->getScaleY();
 
                     tab->setPlotWithData(im, "Å", scx, scy, lx, ly, settings);
                 }
@@ -511,9 +549,18 @@ void MainWindow::loadSavedOpenClSettings()
     // these might change with hardware changes, but not enough to be annoying (I think)
     QSettings settings;
     settings.beginGroup("opencl");
+
+    bool mad = settings.value("opts/mad").toBool();
+    bool no_signed = settings.value("opts/no_signed").toBool();
+    bool unsafe_maths = settings.value("opts/unsafe_maths").toBool();
+    bool finite_maths = settings.value("opts/finite_maths").toBool();
+    bool native_maths = settings.value("opts/native_maths").toBool();
+
+    KernelSource::setOptions(mad, no_signed, unsafe_maths, finite_maths, native_maths);
+
     QStringList devs = settings.childGroups();
     std::vector<clDevice> dev_list;
-    auto present_devs = ClManager::getDeviceList();
+    auto present_devs = OpenCL::GetDeviceList();
     for (int i = 0; i < devs.size(); ++i)
     {
         int dev_num = settings.value(devs[i] + "/device").toInt();
@@ -580,11 +627,13 @@ void MainWindow::loadExternalSources()
     Kernels::fft_shift_f = Utils_Qt::kernelToChar("fft_shift_f.cl");
     Kernels::init_plane_wave_f = Utils_Qt::kernelToChar("init_plane_wave_f.cl");
     Kernels::init_probe_wave_f = Utils_Qt::kernelToChar("init_probe_wave_f.cl");
-    Kernels::potential_full_3d_f = Utils_Qt::kernelToChar("potential_full_3d_f.cl");
-    Kernels::potential_projected_f = Utils_Qt::kernelToChar("potential_projected_f.cl");
-    Kernels::propogator_f = Utils_Qt::kernelToChar("propagator_f.cl");
+    Kernels::transmission_potentials_full_3d_f = Utils_Qt::kernelToChar("transmission_potentials_full_3d_f.cl");
+    Kernels::transmission_potentials_projected_f = Utils_Qt::kernelToChar("transmission_potentials_projected_f.cl");
+    Kernels::propagator_f = Utils_Qt::kernelToChar("propagator_f.cl");
     Kernels::sqabs_f = Utils_Qt::kernelToChar("sqabs_f.cl");
     Kernels::sum_reduction_f = Utils_Qt::kernelToChar("sum_reduction_f.cl");
+    Kernels::bilinear_translate_f = Utils_Qt::kernelToChar("bilinear_translate_f.cl");
+    Kernels::complex_to_real_f = Utils_Qt::kernelToChar("complex_to_real_f.cl");
 
     Kernels::atom_sort_d = Utils_Qt::kernelToChar("atom_sort_d.cl");
     Kernels::band_limit_d = Utils_Qt::kernelToChar("band_limit_d.cl");
@@ -596,15 +645,17 @@ void MainWindow::loadExternalSources()
     Kernels::fft_shift_d = Utils_Qt::kernelToChar("fft_shift_d.cl");
     Kernels::init_plane_wave_d = Utils_Qt::kernelToChar("init_plane_wave_d.cl");
     Kernels::init_probe_wave_d = Utils_Qt::kernelToChar("init_probe_wave_d.cl");
-    Kernels::potential_full_3d_d = Utils_Qt::kernelToChar("potential_full_3d_d.cl");
-    Kernels::potential_projected_d = Utils_Qt::kernelToChar("potential_projected_d.cl");
-    Kernels::propogator_d = Utils_Qt::kernelToChar("propagator_d.cl");
+    Kernels::transmission_potentials_full_3d_d = Utils_Qt::kernelToChar("transmission_potentials_full_3d_d.cl");
+    Kernels::transmission_potentials_projected_d = Utils_Qt::kernelToChar("transmission_potentials_projected_d.cl");
+    Kernels::propagator_d = Utils_Qt::kernelToChar("propagator_d.cl");
     Kernels::sqabs_d = Utils_Qt::kernelToChar("sqabs_d.cl");
     Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
+    Kernels::bilinear_translate_d = Utils_Qt::kernelToChar("bilinear_translate_d.cl");
+    Kernels::complex_to_real_d = Utils_Qt::kernelToChar("complex_to_real_d.cl");
     
     // load parameters
     // get all the files in the parameters folder
-    auto params_path = qApp->applicationDirPath() + "/params/";
+    auto params_path = QGuiApplication::applicationDirPath() + "/params/";
     QDir params_dir(params_path);
     QStringList params_filt;
     params_filt << "*.dat";
@@ -613,17 +664,13 @@ void MainWindow::loadExternalSources()
     if (params_files.empty())
         throw std::runtime_error("Need at least one valid parameters file");
 
-    for (int k = 0; k < params_files.size(); ++k) {
-        unsigned int row_count;
-        std::vector<double> params = Utils_Qt::paramsToVector(params_files[k].toStdString(), row_count);
-        std::string p_name = params_files[k].toStdString();
-        p_name.erase(p_name.find(".dat"), 4);
-        StructureParameters::setParams(params, p_name, row_count);
-    }
+    for (int k = 0; k < params_files.size(); ++k)
+        Utils_Qt::readParamsFile(params_files[k].toStdString());
+
 
     // load DQE, NQE for the CTEM simulation
 
-    auto ccd_path = qApp->applicationDirPath() + "/ccds/";
+    auto ccd_path = QGuiApplication::applicationDirPath() + "/ccds/";
     QDir ccd_dir(ccd_path);
     QStringList ccd_filt;
     ccd_filt << "*.dat";
@@ -660,7 +707,7 @@ void MainWindow::set_ctem_crop(bool state) {
     }
 }
 
-void MainWindow::saveTiff() {
+void MainWindow::saveTiff(bool full_stack) {
     auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
@@ -683,14 +730,38 @@ void MainWindow::saveTiff() {
     int sx, sy;
     std::vector<float> data;
 
-    origin->getPlot()->getData(data, sx, sy); // get data
-    fileio::SaveTiff<float>(fo+".tif", data, sx, sy); // save data
     nlohmann::json j_settings = origin->getSettings(); // get settings
     fileio::SaveSettingsJson(fo+".json", j_settings); // save settings
+
+    if (full_stack) {
+        // calculate the slice count of this output
+        auto si = JSONUtils::readJsonEntry<unsigned int>(j_settings, "intermediate output", "slice interval");
+        auto sc = JSONUtils::readJsonEntry<unsigned int>(j_settings, "slice count");
+        if (si < 1)
+            throw std::runtime_error("Saving stack with < 0 slice step.");
+
+        int out_string_len = Utils::numToString(sc-1).size();
+
+        for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
+            origin->getPlot()->getData(data, sx, sy, i); // get data
+
+            // get the name to use for the output
+            //  remember we don't start getting slices from the first slice
+            unsigned int slice_id = (i+1)*si-1;
+            if (slice_id >= sc)
+                slice_id = sc-1;
+            std::string temp = Utils::uintToString(slice_id, out_string_len);
+
+            fileio::SaveTiff<float>(fo+temp+".tif", data, sx, sy); // save data
+        }
+
+    } else {
+        origin->getPlot()->getCurrentData(data, sx, sy); // get data
+        fileio::SaveTiff<float>(fo+".tif", data, sx, sy); // save data
+    }
 }
 
-void MainWindow::saveBmp() {
-    // csat our sender to check this is all valid and good
+void MainWindow::saveBmp(bool full_stack) {
     auto origin = dynamic_cast<ImageTab*>(sender());
 
     // do the dialog stuff
@@ -702,29 +773,53 @@ void MainWindow::saveBmp() {
 
     QFileInfo temp(filepath);
     settings.setValue("dialog/currentSavePath", temp.path());
+    std::string fo = filepath.toStdString();
 
-    std::string f = filepath.toStdString();
     // I feel that there should be a better way for this...
-    if (f.substr((f.length() - 4)) != ".bmp")
-        f.append(".bmp");
+    // get the filepath without the extension (if it is there)
+    if (fo.substr(fo.length() - 4) == ".bmp")
+        fo = fo.substr(0, fo.length() - 4);
 
-    // now get the data by reference
+    // set up where we will get our data
     int sx, sy;
     std::vector<float> data;
-    origin->getPlot()->getData(data, sx, sy);
 
-    // and save
-    fileio::SaveBmp(f, data, sx, sy);
+    nlohmann::json j_settings = origin->getSettings(); // get settings
+    fileio::SaveSettingsJson(fo + ".json", j_settings); // save settings
 
-    // change the extension an save settings!
-    f.append("n");
-    f.replace(f.end()-5, f.end(), ".json");
-    nlohmann::json test = origin->getSettings();
-    fileio::SaveSettingsJson(f, test);
+    if (full_stack) {
+        // calculate the slice count of this output
+        auto si = JSONUtils::readJsonEntry<unsigned int>(j_settings, "intermediate output", "slice interval");
+        auto sc = JSONUtils::readJsonEntry<unsigned int>(j_settings, "slice count");
+        if (si < 1)
+            throw std::runtime_error("Saving stack with < 0 slice step.");
+
+        int out_string_len = Utils::numToString(sc-1).size();
+
+        for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
+            origin->getPlot()->getData(data, sx, sy, i); // get data
+
+            // get the name to use for the output
+            //  remember we don't start getting slices from the first slice
+            unsigned int slice_id = (i+1)*si-1;
+            if (slice_id >= sc)
+                slice_id = sc-1;
+            std::string temp = Utils::uintToString(slice_id, out_string_len);
+
+            fileio::SaveBmp(fo + temp + ".bmp", data, sx, sy); // save data
+        }
+
+    } else {
+        origin->getPlot()->getCurrentData(data, sx, sy); // get data
+        fileio::SaveBmp(fo + ".bmp", data, sx, sy); // save data
+    }
 }
 
 void MainWindow::on_actionGeneral_triggered() {
     GlobalSettingsDialog *myDialog = new GlobalSettingsDialog(this, Manager);
+
+    // this is in case of padding changes or stem parallel pixels
+    connect(myDialog, &GlobalSettingsDialog::appliedSignal, this, &MainWindow::updateScales);
 
     myDialog->exec();
 }
@@ -777,12 +872,7 @@ void MainWindow::updateManagerFromGui() {
     // CBED/STEM TDS
     // CTEM CCD stuff
 
-    // Sort out TDS bits
-    Manager->setTdsRunsCbed(ui->tCbed->getTdsRuns());
-    Manager->setTdsRunsStem(ui->tStem->getTdsRuns());
-
-    Manager->setTdsEnabledCbed(ui->tCbed->isTdsEnabled());
-    Manager->setTdsEnabledStem(ui->tStem->isTdsEnabled());
+    ui->tInelastic->updateManager();
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -790,7 +880,7 @@ void MainWindow::updateManagerFromGui() {
 
     // load variables for potential TEM stuff
     Manager->setCcdBinning(ui->tTem->getBinning());
-    Manager->setSimulateCtemImage(ui->tTem->getSimImage());
+    Manager->setCtemImageEnabled(ui->tTem->getSimImage());
     Manager->setCcdName(ui->tTem->getCcd());
     Manager->setCcdDose(ui->tTem->getDose());
 }
@@ -800,11 +890,13 @@ void MainWindow::updateGuiFromManager() {
     ui->tAberr->updateTextBoxes();
 
     // set CBED stuff (position/TDS)
-    ui->tCbed->update_text_boxes();
+    ui->tCbed->updateTextBoxes();
 
     // set STEM TDS
-    ui->tStem->updateTdsText();
     ui->tStem->updateScaleLabels();
+
+    // set inelastic frame parameters
+    ui->tInelastic->updateGui();
 
     // set CTEM CCD stuff
     ui->tTem->update_ccd_boxes(Manager);
@@ -812,12 +904,12 @@ void MainWindow::updateGuiFromManager() {
     // update the detector tabs
     setDetectors();
 
-    ui->tTem->setSimImageCheck( Manager->getSimulateCtemImage() );
+    ui->tTem->setSimImageCheck( Manager->ctemImageEnabled() );
 
-    ui->twMode->setCurrentIndex( (int) Manager->getMode()-1 ); // -1 due to the 0 element being a null value
+    ui->twMode->setCurrentIndex( (int) Manager->mode()-1 ); // -1 due to the 0 element being a null value
 
     // set resolution last, this should update the structure area stuff if it needs to be
-    ui->tSim->setResolution( Manager->getResolution() );
+    ui->tSim->setResolution( Manager->resolution() );
 }
 
 void MainWindow::on_actionSet_area_triggered()
@@ -826,9 +918,12 @@ void MainWindow::on_actionSet_area_triggered()
 
     SimAreaDialog* myDialog = new SimAreaDialog(this, Manager);
 
+    // I could simplify this to  use the 'appliedSignal' but there is a lot going on.
+    // I also need to think about the behaviour of clicking apply whilst data has changed on the various tabs
+    // i.e. do I update all of them, or just the one being shown at the moment
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, ui->tSim, &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, this, &MainWindow::set_active_mode);
-    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::update_text_boxes);
+    connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainCbed, getCbedFrame(), &CbedFrame::updateTextBoxes);
     connect(myDialog->getFrame(), &AreaLayoutFrame::updateMainStem, getStemFrame(), &StemFrame::updateScaleLabels);
     connect(myDialog->getFrame(), &AreaLayoutFrame::areaChanged, this, &MainWindow::updateScales);
 
@@ -838,24 +933,33 @@ void MainWindow::on_actionSet_area_triggered()
 void MainWindow::on_actionAberrations_triggered()
 {
     ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
-    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->getMicroscopeParams());
-    connect(myDialog, &AberrationsDialog::aberrationsChanged, ui->tAberr, &AberrationFrame::updateTextBoxes);
+    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
+    connect(myDialog, &AberrationsDialog::appliedSignal, ui->tAberr, &AberrationFrame::updateTextBoxes);
     myDialog->exec();
 }
 
 void MainWindow::on_actionThermal_scattering_triggered() {
     ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
+    connect(myDialog, &ThermalScatteringDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePhononsGui);
+    myDialog->exec();
+}
+
+void MainWindow::on_actionPlasmons_triggered() {
+    PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
+    connect(myDialog, &PlasmonDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
 
 void MainWindow::updateVoltageMrad(double voltage) {
-    if (!Manager->haveStructure() || !Manager->haveResolution())
+    if (!Manager->simulationCell()->crystalStructure() || !Manager->resolutionValid())
         return;
 
     // update the voltage in teh manager
-    Manager->getMicroscopeParams()->Voltage = voltage;
+    Manager->microscopeParams()->Voltage = voltage;
 
-    ui->tSim->updateResolutionInfo(Manager->getRealScale(), Manager->getInverseScale(), Manager->getInverseMaxAngle());
+    try {
+    ui->tSim->updateResolutionInfo(Manager->realScale(), Manager->inverseScale(), Manager->inverseMaxAngle());
+    } catch (...) {}
 }
 
 

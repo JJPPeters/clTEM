@@ -39,12 +39,6 @@ public:
 
     std::shared_ptr<SimulationManager> Manager;
 
-    std::shared_ptr<MicroscopeParameters> getMicroscopeParams() {return Manager->getMicroscopeParams();}
-    std::shared_ptr<CrystalStructure> getStructure() {return Manager->getStructure();}
-    std::shared_ptr<SimulationArea> getSimulationArea() {return Manager->getSimulationArea();}
-    std::vector<StemDetector>& getDetectors() {return Manager->getDetectors();}
-    std::shared_ptr<StemArea> getStemArea() {return Manager->getStemArea();}
-
     void setDetectors();
 
     void updateRanges();
@@ -93,6 +87,8 @@ private slots:
 
     void on_actionThermal_scattering_triggered();
 
+    void on_actionPlasmons_triggered();
+
     void on_actionSimulate_EW_triggered();
 
     void cancel_simulation();
@@ -115,9 +111,9 @@ private slots:
 
     void simulationFailed();
 
-    void saveTiff();
+    void saveTiff(bool full_stack);
 
-    void saveBmp();
+    void saveBmp(bool full_stack);
 
 private:
     FlatTitleBar *m_title;

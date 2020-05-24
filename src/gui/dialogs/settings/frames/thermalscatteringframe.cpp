@@ -2,15 +2,17 @@
 #include <dialogs/settings/settingsdialog.h>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QTableWidgetItem>
-#include <structure/thermalvibrations.h>
+#include <inelastic/phonon.h>
 #include "thermalscatteringframe.h"
 #include "ui_thermalscatteringframe.h"
 
 ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
-    QWidget(parent), ui(new Ui::ThermalScatteringFrame), Manager(simManager)
+    QWidget(parent), ui(new Ui::ThermalScatteringFrame)//, Manager(simManager)
 {
     ui->setupUi(this);
 
+    Phonons = simManager->inelasticScattering()->phonons();
+    
     // fiddle with the table
     ui->tblDisplacements->setColumnWidth(0, 80);
     ui->tblDisplacements->setColumnWidth(1, 200);
@@ -26,7 +28,7 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
     ui->edtDisplacement->setUnits("Å²");
 
     // set the text box values
-    ui->edtDefault->setText( QString::number( Manager->getThermalVibrations()->getDefault() ) );
+    ui->edtDefault->setText( QString::number( Phonons->getDefault() ) );
     ui->edtDisplacement->setText("0.0");
 
     // fill the combo box from our map of atomic numbers to symbols
@@ -36,12 +38,14 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
         ui->cmbElement->addItem( QString::fromStdString(it.first));
     }
 
-    ui->chkForceDefault->setChecked(Manager->getThermalVibrations()->force_default);
-    ui->chkOverride->setChecked(Manager->getThermalVibrations()->force_defined);
+    ui->chkEnabled->setChecked(Phonons->getFrozenPhononEnabled());
+    
+    ui->chkForceDefault->setChecked(Phonons->force_default);
+    ui->chkOverride->setChecked(Phonons->force_defined);
 
     // add the defined elements to the table...
-    auto el = Manager->getThermalVibrations()->getDefinedElements();
-    auto vib = Manager->getThermalVibrations()->getDefinedVibrations();
+    auto el = Phonons->getDefinedElements();
+    auto vib = Phonons->getDefinedVibrations();
 
     // shouldn't be needed, but just in case...
     if (el.size() != vib.size())
@@ -98,10 +102,16 @@ bool ThermalScatteringFrame::dlgApply_clicked()
         displacements[i] = ui->tblDisplacements->item(i, 1)->text().toDouble();
     }
 
-    Manager->getThermalVibrations()->setVibrations(def, elements, displacements);
+    Phonons->setVibrations(def, elements, displacements);
 
-    Manager->getThermalVibrations()->force_defined = ui->chkOverride->isChecked();
-    Manager->getThermalVibrations()->force_default = ui->chkForceDefault->isChecked();
+    Phonons->force_defined = ui->chkOverride->isChecked();
+    Phonons->force_default = ui->chkForceDefault->isChecked();
+
+    // this only needs to be set to update the other UI elements, it will be set just before simulation anyway
+    // (but it is set from the other ui elements)
+    Phonons->setFrozenPhononEnabled(ui->chkEnabled->isChecked());
+
+    emit dynamic_cast<ThermalScatteringDialog*>(parentWidget())->appliedSignal();
 
     return true;
 }

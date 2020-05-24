@@ -38,6 +38,8 @@ public:
 private slots:
     void areasChanged();
 
+    void updateSlices();
+
     void checkEditZero(QString txt);
 
     bool apply_pressed();

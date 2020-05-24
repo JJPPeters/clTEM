@@ -26,6 +26,8 @@ private slots:
 
     void directionValuesChanged(QString dud);
 
+    void angleValuesChanged(QString dud);
+
     void showEvent(QShowEvent* event) override;
 
     void previewStructure(bool dummy = false);
@@ -36,6 +38,8 @@ private slots:
 
 private:
     Ui::CifCreatorFrame *ui;
+
+    CIF::SuperCellInfo pltCellInfo;
 
     std::shared_ptr<PGL::PlotWidget> pltPreview;
 

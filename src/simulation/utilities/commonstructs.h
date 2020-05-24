@@ -7,6 +7,7 @@
 #include "clwrapper.h"
 #include <valarray>
 
+
 struct Constants
 {
     static const double Pi;
@@ -27,21 +28,58 @@ struct Constants
 };
 
 template<class T>
-struct Image
+class Image
 {
-    Image() : width(0), height(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
-    Image(unsigned int w, unsigned int h, std::vector<T> d, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : width(w), height(h),
-                                                                                            data(d),
-                                                                                            pad_t(pt), pad_l(pl),
-                                                                                            pad_b(pb), pad_r(pr) {}
-    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), data(rhs.data), pad_t(rhs.pad_t),
-                                                                                       pad_l(rhs.pad_l),
-                                                                                       pad_b(rhs.pad_b),
-                                                                                       pad_r(rhs.pad_r) {}
+public:
+    /// Default constructer
+    Image() : width(0), height(0), depth(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
+
+    /// Constructor for an empty image (where you want to add the data later)
+    Image(unsigned int w, unsigned int h, unsigned int d = 1, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
+        width = w;
+        height = h;
+        depth = d;
+
+        data.resize(d);
+
+        for(auto& slice: data)
+            slice.resize(w*h);
+
+        pad_t = pt;
+        pad_l = pl;
+        pad_b = pb;
+        pad_r = pr;
+    }
+
+    /// Constructor for a single image
+    Image(std::vector<T> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
+        data.push_back(image);
+        width = w;
+        height = h;
+        depth = 1;
+
+        pad_t = pt;
+        pad_l = pl;
+        pad_b = pb;
+        pad_r = pr;
+    }
+
+    /// Constructor for a stack of images
+    Image(std::vector<std::vector<T>> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : data(image),
+                                                                                                                                                                  width(w), height(h), depth(image.size()),
+                                                                                                                                                                  pad_t(pt), pad_l(pl),
+                                                                                                                                                                  pad_b(pb), pad_r(pr) {}
+
+    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), depth(rhs.depth), data(rhs.data),
+                                                                                         pad_t(rhs.pad_t),
+                                                                                         pad_l(rhs.pad_l),
+                                                                                         pad_b(rhs.pad_b),
+                                                                                         pad_r(rhs.pad_r) {}
 
     Image<T>& operator=(const Image<T>& rhs) {
         width = rhs.width;
         height = rhs.height;
+        depth = rhs.depth;
         data = rhs.data;
         pad_t = rhs.pad_t;
         pad_l = rhs.pad_l;
@@ -51,28 +89,63 @@ struct Image
         return *this;
     }
 
+//    void addSlice(std::vector<T> im) {
+//        if (im.size() != getSliceSize())
+//            throw std::runtime_error("Append image to stack with incompatible sizes");
+//        data.push_back(im);
+//    }
 
-    unsigned int width;
-    unsigned int height;
-    unsigned int pad_t, pad_l, pad_b, pad_r;
-    std::vector<T> data;
+    unsigned int getCroppedSliceSize() {return getCroppedWidth() * getCroppedHeight();}
+    unsigned int getSliceSize(bool crop = false) {
+        if (crop)
+            return getCroppedSliceSize();
+        else
+            return width * height;
+    }
 
+    std::valarray<unsigned int> getDimensions() { return {getWidth(), getHeight(), getDepth()}; }
+    std::valarray<unsigned int> getCroppedDimensions() { return {getCroppedWidth(), getCroppedHeight(), getDepth()}; }
+
+    unsigned int getWidth(bool crop = false) {if(crop) return getCroppedWidth(); else return width;}
+    unsigned int getHeight(bool crop = false) {if(crop) return getCroppedHeight(); else return height;}
+    unsigned int getDepth() {return depth;}
     unsigned int getCroppedWidth() {return width - pad_l - pad_r;}
     unsigned int getCroppedHeight() {return height - pad_t - pad_b;}
-    std::vector<T> getCropped() {
-        std::vector<T> data_out(getCroppedWidth()*getCroppedHeight());
-        int cnt = 0;
-        for (int j = 0; j < height; ++j)
-            if (j >= pad_b && j < (height - pad_t))
-                for (int i = 0; i < width; ++i)
-                    if (i >= pad_l && i < (width - pad_r))
-                    {
-                        int k = i + j * width;
-                        data_out[cnt] = data[k];
-                        ++cnt;
-                    }
-        return data_out;
+
+    std::valarray<unsigned int> getPadding() { return {pad_t, pad_l, pad_b, pad_r}; }
+
+    std::vector<T>& getSliceRef(unsigned int slice = 0) {
+        return data[slice];
     }
+
+    std::vector<T> getSlice(unsigned int slice = 0, bool crop = false) {
+        if (crop)
+            return getCroppedSlice(slice);
+        return data[slice];
+    }
+
+    std::vector<T> getCroppedSlice(unsigned int slice = 0) {
+
+        std::vector<T> out(getCroppedSliceSize());
+
+        unsigned int counter = 0;
+        for (int j = pad_b; j < getHeight()-pad_t; ++j)
+            for (int i = pad_l; i < getWidth() - pad_r; ++i) {
+                unsigned int index = j * getWidth() + i;
+                out[counter] = data[slice][index];
+                counter++;
+            }
+
+        return out;
+    }
+
+private:
+    // bool is_complex; // this sets if the data is interleaved complex (i.e. real->img->real->imag etc...)
+    unsigned int width;
+    unsigned int height;
+    unsigned int depth;
+    unsigned int pad_t, pad_l, pad_b, pad_r;
+    std::vector<std::vector<T>> data;
 };
 
 struct ComplexAberration {
@@ -85,7 +158,8 @@ struct ComplexAberration {
 };
 
 struct MicroscopeParameters {
-    MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), Alpha(1.0f), Delta(1.0f) {}
+    MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f), Aperture(1.0f), ApertureSmoothing(0.0f), Alpha(1.0f), Delta(1.0f),
+                             BeamTilt(0.0), BeamAzimuth(0.0) {}
 
     // Defocus
     double C10;
@@ -118,12 +192,20 @@ struct MicroscopeParameters {
 
     // Voltage (kV) == (kg m^2 C^-1 s^-2)
     double Voltage;
-    //Condenser aperture size (mrad)
+    // TEM: Objective aperture radius (mrad)
+    // STEM: Condenser aperture radius (mrad)
     double Aperture;
+    // Aperture smoothing radius (mrad)
+    double ApertureSmoothing;
 
-    //Convergence angle (?)
+    // Beam tilt inclination (mrad)
+    double BeamTilt;
+    // Beam tilt azimuth (rad)
+    double BeamAzimuth;
+
+    //Convergence angle (mrad)
     double Alpha;
-    //Defocus spread (?)
+    //Defocus spread (Angstroms)
     double Delta;
 
     //Calculate wavelength (Angstroms)
@@ -131,18 +213,41 @@ struct MicroscopeParameters {
         return Constants::h * Constants::c / std::sqrt( Constants::eCharge * (Voltage * 1000) * (2 * Constants::eMass * Constants::c*Constants::c + Constants::eCharge * ( Voltage * 1000 ) ) ) * 1e+10;
     }
 
+    double Wavenumber() {
+        return 1.0 / Wavelength();
+    }
+
     // Interaction parameter (see Kirkland Eq. 5.6) (s^2 C m^-2 kg^-1 Angstrom^-1])
     double Sigma() {
         return (2 * Constants::Pi / (Wavelength() * (Voltage * 1000))) * (Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000)) / (2 * Constants::eMass*Constants::c*Constants::c + Constants::eCharge * (Voltage * 1000));
     }
+
+    std::valarray<double> Wavevector() {
+        double k = Wavenumber();
+        double k_x = k * std::sin(BeamTilt / 1000.0) * std::cos(BeamAzimuth);
+        double k_y = k * std::sin(BeamTilt / 1000.0) * std::sin(BeamAzimuth);
+        double k_z = k * std::cos(BeamTilt / 1000.0);
+
+        return {k_x, k_y, k_z};
+    }
+};
+
+struct StemDetector {
+    StemDetector() : name("--"), inner(0.0), outer(1.0), xcentre(0.0), ycentre(0.0) {}
+    StemDetector(std::string nm, double in, double out, double xc, double yc) : name(std::move(nm)),
+            inner(in), outer(out), xcentre(xc), ycentre(yc) {}
+
+    std::string name;
+
+    double inner, outer, xcentre, ycentre;
 };
 
 struct SimulationArea {
     SimulationArea() : xStart(0.0), xFinish(10.0), yStart(0.0), yFinish(10.0), padding(0.0) {}
 
     SimulationArea(double xs, double xf, double ys, double yf, double pd = 0.f) : xStart(xs), xFinish(xf),
-                                                                             yStart(ys), yFinish(yf),
-                                                                             padding(pd) {}
+                                                                                  yStart(ys), yFinish(yf),
+                                                                                  padding(pd) {}
 
     std::valarray<double> getRawLimitsX();
     std::valarray<double> getRawLimitsY();
@@ -157,16 +262,6 @@ struct SimulationArea {
 
 protected:
     double xStart, xFinish, yStart, yFinish, padding;
-};
-
-struct StemDetector {
-    StemDetector() : name("--"), inner(0.0), outer(1.0), xcentre(0.0), ycentre(0.0) {}
-    StemDetector(std::string nm, double in, double out, double xc, double yc) : name(std::move(nm)),
-            inner(in), outer(out), xcentre(xc), ycentre(yc) {}
-
-    std::string name;
-
-    double inner, outer, xcentre, ycentre;
 };
 
 // TODO: is this class necessary, can we not just use the sim area one with the start and end points the same?
@@ -210,7 +305,7 @@ struct StemArea : public SimulationArea {
     void forcePxRangeY(double start, double finish, int px);
 
     void setPixelsX(unsigned int px) {xPixels = px;}
-    void setPixelsY(unsigned int px) {yPixels = px;}
+    void setPixelsY(unsigned int py) {yPixels = py;}
 
     double getStemPixelScaleX() { return (xFinish - xStart) / xPixels;}
     double getStemPixelScaleY() { return (yFinish - yStart) / yPixels;}
@@ -223,6 +318,17 @@ struct StemArea : public SimulationArea {
     double getScaleY();
 
     unsigned int getNumPixels() {return xPixels * yPixels;}
+
+    SimulationArea getPixelSimArea(int pixel) {
+        // convert pixel id to x, y position
+        unsigned int x_px = pixel % xPixels;
+        unsigned int y_px = (unsigned int) std::floor(pixel / xPixels);
+
+        float xPos = getRawLimitsX()[0] + getScaleX() * x_px;
+        float yPos = getRawLimitsY()[0] + getScaleY() * y_px;
+        // pad equally on both sides
+        return SimulationArea(xPos, xPos, yPos, yPos, padding);
+    }
 
 private:
     unsigned int xPixels, yPixels;

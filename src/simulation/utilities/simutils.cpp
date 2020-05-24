@@ -10,43 +10,67 @@ namespace Utils {
         if (Devices.empty())
             errorList.emplace_back("No OpenCL devices selected.");
 
-        if (!Manager->getStructure())
+        if (!Manager->simulationCell()->crystalStructure())
             errorList.emplace_back("No structure loaded.");
-        else if (Manager->getStructureParameter().Max_Atomic_Number < Manager->getStructure()->getMaxAtomicNumber())
+        else if (Manager->structureParameters().max_atomic_number <
+                Manager->simulationCell()->crystalStructure()->maxAtomicNumber())
             errorList.emplace_back("Potentials do not include all structure atomic numbers. Max: " +
-                                   std::to_string(Manager->getStructureParameter().Max_Atomic_Number));
+                                   std::to_string(Manager->structureParameters().max_atomic_number));
+        else if (Manager->structureParameters().max_atomic_number == 0)
+            errorList.emplace_back("Potentials do not include any atomic numbers.");
+        else if (Manager->simulationCell()->crystalStructure()->maxAtomicNumber() == 0 || Manager->simulationCell()->crystalStructure()->atoms().empty())
+            errorList.emplace_back("No atoms in structure.");
 
-        if (!Manager->haveResolution())
+        if (!Manager->resolutionValid())
             errorList.emplace_back("No valid simulation resolution set.");
 
-        auto mp = Manager->getMicroscopeParams();
+        if(Manager->simulationCell()->sliceThickness() <= 0.0)
+            errorList.emplace_back("Slice thickness must be a non-zero positive number.");
+
+        if(Manager->intermediateSlicesEnabled() && Manager->intermediateSliceStep() <= 0)
+            errorList.emplace_back("Intermediate slice output step must be a non-zero positive number.");
+
+        auto mp = Manager->microscopeParams();
         if (mp->Voltage <= 0)
             errorList.emplace_back("Voltage must be a non-zero positive number.");
         if (mp->Aperture <= 0)
             errorList.emplace_back("Aperture must be a non-zero positive number.");
 
-        if (Manager->getStructureParameterData().empty())
+        if (Manager->structureParameters().parameters.empty())
             errorList.emplace_back("Potentials have not been loaded correctly.");
 
-        // TODO: check beta (alpha) and delta?
+        if (Manager->full3dEnabled() && Manager->full3dIntegrals() < 1)
+            errorList.emplace_back("Full 3d integrals must be non-zero positive number.");
 
-        // TODO: check TDS entries
+        if (Manager->mode() == SimulationMode::STEM && Manager->parallelPixels() < 1)
+            errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
-        // TODO: CBED position in simulation area
+        // check TDS entries
+        if (Manager->inelasticScattering()->enabled() && Manager->inelasticScattering()->iterations() < 1)
+            errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
 
-        // TODO: STEM area in simulation area
+        // plasmon settings
+        if (Manager->inelasticScattering()->plasmons()->enabled()) {
+            auto plasmon = Manager->inelasticScattering()->plasmons();
+            if (plasmon->meanFreePath() <= 0.0)
+                errorList.emplace_back("Plasmon mean free path must be non-zero positive number.");
+
+            if (plasmon->characteristicAngle() <= 0.0)
+                errorList.emplace_back("Plasmon characteristic angle must be non-zero positive number.");
+
+        }
 
         // Check STEM detectors exist
-        if (Manager->getMode() == SimulationMode::STEM)
-            if (Manager->getDetectors().empty())
+        if (Manager->mode() == SimulationMode::STEM)
+            if (Manager->stemDetectors().empty())
                 errorList.emplace_back("STEM simulation requires at least 1 detector.");
 
-        // TODO: dose sim for TEM checks
-        if (Manager->getMode() == SimulationMode::CTEM)
-            if (Manager->getCcdDose() <= 0.0)
+        // dose sim for TEM checks
+        if (Manager->mode() == SimulationMode::CTEM)
+            if (Manager->ccdDose() <= 0.0)
                 errorList.emplace_back("CCD dose cannot be 0.");
 
-        // TODO: warnings option (stem detector radius checks...
+        // TODO: warnings option i.e. things that wont cause a crash, but will cause a silly output...
 
         if (!errorList.empty()) {
             std::string final;

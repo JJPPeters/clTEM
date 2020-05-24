@@ -3,6 +3,7 @@
 
 #include <QtGui/QRegExpValidator>
 #include <utils/stringutils.h>
+#include <QScreen>
 
 CbedFrame::CbedFrame(QWidget *parent) :
         QWidget(parent), Main(0),
@@ -10,12 +11,23 @@ CbedFrame::CbedFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QScreen* primary_screen = QGuiApplication::primaryScreen();
+    double pixel_ratio = primary_screen->devicePixelRatio();
+
+    int col1 = 75  / pixel_ratio;
+//    int col2 = 100 / pixel_ratio;
+//    int col3 = 100 / pixel_ratio;
+
+    auto test = dynamic_cast<QGridLayout*>(this->layout());
+
+    test->setColumnMinimumWidth(0, col1);
+//    test->setColumnMinimumWidth(1, col2);
+//    test->setColumnMinimumWidth(2, col3);
+
     QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
-    QRegExpValidator* pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
 
     ui->edtPosX->setValidator(pmValidator);
     ui->edtPosY->setValidator(pmValidator);
-    ui->edtTds->setValidator(pIntValidator);
 
     ui->edtPosX->setUnits("Å");
     ui->edtPosY->setUnits("Å");
@@ -24,17 +36,6 @@ CbedFrame::CbedFrame(QWidget *parent) :
 CbedFrame::~CbedFrame()
 {
     delete ui;
-}
-
-void CbedFrame::on_edtTds_textChanged(const QString &arg1)
-{
-    // due to the complexities of this interacting with the STEM version, this will be set later (when the sim in run)
-    int v = arg1.toInt();
-
-    if(v < 1)
-        ui->edtTds->setStyleSheet("color: #FF8C00");
-    else
-        ui->edtTds->setStyleSheet("");
 }
 
 void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
@@ -46,7 +47,7 @@ void CbedFrame::on_edtPosY_textChanged(const QString &arg1)
 
     double v = ui->edtPosY->text().toDouble();
 
-    Main->Manager->getCBedPosition()->setYPos(v);
+    Main->Manager->cbedPosition()->setYPos(v);
 }
 
 void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
@@ -58,7 +59,7 @@ void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
 
     double v = ui->edtPosX->text().toDouble();
 
-    Main->Manager->getCBedPosition()->setXPos(v);
+    Main->Manager->cbedPosition()->setXPos(v);
 }
 
 void CbedFrame::on_btnSim_clicked()
@@ -67,22 +68,6 @@ void CbedFrame::on_btnSim_clicked()
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
     emit startSim();
-}
-
-void CbedFrame::on_chkTds_stateChanged(int state)
-{
-    // This function is implemented when the simulation has been executed (to avoid complication due to CBED and STEM
-    // both having the same checkbox, but only one variable to store it in
-}
-
-bool CbedFrame::isTdsEnabled()
-{
-    return ui->chkTds->checkState() == Qt::Checked;
-}
-
-unsigned int CbedFrame::getTdsRuns()
-{
-    return ui->edtTds->text().toUInt();
 }
 
 void CbedFrame::setActive(bool active)
@@ -95,13 +80,11 @@ void CbedFrame::on_btnCancel_clicked()
     emit stopSim();
 }
 
-void CbedFrame::update_text_boxes()
+void CbedFrame::updateTextBoxes()
 {
     if (Main == 0)
         throw std::runtime_error("Error connecting CBED frame to main window.");
 
-    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getXPos()) );
-    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->getCBedPosition()->getYPos()) );
-    ui->edtTds->setText( Utils_Qt::numToQString(Main->Manager->getStoredTdsRunsCbed()) );
-    ui->chkTds->setChecked( Main->Manager->getTdsEnabledCbed() );
+    ui->edtPosX->setText( Utils_Qt::numToQString(Main->Manager->cbedPosition()->getXPos()) );
+    ui->edtPosY->setText( Utils_Qt::numToQString(Main->Manager->cbedPosition()->getYPos()) );
 }

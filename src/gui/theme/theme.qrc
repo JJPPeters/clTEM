@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/Theme">
         <file>flat-theme.qss</file>
+        <file>default-theme.qss</file>
         <file>icons/close.png</file>
         <file>icons/maximise.png</file>
         <file>icons/unmaximise.png</file>

@@ -27,7 +27,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 
 if(Qt5Widgets_FOUND)
-    message(STATUS "Found Qt version: " ${Qt5Widgets_VERSION})
+    message(STATUS "Found Qt version2: " ${Qt5Widgets_VERSION})
 endif()
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
@@ -67,11 +67,14 @@ set ( clTEM_SRCS
         controls/tabpanelbar.cpp
         controls/imagetab.cpp
         controls/imageplot/imageplotwidget.cpp
+        #
         frames/simulationframe.cpp
         frames/temframe.cpp
         frames/stemframe.cpp
         frames/cbedframe.cpp
         frames/aberrationframe.cpp
+        frames/inelasticframe.cpp
+        #
         dialogs/settings/settingsdialog.cpp
         dialogs/settings/frames/openclframe.cpp
         dialogs/settings/frames/globalsimsettingsframe.cpp
@@ -83,9 +86,11 @@ set ( clTEM_SRCS
         dialogs/settings/frames/thermalscatteringframe.cpp
         dialogs/settings/frames/arealayoutframe.cpp
         dialogs/settings/frames/cifcreatorframe.cpp
+        dialogs/settings/frames/plasmonsettingsframe.cpp
         utils/stringutils.cpp
         utils/guiutils.cpp
         controls/editunitsbox.cpp
+        controls/nthunitsbox.cpp
         controls/borderlesswindow.cpp
         controls/borderlessdialog.cpp
         dialogs/settings/frames/generalsettingsframe.cpp)
@@ -97,6 +102,7 @@ set ( clTEM_UIS
         frames/stemframe.ui
         frames/cbedframe.ui
         frames/aberrationframe.ui
+        frames/inelasticframe.ui
         controls/imagetab.ui
         controls/statuslayout.ui
         dialogs/settings/settingsdialog.ui
@@ -111,6 +117,7 @@ set ( clTEM_UIS
         dialogs/settings/frames/arealayoutframe.ui
         dialogs/settings/frames/thermalscatteringframe.ui
         dialogs/settings/frames/generalsettingsframe.ui
+        dialogs/settings/frames/plasmonsettingsframe.ui
         )
 
 IF(WIN32)

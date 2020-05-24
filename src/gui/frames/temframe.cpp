@@ -3,6 +3,7 @@
 
 #include <QtGui/QRegExpValidator>
 #include <utils/stringutils.h>
+#include <QScreen>
 
 TemFrame::TemFrame(QWidget *parent) :
     QWidget(parent),
@@ -10,11 +11,26 @@ TemFrame::TemFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QScreen* primary_screen = QGuiApplication::primaryScreen();
+    double pixel_ratio = primary_screen->devicePixelRatio();
+
+    int col1 = 75  / pixel_ratio;
+//    int col2 = 100 / pixel_ratio;
+//    int col3 = 100 / pixel_ratio;
+
+    auto test = dynamic_cast<QGridLayout*>(this->layout());
+
+    test->setColumnMinimumWidth(0, col1);
+//    test->setColumnMinimumWidth(1, col2);
+//    test->setColumnMinimumWidth(2, col3);
+
     QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtDose->setValidator(pValidator);
 
     ui->edtDose->setUnits("e⁻A⁻²");
+
+
 }
 
 TemFrame::~TemFrame()
@@ -27,10 +43,10 @@ void TemFrame::on_edtDose_textChanged(const QString &arg1)
     (void)arg1; // don't want this.
     auto v = ui->edtDose->text();
 
-    if(v.toDouble() < 0)
-        ui->edtDose->setStyleSheet("color: #FF8C00");
-    else
+    if(v.toDouble() > 0.0)
         ui->edtDose->setStyleSheet("");
+    else
+        ui->edtDose->setStyleSheet("color: #FF8C00");
 }
 
 void TemFrame::on_btnSim_clicked()
@@ -92,9 +108,9 @@ double TemFrame::getDose() {
 }
 
 void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
-    double dse = sm->getCcdDose();
-    auto nm = sm->getCcdName();
-    int bn = sm->getCcdBinning();
+    double dse = sm->ccdDose();
+    auto nm = sm->ccdName();
+    int bn = sm->ccdBinning();
 
     ui->edtDose->setText( Utils_Qt::numToQString(dse) );
 

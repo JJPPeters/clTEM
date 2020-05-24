@@ -10,7 +10,7 @@
 
 AberrationFrame::AberrationFrame(QWidget *parent) :
     QWidget(parent), Main(nullptr),
-    ui(new Ui::AberrationForm)
+    ui(new Ui::AberrationFrame)
 {
     ui->setupUi(this);
 
@@ -27,6 +27,9 @@ AberrationFrame::AberrationFrame(QWidget *parent) :
     ui->edtConverge->setValidator(pValidator);
     ui->edtVoltage->setValidator(pValidator);
 
+    ui->edtBeamTilt->setValidator(pmValidator);
+    ui->edtBeamAzimuth->setValidator(pmValidator);
+
     ui->edtDefocus->setUnits("nm");
     ui->edtSphere->setUnits("μm");
     ui->edtStigMag->setUnits("nm");
@@ -36,6 +39,9 @@ AberrationFrame::AberrationFrame(QWidget *parent) :
     ui->edtDelta->setUnits("nm");
     ui->edtConverge->setUnits("mrad");
     ui->edtVoltage->setUnits("kV");
+
+    ui->edtBeamTilt->setUnits("mrad");
+    ui->edtBeamAzimuth->setUnits("°");
 
     // these connect to a slot that makes the text colour change if the value is zero
     // I don't want to disable 0 in the regex as people might want it as a leading character (e.g. 0.1)
@@ -75,10 +81,10 @@ void AberrationFrame::on_btnMore_clicked()
 
     updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
 
-    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->getMicroscopeParams());
+    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
 
     // how this is dosconnected when the dialog is destroyed...
-    connect(myDialog, &AberrationsDialog::aberrationsChanged, this, &AberrationFrame::updateTextBoxes);
+    connect(myDialog, &AberrationsDialog::appliedSignal, this, &AberrationFrame::updateTextBoxes);
 
     // we don't need to try and get anything from this dialog as it just updates the pointers we gave it!
     myDialog->exec();
@@ -88,7 +94,7 @@ void AberrationFrame::updateTextBoxes()
 {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
-    auto p = Main->Manager->getMicroscopeParams();
+    auto p = Main->Manager->microscopeParams();
 
     ui->edtDefocus->setText(Utils_Qt::numToQString(p->C10 / 10)); // nm
     ui->edtSphere->setText(Utils_Qt::numToQString(p->C30 / 10000)); // um
@@ -101,6 +107,9 @@ void AberrationFrame::updateTextBoxes()
 
     ui->edtVoltage->setText(Utils_Qt::numToQString(p->Voltage)); // kV
     ui->edtAperture->setText(Utils_Qt::numToQString(p->Aperture)); // mrad
+
+    ui->edtBeamTilt->setText(Utils_Qt::numToQString(p->BeamTilt)); // mrad
+    ui->edtBeamAzimuth->setText(Utils_Qt::numToQString((180 / Constants::Pi) * p->BeamAzimuth)); // degrees
 }
 
 void AberrationFrame::updateAberrations()
@@ -111,7 +120,7 @@ void AberrationFrame::updateAberrations()
 
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
-    auto params = Main->getMicroscopeParams();
+    auto params = Main->Manager->microscopeParams();
 
     auto test = ui->edtDefocus->text().toStdString();
     double C10 = ui->edtDefocus->text().toDouble() * 10; // Angstrom
@@ -125,6 +134,9 @@ void AberrationFrame::updateAberrations()
     double C12m = ui->edtStigMag->text().toDouble() * 10; // Angstrom
     double C12a = ui->edtStigAng->text().toDouble() * Constants::Pi / 180; // radians
 
+    double beam_tilt = ui->edtBeamTilt->text().toDouble(); // mrad
+    double beam_azimuth = ui->edtBeamAzimuth->text().toDouble() * Constants::Pi / 180; // radians
+
     params->Voltage = volt;
     params->Aperture = apert;
     params->Delta = delt;
@@ -133,6 +145,9 @@ void AberrationFrame::updateAberrations()
     params->C10 = C10;
     params->C12 = ComplexAberration(C12m, C12a);
     params->C30 = C30;
+
+    params->BeamTilt = beam_tilt;
+    params->BeamAzimuth = beam_azimuth;
 }
 
 void AberrationFrame::on_edtVoltage_textChanged(const QString &arg1) {

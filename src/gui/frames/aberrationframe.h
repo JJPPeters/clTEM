@@ -1,11 +1,11 @@
-#ifndef ABERRATIONFORM_H
-#define ABERRATIONFORM_H
+#ifndef ABERRATIONFRAME_H
+#define ABERRATIONFRAME_H
 
 #include <QWidget>
 #include <mainwindow.h>
 
 namespace Ui {
-class AberrationForm;
+class AberrationFrame;
 }
 
 class AberrationFrame : public QWidget
@@ -17,7 +17,7 @@ public:
 
     ~AberrationFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m;}
+    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
     void updateAberrations();
 
@@ -32,9 +32,9 @@ public slots:
     void updateTextBoxes();
 
 private:
-    Ui::AberrationForm *ui;
+    Ui::AberrationFrame *ui;
 
     MainWindow* Main;
 };
 
-#endif // ABERRATIONFORM_H
+#endif // ABERRATIONFRAME_H

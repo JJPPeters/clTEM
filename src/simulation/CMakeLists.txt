@@ -31,29 +31,77 @@ if(EASYLOGGINGPP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_NO_LOG_TO_FILE -DELPP_THREAD_SAFE -DELPP_FORCE_USE_STD_THREAD") #
 endif()
 
+find_package (Eigen3 REQUIRED)
+if(EIGEN3_FOUND)
+    message(STATUS "Found EIGEN3: " ${EIGEN3_INCLUDE_DIR})
+endif(EIGEN3_FOUND)
+
 set(SIM_HDRS
         simulationmanager.h
+        kernels.h
+        ccdparams.h
+        #
         structure/crystalstructure.h
         structure/atom.h
+        structure/structureparameters.h
+        #
+        inelastic/inelastic.h
+        inelastic/plasmon.h
+        inelastic/phonon.h
+        #
         utilities/commonstructs.h
         utilities/stringutils.h
         utilities/structureutils.h
-        clmanager.h
-        threadworker.h
+        utilities/fileio.h
+        utilities/enums.h
+        utilities/jsonutils.h
+        utilities/vectorutils.h
+        utilities/logging.h
+        utilities/simutils.h
+        #
+        threading/simulationrunner.h
+        threading/threadpool.h
+        threading/threadworker.h
+        threading/simulationjob.h
+        #
+        microscope/simulationgeneral.h
+        microscope/simulationworker.h
+        microscope/simulationctem.h
+        microscope/simulationcbed.h
+        microscope/simulationstem.h
         )
 
 set(SIM_SCRS
         simulationmanager.cpp
+        kernels.cpp
+        ccdparams.cpp
+        #
         structure/crystalstructure.cpp
+        structure/structureparameters.cpp
+        #
+        inelastic/inelastic.cpp
+        inelastic/plasmon.cpp
+        inelastic/phonon.cpp
+        #
         utilities/commonstructs.cpp
         utilities/stringutils.cpp
         utilities/structureutils.cpp
-        simulationrunner.cpp
-#        simulations/ctemsimulation.cpp
-#        simulations/stemsimulation.cpp
-#        simulations/microscopesimulation.cpp
-        threadworker.cpp
-        threadpool.cpp threadpool.h simulationjob.cpp simulationjob.h simulationworker.cpp simulationworker.h structure/structureparameters.h kernels.h kernels.cpp clmanager.cpp structure/structureparameters.cpp utilities/fileio.cpp utilities/fileio.h ccdparams.cpp ccdparams.h utilities/enums.h utilities/jsonutils.cpp utilities/jsonutils.h utilities/vectorutils.cpp utilities/vectorutils.h structure/thermalvibrations.cpp structure/thermalvibrations.h utilities/logging.cpp utilities/logging.h utilities/simutils.cpp utilities/simutils.h)
+        utilities/fileio.cpp
+        utilities/jsonutils.cpp
+        utilities/vectorutils.cpp
+        utilities/logging.cpp
+        utilities/simutils.cpp
+        #
+        threading/simulationrunner.cpp
+        threading/threadpool.cpp
+        threading/threadworker.cpp
+        threading/simulationjob.cpp
+        #
+        microscope/simulationgeneral.cpp
+        microscope/simulationworker.cpp
+        microscope/simulationctem.cpp
+        microscope/simulationcbed.cpp
+        microscope/simulationstem.cpp structure/simulationcell.cpp structure/simulationcell.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 

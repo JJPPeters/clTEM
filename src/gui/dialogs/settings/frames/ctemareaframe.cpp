@@ -162,8 +162,8 @@ void CtemAreaFrame::on_btnReset_clicked() {
 
 void CtemAreaFrame::on_btnDefault_clicked() {
     if (Structure) {
-        auto xRangeTup = Structure->getLimitsX();
-        auto yRangeTup = Structure->getLimitsY();
+        auto xRangeTup = Structure->limitsX();
+        auto yRangeTup = Structure->limitsY();
 
         ui->edtStartX->setText(Utils_Qt::numToQString(xRangeTup[0]));
         ui->edtFinishX->setText(Utils_Qt::numToQString(xRangeTup[1]));

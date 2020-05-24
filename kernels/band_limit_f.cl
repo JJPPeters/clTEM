@@ -14,15 +14,19 @@ __kernel void band_limit_f( __global float2* input_output,
 						   unsigned int width,
 						   unsigned int height,
 						   float k_max,
+						   float limit_factor,
 						   __global float* k_x,
 						   __global float* k_y)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
+
+	float lim = k_max * limit_factor;
+
 	if(xid < width && yid < height) {
 		int id = xid + width*yid;
 		float k = native_sqrt( k_x[xid]*k_x[xid] + k_y[yid]*k_y[yid] );
-		input_output[id].x *= (k<=k_max);
-		input_output[id].y *= (k<=k_max);
+		input_output[id].x *= (k <= lim);
+		input_output[id].y *= (k <= lim);
 	}
 }

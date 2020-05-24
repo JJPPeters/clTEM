@@ -23,8 +23,8 @@ class ImageTab : public QWidget
     Q_OBJECT
 
 signals:
-    void saveDataActivated();
-    void saveImageActivated();
+    void saveDataActivated(bool);
+    void saveImageActivated(bool);
 
 public:
     explicit ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex = false);
@@ -49,6 +49,17 @@ public:
     {
         settings = stngs;
         image_units = units;
+        if (img.getDepth() > 1) {
+            ui->hScrlSlice->setMinimum(0);
+            ui->hScrlSlice->setMaximum(img.getDepth() - 1);
+
+            ui->hScrlSlice->setVisible(true);
+            disconnect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+            ui->hScrlSlice->setValue(img.getDepth() - 1);
+            connect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+        } else
+            ui->hScrlSlice->setVisible(false);
+
         ui->widget->SetImage(img, lo_x, lo_y, sc_x, sc_y, scale, zp, doReplot);
     }
 
@@ -62,6 +73,17 @@ public:
     {
         settings = stngs;
         image_units = units;
+        if (img.getDepth() > 1) {
+            ui->hScrlSlice->setMinimum(0);
+            ui->hScrlSlice->setMaximum(img.getDepth() - 1);
+
+            ui->hScrlSlice->setVisible(true);
+            disconnect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+            ui->hScrlSlice->setValue(img.getDepth() - 1);
+            connect(ui->hScrlSlice, &QScrollBar::valueChanged, this, &ImageTab::sliceSliderChanged);
+        } else
+            ui->hScrlSlice->setVisible(false);
+
         ui->widget->SetComplexImage(img, lo_x, lo_y, sc_x, sc_y, scale, getComplexDisplayOption(), zp, doReplot);
     }
 
@@ -78,9 +100,11 @@ private:
 
     ShowComplex getComplexDisplayOption();
 
+    void sliceSliderChanged(int value);
+
 public slots:
-    void forwardSaveData() { emit saveDataActivated(); }
-    void forwardSaveImage() { emit saveImageActivated(); }
+    void forwardSaveData(bool full_stack) { emit saveDataActivated(full_stack); }
+    void forwardSaveImage(bool full_stack) { emit saveImageActivated(full_stack); }
 
     void on_cmbComplex_currentIndexChanged(const QString &selection);
 

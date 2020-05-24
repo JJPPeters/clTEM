@@ -16,6 +16,7 @@
 #include <controls/borderlesswindow.h>
 #include <controls/borderlessdialog.h>
 #include <QtCore/QSettings>
+#include <QScreen>
 
 struct ThemeManager {
 
@@ -91,14 +92,43 @@ public:
     }
 
 private:
+    static void setFontSize() {
+        // This probably only works for windows and possibly only in a limited set of cases
+        // maybe in fiture Qt this will be handled sensibly, but for now this is my bodge
+        QFont font = QGuiApplication::font();
+        QScreen* primary_screen = QGuiApplication::primaryScreen();
+        double dpi_normal = 96;
+        double dpi_current = primary_screen->logicalDotsPerInch();
+
+        double font_size = 11;
+        font_size *= dpi_current / dpi_normal;
+        font_size = std::ceil(font_size);
+
+        font.setPixelSize((int) font_size);
+        qApp->setFont(font);
+    }
+
     static void setNativeTheme() {
+        setFontSize();
+
+        QFile f(":/Theme/default-theme.qss");
+        if (f.open(QFile::ReadOnly | QFile::Text)) {
+            QTextStream in(&f);
+            QString s = in.readAll();
+            f.close();
+
+            qApp->setStyleSheet(s);
+        }
+
         // remove our stylesheet
-        qApp->setStyleSheet("");
+//        qApp->setStyleSheet("");
         // reset our palette
-        qApp->setPalette(QApplication::style()->standardPalette());
+        QGuiApplication::setPalette(QApplication::style()->standardPalette());
     }
 
     static void setDarkTheme() {
+        setFontSize();
+
         QFile f(":/Theme/flat-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
@@ -123,7 +153,7 @@ private:
             darkPalette.setColor(QPalette::Window, QColor(d1));
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
-            qApp->setPalette(darkPalette);
+            QGuiApplication::setPalette(darkPalette);
 
             s.replace("{t}", t);
 
@@ -138,12 +168,24 @@ private:
             s.replace("{c1}", c1);
             s.replace("{c2}", c2);
 
+            QFile f_default(":/Theme/default-theme.qss");
+            if (f_default.open(QFile::ReadOnly | QFile::Text)) {
+                QTextStream in_default(&f_default);
+                QString s_default = in_default.readAll();
+                f_default.close();
+
+                s.replace("{default_settings}", s_default);
+            } else
+                s.replace("{default_settings}", "");
+
             qApp->setStyleSheet(s);
         }
 
     }
 
     static void setLightTheme() {
+        setFontSize();
+
         QFile f(":/Theme/flat-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
@@ -168,7 +210,7 @@ private:
             darkPalette.setColor(QPalette::Window, QColor(d1));
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
-            qApp->setPalette(darkPalette);
+            QGuiApplication::setPalette(darkPalette);
 
             s.replace("{t}", t);
             s.replace("{d1}", d1);
@@ -181,6 +223,16 @@ private:
             s.replace("{a3}", a3);
             s.replace("{c1}", c1);
             s.replace("{c2}", c2);
+
+            QFile f_default(":/Theme/default-theme.qss");
+            if (f_default.open(QFile::ReadOnly | QFile::Text)) {
+                QTextStream in_default(&f_default);
+                QString s_default = in_default.readAll();
+                f_default.close();
+
+                s.replace("{default_settings}", s_default);
+            } else
+                s.replace("{default_settings}", "");
 
             qApp->setStyleSheet(s);
         }

@@ -12,6 +12,7 @@ namespace CIF {
         positions.push_back(std::vector<double>({wrapPosition(xin), wrapPosition(yin), wrapPosition(zin)}));
         occupancy.push_back(occin);
         thermal_u.emplace_back();
+        thermal_defined = false;
 
         applySymmetry(symmetryvector);
     }
@@ -56,6 +57,7 @@ namespace CIF {
         thermal_u[i](0) = u_iso;
         thermal_u[i](1) = u_iso;
         thermal_u[i](2) = u_iso;
+        thermal_defined = true;
         return true;
     }
 
@@ -66,6 +68,7 @@ namespace CIF {
             return false;
 
         thermal_u[ind](i) = u;
+        thermal_defined = true;
         return true;
     }
 

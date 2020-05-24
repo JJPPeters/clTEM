@@ -12,9 +12,6 @@ class FullAberrationFrame : public QWidget
 {
     Q_OBJECT
 
-signals:
-    void aberrationsApplied();
-
 public:
     explicit FullAberrationFrame(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
     ~FullAberrationFrame();

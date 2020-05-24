@@ -1,5 +1,5 @@
 #include "structureparameters.h"
 
-std::vector<Parameterisation> StructureParameters::Params;
+std::vector<Parameterisation> StructureParameters::params;
 
 std::mutex StructureParameters::mtx;

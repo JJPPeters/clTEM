@@ -8,7 +8,7 @@
 
 #include "utilities/commonstructs.h"
 
-#include "thermalvibrations.h"
+#include "inelastic/phonon.h"
 
 #include "atom.h"
 #include "cif/cifreader.h"
@@ -23,35 +23,31 @@ namespace FileFormat {
 
 class CrystalStructure
 {
-public:
 private:
     /// Vector of atoms with coordinates in Angstroms
-    std::vector<AtomSite> Atoms;
-
-    /// Vector of all the different atomic numebr we have in our structure
-//    std::vector<int> AtomTypes;
+    std::vector<AtomSite> atom_list;
 
     /// Filepath to to file we opened
-    std::string filePath;
+    std::string file_path;
 
     bool file_defined_thermals;
 
     /// Use to conver the structure/file units to Angstrom
-    double ScaleFactor;
+    double scale_factor;
 
     /// Spacial ;imits of our structure
-    double MaxX;
-    double MinX;
-    double MaxY;
-    double MinY;
-    double MaxZ;
-    double MinZ;
+    double max_x;
+    double min_x;
+    double max_y;
+    double min_y;
+    double max_z;
+    double min_z;
 
     /// MAx atomic number - used to see our parameterisation covers this (assumes parameterisation does not have gaps)
-    unsigned int MaxAtomicNumber;
-    unsigned int AtomCount;
+    unsigned int max_atomic_number;
+    unsigned int atom_count;
 
-    std::mt19937 rng;
+    std::mt19937_64 rng;
     std::uniform_real_distribution<> dist;
 
     void resetLimits();
@@ -61,7 +57,7 @@ private:
 
     void addAtom(AtomSite a);
 
-    void processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz);
+    void processAtomList(std::vector<std::string> A, std::vector<double> x, std::vector<double> y, std::vector<double> z, std::vector<double> occ, std::vector<bool> def_u, std::vector<double> ux, std::vector<double> uy, std::vector<double> uz);
 
 public:
     // mostly for opening .xyz files, but will handle .cif
@@ -77,23 +73,22 @@ public:
     void openCif(std::string fPath, CIF::SuperCellInfo info, bool fix_cif=false);
     void openCif(CIF::CIFReader cif, CIF::SuperCellInfo info);
 
-    std::string getFileName() {return filePath;}
+    std::string fileName() {return file_path;}
 
-    std::vector<AtomSite> getAtoms() {return Atoms;}
+    std::vector<AtomSite> atoms() {return atom_list;}
 
-    int getAtomCountInRange(double xs, double xf, double ys, double yf);
+    int atomCountInRange(double xs, double xf, double ys, double yf);
 
-    std::valarray<double> getLimitsX() {return {MinX, MaxX};}
+    std::valarray<double> limitsX() {return {min_x, max_x};}
 
-    std::valarray<double> getLimitsY() {return {MinY, MaxY};}
+    std::valarray<double> limitsY() {return {min_y, max_y};}
 
-    std::valarray<double> getLimitsZ() {return {MinZ, MaxZ};}
+    std::valarray<double> limitsZ() {return {min_z, max_z};}
 
-    unsigned int getMaxAtomicNumber() {return MaxAtomicNumber;}
+    unsigned int maxAtomicNumber() {return max_atomic_number;}
 
-    bool isThermalFileDefined() { return file_defined_thermals; }
+    bool thermalFileDefined() { return file_defined_thermals; }
 
-//    std::vector<int> getAtomsTypes() {return AtomTypes;}
 };
 
 #endif // CRYSTALSTRUCTURE_H

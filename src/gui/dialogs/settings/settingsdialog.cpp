@@ -32,7 +32,9 @@ void SettingsDialog::showApplyButton(bool show) {
     ui->BtnApply->setVisible(show);
 }
 
-
+void SettingsDialog::setOkEnabled(bool enabled) {
+    ui->btnOk->setEnabled(enabled);
+}
 
 
 OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice>& current_devices) :
@@ -68,15 +70,7 @@ AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<Microscope
 
     this->setWindowTitle("Aberrations");
 
-    // don't think I ever need to disconnect this, should be handles by Qt when the objects are destroyed
-    connect(AberrFrame, &FullAberrationFrame::aberrationsApplied, this, &AberrationsDialog::coreAberrationsChanged);
-
     this->setFixedSize(this->minimumSizeHint());
-}
-
-void AberrationsDialog::coreAberrationsChanged()
-{
-    emit aberrationsChanged();
 }
 
 
@@ -118,7 +112,18 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
     ThermalFrame = new ThermalScatteringFrame(this, simManager);
     ui->vLayout->insertWidget(0, ThermalFrame);
 
-    this->setWindowTitle("Thermal scattering");
+    this->setWindowTitle("Phonon scattering");
+
+    this->setFixedSize(this->minimumSizeHint());
+}
+
+PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+        SettingsDialog(parent)
+{
+    PlasmonFrame = new PlasmonSettingsFrame(this, simManager);
+    ui->vLayout->insertWidget(0, PlasmonFrame);
+
+    this->setWindowTitle("Plasmon scattering");
 
     this->setFixedSize(this->minimumSizeHint());
 }
@@ -157,5 +162,5 @@ CifCreatorDialog::CifCreatorDialog(QWidget *parent, CIF::CIFReader cif, std::sha
 
     this->setWindowTitle("Cif");
 
-//    this->setFixedSize(this->sizeHint());
+    this->setFixedSize(this->minimumSize());
 }

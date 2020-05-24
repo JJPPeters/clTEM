@@ -12,7 +12,8 @@
 #include "parseopencl.h"
 
 #include <boost/filesystem.hpp>
-#include <simulationrunner.h>
+
+#include <threading/simulationrunner.h>
 #include <structure/structureparameters.h>
 #include <kernels.h>
 #ifdef _WIN32
@@ -45,9 +46,15 @@ void printHelp()
                  "    -h : (--help) print this help message and exit\n"
                  "    -v : (--version) print the clTEM command line version number and exit\n"
                  "    -l : (--list) print the available OpenCL devices and exit\n"
+                 "    -f : (--flags) comma separated list of optimisation flags for OpenCL kernels. Options are:\n"
+                 "             enable-mad       : optimise a * b + c with reduced accuracy\n"
+                 "             no-signed-zeros  : ignore the sign of zeros\n"
+                 "             unsafe-maths     : disregard IEEE 754 standards and OpenCL numerical compliance\n"
+                 "             finite-maths     : disregard NaNs and infinities\n"
+                 "             native-functions : use (often) faster but less accurate native functions\n"
                  "    -o : (--output) REQUIRED set the output directory for the simulation results\n"
                  "    -c : (--config) REQUIRED set the .json config file for the simulation\n"
-                 "    -d : (--device) REQUIRED set the OpenCL device(s). Accepts format:\n"
+                 "    -d : (--device) REQUIRED set the OpenCL device(s). Options are:\n"
                  "             default : uses the default OpenCL device(s)\n"
                  "             all     : uses all available OpenCL device(s)\n"
                  "             gpus    : use all available gpus\n"
@@ -66,7 +73,7 @@ void printHelp()
 
 void printVersion()
 {
-    std::cout << "clTEM command line interface v0.2a" << std::endl;
+    std::cout << "clTEM command line interface v0.3a" << std::endl;
 }
 
 void listDevices()
@@ -84,20 +91,31 @@ void listDevices()
     }
 }
 
-/// Parse a string with 3 numbers separated by commas
-template <typename T>
-bool parseThreeCommaList(std::string lst, T& a, T& b, T& c)
-{
+template<typename T>
+std::vector<T> parseCommaList(std::string lst) {
+    if (lst.empty())
+        return std::vector<T>();
+
     std::istringstream ss(lst);
     std::string part;
     T v;
     std::vector<T> vec;
+
     while(ss.good()) {
         getline( ss, part, ',' );
         std::istringstream ssp(part);
         ssp >> v;
         vec.emplace_back(v);
     }
+
+    return vec;
+}
+
+/// Parse a string with 3 numbers separated by commas
+template <typename T>
+bool parseThreeCommaList(std::string lst, T& a, T& b, T& c)
+{
+    std::vector<T> vec = parseCommaList<T>(lst);
 
     if (vec.size() != 3)
         return false;
@@ -132,10 +150,45 @@ void reportTotalProgress(double frac)
         std::cout << std::endl;
 }
 
+void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_settings) {
+
+    if (filename.substr(filename.length() - 4) == ".tif")
+        filename = filename.substr(0, filename.length() - 4);
+
+    if (im.getDepth() > 1) {
+
+        // calculate the slice count of this output
+        auto si = JSONUtils::readJsonEntry<unsigned int>(j_settings, "intermediate output", "slice interval");
+        auto sc = JSONUtils::readJsonEntry<unsigned int>(j_settings, "slice count");
+        if (si < 1)
+            throw std::runtime_error("Saving stack with < 0 slice step.");
+
+        int out_string_len = Utils::numToString(sc-1).size();
+
+        std::vector<double> data;
+
+        for (int i = 0; i < im.getSliceSize(); ++i) {
+            data = im.getSlice(i, false);
+
+            // get the name to use for the output
+            //  remember we don't start getting slices from the first slice
+            unsigned int slice_id = (i+1)*si-1;
+            if (slice_id >= sc)
+                slice_id = sc-1;
+            std::string temp = Utils::uintToString(slice_id, out_string_len);
+
+            fileio::SaveTiff<float>(filename+"_"+temp+".tif", data, im.getWidth(), im.getHeight()); // save data
+        }
+
+    } else {
+        fileio::SaveTiff<float>(filename+".tif", im.getSlice(0, false), im.getWidth(), im.getHeight()); // save data
+    }
+}
+
 void imageReturned(SimulationManager sm)
 {
     nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
-    settings["filename"] = sm.getStructure()->getFileName();
+    settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
 #ifdef _WIN32
     std::wstring w_sep(&fs::path::preferred_separator);
@@ -144,7 +197,7 @@ void imageReturned(SimulationManager sm)
     std::string sep = &fs::path::preferred_separator;
 #endif
 
-    auto ims = sm.getImages();
+    auto ims = sm.images();
 
     // save the images....
     // we've been given a list of images, got to display them now....
@@ -165,7 +218,7 @@ void imageReturned(SimulationManager sm)
         }
         else {
             // add the specific detector info here!
-            for (const auto &d : sm.getDetectors())
+            for (const auto &d : sm.stemDetectors())
                 if (d.name == name)
                     settings["stem"]["detectors"][d.name] = JSONUtils::stemDetectorToJson(d);
             settings["microscope"].erase("alpha");
@@ -176,26 +229,30 @@ void imageReturned(SimulationManager sm)
 
         try {
             if (name == "EW") { // save amplitude and phase
-                if (im.data.size() % 2 != 0)
+                if (im.getSliceSize() % 2 != 0)
                     throw std::runtime_error("Attempting to save complex image with non equal real and imaginary parts.");
 
-                std::vector<float> abs(im.data.size() / 2);
-                std::vector<float> arg(im.data.size() / 2);
+                auto im_d = im.getDimensions();
 
-                for (int j = 0; j < im.data.size(); j+=2) {
-                    auto cval = std::complex<float>(im.data[j], im.data[j+1]);
-                    abs[j / 2] = std::abs(cval);
-                    arg[j / 2] = std::arg(cval);
-                }
+                Image<double> abs(im_d[0], im_d[1], im_d[2]);
+                Image<double> arg(im_d[0], im_d[1], im_d[2]);
 
-                fileio::SaveTiff<float>(out_name + "_amplitude.tif", abs, im.width, im.height);
+                for (int j = 0; j < im.getDepth(); j+=2)
+                    for (int k = 0; k < im.getSliceSize(); k+=2) {
+                        auto cval = std::complex<double>(im.getSliceRef(j)[k], im.getSliceRef(j)[k + 1]);
+                        abs.getSliceRef(j)[k / 2] = std::abs(cval);
+                        arg.getSliceRef(j)[k / 2] = std::arg(cval);
+                    }
+
+
                 fileio::SaveSettingsJson(out_name + "_amplitude.json", settings);
-
-                fileio::SaveTiff<float>(out_name + "_phase.tif", arg, im.width, im.height);
                 fileio::SaveSettingsJson(out_name + "_phase.json", settings);
+
+                saveTiffOutput(out_name+"_amplitude", abs, settings);
+                saveTiffOutput(out_name+"_phase", arg, settings);
             } else {
-                fileio::SaveTiff<float>(out_name + ".tif", im.data, im.width, im.height);
                 fileio::SaveSettingsJson(out_name + ".json", settings);
+                saveTiffOutput(out_name, im, settings);
             }
         } catch (std::runtime_error &e) {
             std::cout << "Error saving image: " << e.what() << std::endl;
@@ -220,7 +277,7 @@ int main(int argc, char *argv[])
 
     std::vector<std::string> non_option_args;
 
-    std::string size_arg, zone_arg, normal_arg, tilt_arg;
+    std::string size_arg, zone_arg, normal_arg, tilt_arg, flag_arg;
 
     while (true)
     {
@@ -228,7 +285,8 @@ int main(int argc, char *argv[])
                 {
                         {"help",     no_argument,       nullptr,       'h'},
                         {"version",  no_argument,       nullptr,       'v'},
-                        {"list_devices",  no_argument,       nullptr,       'l'},
+                        {"list",  no_argument,       nullptr,       'l'},
+                        {"flags",  no_argument,       nullptr,       'f'},
                         {"output",   required_argument, nullptr,       'o'},
                         {"config",   required_argument, nullptr,       'c'},
                         {"device",   required_argument, nullptr,       'd'},
@@ -242,7 +300,7 @@ int main(int argc, char *argv[])
                 };
         // getopt_long stores the option index here.
         int option_index = 0;
-        c = getopt_long(argc, argv, "hvlo:c:d:s:z:n:t:", long_options, &option_index);
+        c = getopt_long(argc, argv, "hvlf:o:c:d:s:z:n:t:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1)
@@ -261,6 +319,9 @@ int main(int argc, char *argv[])
             case 'l':
                 listDevices();
                 return 0;
+            case 'f':
+                flag_arg = optarg;
+                break;
             case 'o':
                 output_dir = optarg;
                 break;
@@ -493,6 +554,40 @@ int main(int argc, char *argv[])
     // now have all our files/folders
     // need to check that they are all valid!
 
+    //
+    // Get and set kernel flags
+    //
+    std::vector<std::string> flag_vec = parseCommaList<std::string>(flag_arg);
+
+    bool enable_mad = false;
+    bool no_signed_zeros = false;
+    bool unsafe_maths = false;
+    bool finite_maths = false;
+    bool native_functions = false;
+
+    for(const auto& fl : flag_vec) {
+        if (fl == "all") {
+            enable_mad = true;
+            no_signed_zeros = true;
+            unsafe_maths = true;
+            finite_maths = true;
+            native_functions = true;
+        } else if (fl == "enable-mad")
+            enable_mad = true;
+        else if (fl == "no-signed-zeros")
+            no_signed_zeros = true;
+        else if (fl == "unsafe-maths")
+            unsafe_maths = true;
+        else if (fl == "finite-maths")
+            finite_maths = true;
+        else if (fl == "native-functions")
+            native_functions = true;
+        else
+            std::cout << "Found unknown kernel flag: " << fl << ", ignoring it." << std::endl;
+    }
+
+    KernelSource::setOptions(enable_mad, no_signed_zeros, unsafe_maths, finite_maths, native_functions);
+
     // read the config file in
     nlohmann::json j;
 
@@ -593,22 +688,42 @@ int main(int argc, char *argv[])
     // TODO: do I want to bypass the static class? maybe it would help if we were loading a load of simulations to run..
     std::string params_path = exe_path_string + sep + "params";
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
-    unsigned int row_count;
-    std::vector<double> params = Utils::paramsToVector(params_path, p_name+ ".dat", row_count);
-    StructureParameters::setParams(params, p_name, row_count);
     man_ptr->setStructureParameters(p_name);
+
+    for (const auto& params_file: boost::filesystem::directory_iterator(params_path))
+        Utils::readParams(params_file.path().string());
 
     // check all our prerequisites here (some repeated?)
     try {
         Utils::checkSimulationPrerequisites(man_ptr, device_list);
     } catch (const std::runtime_error &e) {
         std::cout << e.what() << std::endl;
+        return 1;
+    }
+
+    // sort plasmon stuff
+    if (man_ptr->inelasticScattering()->plasmons()->enabled()) {
+        int parts = man_ptr->totalParts();
+        man_ptr->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        auto z_lims = man_ptr->simulationCell()->crystalStructure()->limitsZ();
+        double thk = z_lims[1] - z_lims[0];
+
+        bool valid = false;
+        for (int i = 0; i < parts; ++i) {
+            valid = man_ptr->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
+
+        if (!valid) {
+            std::cout << "Could not generate valid plasmon configuration." << std::endl;
+            return 1;
+        }
+
+        }
     }
 
     // open the kernels
     std::string kernel_path = exe_path_string + sep + "kernels";
 
-    if (man_ptr->getDoDoublePrecision()) {
+    if (man_ptr->doublePrecisionEnabled()) {
         Kernels::atom_sort_d = Utils::resourceToChar(kernel_path, "atom_sort_d.cl");
         Kernels::band_limit_d = Utils::resourceToChar(kernel_path, "band_limit_d.cl");
         Kernels::band_pass_d = Utils::resourceToChar(kernel_path, "band_pass_d.cl");
@@ -619,11 +734,13 @@ int main(int argc, char *argv[])
         Kernels::fft_shift_d = Utils::resourceToChar(kernel_path, "fft_shift_d.cl");
         Kernels::init_plane_wave_d = Utils::resourceToChar(kernel_path, "init_plane_wave_d.cl");
         Kernels::init_probe_wave_d = Utils::resourceToChar(kernel_path, "init_probe_wave_d.cl");
-        Kernels::potential_full_3d_d = Utils::resourceToChar(kernel_path, "potential_full_3d_d.cl");
-        Kernels::potential_projected_d = Utils::resourceToChar(kernel_path, "potential_projected_d.cl");
-        Kernels::propogator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
+        Kernels::transmission_potentials_full_3d_d = Utils::resourceToChar(kernel_path, "transmission_potentials_full_3d_d.cl");
+        Kernels::transmission_potentials_projected_d = Utils::resourceToChar(kernel_path, "transmission_potentials_projected_d.cl");
+        Kernels::propagator_d = Utils::resourceToChar(kernel_path, "propagator_d.cl");
         Kernels::sqabs_d = Utils::resourceToChar(kernel_path, "sqabs_d.cl");
         Kernels::sum_reduction_d = Utils::resourceToChar(kernel_path, "sum_reduction_d.cl");
+        Kernels::bilinear_translate_d = Utils::resourceToChar(kernel_path, "bilinear_translate_d.cl");
+        Kernels::complex_to_real_d = Utils::resourceToChar(kernel_path, "complex_to_real_d.cl");
     } else {
         Kernels::atom_sort_f = Utils::resourceToChar(kernel_path, "atom_sort_f.cl");
         Kernels::band_limit_f = Utils::resourceToChar(kernel_path, "band_limit_f.cl");
@@ -635,14 +752,16 @@ int main(int argc, char *argv[])
         Kernels::fft_shift_f = Utils::resourceToChar(kernel_path, "fft_shift_f.cl");
         Kernels::init_plane_wave_f = Utils::resourceToChar(kernel_path, "init_plane_wave_f.cl");
         Kernels::init_probe_wave_f = Utils::resourceToChar(kernel_path, "init_probe_wave_f.cl");
-        Kernels::potential_full_3d_f = Utils::resourceToChar(kernel_path, "potential_full_3d_f.cl");
-        Kernels::potential_projected_f = Utils::resourceToChar(kernel_path, "potential_projected_f.cl");
-        Kernels::propogator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
+        Kernels::transmission_potentials_full_3d_f = Utils::resourceToChar(kernel_path, "transmission_potentials_full_3d_f.cl");
+        Kernels::transmission_potentials_projected_f = Utils::resourceToChar(kernel_path, "transmission_potentials_projected_f.cl");
+        Kernels::propagator_f = Utils::resourceToChar(kernel_path, "propagator_f.cl");
         Kernels::sqabs_f = Utils::resourceToChar(kernel_path, "sqabs_f.cl");
         Kernels::sum_reduction_f = Utils::resourceToChar(kernel_path, "sum_reduction_f.cl");
+        Kernels::bilinear_translate_f = Utils::resourceToChar(kernel_path, "bilinear_translate_f.cl");
+        Kernels::complex_to_real_f = Utils::resourceToChar(kernel_path, "complex_to_real_f.cl");
     }
 
-    auto ccd_name = man_ptr->getCcdName();
+    auto ccd_name = man_ptr->ccdName();
 
     if (ccd_name != "" && ccd_name != "Perfect") {
         std::string ccds_path = exe_path_string + sep + "ccds";
@@ -659,7 +778,7 @@ int main(int argc, char *argv[])
 
     man_list.emplace_back(man_ptr);
 
-    auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list, man_ptr->getDoDoublePrecision());
+    auto simRunner = std::make_shared<SimulationRunner>(man_list, device_list, man_ptr->doublePrecisionEnabled());
 
     simRunner->runSimulations();
 

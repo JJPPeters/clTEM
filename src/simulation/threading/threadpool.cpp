@@ -3,7 +3,7 @@
 //
 
 #include "threadpool.h"
-#include "simulationworker.h"
+#include "microscope/simulationworker.h"
 
 // the constructor just launches some amount of workers
 ThreadPool::ThreadPool(std::vector<clDevice> devList, int num_jobs, bool double_precision) : stop(false)

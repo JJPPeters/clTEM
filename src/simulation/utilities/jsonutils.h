@@ -10,7 +10,7 @@
 #include <ccdparams.h>
 #include "json.hpp"
 
-#include "structure/thermalvibrations.h"
+#include "inelastic/phonon.h"
 
 namespace JSONUtils {
 
@@ -29,7 +29,7 @@ namespace JSONUtils {
     // This function is used for the command line to check if the area has been defined
     SimulationManager JsonToManager(json& j, bool& area_set);
 
-    ThermalVibrations JsonToThermalVibrations(json& j);
+    PhononScattering JsonToThermalVibrations(json& j);
 
     template <typename T>
     T readJsonEntry(json j, std::string current)

@@ -32,7 +32,9 @@ private slots:
 private:
     Ui::ThermalScatteringFrame *ui;
 
-    std::shared_ptr<SimulationManager> Manager;
+//    std::shared_ptr<SimulationManager> Manager;
+
+    std::shared_ptr<PhononScattering> Phonons;
 
     void addItemToList(std::string el, double vib);
 

@@ -26,7 +26,7 @@
 /// total_slices - total number of slices in the simulation
 /// z - current z position
 /// dz - the slice thickness
-/// pixelscale - pixel scale of the image in real space
+/// pixel_scale - pixel scale of the image in real space
 /// blocks_x - total number of blocks in x direction
 /// blocks_y - total number of blocks in y direction
 /// max_x - max x position (including padding)
@@ -52,104 +52,117 @@
 /// 10.1107/S0108767395014371. Parameters are stored as: a1, a2, a3, a4, a5, b1, b2, bb, b4, b5
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double kirkland(__constant double* params, int ZNum, double rad) {
+#define recip(x) (1.0f / (x))
+
+float kirkland(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
-    double suml, sumg, x;
-    suml = 0.0;
-    sumg = 0.0;
+    float suml, sumg, x;
+    suml = 0.0f;
+    sumg = 0.0f;
+
+    int z_ofst = (ZNum - 1) * 12;
+
     //
     // Lorentzians
     //
-    x = 2.0 * M_PI * rad;
+    x = 2.0f * M_PI_F * rad;
 
     // Loop through our parameters (a and b)
-    for(i=0; i<6; i+=2) {
-        double a = params[(ZNum-1)*12+i];
-        double b = params[(ZNum-1)*12+i+1];
+    for(i = 0; i < i_lim*2; i+=2) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+1];
         suml += a * native_exp(-x * native_sqrt(b) );
     }
 
     //
     // Gaussians
     //
-    x = M_PI * rad;
+    x = M_PI_F * rad;
     x = x * x;
 
     // Loop through our parameters (a and b)
-    for(i=6; i<12; i+=2) {
-        double c = params[(ZNum-1)*12+i];
-        double d = params[(ZNum-1)*12+i+1];
-        double d_inv_root = native_rsqrt(d);
+    for(i = i_lim*2; i < i_lim*4; i+=2) {
+        float c = params[z_ofst+i];
+        float d = params[z_ofst+i+1];
+        float d_inv_root = native_rsqrt(d);
         sumg += c * (d_inv_root*d_inv_root*d_inv_root) * native_exp(-x * native_recip(d));
     }
 
-    // The funny doubles are from the remaining constants in equation C.20
+    // The funny floats are from the remaining constants in equation C.20
     // Not that they use the fundamental charge as 14.4 Volt-Angstroms
-    return 150.4121417 * native_recip(rad) * suml + 266.5157269 * sumg;
+    return 150.4121417f * native_recip(rad) * suml + 266.5157269f * sumg;
  }
 
-double lobato(__constant double* params, int ZNum, double rad) {
+float lobato(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
-    double sum, x;
-    sum = 0.0;
+    float sum, x;
+    sum = 0.0f;
 
-    x = M_PI * rad;
+    int z_ofst = (ZNum - 1) * 10;
 
-    for(i=0; i < 5; ++i) {
-        double a = params[(ZNum-1)*10+i];
-        double b = params[(ZNum-1)*10+i+5];
-        double b_inv_root = native_rsqrt(b);
-        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-2.0 * x * b_inv_root) * (native_sqrt(b) * native_recip(x) + 1.0);
+    x = M_PI_F * rad;
+
+    for(i=0; i < i_lim; ++i) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+5];
+        float b_inv_root = native_rsqrt(b);
+        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-2.0f * x * b_inv_root) * (native_sqrt(b) * native_recip(x) + 1.0f);
     }
 
-    return 472.545072199968 * sum;
+    return 472.545072199968f * sum;
 }
 
-double peng(__constant double* params, int ZNum, double rad) {
+float peng(__constant float* params, int i_lim, int ZNum, float rad) {
     int i;
-    double sum, x;
-    sum = 0.0;
+    float sum, x;
+    sum = 0.0f;
 
-    x = M_PI * rad;
+    int z_ofst = (ZNum - 1) * 10;
+
+    x = M_PI_F * rad;
     x = x * x;
 
-    for(i=0; i<5; ++i) {
-        double a = params[(ZNum-1)*10+i];
-        double b = params[(ZNum-1)*10+i+5];
+    for(i=0; i < i_lim; ++i) {
+        float a = params[z_ofst+i];
+        float b = params[z_ofst+i+5];
+        float b_inv_root = native_rsqrt(b);
 
-        sum += a * native_exp(-x * native_recip(b));
+        sum += a * (b_inv_root*b_inv_root*b_inv_root) * native_exp(-x * native_recip(b));
     }
 
-    return 1844.76074609315 * sum;
+    return 266.5157269f * sum;
 }
 
-__kernel void potential_full_3d_d( __global double2* potential,
-										  __global const double* restrict pos_x,
-										  __global const double* restrict pos_y,
-										  __global const double* restrict pos_z,
+__kernel void transmission_potentials_full_3d_f( __global float2* potential,
+										  __global const float* restrict pos_x,
+										  __global const float* restrict pos_y,
+										  __global const float* restrict pos_z,
 										  __global const int* restrict atomic_num,
-										  __constant double* params,
+										  __constant float* params,
                                           unsigned int param_selector,
+									      unsigned int param_i_count,
 										  __global const int* restrict block_start_pos,
 										  unsigned int width,
 										  unsigned int height,
 										  int current_slice,
 										  int total_slices,
-										  double z,
-										  double dz,
-										  double pixel_scale,
+										  float z,
+										  float dz,
+										  float pixel_scale,
 										  int blocks_x,
 										  int blocks_y,
-										  double max_x,
-										  double min_x,
-										  double max_y,
-										  double min_y,
+										  float max_x,
+										  float min_x,
+										  float max_y,
+										  float min_y,
 										  int block_load_x,
 										  int block_load_y,
 										  int slice_load_z,
-										  double sigma,
-										  double startx,
-										  double starty,
+										  float sigma,
+										  float startx,
+										  float starty,
+                                          float slice_shift_x,
+                                          float slice_shift_y,
 										  int integrals)
 {
 	int xid = get_global_id(0);
@@ -158,25 +171,41 @@ __kernel void potential_full_3d_d( __global double2* potential,
 	int id = xid + width * yid;
 	int topz = current_slice - slice_load_z;
 	int bottomz = current_slice + slice_load_z;
-	double sumz = 0.0;
+	float sumz = 0.0f;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
-	double int_r = native_recip(integrals);
+	float int_r = native_recip(integrals);
 
 	if(topz < 0 )
 		topz = 0;
 	if(bottomz >= total_slices )
 		bottomz = total_slices-1;
 
-	__local double atx[256];
-	__local double aty[256];
-	__local double atz[256];
+	__local float atx[256];
+	__local float aty[256];
+	__local float atz[256];
 	__local int atZ[256];
 
-	int startj = fmax(floor( (starty - min_y +  gy    * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) - block_load_y, 0) ;
-	int endj =   fmin( ceil( (starty - min_y + (gy+1) * get_local_size(1) * pixel_scale) * blocks_y * native_recip(max_y-min_y)) + block_load_y, blocks_y-1);
-	int starti = fmax(floor( (startx - min_x +  gx    * get_local_size(0) * pixel_scale) * blocks_x * native_recip(max_x-min_x)) - block_load_x, 0) ;
-	int endi =   fmin( ceil( (startx - min_x + (gx+1) * get_local_size(0) * pixel_scale) * blocks_x * native_recip(max_x-min_x)) + block_load_x, blocks_x-1);
+	// calculate the indices of the bins we will need
+    // get the size of one workgroup
+    float group_size_x = get_local_size(0) * pixel_scale;
+    float group_size_y = get_local_size(1) * pixel_scale;
+
+    // get the start and end position of the current workgroup
+    float group_start_x = startx +  gx      * group_size_x;
+    float group_end_x   = startx + (gx + 1) * group_size_x;
+
+    float group_start_y = starty +  gy      * group_size_y;
+    float group_end_y   = starty + (gy + 1) * group_size_y;
+
+    // get the reciprocal of the full range (for efficiency)
+    float recip_range_x = native_recip(max_x - min_x);
+    float recip_range_y = native_recip(max_y - min_y);
+
+    int starti = fmax(floor( blocks_x * (group_start_x - min_x) * recip_range_x) - block_load_x, 0);
+    int endi   = fmin( ceil( blocks_x * (group_end_x   - min_x) * recip_range_x) + block_load_x, blocks_x - 1);
+    int startj = fmax(floor( blocks_y * (group_start_y - min_y) * recip_range_y) - block_load_y, 0);
+    int endj   = fmin( ceil( blocks_y * (group_end_y   - min_y) * recip_range_y) + block_load_y, blocks_y - 1);
 
 	for(int k = topz; k <= bottomz; k++) {
 		for (int j = startj ; j <= endj; j++) {
@@ -195,37 +224,54 @@ __kernel void potential_full_3d_d( __global double2* potential,
 
 			barrier(CLK_LOCAL_MEM_FENCE);
 
-			double p2=0.0;
+			float p2=0.0f;
 			for (int l = 0; l < end-start; l++) {
-				double xyrad2 = (startx + xid*pixel_scale-atx[l])*(startx + xid*pixel_scale-atx[l]) + (starty + yid*pixel_scale-aty[l])*(starty + yid*pixel_scale-aty[l]);
+				// calculate the radius from the current position in space (i.e. pixel?)
+                float im_pos_x = startx + xid * pixel_scale;
+                float rad_x = im_pos_x - atx[l];
 
-				for (int h = 0; h <= integrals; h++) {
+                float im_pos_y = starty + yid * pixel_scale;
+                float rad_y = im_pos_y - aty[l];
+
+				for (int h = 0; h < integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
-					double rad = native_sqrt(xyrad2 + (z - h * dz * int_r - atz[l])*(z - h * dz * int_r - atz[l]));
 
-					double r_min = 1.0e-10;
+                    // account for shift due to beam tilt
+                    rad_x -= slice_shift_x;
+                    rad_y -= slice_shift_y;
+
+                    float xyrad2 = rad_x*rad_x + rad_y*rad_y;
+
+					// z is the slice position, h is the 'sub' integral, dz is the slice thickness and int_r is 1/integrals
+					// so basically this gets our exact z position...
+					float im_pos_z = z - h * dz * int_r;
+					float rad_z = im_pos_z - atz[l];
+
+					float rad = native_sqrt(xyrad2 + rad_z*rad_z);
+
+					float r_min = 0.25f * pixel_scale;
                     if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
                         rad = r_min;
 
-					double p1 = 0.0;
+					float p1 = 0.0f;
 
-					if( rad < 3.0) {
-    					double p1;
+					if(xyrad2 <= 64.0f && rad_z <= 3.0f) {
+    					float p1;
     					if (param_selector == 0)
-    					    p1 = kirkland(params, atZ[l], rad);
+    					    p1 = kirkland(params, param_i_count, atZ[l], rad);
                         else if (param_selector == 1)
-                            p1 = peng(params, atZ[l], rad);
+                            p1 = peng(params, param_i_count, atZ[l], rad);
                         else if (param_selector == 2)
-                            p1 = lobato(params, atZ[l], rad);
+                            p1 = lobato(params, param_i_count, atZ[l], rad);
 
     					// why make sure h!=0 when we can just remove it from the loop?
     					// surely h == 0 will be in the previous slice??
     					// because p1 is used in the next iteration (why it is set to p2)
-    					sumz += (h!=0) * (p1+p2)*0.5;
+    					sumz += (h!=0) * (p1+p2)*0.5f;
     					p2 = p1;
-    					}
+					}
 				}
 			}
 
@@ -233,7 +279,7 @@ __kernel void potential_full_3d_d( __global double2* potential,
 		}
 	}
 	if(xid < width && yid < height) {
-		potential[id].x = cos((dz * int_r) * sigma * sumz);
-		potential[id].y = sin((dz * int_r) * sigma * sumz);
+		potential[id].x = native_cos((dz * int_r) * sigma * sumz);
+		potential[id].y = native_sin((dz * int_r) * sigma * sumz);
 	}
 }

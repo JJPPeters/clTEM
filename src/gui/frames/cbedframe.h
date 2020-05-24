@@ -21,20 +21,14 @@ public:
 
     ~CbedFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m; update_text_boxes();}
-
-    bool isTdsEnabled();
-
-    unsigned int getTdsRuns();
+    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
     void setActive(bool active);
 
 public slots:
-    void update_text_boxes();
+    void updateTextBoxes();
 
 private slots:
-    void on_edtTds_textChanged(const QString &arg1);
-
     void on_edtPosY_textChanged(const QString &arg1);
 
     void on_edtPosX_textChanged(const QString &arg1);
@@ -42,8 +36,6 @@ private slots:
     void on_btnSim_clicked();
 
     void on_btnCancel_clicked();
-
-    void on_chkTds_stateChanged(int state);
 
 private:
     Ui::CbedFrame *ui;

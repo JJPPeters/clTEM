@@ -1,0 +1,39 @@
+QPushButton {
+	min-height: 1.6em;
+	max-height: 1.6em;
+	min-width: 8em;
+	max-width: 12em;
+}
+
+QLineEdit {
+    min-height: 1.6em;
+	max-height: 1.6em;
+	min-width: 4em;
+	max-width: 12em;
+}
+
+QComboBox {
+	min-height: 1.6em;
+	max-height: 1.6em;
+    min-width: 8em;
+}
+
+QProgressBar {
+	min-height: 0.6em;
+	max-height: 0.6em;
+}
+
+QComboBox#cmbPlatform
+{
+	min-width: 16em;
+}
+
+QComboBox#cmbDevice
+{
+	min-width: 16em;
+}
+
+QTableWidget#tblDevices
+{
+	min-width: 36em;
+}

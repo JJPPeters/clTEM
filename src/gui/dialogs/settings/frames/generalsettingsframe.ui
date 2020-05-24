@@ -199,6 +199,9 @@
  </customwidgets>
  <tabstops>
   <tabstop>tabWidget</tabstop>
+  <tabstop>cmbTheme</tabstop>
+  <tabstop>cmbMultisampling</tabstop>
+  <tabstop>chkLogging</tabstop>
  </tabstops>
  <resources/>
  <connections/>

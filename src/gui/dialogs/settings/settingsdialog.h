@@ -12,6 +12,7 @@
 #include "dialogs/settings/frames/fullaberrationframe.h"
 #include "dialogs/settings/frames/cifcreatorframe.h"
 #include "dialogs/settings/frames/generalsettingsframe.h"
+#include "dialogs/settings/frames/plasmonsettingsframe.h"
 
 #include <structure/crystalstructure.h>
 #include <controls/borderlessdialog.h>
@@ -31,11 +32,15 @@ signals:
     void cancelSignal();
     void applySignal();
 
+    void appliedSignal();
+
 public:
     explicit SettingsDialog(QWidget *parent = 0);
     ~SettingsDialog() override;
 
     void showApplyButton(bool show);
+
+    void setOkEnabled(bool enabled);
 
 private slots:
     void on_btnCancel_clicked();
@@ -95,16 +100,8 @@ class AberrationsDialog : public SettingsDialog
 {
     Q_OBJECT
 
-signals:
-    // this signal is picked up by the mainwindow aberrations frame
-    void aberrationsChanged();
-
 private:
     FullAberrationFrame* AberrFrame;
-
-private slots:
-    // this slot gets the signal from the fullaberrationsframe
-    void coreAberrationsChanged();
 
 public:
     explicit AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
@@ -114,7 +111,7 @@ public:
 
 class ThermalScatteringDialog : public SettingsDialog
 {
-Q_OBJECT
+    Q_OBJECT
 
 private:
     ThermalScatteringFrame* ThermalFrame;
@@ -125,6 +122,17 @@ public:
 };
 
 
+class PlasmonDialog : public SettingsDialog
+{
+Q_OBJECT
+
+private:
+    PlasmonSettingsFrame* PlasmonFrame;
+
+public:
+    explicit PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
+
+};
 
 
 class SimAreaDialog : public SettingsDialog

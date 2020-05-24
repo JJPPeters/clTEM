@@ -17,7 +17,7 @@ namespace JSONUtils {
         SimulationManager man;
         area_set = false;
         // not sure there is a particularly easy way to go about this. Just go through all the options...
-        try { man.setDoDoublePrecision( readJsonEntry<bool>(j, "double precision") );
+        try { man.setDoublePrecisionEnabled( readJsonEntry<bool>(j, "double precision") );
         } catch (std::exception& e) {}
 
         try {
@@ -30,16 +30,22 @@ namespace JSONUtils {
         try { man.setResolution( readJsonEntry<unsigned int>(j, "resolution") );
         } catch (std::exception& e) {}
 
-        try { man.setSliceThickness( readJsonEntry<double>(j, "slice thickness", "val") );
+        try { man.simulationCell()->setSliceThickness( readJsonEntry<double>(j, "slice thickness", "val") );
         } catch (std::exception& e) {}
 
-        try { man.setSliceOffset( readJsonEntry<double>(j, "slice offset", "val") );
+        try { man.simulationCell()->setSliceOffset( readJsonEntry<double>(j, "slice offset", "val") );
         } catch (std::exception& e) {}
 
-        try { man.setFull3d( readJsonEntry<bool>(j, "full 3d", "state") );
+        try { man.setIntermediateSlices( readJsonEntry<unsigned int>(j, "intermediate output", "slice interval") );
         } catch (std::exception& e) {}
 
-        try { man.setFull3dInts( readJsonEntry<unsigned int>(j, "full 3d", "integrals") );
+        try { man.setIntermediateSlicesEnabled( readJsonEntry<bool>(j, "intermediate output", "enabled") );
+        } catch (std::exception& e) {}
+
+        try { man.setFull3dEnabled( readJsonEntry<bool>(j, "full 3d", "state") );
+        } catch (std::exception& e) {}
+
+        try { man.setFull3dIntegrals( readJsonEntry<unsigned int>(j, "full 3d", "integrals") );
         } catch (std::exception& e) {}
 
         try { man.setMaintainAreas( readJsonEntry<bool>(j, "maintain areas") );
@@ -50,24 +56,33 @@ namespace JSONUtils {
 
         try {
             auto p_xy_val = readJsonEntry<double>(j, "default padding", "xy", "val");
-            man.setDefaultPaddingXY({-p_xy_val, p_xy_val});
+            man.simulationCell()->setDefaultPaddingXY({-p_xy_val, p_xy_val});
         } catch (std::exception& e) {}
 
         try {
             auto p_z_val = readJsonEntry<double>(j, "default padding", "z", "val");
-            man.setDefaultPaddingZ({-p_z_val, p_z_val});
+            man.simulationCell()->setDefaultPaddingZ({-p_z_val, p_z_val});
         } catch (std::exception& e) {}
 
         //
         // Do all the microscope parameters stuff...
         //
 
-        auto mp = man.getMicroscopeParams();
+        auto mp = man.microscopeParams();
 
         try { mp->Voltage = readJsonEntry<double>(j, "microscope", "voltage", "val");
         } catch (std::exception& e) {}
 
         try { mp->Aperture = readJsonEntry<double>(j, "microscope", "aperture", "val");
+        } catch (std::exception& e) {}
+
+        try { mp->ApertureSmoothing = readJsonEntry<double>(j, "microscope", "aperture smooth radius", "val");
+        } catch (std::exception& e) {}
+
+        try { mp->BeamTilt = readJsonEntry<double>(j, "microscope", "beam tilt", "inclination", "val");
+        } catch (std::exception& e) {}
+
+        try { mp->BeamAzimuth = (Constants::Pi / 180) * readJsonEntry<double>(j, "microscope", "beam tilt", "azimuth", "val");
         } catch (std::exception& e) {}
 
         try { mp->Alpha = readJsonEntry<double>(j, "microscope", "alpha", "val");
@@ -144,7 +159,7 @@ namespace JSONUtils {
         // Phew, Ctem now
         //
 
-        try { man.setSimulateCtemImage(readJsonEntry<bool>(j, "ctem", "simulate image"));
+        try { man.setCtemImageEnabled(readJsonEntry<bool>(j, "ctem", "simulate image"));
         } catch (std::exception& e) {}
 
         try { man.setCcdName(readJsonEntry<std::string>(j, "ctem", "ccd", "name"));
@@ -164,9 +179,9 @@ namespace JSONUtils {
             auto yf = readJsonEntry<double>(j, "ctem", "area", "y", "finish");
 
             SimulationArea ar(xs, xf, ys, yf);
-            auto area = man.getSimulationArea();
+            auto area = man.simulationArea();
             *area = ar;
-            if (man.getMode() == SimulationMode::CTEM)
+            if (man.mode() == SimulationMode::CTEM)
                 area_set = true;
         } catch (std::exception& e) {}
 
@@ -186,16 +201,10 @@ namespace JSONUtils {
             auto pad = readJsonEntry<double>(j, "stem", "area", "padding", "val");
 
             StemArea ar(xs, xf, ys, yf, xp, yp, pad);
-            auto area = man.getStemArea();
+            auto area = man.stemArea();
             *area = ar;
-            if (man.getMode() == SimulationMode::STEM)
+            if (man.mode() == SimulationMode::STEM)
                 area_set = true;
-        } catch (std::exception& e) {}
-
-        try { man.setTdsRunsStem(readJsonEntry<unsigned int>(j, "stem", "tds", "configurations"));
-        } catch (std::exception& e) {}
-
-        try { man.setTdsEnabledStem(readJsonEntry<bool>(j, "stem", "tds", "enabled"));
         } catch (std::exception& e) {}
 
         try { man.setParallelPixels(readJsonEntry<unsigned int>(j, "stem", "concurrent pixels"));
@@ -215,7 +224,7 @@ namespace JSONUtils {
 
                     StemDetector d(entry, inner, outer, xc, yc);
 
-                    man.getDetectors().push_back(d);
+                    man.stemDetectors().push_back(d);
 
                 } catch (std::exception& e) {}
             }
@@ -232,26 +241,66 @@ namespace JSONUtils {
             auto pad = readJsonEntry<double>(j, "cbed", "position", "padding");
 
             CbedPosition ar(x, y, pad);
-            auto area = man.getCBedPosition();
+            auto area = man.cbedPosition();
             *area = ar;
-            if (man.getMode() == SimulationMode::CBED)
+            if (man.mode() == SimulationMode::CBED)
                 area_set = true; // I don't know if this one matters...
         } catch (std::exception& e) {}
 
-        try { man.setTdsRunsCbed(readJsonEntry<unsigned int>(j, "cbed", "tds", "configurations"));
+
+        //
+        // Inelastic scattering
+        //
+
+        try {
+            man.inelasticScattering()->setIterations(
+                    readJsonEntry<unsigned int>(j, "inelastic scattering", "iterations"));
         } catch (std::exception& e) {}
 
-        try { man.setTdsEnabledCbed(readJsonEntry<bool>(j, "cbed", "tds", "enabled"));
+        // phonon
+
+        try {
+            man.inelasticScattering()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "inelastic scattering", "phonon", "frozen phonon", "enabled"));
         } catch (std::exception& e) {}
 
-        *(man.getThermalVibrations()) = JsonToThermalVibrations(j);
+        *(man.inelasticScattering()->phonons()) = JsonToThermalVibrations(j);
+
+        // plasmon
+
+        try {
+            std::string p_type = readJsonEntry<std::string>(j, "inelastic scattering", "plasmon", "type");
+            if (p_type == "full")
+                man.inelasticScattering()->plasmons()->setSimType(PlasmonType::Full);
+            else if (p_type == "individual")
+                man.inelasticScattering()->plasmons()->setSimType(PlasmonType::Individual);
+        } catch (std::exception& e) {}
+
+        try {
+            man.inelasticScattering()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.inelasticScattering()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
+        } catch (std::exception& e) {}
+
+        try {
+            man.inelasticScattering()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.inelasticScattering()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
+        } catch (std::exception& e) {}
+
+        //
+        // All done!
+        //
 
         return man;
     }
 
-    ThermalVibrations JsonToThermalVibrations(json& j) {
+    PhononScattering JsonToThermalVibrations(json& j) {
 
-        ThermalVibrations out_therms;
+        PhononScattering out_therms;
 
         bool force_default = false;
         bool override_file = false;
@@ -260,17 +309,17 @@ namespace JSONUtils {
         std::vector<double> vibs;
         std::vector<int> els;
 
-        try { force_default = readJsonEntry<bool>(j, "thermal parameters", "force default");
+        try { force_default = readJsonEntry<bool>(j, "inelastic scattering", "phonon","thermal parameters", "force default");
         } catch (std::exception& e) {}
 
-        try { override_file = readJsonEntry<bool>(j, "thermal parameters", "override file");
+        try { override_file = readJsonEntry<bool>(j, "inelastic scattering", "phonon", "thermal parameters", "override file");
         } catch (std::exception& e) {}
 
-        try { def = readJsonEntry<double>(j, "thermal parameters", "default");
+        try { def = readJsonEntry<double>(j, "inelastic scattering", "phonon", "thermal parameters", "default");
         } catch (std::exception& e) {}
 
         try {
-            json element_section = readJsonEntry<json>(j, "thermal parameters", "values");
+            json element_section = readJsonEntry<json>(j, "inelastic scattering", "phonon", "thermal parameters", "values");
             for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
                 std::string element = it.key();
                 try{
@@ -293,7 +342,7 @@ namespace JSONUtils {
         // this gets pretty much everything that is set
         json j = BasicManagerToJson(man, true);
 
-        for (auto det : man.getDetectors())
+        for (auto det : man.stemDetectors())
         {
             j["stem"]["detectors"][det.name] = JSONUtils::stemDetectorToJson(det);
         }
@@ -307,33 +356,37 @@ namespace JSONUtils {
 
         // no file input here as it is not always needed
 
-        j["double precision"] = man.getDoDoublePrecision();
+        j["double precision"] = man.doublePrecisionEnabled();
 
-        auto mode = man.getMode();
+        auto mode = man.mode();
         j["mode"]["id"] = mode;
-        j["mode"]["name"] = man.getModeString();
+        j["mode"]["name"] = man.modeString();
 
-        j["potentials"] = man.getStructureParametersName();
+        j["potentials"] = man.structureParameters().name;
 
-        j["resolution"] = man.getResolution();
+        j["resolution"] = man.resolution();
 
-        j["slice thickness"]["val"] = man.getSliceThickness();
+        j["slice thickness"]["val"] = man.simulationCell()->sliceThickness();
         j["slice thickness"]["units"] = "Å";
 
-        j["slice offset"]["val"] = man.getSliceOffset();
+        j["slice offset"]["val"] = man.simulationCell()->sliceOffset();
         j["slice offset"]["units"] = "Å";
 
-        j["maintain areas"] = man.getMaintainAreas();
+        j["slice count"] = man.simulationCell()->sliceCount();
 
+        j["intermediate output"]["slice interval"] = man.intermediateSliceStep();
+        j["intermediate output"]["enabled"] = man.intermediateSlicesEnabled();
 
-        auto xl = man.getPaddedSimLimitsX();
-        auto yl = man.getPaddedSimLimitsY();
-        auto zl = man.getPaddedStructLimitsZ(); // z never changes, so always is struct limits
+        j["maintain areas"] = man.maintainAreas();
+
+        auto xl = man.paddedSimLimitsX(0);
+        auto yl = man.paddedSimLimitsY(0);
+        auto zl = man.paddedSimLimitsZ(); // z never changes, so always is struct limits
 
         // padding is always plus/minus one value, with the second element ([1]) being positive
-        auto xp = man.getPaddingX()[1];
-        auto yp = man.getPaddingY()[1];
-        auto zp = man.getPaddingZ()[1];
+        auto xp = man.simulationCell()->paddingX()[1];
+        auto yp = man.simulationCell()->paddingY()[1];
+        auto zp = man.simulationCell()->paddingZ()[1];
 
         j["simulation area"]["x"]["start"] = xl[0];
         j["simulation area"]["x"]["finish"] = xl[1];
@@ -349,8 +402,8 @@ namespace JSONUtils {
         j["simulation area"]["z"]["units"] = "Å";
 
 
-        auto p_z_d_val = man.getDefaultPaddingZ();
-        auto p_xy_d_val = man.getDefaultPaddingXY();
+        auto p_z_d_val = man.simulationCell()->defaultPaddingZ();
+        auto p_xy_d_val = man.simulationCell()->defaultPaddingXY();
 
         j["default padding"]["z"]["val"] = p_z_d_val[1];
         j["default padding"]["z"]["units"] = "Å";
@@ -359,15 +412,15 @@ namespace JSONUtils {
 
         // TODO: could put some pixel scale things here for convenience? (would have to distinguish between diff maybe?)
 
-        bool f3d = man.isFull3d();
+        bool f3d = man.full3dEnabled();
 
         if(f3d || force_all) {
             j["full 3d"]["state"] = f3d;
-            j["full 3d"]["integrals"] = man.getFull3dInts();
+            j["full 3d"]["integrals"] = man.full3dIntegrals();
         } else
             j["full 3d"]["state"] = f3d;
 
-        auto mp = man.getMicroscopeParams();
+        auto mp = man.microscopeParams();
 
         j["microscope"]["voltage"]["val"] = mp->Voltage;
         j["microscope"]["voltage"]["units"] = "kV";
@@ -378,6 +431,19 @@ namespace JSONUtils {
         // apert
         j["microscope"]["aperture"]["val"] = mp->Aperture;
         j["microscope"]["aperture"]["units"] = "mrad";
+
+        if (mode != SimulationMode::CTEM || force_all) {
+            // alpha
+            j["microscope"]["aperture smooth radius"]["val"] = mp->ApertureSmoothing;
+            j["microscope"]["aperture smooth radius"]["units"] = "mrad";
+        }
+
+        j["microscope"]["beam tilt"]["inclination"]["val"] = mp->BeamTilt;
+        j["microscope"]["beam tilt"]["inclination"]["units"] = "mrad";
+
+        j["microscope"]["beam tilt"]["azimuth"]["val"] = mp->BeamAzimuth * 180 / Constants::Pi;
+        j["microscope"]["beam tilt"]["azimuth"]["units"] = "°";
+
 
         if (mode == SimulationMode::CTEM || force_all) {
             // alpha
@@ -439,32 +505,32 @@ namespace JSONUtils {
         {
             // cropped padding entry will be added at the time of saving
 
-            bool do_ctem_im = man.getSimulateCtemImage();
+            bool do_ctem_im = man.ctemImageEnabled();
 
             j["ctem"]["simulate image"] = do_ctem_im;
 
             if (do_ctem_im) {
-                if (CCDParams::nameExists(man.getCcdName()) || force_all) {
-                    j["ctem"]["ccd"]["name"] = man.getCcdName();
-                    j["ctem"]["ccd"]["dose"]["val"] = man.getCcdDose();
+                if (CCDParams::nameExists(man.ccdName()) || force_all) {
+                    j["ctem"]["ccd"]["name"] = man.ccdName();
+                    j["ctem"]["ccd"]["dose"]["val"] = man.ccdDose();
                     j["ctem"]["ccd"]["dose"]["units"] = "e- per square Å";
-                    j["ctem"]["ccd"]["binning"] = man.getCcdBinning();
+                    j["ctem"]["ccd"]["binning"] = man.ccdBinning();
                 } else {
                     j["ctem"]["ccd"] = "Perfect";
                 }
             }
 
-            j["ctem"]["area"]["x"]["start"] = man.getCtemArea().getRawLimitsX()[0];
-            j["ctem"]["area"]["x"]["finish"] = man.getCtemArea().getRawLimitsX()[1];
+            j["ctem"]["area"]["x"]["start"] = man.ctemArea().getRawLimitsX()[0];
+            j["ctem"]["area"]["x"]["finish"] = man.ctemArea().getRawLimitsX()[1];
 
-            j["ctem"]["area"]["y"]["start"] = man.getCtemArea().getRawLimitsY()[0];
-            j["ctem"]["area"]["y"]["finish"] = man.getCtemArea().getRawLimitsY()[1];
+            j["ctem"]["area"]["y"]["start"] = man.ctemArea().getRawLimitsY()[0];
+            j["ctem"]["area"]["y"]["finish"] = man.ctemArea().getRawLimitsY()[1];
         }
 
         // If STEM, get scan info, TDS info detector info will be added later if needed
         if (mode == SimulationMode::STEM || force_all)
         {
-            auto sa = man.getStemArea();
+            auto sa = man.stemArea();
             j["stem"]["area"]["x"]["start"] = sa->getRawLimitsX()[0];
             j["stem"]["area"]["x"]["finish"] = sa->getRawLimitsX()[1];
             j["stem"]["scan"]["x"]["pixels"] = sa->getPixelsX();;
@@ -478,42 +544,97 @@ namespace JSONUtils {
 
             // stem detector bit...
 
-            j["stem"]["concurrent pixels"] = man.getParallelPixels();
-
-            if (force_all) {
-                j["stem"]["tds"]["configurations"] = man.getStoredTdsRunsStem();
-                j["stem"]["tds"]["enabled"] = man.getTdsEnabledStem();
-            }
-            else
-                j["stem"]["tds"]["configurations"] = man.getTdsRunsStem();
+            j["stem"]["concurrent pixels"] = man.parallelPixels();
         }
 
-        // If CBED, get position info and TDS info
+        // If CBED, get position info
         if (mode == SimulationMode::CBED || force_all)
         {
-            j["cbed"]["position"]["x"] = man.getCBedPosition()->getXPos();
-            j["cbed"]["position"]["y"] = man.getCBedPosition()->getYPos();
-            j["cbed"]["position"]["padding"] = man.getCBedPosition()->getPadding();
+            j["cbed"]["position"]["x"] = man.cbedPosition()->getXPos();
+            j["cbed"]["position"]["y"] = man.cbedPosition()->getYPos();
+            j["cbed"]["position"]["padding"] = man.cbedPosition()->getPadding();
             j["cbed"]["position"]["units"] = "Å";
-            if (force_all) {
-                j["cbed"]["tds"]["configurations"] = man.getStoredTdsRunsCbed();
-                j["cbed"]["tds"]["enabled"] = man.getTdsEnabledCbed();
+        }
+
+        //
+        // Inelastic scattering
+        //
+
+        bool inelastic_used = man.inelasticScattering()->enabled();
+        if (inelastic_used || force_all)
+            j["inelastic scattering"]["iterations"] = man.inelasticScattering()->storedIterations();
+
+        // phonon
+
+        bool phonon_used = man.inelasticScattering()->phonons()->getFrozenPhononEnabled();
+        if (phonon_used || force_all) {
+
+            j["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.inelasticScattering()->phonons()->getFrozenPhononEnabled();
+
+            // don't export if we have file defined vibrations and no override
+            bool export_thermals = true;
+            if (man.simulationCell()->crystalStructure()) // structure does not always exist
+                export_thermals = !(man.simulationCell()->crystalStructure()->thermalFileDefined() &&
+                                    !man.inelasticScattering()->phonons()->force_default &&
+                                    !man.inelasticScattering()->phonons()->force_defined);
+
+            if (export_thermals || force_all) {
+                if (force_all)
+                    j["inelastic scattering"]["thermal parameters"]["phonon"] = thermalVibrationsToJson(man);
+            } else {
+                j["inelastic scattering"]["thermal parameters"]["phonon"] = "input file defined";
             }
-            else
-                j["cbed"]["tds"]["configurations"] = man.getTdsRunsCbed();
         }
 
-        // don't export if we have file defined vibrations and no override
-        bool export_thermals = true;
-        if (man.getStructure()) // structure does not always exist
-            export_thermals = !(man.getStructure()->isThermalFileDefined() && !man.getThermalVibrations()->force_default && !man.getThermalVibrations()->force_defined);
+        // plasmon
 
-        if (export_thermals || force_all) {
-            if (mode == SimulationMode::CBED || mode == SimulationMode::STEM || force_all)
-                j["thermal parameters"] = thermalVibrationsToJson(man);
-        } else {
-            j["thermal parameters"] = "input file defined";
+        auto plasmon = man.inelasticScattering()->plasmons();
+        bool plasmon_used = plasmon->enabled();
+        if (plasmon_used || force_all) {
+            if (plasmon->simType() == PlasmonType::Full)
+                j["inelastic scattering"]["plasmon"]["type"] = "full";
+            else if (man.inelasticScattering()->plasmons()->simType() == PlasmonType::Individual)
+                j["inelastic scattering"]["plasmon"]["type"] = "individual";
+
+            if (plasmon->simType() == PlasmonType::Individual || force_all)
+                j["inelastic scattering"]["plasmon"]["individual"] = plasmon->individualPlasmon();
+
+            j["inelastic scattering"]["plasmon"]["mean free path"]["value"] = plasmon->meanFreePath() / 10;
+            j["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
+
+            j["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = plasmon->characteristicAngle();
+            j["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
+
+            j["inelastic scattering"]["plasmon"]["critical angle"]["value"] = plasmon->criticalAngle();
+            j["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
         }
+
+        // this is only valid if we have actually saved a simulation, so we can't force it
+        if (plasmon_used && plasmon->simType() == PlasmonType::Full) {
+
+            auto pn = man.inelasticScattering()->plasmons()->getPlasmonNumbers();
+
+            // add leading zeros to make it be in correct order in json
+            // (this is only for humands, it is never used by code)
+
+            unsigned int max_n = 0;
+            for (auto & i : pn)
+                if (i[0] > max_n)
+                    max_n = i[0];
+            unsigned int str_len = std::to_string(max_n).size();
+
+
+            for (auto & i : pn) {
+                std::string str_n = std::to_string(i[0]);
+                str_n = std::string(str_len - str_n.length(), '0') + str_n;
+
+                j["inelastic scattering"]["plasmon"]["full"]["plasmon numbers"][str_n] = i[1];
+            }
+        }
+
+        //
+        // All done!
+        //
 
         return j;
     }
@@ -534,14 +655,14 @@ namespace JSONUtils {
     json thermalVibrationsToJson(SimulationManager& man) {
         json j;
 
-        j["force default"] = man.getThermalVibrations()->force_default;
-        j["override file"] = man.getThermalVibrations()->force_defined;
+        j["force default"] = man.inelasticScattering()->phonons()->force_default;
+        j["override file"] = man.inelasticScattering()->phonons()->force_defined;
 
-        j["default"] = man.getThermalVibrations()->getDefault();
+        j["default"] = man.inelasticScattering()->phonons()->getDefault();
         j["units"] = "Å²";
 
-        auto els = man.getThermalVibrations()->getDefinedElements();
-        auto vibs = man.getThermalVibrations()->getDefinedVibrations();
+        auto els = man.inelasticScattering()->phonons()->getDefinedElements();
+        auto vibs = man.inelasticScattering()->phonons()->getDefinedVibrations();
 
         if (els.size() != vibs.size())
             throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");

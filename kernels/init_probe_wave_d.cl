@@ -60,7 +60,8 @@ __kernel void init_probe_wave_d( __global double2* output,
 											double C30, double2 C32, double2 C34,
 											double2 C41, double2 C43, double2 C45,
 											double C50, double2 C52, double2 C54, double2 C56,
-											double cond_ap)
+											double cond_ap,
+											double ap_smooth)
 {
 	// Get the work items ID
 	int xid = get_global_id(0);
@@ -70,7 +71,10 @@ __kernel void init_probe_wave_d( __global double2* output,
 		int id = xid + yid*width;
 		double cond_ap2 = (cond_ap * 0.001) / wavelength;
         double k = native_sqrt( (k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]) );
-		if (k < cond_ap2)
+
+        double ap_smooth_radius = (ap_smooth * 0.001) / wavelength; // radius in mrad
+
+		if (k < cond_ap2 + ap_smooth_radius)
 		{
 			// this term is easier to calculate once before it is put into the exponential
 			double posTerm = 2.0 * M_PI * (k_x[xid]*pos_x*pixel_scale + k_y[yid]*pos_y*pixel_scale);
@@ -93,11 +97,18 @@ __kernel void init_probe_wave_d( __global double2* output,
 			double2 tC54 = cMult(C54, cMult(cPow(wc, 5), w)) / 6.0;
 			double2 tC56 = cMult(C56, cPow(wc, 6)) / 6.0;
 
+            // note because of the conjugates we only have real components left
 			double cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			double chi = 2.0 * M_PI * cchi / wavelength;
 
-			output[id].x = cos(posTerm - chi);
-            output[id].y = sin(posTerm - chi);
+            // smooth the aperture edge
+            double edge_factor = 1.0f;
+
+            if (fabs(k-cond_ap2) < ap_smooth_radius)
+                edge_factor = 1.0f - smoothstep(cond_ap2 - ap_smooth_radius, cond_ap2 + ap_smooth_radius, k);
+
+			output[id].x = native_cos(posTerm - chi);
+            output[id].y = native_sin(posTerm - chi);
 		}
 		else
 		{

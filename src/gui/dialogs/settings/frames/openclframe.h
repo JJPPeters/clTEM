@@ -4,7 +4,6 @@
 #include <QWidget>
 
 #include "clstatic.h"
-#include "clmanager.h"
 
 namespace Ui {
 class OpenClFrame;

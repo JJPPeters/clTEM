@@ -10,7 +10,14 @@
 
 namespace Utils
 {
+    // https://stackoverflow.com/a/20446239
+    bool stringEndsWith(const std::string &str, const std::string &suffix);
+
+    bool stringBeginsWith(const std::string &str, const std::string &prefix);
+
     std::vector<std::string> splitStringSpace(const std::string &in);
+
+    std::vector<std::string> splitStringDelimiter(const std::string &in, char delim);
 
     // Taken from http://stackoverflow.com/a/6089413
     std::istream& safeGetline(std::istream& is, std::string& t);
@@ -29,11 +36,20 @@ namespace Utils
         return oss.str();
     }
 
+    std::string uintToString(unsigned int num, unsigned int width = 0);
+
     std::string resourceToChar(std::string full_directory, std::string fileName);
 
-    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count);
+//    std::vector<double> paramsToVector(std::string full_directory, std::string fileName, unsigned int &row_count);
+
+    void readParams(std::string full_directory, std::string file_name);
+
+    void readParams(std::string full_path);
 
     void ccdToDqeNtf(std::string full_directory, std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io);
+
+    // https://stackoverflow.com/a/3418285
+    void replace(std::string& str, const std::string& from, const std::string& to);
 }
 
 #endif // STRINGUTILS_H

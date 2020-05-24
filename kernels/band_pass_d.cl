@@ -12,7 +12,7 @@
 /// x_centre - centre x shift of the band pass ring
 /// y_centre - centre y shift of the band pass ring
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void band_pass_d( __global const double2* restrict input,
+__kernel void band_pass_d( __global const double* restrict input,
                                __global double* restrict output,
 							   unsigned int width,
 							   unsigned int height,
@@ -30,7 +30,7 @@ __kernel void band_pass_d( __global const double2* restrict input,
     	double centY = height / 2.0 + y_centre;
     	double radius = native_sqrt( (xid-centX) * (xid-centX) + (yid-centY) * (yid-centY) );
     	if (radius < outer && radius > inner) {
-		    output[id] = input[id].x * input[id].x + input[id].y * input[id].y;
+		    output[id] = input[id];
 		} else {
 		    output[id] = 0.0;
 		}

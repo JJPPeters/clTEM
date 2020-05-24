@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
+    <width>657</width>
     <height>750</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1100</width>
-    <height>600</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -38,8 +38,11 @@
     </property>
     <item>
      <layout class="QVBoxLayout" name="mainLayout" stretch="0,1">
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <item>
-       <layout class="QHBoxLayout" name="hTabs" stretch="0,0,0,1">
+       <layout class="QHBoxLayout" name="hTabs" stretch="0,0,0,0">
         <property name="leftMargin">
          <number>9</number>
         </property>
@@ -55,7 +58,7 @@
         <item>
          <widget class="QTabWidget" name="twSim">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -88,8 +91,25 @@
            <number>0</number>
           </property>
           <widget class="AberrationFrame" name="tAberr">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <attribute name="title">
             <string>Aberrations</string>
+           </attribute>
+          </widget>
+          <widget class="InelasticFrame" name="tInelastic">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <attribute name="title">
+            <string>Inelastic</string>
            </attribute>
           </widget>
          </widget>
@@ -97,7 +117,7 @@
         <item>
          <widget class="QTabWidget" name="twMode">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -133,10 +153,13 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::MinimumExpanding</enum>
+          </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
-            <height>20</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
          </spacer>
@@ -178,8 +201,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1100</width>
-     <height>20</height>
+     <width>657</width>
+     <height>17</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuInput">
@@ -203,8 +226,15 @@
     <property name="title">
      <string>Simulation</string>
     </property>
+    <widget class="QMenu" name="menuInelastic">
+     <property name="title">
+      <string>Inelastic</string>
+     </property>
+     <addaction name="actionThermal_scattering"/>
+     <addaction name="actionPlasmons"/>
+    </widget>
     <addaction name="actionGeneral"/>
-    <addaction name="actionThermal_scattering"/>
+    <addaction name="menuInelastic"/>
     <addaction name="actionSet_area"/>
     <addaction name="actionAberrations"/>
     <addaction name="separator"/>
@@ -330,7 +360,7 @@
   </action>
   <action name="actionThermal_scattering">
    <property name="text">
-    <string>Thermal scattering</string>
+    <string>Phonons</string>
    </property>
   </action>
   <action name="actionNative">
@@ -367,6 +397,11 @@
   <action name="actionShow_default">
    <property name="text">
     <string>Show default config</string>
+   </property>
+  </action>
+  <action name="actionPlasmons">
+   <property name="text">
+    <string>Plasmons</string>
    </property>
   </action>
  </widget>
@@ -406,6 +441,12 @@
    <class>BorderlessWindow</class>
    <extends>QMainWindow</extends>
    <header>controls/borderlesswindow.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>InelasticFrame</class>
+   <extends>QWidget</extends>
+   <header>frames/inelasticframe.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

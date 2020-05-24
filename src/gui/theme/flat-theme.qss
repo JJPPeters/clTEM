@@ -12,7 +12,7 @@ QWidget:window {
 
 QLineEdit {
 	background: {d1};
-	border: 1px transparent {l2};
+	border: 1em transparent {l2};
 	color: {l1}; /*text colour*/
 	selection-background-color: {a1};
 }
@@ -118,8 +118,6 @@ QPushButton {
 	background-color: {a1};
 	color: {d1};
 	border: 0px solid transparent;
-	padding: 4px 22px;
-	min-height: 18 px;
 }
 
 QPushButton:hover {
@@ -132,42 +130,6 @@ QPushButton:pressed {
 
 QPushButton:disabled {
     background-color: {e1};
-}
-
-QPushButton[accessibleName="title_min"] {
-	background-color: transparent;
-}
-
-QPushButton[accessibleName="title_max"] {
-	background-color: transparent;
-}
-
-QPushButton[accessibleName="title_close"] {
-	background-color: transparent;
-}
-
-QPushButton[accessibleName="title_min"]:hover {
-	background-color: {a2};
-}
-
-QPushButton[accessibleName="title_max"]:hover {
-	background-color: {a2};
-}
-
-QPushButton[accessibleName="title_close"]:hover {
-	background-color: {c1};
-}
-
-QPushButton[accessibleName="title_min"]:pressed {
-	background-color: {a3};
-}
-
-QPushButton[accessibleName="title_max"]:pressed {
-	background-color: {a3};
-}
-
-QPushButton[accessibleName="title_close"]:pressed {
-	background-color: {c2};
 }
 
 /* === QCheckBox === */
@@ -235,11 +197,6 @@ QStackedWidget {
 QLabel {
 	background: transparent;
 	color: {l1};
-}
-
-QLabel[accessibleName="title_title"] {
-	font-size: 12px;
-	color: {d1};
 }
 
 /* === QMenu === */
@@ -356,4 +313,72 @@ QHeaderView::section {
     border-style: none;
     border: 0px solid transparent;
     color: {l1};
+}
+
+
+
+
+
+{default_settings}
+
+
+
+
+
+
+QPushButton[accessibleName="title_min"] {
+	background-color: transparent;
+	min-height: 1.6em;
+	max-height: 1.6em;
+	min-width: 0 px;
+	padding: 0.3em 1em;
+}
+
+QPushButton[accessibleName="title_max"] {
+	background-color: transparent;
+	min-height: 1.6em;
+    max-height: 1.6em;
+	min-width: 0 px;
+	padding: 0.3em 1em;
+}
+
+QPushButton[accessibleName="title_close"] {
+	background-color: transparent;
+	min-height: 1.6em;
+    max-height: 1.6em;
+	min-width: 0 px;
+	padding: 0.3em 1em;
+}
+
+QPushButton[accessibleName="title_min"]:hover {
+	background-color: {a2};
+}
+
+QPushButton[accessibleName="title_max"]:hover {
+	background-color: {a2};
+}
+
+QPushButton[accessibleName="title_close"]:hover {
+	background-color: {c1};
+}
+
+QPushButton[accessibleName="title_min"]:pressed {
+	background-color: {a3};
+}
+
+QPushButton[accessibleName="title_max"]:pressed {
+	background-color: {a3};
+}
+
+QPushButton[accessibleName="title_close"]:pressed {
+	background-color: {c2};
+}
+
+QLabel[accessibleName="app_icon"] {
+	min-height: 1.6em;
+    max-height: 1.6em;
+}
+
+QLabel[accessibleName="title_title"] {
+	color: {d1};
 }

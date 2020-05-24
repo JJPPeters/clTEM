@@ -9,12 +9,12 @@ clTEM is an OpenCL accelerated multislice program for simulating images from a t
 
 ## Features
 - OpenCL acceleration with multi-device support
-- Open any structure defined by a simple .xyz file
+- Open any structure defined by simple .xyz or .cif files
 - View structure through a OpenGL accelerated model viewer (showing slice positions and simulation area)
 - Use classic slice model with projected potentials or a full 3D approximation
 - Use potential parameterisation by [Kirkland](https://www.springer.com/gp/book/9781441965325), [Peng et al.](dx.doi.org/10.1107/S0108767395014371) or [Lobato and Van Dyck](dx.doi.org/10.1107/S205327331401643X)
-- Simulate STEM/CBED using the frozen phonon model
-- Simulate CTEM diffraction/exit wave/image
+- Simulate inelastic scattering using the frozen phonons and plasmons
+- Simulate CTEM exit wave, diffraction pattern and image
 - Incorporate dose into CTEM simulation with detective quantum efficiency (DQE) and noise transfer function (NTF)
 - Use as a command line interface or with a GUI
 - Compatible with Linux and Windows

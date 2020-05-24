@@ -60,7 +60,7 @@ public:
 
 
     cl::Buffer& GetBuffer(){ return Buffer; };
-    size_t	GetSize(){ return Size*sizeof(MemType); };
+    size_t	GetSize(){ return Size; }//*sizeof(MemType); }; // Why did I have this using bytes?
 
     virtual clEvent GetFinishedWriteEvent(){return FinishedWriteEvent;};
     virtual clEvent GetFinishedReadEvent(){return FinishedReadEvent;};
