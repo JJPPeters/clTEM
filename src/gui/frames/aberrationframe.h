@@ -22,8 +22,6 @@ public:
     void updateAberrations();
 
 private slots:
-    void checkEditZero(QString dud);
-
     void on_btnMore_clicked();
 
 public slots:

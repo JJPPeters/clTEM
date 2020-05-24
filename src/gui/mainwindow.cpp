@@ -893,8 +893,10 @@ void MainWindow::updateManagerFromGui() {
 }
 
 void MainWindow::updateGuiFromManager() {
-    // set aberrations on the panel
-    ui->tAberr->updateTextBoxes();
+    // set aberrations frame
+    // set microscope frame
+    // set inelastic frame
+    updateAberrationBoxes();
 
     // set CBED stuff (position/TDS)
     ui->tCbed->updateTextBoxes();
@@ -941,7 +943,9 @@ void MainWindow::on_actionAberrations_triggered()
 {
     ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
     AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
-    connect(myDialog, &AberrationsDialog::appliedSignal, ui->tAberr, &AberrationFrame::updateTextBoxes);
+
+    connect(myDialog, &AberrationsDialog::appliedSignal, this, &MainWindow::updateAberrationBoxes);
+
     myDialog->exec();
 }
 

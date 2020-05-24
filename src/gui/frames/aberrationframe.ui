@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>756</width>
-    <height>195</height>
+    <height>209</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -29,7 +29,7 @@
    <item row="3" column="4">
     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1">
      <item>
-      <widget class="EditUnitsBox" name="edtStigMag_2">
+      <widget class="EditUnitsBox" name="edtThreeFoldMag">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -54,7 +54,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EditUnitsBox" name="edtStigAng_2">
+      <widget class="EditUnitsBox" name="edtThreeFoldAng">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -99,7 +99,7 @@
    <item row="3" column="6">
     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1">
      <item>
-      <widget class="EditUnitsBox" name="edtStigMag_4">
+      <widget class="EditUnitsBox" name="edtStarMag">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -124,7 +124,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EditUnitsBox" name="edtStigAng_4">
+      <widget class="EditUnitsBox" name="edtStarAng">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -167,7 +167,7 @@
     </widget>
    </item>
    <item row="2" column="6">
-    <widget class="EditUnitsBox" name="edtSphere">
+    <widget class="EditUnitsBox" name="edtSpherical">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -305,7 +305,7 @@
    <item row="4" column="6">
     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
      <item>
-      <widget class="EditUnitsBox" name="edtStigMag_3">
+      <widget class="EditUnitsBox" name="edtFourFoldMag">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -330,7 +330,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EditUnitsBox" name="edtStigAng_3">
+      <widget class="EditUnitsBox" name="edtFourFoldAng">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -470,7 +470,7 @@
    <item row="2" column="4">
     <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,1">
      <item>
-      <widget class="EditUnitsBox" name="edtStigMag_6">
+      <widget class="EditUnitsBox" name="edtComaMag">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -495,7 +495,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EditUnitsBox" name="edtStigAng_6">
+      <widget class="EditUnitsBox" name="edtComaAng">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
