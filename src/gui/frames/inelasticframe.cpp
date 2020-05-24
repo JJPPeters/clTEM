@@ -17,9 +17,6 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
     auto pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
-//    connect(ui->edtIterations, &QLineEdit::textChanged, this, &InelasticFrame::checkEditZero);
-
-//    ui->edtIterations->setValidator(pIntValidator);
     ui->edtPlasmonSingle->setValidator(pIntValidator);
     ui->edtPhononDefault->setValidator(pmValidator);
 
@@ -29,24 +26,6 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
 InelasticFrame::~InelasticFrame()
 {
     delete ui;
-}
-
-void InelasticFrame::checkEditZero(QString dud)
-{
-    (void)dud; // we don't use this
-
-    auto * edt = dynamic_cast<EditUnitsBox*>(sender());
-
-    if(edt == nullptr)
-        return;
-
-    auto t = edt->text().toStdString();
-    double val = edt->text().toDouble();
-
-    if (val <= 0)
-        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
-    else
-        edt->setStyleSheet("");
 }
 
 void InelasticFrame::on_btnPhononMore_clicked() {
@@ -104,15 +83,6 @@ void InelasticFrame::updatePlasmonsGui() {
     ui->edtPlasmonSingle->setText(QString::number(single));
 }
 
-void InelasticFrame::updateIterationsGui() {
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting inelastic frame to main window.");
-
-    unsigned int its = Main->Manager->inelasticScattering()->storedIterations();
-
-//    ui->edtIterations->setText(QString::number(its));
-}
-
 void InelasticFrame::updatePhononsManager() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
@@ -145,13 +115,4 @@ void InelasticFrame::updatePlasmonsManager() {
     else if (do_single)
         plasmon->setSimType(PlasmonType::Individual);
     plasmon->setIndividualPlasmon(single);
-}
-
-void InelasticFrame::updateIterationsManager() {
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting inelastic frame to main window.");
-
-//    unsigned int in_it = ui->edtIterations->text().toUInt();
-//
-//    Main->Manager->inelasticScattering()->setIterations(in_it);
 }

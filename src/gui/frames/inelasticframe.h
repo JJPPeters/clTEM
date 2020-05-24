@@ -20,8 +20,6 @@ public:
     void assignMainWindow(MainWindow* m) {Main = m; updateGui();}
 
 private slots:
-    void checkEditZero(QString dud);
-
     void on_btnPhononMore_clicked();
 
     void on_btnPlasmonMore_clicked();
@@ -31,17 +29,13 @@ public slots:
 
     void updatePlasmonsGui();
 
-    void updateIterationsGui();
-
-    void updateGui() {updatePhononsGui(); updatePlasmonsGui(); updateIterationsGui();}
+    void updateGui() {updatePhononsGui(); updatePlasmonsGui();}
 
     void updatePhononsManager();
 
     void updatePlasmonsManager();
 
-    void updateIterationsManager();
-
-    void updateManager() {updatePhononsManager(); updatePlasmonsManager(); updateIterationsManager();}
+    void updateManager() {updatePhononsManager(); updatePlasmonsManager();}
 
 private:
     Ui::InelasticFrame *ui;
