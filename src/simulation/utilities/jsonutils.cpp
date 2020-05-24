@@ -261,42 +261,42 @@ namespace JSONUtils {
         //
 
         try {
-            man.inelasticScattering()->setIterations(
+            man.incoherenceEffects()->setIterations(
                     readJsonEntry<unsigned int>(j, "inelastic scattering", "iterations"));
         } catch (std::exception& e) {}
 
         // phonon
 
         try {
-            man.inelasticScattering()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "inelastic scattering", "phonon", "frozen phonon", "enabled"));
+            man.incoherenceEffects()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "inelastic scattering", "phonon", "frozen phonon", "enabled"));
         } catch (std::exception& e) {}
 
-        *(man.inelasticScattering()->phonons()) = JsonToThermalVibrations(j);
+        *(man.incoherenceEffects()->phonons()) = JsonToThermalVibrations(j);
 
         // plasmon
 
         try {
             std::string p_type = readJsonEntry<std::string>(j, "inelastic scattering", "plasmon", "type");
             if (p_type == "full")
-                man.inelasticScattering()->plasmons()->setSimType(PlasmonType::Full);
+                man.incoherenceEffects()->plasmons()->setSimType(PlasmonType::Full);
             else if (p_type == "individual")
-                man.inelasticScattering()->plasmons()->setSimType(PlasmonType::Individual);
+                man.incoherenceEffects()->plasmons()->setSimType(PlasmonType::Individual);
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
+            man.incoherenceEffects()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
+            man.incoherenceEffects()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
+            man.incoherenceEffects()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
+            man.incoherenceEffects()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
         } catch (std::exception& e) {}
 
         //
@@ -571,23 +571,23 @@ namespace JSONUtils {
         // Inelastic scattering
         //
 
-        bool inelastic_used = man.inelasticScattering()->enabled();
+        bool inelastic_used = man.incoherenceEffects()->enabled();
         if (inelastic_used || force_all)
-            j["inelastic scattering"]["iterations"] = man.inelasticScattering()->storedIterations();
+            j["inelastic scattering"]["iterations"] = man.incoherenceEffects()->storedIterations();
 
         // phonon
 
-        bool phonon_used = man.inelasticScattering()->phonons()->getFrozenPhononEnabled();
+        bool phonon_used = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
         if (phonon_used || force_all) {
 
-            j["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.inelasticScattering()->phonons()->getFrozenPhononEnabled();
+            j["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
 
             // don't export if we have file defined vibrations and no override
             bool export_thermals = true;
             if (man.simulationCell()->crystalStructure()) // structure does not always exist
                 export_thermals = !(man.simulationCell()->crystalStructure()->thermalFileDefined() &&
-                                    !man.inelasticScattering()->phonons()->force_default &&
-                                    !man.inelasticScattering()->phonons()->force_defined);
+                                    !man.incoherenceEffects()->phonons()->force_default &&
+                                    !man.incoherenceEffects()->phonons()->force_defined);
 
             if (export_thermals || force_all) {
                 if (force_all)
@@ -599,12 +599,12 @@ namespace JSONUtils {
 
         // plasmon
 
-        auto plasmon = man.inelasticScattering()->plasmons();
+        auto plasmon = man.incoherenceEffects()->plasmons();
         bool plasmon_used = plasmon->enabled();
         if (plasmon_used || force_all) {
             if (plasmon->simType() == PlasmonType::Full)
                 j["inelastic scattering"]["plasmon"]["type"] = "full";
-            else if (man.inelasticScattering()->plasmons()->simType() == PlasmonType::Individual)
+            else if (man.incoherenceEffects()->plasmons()->simType() == PlasmonType::Individual)
                 j["inelastic scattering"]["plasmon"]["type"] = "individual";
 
             if (plasmon->simType() == PlasmonType::Individual || force_all)
@@ -623,7 +623,7 @@ namespace JSONUtils {
         // this is only valid if we have actually saved a simulation, so we can't force it
         if (plasmon_used && plasmon->simType() == PlasmonType::Full) {
 
-            auto pn = man.inelasticScattering()->plasmons()->getPlasmonNumbers();
+            auto pn = man.incoherenceEffects()->plasmons()->getPlasmonNumbers();
 
             // add leading zeros to make it be in correct order in json
             // (this is only for humands, it is never used by code)
@@ -666,14 +666,14 @@ namespace JSONUtils {
     json thermalVibrationsToJson(SimulationManager& man) {
         json j;
 
-        j["force default"] = man.inelasticScattering()->phonons()->force_default;
-        j["override file"] = man.inelasticScattering()->phonons()->force_defined;
+        j["force default"] = man.incoherenceEffects()->phonons()->force_default;
+        j["override file"] = man.incoherenceEffects()->phonons()->force_defined;
 
-        j["default"] = man.inelasticScattering()->phonons()->getDefault();
+        j["default"] = man.incoherenceEffects()->phonons()->getDefault();
         j["units"] = "Å²";
 
-        auto els = man.inelasticScattering()->phonons()->getDefinedElements();
-        auto vibs = man.inelasticScattering()->phonons()->getDefinedVibrations();
+        auto els = man.incoherenceEffects()->phonons()->getDefinedElements();
+        auto vibs = man.incoherenceEffects()->phonons()->getDefinedVibrations();
 
         if (els.size() != vibs.size())
             throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");

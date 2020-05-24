@@ -56,7 +56,7 @@ void InelasticFrame::updatePhononsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    auto phonon = Main->Manager->inelasticScattering()->phonons();
+    auto phonon = Main->Manager->incoherenceEffects()->phonons();
 
     bool enabled = phonon->getFrozenPhononEnabled();
     double def_u = phonon->getDefault();
@@ -69,7 +69,7 @@ void InelasticFrame::updatePlasmonsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    auto plasmon = Main->Manager->inelasticScattering()->plasmons();
+    auto plasmon = Main->Manager->incoherenceEffects()->plasmons();
 
     bool enabled = plasmon->enabled();
     bool full_enabled = plasmon->simType() == PlasmonType::Full;
@@ -91,7 +91,7 @@ void InelasticFrame::updatePhononsManager() {
     bool enabled = ui->chkPhonon->isChecked();
     bool force_default = ui->chkPhononDefault->isChecked();
 
-    auto phonon = Main->Manager->inelasticScattering()->phonons();
+    auto phonon = Main->Manager->incoherenceEffects()->phonons();
 
     phonon->setFrozenPhononEnabled(enabled);
     phonon->setDefault(def_u);
@@ -107,7 +107,7 @@ void InelasticFrame::updatePlasmonsManager() {
     bool do_single = ui->rdioPlasmonSingle->isChecked();
     unsigned int single = ui->edtPlasmonSingle->text().toUInt();
 
-    auto plasmon = Main->Manager->inelasticScattering()->plasmons();
+    auto plasmon = Main->Manager->incoherenceEffects()->plasmons();
 
     plasmon->setEnabled(enabled);
     if (do_full)

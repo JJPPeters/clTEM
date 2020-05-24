@@ -11,9 +11,9 @@
 #include <mutex>
 #include <map>
 #include <valarray>
-#include <inelastic/phonon.h>
-#include <inelastic/plasmon.h>
-#include <inelastic/inelastic.h>
+#include "incoherence/inelastic/phonon.h"
+#include "incoherence/inelastic/plasmon.h"
+#include <incoherence/incoherenteffects.h>
 #include <structure/simulationcell.h>
 
 #include "structure/structureparameters.h"
@@ -52,7 +52,7 @@ public:
 
     SimulationArea ctemArea() {return *sim_area;}
 
-    std::shared_ptr<InelasticScattering> inelasticScattering() {return inelastic_scattering;}
+    std::shared_ptr<IncoherentEffects> incoherenceEffects() {return incoherence_effects;}
 
     // structure setters
     void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo(), bool fix_cif=false);
@@ -172,7 +172,7 @@ private:
     std::shared_ptr<SimulationCell> simulation_cell;
 
     // inelastic effects such as phonons and plasmons
-    std::shared_ptr<InelasticScattering> inelastic_scattering;
+    std::shared_ptr<IncoherentEffects> incoherence_effects;
 
     std::shared_ptr<MicroscopeParameters> micro_params;
 

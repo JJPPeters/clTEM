@@ -351,15 +351,15 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // TODO: move to the manager class (then we can easily call it from the command line too)
     // TODO: operate on an exception basis...
     // Check our plasmon configuration is viable
-    if (Manager->inelasticScattering()->plasmons()->enabled()) {
+    if (Manager->incoherenceEffects()->plasmons()->enabled()) {
         int parts = Manager->totalParts();
-        Manager->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        Manager->incoherenceEffects()->plasmons()->initDepthVectors(parts);
         auto z_lims = Manager->simulationCell()->crystalStructure()->limitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
         for (int i = 0; i < parts; ++i) {
-            valid = Manager->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
+            valid = Manager->incoherenceEffects()->plasmons()->generateScatteringDepths(i, thk);
 
             if (!valid) {
                 QMessageBox msgBox(this);
@@ -868,7 +868,7 @@ void MainWindow::on_actionExport_parameters_triggered() {
 void MainWindow::updateManagerFromGui() {
     // update incoherent/inelastic iterations
     unsigned int its = ui->edtIterations->text().toUInt();
-    Manager->inelasticScattering()->setIterations(its);
+    Manager->incoherenceEffects()->setIterations(its);
 
     ui->tMicroscope->updateManagerFromGui();
 
@@ -889,7 +889,7 @@ void MainWindow::updateManagerFromGui() {
 
 void MainWindow::updateGuiFromManager() {
     // update the iterations textbox
-    ui->edtIterations->setText(QString::number(Manager->inelasticScattering()->storedIterations()));
+    ui->edtIterations->setText(QString::number(Manager->incoherenceEffects()->storedIterations()));
 
     // set aberrations frame
     // set microscope frame

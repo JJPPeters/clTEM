@@ -31,7 +31,7 @@ PlasmonSettingsFrame::PlasmonSettingsFrame(QWidget *parent, std::shared_ptr<Simu
 
     ui->edtIndividual->setValidator(pIntValidator);
 
-    plasmon_manager = simManager->inelasticScattering()->plasmons();
+    plasmon_manager = simManager->incoherenceEffects()->plasmons();
 
     ui->edtMeanFreePath->setText(QString::number(plasmon_manager->meanFreePath() / 10)); // angstroms to nm
     ui->edtCharacteristicAngle->setText(QString::number(plasmon_manager->characteristicAngle()));

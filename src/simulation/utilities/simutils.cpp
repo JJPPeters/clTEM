@@ -48,12 +48,12 @@ namespace Utils {
             errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
         // check TDS entries
-        if (Manager->inelasticScattering()->enabled() && Manager->inelasticScattering()->iterations() < 1)
+        if (Manager->incoherenceEffects()->enabled() && Manager->incoherenceEffects()->iterations() < 1)
             errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
 
         // plasmon settings
-        if (Manager->inelasticScattering()->plasmons()->enabled()) {
-            auto plasmon = Manager->inelasticScattering()->plasmons();
+        if (Manager->incoherenceEffects()->plasmons()->enabled()) {
+            auto plasmon = Manager->incoherenceEffects()->plasmons();
             if (plasmon->meanFreePath() <= 0.0)
                 errorList.emplace_back("Plasmon mean free path must be non-zero positive number.");
 

@@ -2,7 +2,7 @@
 #include <dialogs/settings/settingsdialog.h>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QTableWidgetItem>
-#include <inelastic/phonon.h>
+#include <incoherence/inelastic/phonon.h>
 #include "thermalscatteringframe.h"
 #include "ui_thermalscatteringframe.h"
 
@@ -11,7 +11,7 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
 {
     ui->setupUi(this);
 
-    Phonons = simManager->inelasticScattering()->phonons();
+    Phonons = simManager->incoherenceEffects()->phonons();
     
     // fiddle with the table
     ui->tblDisplacements->setColumnWidth(0, 80);

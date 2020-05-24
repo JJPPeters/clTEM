@@ -702,15 +702,15 @@ int main(int argc, char *argv[])
     }
 
     // sort plasmon stuff
-    if (man_ptr->inelasticScattering()->plasmons()->enabled()) {
+    if (man_ptr->incoherenceEffects()->plasmons()->enabled()) {
         int parts = man_ptr->totalParts();
-        man_ptr->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        man_ptr->incoherenceEffects()->plasmons()->initDepthVectors(parts);
         auto z_lims = man_ptr->simulationCell()->crystalStructure()->limitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
         for (int i = 0; i < parts; ++i) {
-            valid = man_ptr->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
+            valid = man_ptr->incoherenceEffects()->plasmons()->generateScatteringDepths(i, thk);
 
         if (!valid) {
             std::cout << "Could not generate valid plasmon configuration." << std::endl;

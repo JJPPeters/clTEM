@@ -72,7 +72,7 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
         std::mt19937_64 rng(std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count()));
 
         unsigned int jobCount = 0;
-        unsigned int inelastic_iterations = simManager->inelasticScattering()->iterations();
+        unsigned int inelastic_iterations = simManager->incoherenceEffects()->iterations();
         for (int i = 0; i < inelastic_iterations; ++i)
         {
             // this works in place (?) so we are continuously shuffling the same array, probably a good thing??

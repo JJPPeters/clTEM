@@ -10,7 +10,7 @@
 #include <ccdparams.h>
 #include "json.hpp"
 
-#include "inelastic/phonon.h"
+#include "incoherence/inelastic/phonon.h"
 
 namespace JSONUtils {
 

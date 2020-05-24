@@ -16,7 +16,7 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     sim_area = std::make_shared<SimulationArea>();
     stem_sim_area = std::make_shared<StemArea>();
     cbed_pos = std::make_shared<CbedPosition>();
-    inelastic_scattering = std::make_shared<InelasticScattering>();
+    incoherence_effects = std::make_shared<IncoherentEffects>();
     simulation_cell = std::make_shared<SimulationCell>();
 
     full_3d_integrals = 20;
@@ -46,7 +46,7 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
     cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
-    inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
+    incoherence_effects = std::make_shared<IncoherentEffects>(*(sm.incoherence_effects));
 
     if (sm.simulation_cell)// structure doesnt always exist
         simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
@@ -83,7 +83,7 @@ SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
     cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
-    inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
+    incoherence_effects = std::make_shared<IncoherentEffects>(*(sm.incoherence_effects));
 
     return *this;
 }
@@ -197,10 +197,10 @@ double SimulationManager::inverseMaxAngle()
 unsigned long SimulationManager::totalParts()
 {
     if (simulation_mode == SimulationMode::CTEM || simulation_mode == SimulationMode::CBED)
-        return static_cast<unsigned long>(inelastic_scattering->iterations());
+        return static_cast<unsigned long>(incoherence_effects->iterations());
     else if (simulation_mode == SimulationMode::STEM) {
         // round up as still need to complete that 'fraction of a job'
-        unsigned int inelastic_runs = inelastic_scattering->iterations();
+        unsigned int inelastic_runs = incoherence_effects->iterations();
         return static_cast<unsigned long>(inelastic_runs * std::ceil(
                 static_cast<double>(stemArea()->getNumPixels()) / parallel_pixels));
     }
@@ -214,7 +214,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     std::lock_guard<std::mutex> lck(image_update_mutex);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    auto average_factor = static_cast<double>(inelasticScattering()->iterations());
+    auto average_factor = static_cast<double>(incoherenceEffects()->iterations());
 
     for (auto const& i : ims)
     {

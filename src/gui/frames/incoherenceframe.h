@@ -25,10 +25,14 @@ public:
 
 public slots:
     void updateTemTextBoxes();
-    void updateTextBoxes() {updateTemTextBoxes();}
+    void updateChromaticTextBoxes();
+    void updateSourceSizeTextBoxes();
+    void updateTextBoxes() {updateTemTextBoxes(); updateChromaticTextBoxes(); updateSourceSizeTextBoxes();}
 
     void updateTemManager();
-    void updateManager() {updateTemManager();}
+    void updateChromaticManager();
+    void updateSourceSizeManager();
+    void updateManager() {updateTemManager(); updateChromaticManager(); updateSourceSizeManager();}
 
 
 

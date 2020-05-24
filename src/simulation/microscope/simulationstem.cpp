@@ -195,7 +195,7 @@ void SimulationStem<GPU_Type>::simulate() {
     //
     // plasmon setup
     //
-    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->inelasticScattering()->plasmons();
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->incoherenceEffects()->plasmons();
     bool do_plasmons = plasmon->enabled();
     double slice_dz = job->simManager->simulationCell()->sliceThickness();
     int padding_slices = (int) job->simManager->simulationCell()->preSliceCount();
@@ -233,7 +233,7 @@ void SimulationStem<GPU_Type>::simulate() {
 
             // update parameters for next scattering event!
             scattering_count++;
-            next_scattering_depth = job->simManager->inelasticScattering()->plasmons()->getGeneratedDepth(job->id, scattering_count);
+            next_scattering_depth = job->simManager->incoherenceEffects()->plasmons()->getGeneratedDepth(job->id, scattering_count);
         }
 
         if (pool.isStopped())

@@ -27,6 +27,9 @@ protected:
     using SimulationGeneral<GPU_Type>::modifyBeamTilt;
     using SimulationGeneral<GPU_Type>::getDiffractionImage;
 
+    using SimulationGeneral<GPU_Type>::reference_perturb_x;
+    using SimulationGeneral<GPU_Type>::reference_perturb_y;
+
     void initialiseProbeWave(double posx, double posy, int n_parallel = 0);
 
     void initialiseSimulation();
