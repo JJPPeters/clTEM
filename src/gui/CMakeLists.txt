@@ -74,6 +74,7 @@ set ( clTEM_SRCS
         frames/cbedframe.cpp
         frames/aberrationframe.cpp
         frames/inelasticframe.cpp
+        frames/sourceframe.cpp
         #
         dialogs/settings/settingsdialog.cpp
         dialogs/settings/frames/openclframe.cpp
@@ -97,12 +98,15 @@ set ( clTEM_SRCS
 
 set ( clTEM_UIS
         mainwindow.ui
+        #
         frames/simulationframe.ui
         frames/temframe.ui
         frames/stemframe.ui
         frames/cbedframe.ui
         frames/aberrationframe.ui
         frames/inelasticframe.ui
+        frames/sourceframe.ui
+        #
         controls/imagetab.ui
         controls/statuslayout.ui
         dialogs/settings/settingsdialog.ui
