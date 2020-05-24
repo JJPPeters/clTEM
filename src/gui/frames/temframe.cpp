@@ -11,19 +11,6 @@ TemFrame::TemFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    QScreen* primary_screen = QGuiApplication::primaryScreen();
-//    double pixel_ratio = primary_screen->devicePixelRatio();
-
-//    int col1 = 75  / pixel_ratio;
-//    int col2 = 100 / pixel_ratio;
-//    int col3 = 100 / pixel_ratio;
-
-//    auto test = dynamic_cast<QGridLayout*>(this->layout());
-
-//    test->setColumnMinimumWidth(0, col1);
-//    test->setColumnMinimumWidth(1, col2);
-//    test->setColumnMinimumWidth(2, col3);
-
     QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtDose->setValidator(pValidator);
@@ -47,21 +34,6 @@ void TemFrame::on_edtDose_textChanged(const QString &arg1)
         ui->edtDose->setStyleSheet("");
     else
         ui->edtDose->setStyleSheet("color: #FF8C00");
-}
-
-void TemFrame::on_btnSim_clicked()
-{
-    emit startSim();
-}
-
-void TemFrame::setActive(bool active)
-{
-//    ui->btnSim->setEnabled(active);
-}
-
-void TemFrame::on_btnCancel_clicked()
-{
-    emit stopSim();
 }
 
 void TemFrame::on_chkCrop_toggled(bool state) {

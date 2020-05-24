@@ -227,14 +227,14 @@
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="btnCancel">
+               <widget class="QPushButton" name="btnCancelSim">
                 <property name="text">
                  <string>Cancel</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="btnSim">
+               <widget class="QPushButton" name="btnStartSim">
                 <property name="text">
                  <string>Sim</string>
                 </property>

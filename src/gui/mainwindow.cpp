@@ -86,14 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
-    connect(ui->tStem, &StemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
-    connect(ui->tTem, &TemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
-    connect(ui->tCbed, &CbedFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
-    connect(ui->twMode, &QTabWidget::currentChanged, this, &MainWindow::on_twMode_currentChanged);
-
-    connect(ui->tTem, &TemFrame::stopSim, this, &MainWindow::cancel_simulation);
-    connect(ui->tCbed, &CbedFrame::stopSim, this, &MainWindow::cancel_simulation);
-    connect(ui->tStem, &StemFrame::stopSim, this, &MainWindow::cancel_simulation);
+    connect(ui->btnStartSim, &QPushButton::clicked, this, &MainWindow::on_actionSimulate_EW_triggered);
+    connect(ui->btnCancelSim, &QPushButton::clicked, this, &MainWindow::cancel_simulation);
 
     connect(ui->tTem, &TemFrame::setCtemCrop, this, &MainWindow::set_ctem_crop);
 
@@ -538,9 +532,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
 void MainWindow::setUiActive(bool active)
 {
     //disable things the user shouldn't be able to access whilst a simulation is running
-    ui->tTem->setActive(active);
-    ui->tCbed->setActive(active);
-    ui->tStem->setActive(active);
+    ui->btnStartSim->setEnabled(active);
 }
 
 void MainWindow::loadSavedOpenClSettings()
