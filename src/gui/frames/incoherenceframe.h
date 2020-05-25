@@ -12,6 +12,9 @@ class IncoherenceFrame : public QWidget
 {
     Q_OBJECT
 
+signals:
+    void iterationsCheckedChanged();
+
 public:
     explicit IncoherenceFrame(QWidget *parent = 0);
 
@@ -22,10 +25,6 @@ public:
         setModeStyles(m->Manager->mode(), m->Manager->ctemImageEnabled());
         updateTextBoxes();
     }
-
-
-//private slots:
-//    void checkEditZero(QString dud);
 
 public slots:
     void updateTemTextBoxes();
@@ -39,6 +38,10 @@ public slots:
     void updateManager() {updateTemManager(); updateChromaticManager(); updateSourceSizeManager();}
 
     void setModeStyles(SimulationMode md, bool tem_image);
+
+    void checkStatesChanged(int dud){
+        emit iterationsCheckedChanged();
+    }
 
 private:
     Ui::IncoherenceFrame *ui;

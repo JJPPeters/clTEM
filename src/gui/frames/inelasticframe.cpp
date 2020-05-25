@@ -21,6 +21,9 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
     ui->edtPhononDefault->setValidator(pmValidator);
 
     ui->edtPhononDefault->setUnits("Å²");
+
+    connect(ui->chkPhonon, &QCheckBox::stateChanged, this, &InelasticFrame::checkStatesChanged);
+    connect(ui->chkPlasmon, &QCheckBox::stateChanged, this, &InelasticFrame::checkStatesChanged);
 }
 
 InelasticFrame::~InelasticFrame()

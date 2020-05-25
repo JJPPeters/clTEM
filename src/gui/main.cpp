@@ -81,8 +81,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    MainWindow w;
-
 #ifdef _WIN32
 
     if (!settings.contains("theme"))
@@ -94,6 +92,8 @@ int main(int argc, char *argv[]) {
     ThemeManager::setTheme(theme);
 
 #endif
+
+    MainWindow w;
 
     w.show();
 

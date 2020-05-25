@@ -79,9 +79,16 @@ public:
 
     void setUnits(std::string s)
     {
+        // want to preserve textChanged emission for value changes
+        const QSignalBlocker blocker(this);
+
+        auto orig = text();
+
         if (!s.empty() && s.substr(0,1) != " ")
             s = " " + s;
         units = s;
+
+        setText(orig);
     }
 };
 

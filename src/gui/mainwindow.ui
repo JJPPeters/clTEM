@@ -211,7 +211,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="edtIterations"/>
+               <widget class="EditUnitsBox" name="edtIterations"/>
               </item>
               <item>
                <spacer name="horizontalSpacer">
@@ -220,8 +220,8 @@
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
-                  <width>40</width>
-                  <height>20</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                </spacer>
@@ -463,6 +463,11 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
+  <customwidget>
+   <class>EditUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/editunitsbox.h</header>
+  </customwidget>
   <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>

@@ -127,6 +127,8 @@ private slots:
 
     void updateModeTextBoxes();
 
+    void iterationsToggled();
+
     void checkEditZero(QString dud)
     {
         (void)dud; // make it explicit that this is not used
@@ -143,6 +145,8 @@ private slots:
         else
             edt->setStyleSheet("");
     }
+
+    bool event(QEvent *event);
 
 private:
     FlatTitleBar *m_title;

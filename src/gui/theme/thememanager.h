@@ -123,7 +123,8 @@ private:
         // remove our stylesheet
 //        qApp->setStyleSheet("");
         // reset our palette
-        QGuiApplication::setPalette(QApplication::style()->standardPalette());
+        qApp->setPalette(QApplication::style()->standardPalette());
+        qApp->setPalette(QApplication::style()->standardPalette());
     }
 
     static void setDarkTheme() {
@@ -152,6 +153,9 @@ private:
             QPalette darkPalette;
             darkPalette.setColor(QPalette::Window, QColor(d1));
             darkPalette.setColor(QPalette::Mid, QColor(l2));
+
+            // this is for our 'inactive but still usable' text boxes
+            darkPalette.setColor(QPalette::Disabled, QPalette::Base, QColor("#808080"));
 
             qApp->setPalette(darkPalette);
 
@@ -210,7 +214,7 @@ private:
             darkPalette.setColor(QPalette::Window, QColor(d1));
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
-            QGuiApplication::setPalette(darkPalette);
+            qApp->setPalette(darkPalette);
 
             s.replace("{t}", t);
             s.replace("{d1}", d1);

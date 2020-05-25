@@ -75,7 +75,7 @@ void SourceFrame::checkEditZero(QString dud)
 void SourceFrame::on_btnMore_clicked()
 {
     if (Main == nullptr)
-        throw std::runtime_error("Error connecting aberration frame to main window.");
+        throw std::runtime_error("Error connecting microscope frame to main window.");
 
     // here we update the current aberrations from the text boxes here so the dialog can show the same
     // this will also update from this frame
@@ -93,7 +93,7 @@ void SourceFrame::on_btnMore_clicked()
 void SourceFrame::updateTextBoxes()
 {
     if (Main == nullptr)
-        throw std::runtime_error("Error connecting aberration frame to main window.");
+        throw std::runtime_error("Error connecting microscope frame to main window.");
     auto p = Main->Manager->microscopeParams();
 
     ui->edtVoltage->setText(Utils_Qt::numToQString(p->Voltage)); // kV
@@ -114,7 +114,7 @@ void SourceFrame::updateManagerFromGui()
     // designed to only really be called before it matters, not after every edit...
 
     if (Main == nullptr)
-        throw std::runtime_error("Error connecting aberration frame to main window.");
+        throw std::runtime_error("Error connecting microscope frame to main window.");
 
     auto params = Main->Manager->microscopeParams();
 
@@ -143,7 +143,7 @@ void SourceFrame::updateManagerFromGui()
 void SourceFrame::on_edtVoltage_textChanged(const QString &arg1) {
     // this slot is used to update the other panels for the mrad scale change
     if (Main == nullptr)
-        throw std::runtime_error("Error connecting aberration frame to main window.");
+        throw std::runtime_error("Error connecting microscope frame to main window.");
 
     double volt = ui->edtVoltage->text().toDouble();
     Main->updateVoltageMrad( volt );

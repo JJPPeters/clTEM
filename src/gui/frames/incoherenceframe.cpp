@@ -34,6 +34,9 @@ IncoherenceFrame::IncoherenceFrame(QWidget *parent) :
     ui->edtDePlus->setUnits("eV");
 
     ui->edtSourceSpread->setUnits("Å");
+
+    connect(ui->chkSourceSize, &QCheckBox::stateChanged, this, &IncoherenceFrame::checkStatesChanged);
+    connect(ui->chkChromatic, &QCheckBox::stateChanged, this, &IncoherenceFrame::checkStatesChanged);
 }
 
 IncoherenceFrame::~IncoherenceFrame()

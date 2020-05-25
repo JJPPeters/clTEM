@@ -50,17 +50,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
+    auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
+    ui->edtIterations->setValidator(pIntValidator);
+
     setWindowTitle("clTEM");
 
     dynamic_cast<tabPanel*>(ui->twSim)->setPreserveHeightEnabled(true);
 
     // this just makes it look nice without fannying about with widgets and all that
     int w = width();
-    resize(w, w*0.66);
+    resize(w, w*0.6);
 
-    ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
-    ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
-    ImageTab* Diff = new ImageTab(ui->twReal, "Diffraction", TabType::DIFF);
+    auto* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
+    auto* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
+    auto* Diff = new ImageTab(ui->twReal, "Diffraction", TabType::DIFF);
 
     StatusBar = new StatusLayout();
 
@@ -97,6 +100,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->edtIterations, &QLineEdit::textChanged, this, &MainWindow::checkEditZero);
 
+    connect(ui->tInelastic, &InelasticFrame::iterationsCheckedChanged, this, &MainWindow::iterationsToggled);
+    connect(ui->tIncoherence, &IncoherenceFrame::iterationsCheckedChanged, this, &MainWindow::iterationsToggled);
+
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j) {
         auto *tab = (ImageTab *) ui->twReal->widget(j);
@@ -115,6 +121,8 @@ MainWindow::MainWindow(QWidget *parent) :
         msgBox.setMinimumSize(160, 125);
         msgBox.exec();
     }
+
+    iterationsToggled();
 
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
@@ -648,7 +656,7 @@ void MainWindow::loadExternalSources()
     Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
     Kernels::bilinear_translate_d = Utils_Qt::kernelToChar("bilinear_translate_d.cl");
     Kernels::complex_to_real_d = Utils_Qt::kernelToChar("complex_to_real_d.cl");
-    
+
     // load parameters
     // get all the files in the parameters folder
     auto params_path = QGuiApplication::applicationDirPath() + "/params/";
@@ -1075,4 +1083,40 @@ void MainWindow::updateModeTextBoxes() {
     ui->tMicroscope->setModeStyles(md, tem_image);
     ui->tAberr->setModeStyles(md, tem_image);
     ui->tIncoherence->setModeStyles(md, tem_image);
+}
+
+void MainWindow::iterationsToggled() {
+    // update all the iterations frames
+
+
+
+    ui->tInelastic->updateManager();
+    ui->tIncoherence->updateManager();
+
+    bool use = Manager->incoherenceEffects()->enabled(Manager->mode());
+
+    if (use) {
+        ui->edtIterations->setUnits("");
+    } else {
+        ui->edtIterations->setUnits("(N/A)");
+    }
+
+    ui->edtIterations->update();
+}
+
+bool MainWindow::event(QEvent *event) {
+    // this might get spammed a bit, not sure if it is supposed to
+    if (event->type() == QEvent::PaletteChange)
+    {
+        auto md = Manager->mode();
+        auto im = Manager->ctemImageEnabled();
+
+//        iterationsToggled();
+        ui->tMicroscope->setModeStyles(md, im);
+        ui->tAberr->setModeStyles(md, im);
+        ui->tIncoherence->setModeStyles(md, im);
+    }
+
+    // very important or no other events will get through
+    return BorderlessWindow::event(event);
 }
