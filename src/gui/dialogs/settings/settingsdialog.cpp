@@ -62,7 +62,7 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent, std::shared_ptr<Simu
 }
 
 
-AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params) :
+AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<SimulationManager> params) :
     SettingsDialog(parent)
 {
     AberrFrame = new FullAberrationFrame(this, params);

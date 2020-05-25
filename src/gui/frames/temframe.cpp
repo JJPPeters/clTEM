@@ -17,7 +17,6 @@ TemFrame::TemFrame(QWidget *parent) :
 
     ui->edtDose->setUnits("e⁻A⁻²");
 
-
 }
 
 TemFrame::~TemFrame()
@@ -96,4 +95,8 @@ void TemFrame::update_ccd_boxes(std::shared_ptr<SimulationManager> sm) {
     ind = ui->cmbBinning->findText( QString::number(bn) );
     ind += (ind == -1);
     ui->cmbBinning->setCurrentIndex(ind);
+}
+
+void TemFrame::on_chkSimImage_toggled(bool state) {
+    emit setCtemImage(state);
 }

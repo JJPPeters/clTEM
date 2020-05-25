@@ -62,7 +62,7 @@ void AberrationFrame::on_btnMore_clicked()
     // this will also update from this frame
     Main->updateAberrationManager();
 
-    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
+    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager);
 
     // how this is dosconnected when the dialog is destroyed...
     connect(myDialog, &AberrationsDialog::appliedSignal, Main, &MainWindow::updateAberrationBoxes);
@@ -128,4 +128,31 @@ void AberrationFrame::updateAberrations()
     params->C30 = C30;
     params->C32 = ComplexAberration(C32m, C32a);
     params->C34 = ComplexAberration(C34m, C34a);
+}
+
+void AberrationFrame::setModeStyles(SimulationMode md, bool tem_image) {
+    std::string disabled_Default = "";
+
+    if (md == SimulationMode::CTEM && !tem_image) {
+        QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+        std::string disabled_hex = disabled_col.name().toStdString();
+
+        disabled_Default = "background-color: " + disabled_hex;
+    }
+
+    ui->edtDefocus->setBackgroundStyle(disabled_Default);
+    ui->edtStigMag->setBackgroundStyle(disabled_Default);
+    ui->edtStigAng->setBackgroundStyle(disabled_Default);
+
+    ui->edtComaMag->setBackgroundStyle(disabled_Default);
+    ui->edtComaAng->setBackgroundStyle(disabled_Default);
+    ui->edtThreeFoldMag->setBackgroundStyle(disabled_Default);
+    ui->edtThreeFoldAng->setBackgroundStyle(disabled_Default);
+
+    ui->edtSpherical->setBackgroundStyle(disabled_Default);
+    ui->edtStarMag->setBackgroundStyle(disabled_Default);
+    ui->edtStarAng->setBackgroundStyle(disabled_Default);
+    ui->edtFourFoldMag->setBackgroundStyle(disabled_Default);
+    ui->edtFourFoldAng->setBackgroundStyle(disabled_Default);
+
 }

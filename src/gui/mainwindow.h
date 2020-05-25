@@ -120,6 +120,13 @@ private slots:
 
     void saveBmp(bool full_stack);
 
+    void ctemImageToggled(bool state) {
+        Manager->setCtemImageEnabled(state);
+        updateModeTextBoxes();
+    }
+
+    void updateModeTextBoxes();
+
     void checkEditZero(QString dud)
     {
         (void)dud; // make it explicit that this is not used

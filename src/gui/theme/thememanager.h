@@ -153,7 +153,7 @@ private:
             darkPalette.setColor(QPalette::Window, QColor(d1));
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
-            QGuiApplication::setPalette(darkPalette);
+            qApp->setPalette(darkPalette);
 
             s.replace("{t}", t);
 

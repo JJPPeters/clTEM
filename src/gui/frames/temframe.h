@@ -14,6 +14,7 @@ class TemFrame : public QWidget
 
 signals:
     void setCtemCrop(bool);
+    void setCtemImage(bool);
 
 public:
     explicit TemFrame(QWidget *parent = 0);
@@ -38,6 +39,8 @@ private slots:
     void on_edtDose_textChanged(const QString &arg1);
 
     void on_chkCrop_toggled(bool state);
+
+    void on_chkSimImage_toggled(bool state);
 
 private:
     Ui::TemFrame *ui;

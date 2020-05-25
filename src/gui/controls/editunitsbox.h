@@ -13,8 +13,23 @@ class EditUnitsBox : public QLineEdit
 
 Q_OBJECT
 
+protected:
+    std::string units;
+
+    std::string background_style;
+
+    std::string foreground_style;
+
+    std::string other_styles;
+
 public:
     explicit EditUnitsBox(QWidget *parent = nullptr);
+
+    void setStyleSheet(const QString& style);
+
+    void setBackgroundStyle(std::string style);
+
+    void setForegroundStyle(std::string style);
 
     void focusInEvent(QFocusEvent* e) override
     {
@@ -68,9 +83,6 @@ public:
             s = " " + s;
         units = s;
     }
-
-protected:
-    std::string units;
 };
 
 

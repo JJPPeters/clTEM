@@ -15,9 +15,13 @@ class SourceFrame : public QWidget
 public:
     explicit SourceFrame(QWidget *parent = 0);
 
-    ~SourceFrame();
+    ~SourceFrame() override;
 
-    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
+    void assignMainWindow(MainWindow* m) {
+        Main = m;
+        setModeStyles(m->Manager->mode(), m->Manager->ctemImageEnabled());
+        updateTextBoxes();
+    }
 
     void updateManagerFromGui();
 
@@ -30,6 +34,8 @@ private slots:
 
 public slots:
     void updateTextBoxes();
+
+    void setModeStyles(SimulationMode md, bool tem_image);
 
 private:
     Ui::SourceFrame *ui;

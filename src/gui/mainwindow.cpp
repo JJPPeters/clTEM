@@ -89,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btnCancelSim, &QPushButton::clicked, this, &MainWindow::cancel_simulation);
 
     connect(ui->tTem, &TemFrame::setCtemCrop, this, &MainWindow::set_ctem_crop);
+    connect(ui->tTem, &TemFrame::setCtemImage, this, &MainWindow::ctemImageToggled);
 
     connect(this, &MainWindow::sliceProgressUpdated, this, &MainWindow::sliceProgressChanged);
     connect(this, &MainWindow::totalProgressUpdated, this, &MainWindow::totalProgressChanged);
@@ -297,6 +298,7 @@ void MainWindow::on_twMode_currentChanged(int index)
     else if (index == 2)
         Manager->setMode(SimulationMode::CBED);
 
+    updateModeTextBoxes();
     updateScales();
 }
 
@@ -950,7 +952,7 @@ void MainWindow::on_actionAberrations_triggered()
     // here we update the current aberrations from the text boxes here so the dialog can show the same
     updateAberrationManager();
 
-    auto* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
+    auto* myDialog = new AberrationsDialog(this, Manager);
 
     connect(myDialog, &AberrationsDialog::appliedSignal, this, &MainWindow::updateAberrationBoxes);
 
@@ -1064,4 +1066,13 @@ void MainWindow::on_actionShow_default_triggered() {
         dir.mkpath(".");
 
     GuiUtils::openInDefault(QString::fromStdString(dirName));
+}
+
+void MainWindow::updateModeTextBoxes() {
+    auto md = Manager->mode();
+    bool tem_image = Manager->ctemImageEnabled();
+
+    ui->tMicroscope->setModeStyles(md, tem_image);
+    ui->tAberr->setModeStyles(md, tem_image);
+    ui->tIncoherence->setModeStyles(md, tem_image);
 }

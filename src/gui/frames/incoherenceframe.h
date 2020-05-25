@@ -17,7 +17,11 @@ public:
 
     ~IncoherenceFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
+    void assignMainWindow(MainWindow* m) {
+        Main = m;
+        setModeStyles(m->Manager->mode(), m->Manager->ctemImageEnabled());
+        updateTextBoxes();
+    }
 
 
 //private slots:
@@ -34,7 +38,7 @@ public slots:
     void updateSourceSizeManager();
     void updateManager() {updateTemManager(); updateChromaticManager(); updateSourceSizeManager();}
 
-
+    void setModeStyles(SimulationMode md, bool tem_image);
 
 private:
     Ui::IncoherenceFrame *ui;

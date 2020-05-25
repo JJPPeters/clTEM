@@ -67,9 +67,9 @@ void SourceFrame::checkEditZero(QString dud)
     double val = edt->text().toDouble();
 
     if (val <= 0)
-        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
+        edt->setForegroundStyle("; color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
     else
-        edt->setStyleSheet("");
+        edt->setForegroundStyle("");
 }
 
 void SourceFrame::on_btnMore_clicked()
@@ -81,7 +81,7 @@ void SourceFrame::on_btnMore_clicked()
     // this will also update from this frame
     Main->updateAberrationManager();
 
-    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
+    AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager);
 
     // how this is disconnected when the dialog is destroyed...
     connect(myDialog, &AberrationsDialog::appliedSignal, Main, &MainWindow::updateAberrationBoxes);
@@ -147,4 +147,31 @@ void SourceFrame::on_edtVoltage_textChanged(const QString &arg1) {
 
     double volt = ui->edtVoltage->text().toDouble();
     Main->updateVoltageMrad( volt );
+}
+
+void SourceFrame::setModeStyles(SimulationMode md, bool tem_image) {
+    QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+    std::string disabled_hex = disabled_col.name().toStdString();
+
+    std::string disabled_Default = "background-color: " + disabled_hex;
+
+    if (md == SimulationMode::CTEM) {
+        ui->edtConAper->setBackgroundStyle(disabled_Default);
+        ui->edtConAperSig->setBackgroundStyle(disabled_Default);
+
+        if (tem_image) {
+            ui->edtObjAper->setBackgroundStyle("");
+            ui->edtObjAperSig->setBackgroundStyle("");
+        } else {
+            ui->edtObjAper->setBackgroundStyle(disabled_Default);
+            ui->edtObjAperSig->setBackgroundStyle(disabled_Default);
+        }
+    } else {
+        ui->edtObjAper->setBackgroundStyle(disabled_Default);
+        ui->edtObjAperSig->setBackgroundStyle(disabled_Default);
+
+        ui->edtConAper->setBackgroundStyle("");
+        ui->edtConAperSig->setBackgroundStyle("");
+    }
+
 }

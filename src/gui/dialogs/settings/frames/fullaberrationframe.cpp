@@ -12,19 +12,20 @@
 
 #include "utilities/commonstructs.h"
 
-FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<MicroscopeParameters> params) :
+FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<SimulationManager> params) :
     QWidget(parent),
     ui(new Ui::FullAberrationFrame)
 {
     ui->setupUi(this);
 
-    MicroParams = std::move(params);
+    Manager = std::move(params);
 
     connect(ui->edtConAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtObjAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtVoltage, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
 
     setValidators();
+    setBackgroundStyles();
     setUnits();
     setValues();
 
@@ -85,6 +86,7 @@ void FullAberrationFrame::setValidators()
 
 void FullAberrationFrame::setValues()
 {
+    auto MicroParams = Manager->microscopeParams();
     // this is fun, right?
     ui->edtVoltage->setText(Utils_Qt::numToQString(MicroParams->Voltage)); // kV
 
@@ -148,9 +150,9 @@ void FullAberrationFrame::checkEditZero(QString dud)
     double val = edt->text().toDouble();
 
     if (val <= 0)
-        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
+        edt->setForegroundStyle("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
     else
-        edt->setStyleSheet("");
+        edt->setForegroundStyle("");
 }
 
 void FullAberrationFrame::dlgCancel_clicked()
@@ -219,6 +221,8 @@ bool FullAberrationFrame::dlgApply_clicked()
     double C56a = ui->edtC56Ang->text().toDouble() * Constants::Pi / 180;
 
     // now we have all the data, assign it to our class storing everything
+
+    auto MicroParams = Manager->microscopeParams();
 
     MicroParams->Voltage = voltage;
     MicroParams->CondenserAperture = con_ap;
@@ -301,6 +305,70 @@ void FullAberrationFrame::setUnits() {
     ui->edtC56Mag->setUnits("μm");
     ui->edtC56Ang->setUnits("°");
 
+}
+
+void FullAberrationFrame::setBackgroundStyles() {
+    
+    auto md = Manager->mode();
+    bool do_im = Manager->ctemImageEnabled();
+
+    QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+    std::string disabled_hex = disabled_col.name().toStdString();
+    std::string disabled_Default = "background-color: " + disabled_hex;
+
+    std::string ab_style = "";
+    std::string ctem_image_style = "";
+    std::string condens_style = "";
+
+    if (md == SimulationMode::CTEM and !do_im)
+        ab_style = disabled_Default;
+    
+    if (md != SimulationMode::CTEM || !do_im)
+        ctem_image_style = disabled_Default;
+
+    if (md == SimulationMode::CTEM)
+        condens_style = disabled_Default;
+
+    ui->edtConAp->setBackgroundStyle(condens_style);
+    ui->edtConApSmooth->setBackgroundStyle(condens_style);
+
+    //
+    ui->edtDefocusSpread->setBackgroundStyle(ctem_image_style);
+    ui->edtConverge->setBackgroundStyle(ctem_image_style);
+
+    ui->edtObjAp->setBackgroundStyle(ctem_image_style);
+    ui->edtObjApSmooth->setBackgroundStyle(ctem_image_style);
+
+    //
+    ui->edtC10->setBackgroundStyle(ab_style);
+    ui->edtC12Mag->setBackgroundStyle(ab_style);
+    ui->edtC12Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC21Mag->setBackgroundStyle(ab_style);
+    ui->edtC21Ang->setBackgroundStyle(ab_style);
+    ui->edtC23Mag->setBackgroundStyle(ab_style);
+    ui->edtC23Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC30->setBackgroundStyle(ab_style);
+    ui->edtC32Mag->setBackgroundStyle(ab_style);
+    ui->edtC32Ang->setBackgroundStyle(ab_style);
+    ui->edtC34Mag->setBackgroundStyle(ab_style);
+    ui->edtC34Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC41Mag->setBackgroundStyle(ab_style);
+    ui->edtC41Ang->setBackgroundStyle(ab_style);
+    ui->edtC43Mag->setBackgroundStyle(ab_style);
+    ui->edtC43Ang->setBackgroundStyle(ab_style);
+    ui->edtC45Mag->setBackgroundStyle(ab_style);
+    ui->edtC45Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC50->setBackgroundStyle(ab_style);
+    ui->edtC52Mag->setBackgroundStyle(ab_style);
+    ui->edtC52Ang->setBackgroundStyle(ab_style);
+    ui->edtC54Mag->setBackgroundStyle(ab_style);
+    ui->edtC54Ang->setBackgroundStyle(ab_style);
+    ui->edtC56Mag->setBackgroundStyle(ab_style);
+    ui->edtC56Ang->setBackgroundStyle(ab_style);
 }
 
 

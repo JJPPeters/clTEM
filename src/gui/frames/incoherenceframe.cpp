@@ -91,3 +91,34 @@ void IncoherenceFrame::updateSourceSizeManager() {
     ss->setFullWidthHalfMax(fwhm);
     ss->setEnabled(enab);
 }
+
+void IncoherenceFrame::setModeStyles(SimulationMode md, bool tem_image) {
+    QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+    std::string disabled_hex = disabled_col.name().toStdString();
+    std::string disabled_Default = "background-color: " + disabled_hex;
+
+    if (md == SimulationMode::CTEM) {
+        ui->edtCc->setBackgroundStyle(disabled_Default);
+        ui->edtDeMinus->setBackgroundStyle(disabled_Default);
+        ui->edtDePlus->setBackgroundStyle(disabled_Default);
+        ui->edtSourceSpread->setBackgroundStyle(disabled_Default);
+
+        if (tem_image) {
+            ui->edtDelta->setBackgroundStyle("");
+            ui->edtAlpha->setBackgroundStyle("");
+        } else {
+            ui->edtDelta->setBackgroundStyle(disabled_Default);
+            ui->edtAlpha->setBackgroundStyle(disabled_Default);
+        }
+    }
+    else {
+        ui->edtCc->setBackgroundStyle("");
+        ui->edtDeMinus->setBackgroundStyle("");
+        ui->edtDePlus->setBackgroundStyle("");
+        ui->edtSourceSpread->setBackgroundStyle("");
+
+        ui->edtDelta->setBackgroundStyle(disabled_Default);
+        ui->edtAlpha->setBackgroundStyle(disabled_Default);
+    }
+
+}
