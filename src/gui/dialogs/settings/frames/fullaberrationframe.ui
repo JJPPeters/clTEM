@@ -639,6 +639,16 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>edtVoltage</tabstop>
+  <tabstop>edtBeamTilt</tabstop>
+  <tabstop>edtBeamAzimuth</tabstop>
+  <tabstop>edtConAp</tabstop>
+  <tabstop>edtConApSmooth</tabstop>
+  <tabstop>edtObjAp</tabstop>
+  <tabstop>edtObjApSmooth</tabstop>
+  <tabstop>edtConverge</tabstop>
+  <tabstop>edtDefocusSpread</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>edtC10</tabstop>
   <tabstop>edtC12Mag</tabstop>

@@ -132,6 +132,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
           </spacer>
          </item>
          <item>
@@ -146,6 +152,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
           </spacer>
          </item>
         </layout>
@@ -156,6 +168,12 @@
           <spacer name="horizontalSpacer_3">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
            </property>
           </spacer>
          </item>
@@ -179,12 +197,24 @@
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
         </spacer>
        </item>
        <item row="2" column="6">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
         </spacer>
        </item>
@@ -330,6 +360,12 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
         </spacer>
        </item>
        <item>
@@ -358,6 +394,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
           </spacer>
          </item>
         </layout>
@@ -385,6 +427,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
           </spacer>
          </item>
         </layout>
@@ -410,6 +458,8 @@
  </customwidgets>
  <tabstops>
   <tabstop>tPanel</tabstop>
+  <tabstop>chkEnabled</tabstop>
+  <tabstop>edtDefault</tabstop>
   <tabstop>chkForceDefault</tabstop>
   <tabstop>chkOverride</tabstop>
   <tabstop>btnLoad</tabstop>

@@ -65,12 +65,24 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
         </spacer>
        </item>
        <item row="3" column="5">
         <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
         </spacer>
        </item>
@@ -82,12 +94,24 @@
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
         </spacer>
        </item>
        <item row="0" column="4">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
         </spacer>
        </item>
@@ -182,6 +206,12 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
           </spacer>
          </item>
          <item>
@@ -195,6 +225,12 @@
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
            </property>
           </spacer>
          </item>
@@ -236,19 +272,21 @@
    <header>controls/editunitsbox.h</header>
   </customwidget>
   <customwidget>
-   <class>NthUnitsBox</class>
-   <extends>QLineEdit</extends>
-   <header>controls/nthunitsbox.h</header>
-  </customwidget>
-  <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>
    <header>controls/tabpanel.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>NthUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/nthunitsbox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>tabWidget</tabstop>
+  <tabstop>chkEnabled</tabstop>
+  <tabstop>edtMeanFreePath</tabstop>
   <tabstop>edtCharacteristicAngle</tabstop>
   <tabstop>edtCriticalAngle</tabstop>
   <tabstop>rdioCombined</tabstop>

@@ -415,6 +415,16 @@
    <header>controls/editunitsbox.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>edtDelta</tabstop>
+  <tabstop>edtAlpha</tabstop>
+  <tabstop>chkChromatic</tabstop>
+  <tabstop>edtCc</tabstop>
+  <tabstop>edtDeMinus</tabstop>
+  <tabstop>edtDePlus</tabstop>
+  <tabstop>chkSourceSize</tabstop>
+  <tabstop>edtSourceSpread</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
