@@ -257,18 +257,59 @@ namespace JSONUtils {
 
 
         //
-        // Inelastic scattering
+        // incoherence effects
         //
 
         try {
             man.incoherenceEffects()->setIterations(
-                    readJsonEntry<unsigned int>(j, "inelastic scattering", "iterations"));
+                    readJsonEntry<unsigned int>(j, "incoherence", "iterations"));
         } catch (std::exception& e) {}
+
+        // TEM effects are in the microscope part
+
+        // chromatic
+
+        try {
+            man.incoherenceEffects()->chromatic()->setEnabled(
+                    readJsonEntry<bool>(j, "incoherence", "probe", "chromatic", "enabled"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->chromatic()->setChromaticAberration(
+                    readJsonEntry<double>(j, "incoherence", "probe", "chromatic", "Cc", "val"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->chromatic()->setHalfWidthHalfMaxPositive(
+                    readJsonEntry<double>(j, "incoherence", "probe", "chromatic", "dE", "HWHM +"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->chromatic()->setHalfWidthHalfMaxNegative(
+                    readJsonEntry<double>(j, "incoherence", "probe", "chromatic", "dE", "HWHM -"));
+        } catch (std::exception& e) {}
+
+        // source size
+
+        try {
+            man.incoherenceEffects()->source()->setEnabled(
+                    readJsonEntry<bool>(j, "incoherence", "probe", "source size", "enabled"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->source()->setFullWidthHalfMax(
+                    readJsonEntry<double>(j, "incoherence", "probe", "source size", "FWHM", "val"));
+        } catch (std::exception& e) {}
+
+        //
+        // Inelastic scattering
+        //
+
 
         // phonon
 
         try {
-            man.incoherenceEffects()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "inelastic scattering", "phonon", "frozen phonon", "enabled"));
+            man.incoherenceEffects()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "frozen phonon", "enabled"));
         } catch (std::exception& e) {}
 
         *(man.incoherenceEffects()->phonons()) = JsonToThermalVibrations(j);
@@ -276,7 +317,7 @@ namespace JSONUtils {
         // plasmon
 
         try {
-            std::string p_type = readJsonEntry<std::string>(j, "inelastic scattering", "plasmon", "type");
+            std::string p_type = readJsonEntry<std::string>(j, "incoherence", "inelastic scattering", "plasmon", "type");
             if (p_type == "full")
                 man.incoherenceEffects()->plasmons()->setSimType(PlasmonType::Full);
             else if (p_type == "individual")
@@ -284,19 +325,19 @@ namespace JSONUtils {
         } catch (std::exception& e) {}
 
         try {
-            man.incoherenceEffects()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
+            man.incoherenceEffects()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "incoherence", "inelastic scattering", "plasmon", "individual", "number"));
         } catch (std::exception& e) {}
 
         try {
-            man.incoherenceEffects()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
+            man.incoherenceEffects()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "incoherence", "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
         } catch (std::exception& e) {}
 
         try {
-            man.incoherenceEffects()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
+            man.incoherenceEffects()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "incoherence", "inelastic scattering", "plasmon", "characteristic angle", "value"));
         } catch (std::exception& e) {}
 
         try {
-            man.incoherenceEffects()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
+            man.incoherenceEffects()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "incoherence", "inelastic scattering", "plasmon", "critical angle", "value"));
         } catch (std::exception& e) {}
 
         //
@@ -455,17 +496,6 @@ namespace JSONUtils {
         j["microscope"]["beam tilt"]["azimuth"]["val"] = mp->BeamAzimuth * 180 / Constants::Pi;
         j["microscope"]["beam tilt"]["azimuth"]["units"] = "°";
 
-
-        if (mode == SimulationMode::CTEM || force_all) {
-            // alpha
-            j["microscope"]["alpha"]["val"] = mp->Alpha;
-            j["microscope"]["alpha"]["units"] = "mrad";
-
-            // delta
-            j["microscope"]["delta"]["val"] = mp->Delta / 10;
-            j["microscope"]["delta"]["units"] = "nm";
-        }
-
         // aberration values
         j["microscope"]["aberrations"]["C10"]["val"] = mp->C10 / 10;
         j["microscope"]["aberrations"]["C10"]["units"] = "nm";
@@ -568,19 +598,54 @@ namespace JSONUtils {
         }
 
         //
-        // Inelastic scattering
+        // Incoherent effects
         //
 
-        bool inelastic_used = man.incoherenceEffects()->enabled();
+        auto inel = man.incoherenceEffects();
+        bool inelastic_used = inel->enabled(man.mode());
+
         if (inelastic_used || force_all)
-            j["inelastic scattering"]["iterations"] = man.incoherenceEffects()->storedIterations();
+            j["incoherence"]["iterations"] = man.incoherenceEffects()->storedIterations();
+
+        // probe only information
+
+        if ((inelastic_used && man.isProbeSimulation()) || force_all) {
+            // used stored interations in case of force all
+
+            auto chrome = inel->chromatic();
+            bool cc_used = chrome->enabled();
+            j["incoherence"]["probe"]["chromatic"]["enabled"] = cc_used;
+
+            if(cc_used || force_all) {
+                j["incoherence"]["probe"]["chromatic"]["Cc"]["val"] = chrome->chromaticAberration();
+                j["incoherence"]["probe"]["chromatic"]["Cc"]["units"] = "mm";
+
+                j["incoherence"]["probe"]["chromatic"]["dE"]["HWHM +"] = chrome->halfWidthHalfMaxPositive();
+                j["incoherence"]["probe"]["chromatic"]["dE"]["HWHM -"] = chrome->halfWidthHalfMaxNegative();
+                j["incoherence"]["probe"]["chromatic"]["dE"]["units"] = "eV";
+            }
+
+            auto p_source = inel->source();
+            bool ps_used = p_source->enabled();
+
+            j["incoherence"]["probe"]["source size"]["enabled"] = ps_used;
+
+            if(ps_used || force_all) {
+                j["incoherence"]["probe"]["source size"]["FWHM"]["val"] = p_source->fullWidthHalfMax();
+                j["incoherence"]["probe"]["source size"]["FWHM"]["units"] = "Å";
+            }
+        }
+
+        //
+        // Inelastic scattering
+        //
 
         // phonon
 
         bool phonon_used = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
         if (phonon_used || force_all) {
 
-            j["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
+            j["incoherence"]["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
 
             // don't export if we have file defined vibrations and no override
             bool export_thermals = true;
@@ -591,9 +656,9 @@ namespace JSONUtils {
 
             if (export_thermals || force_all) {
                 if (force_all)
-                    j["inelastic scattering"]["thermal parameters"]["phonon"] = thermalVibrationsToJson(man);
+                    j["incoherence"]["inelastic scattering"]["thermal parameters"]["phonon"] = thermalVibrationsToJson(man);
             } else {
-                j["inelastic scattering"]["thermal parameters"]["phonon"] = "input file defined";
+                j["incoherence"]["inelastic scattering"]["thermal parameters"]["phonon"] = "input file defined";
             }
         }
 
@@ -603,21 +668,21 @@ namespace JSONUtils {
         bool plasmon_used = plasmon->enabled();
         if (plasmon_used || force_all) {
             if (plasmon->simType() == PlasmonType::Full)
-                j["inelastic scattering"]["plasmon"]["type"] = "full";
+                j["incoherence"]["inelastic scattering"]["plasmon"]["type"] = "full";
             else if (man.incoherenceEffects()->plasmons()->simType() == PlasmonType::Individual)
-                j["inelastic scattering"]["plasmon"]["type"] = "individual";
+                j["incoherence"]["inelastic scattering"]["plasmon"]["type"] = "individual";
 
             if (plasmon->simType() == PlasmonType::Individual || force_all)
-                j["inelastic scattering"]["plasmon"]["individual"] = plasmon->individualPlasmon();
+                j["incoherence"]["inelastic scattering"]["plasmon"]["individual"] = plasmon->individualPlasmon();
 
-            j["inelastic scattering"]["plasmon"]["mean free path"]["value"] = plasmon->meanFreePath() / 10;
-            j["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["value"] = plasmon->meanFreePath() / 10;
+            j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
 
-            j["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = plasmon->characteristicAngle();
-            j["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = plasmon->characteristicAngle();
+            j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
 
-            j["inelastic scattering"]["plasmon"]["critical angle"]["value"] = plasmon->criticalAngle();
-            j["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["value"] = plasmon->criticalAngle();
+            j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
         }
 
         // this is only valid if we have actually saved a simulation, so we can't force it
@@ -639,7 +704,7 @@ namespace JSONUtils {
                 std::string str_n = std::to_string(i[0]);
                 str_n = std::string(str_len - str_n.length(), '0') + str_n;
 
-                j["inelastic scattering"]["plasmon"]["full"]["plasmon numbers"][str_n] = i[1];
+                j["incoherence"]["inelastic scattering"]["plasmon"]["full"]["plasmon numbers"][str_n] = i[1];
             }
         }
 

@@ -197,10 +197,10 @@ double SimulationManager::inverseMaxAngle()
 unsigned long SimulationManager::totalParts()
 {
     if (simulation_mode == SimulationMode::CTEM || simulation_mode == SimulationMode::CBED)
-        return static_cast<unsigned long>(incoherence_effects->iterations());
+        return static_cast<unsigned long>(incoherence_effects->iterations(simulation_mode));
     else if (simulation_mode == SimulationMode::STEM) {
         // round up as still need to complete that 'fraction of a job'
-        unsigned int inelastic_runs = incoherence_effects->iterations();
+        unsigned int inelastic_runs = incoherence_effects->iterations(simulation_mode);
         return static_cast<unsigned long>(inelastic_runs * std::ceil(
                 static_cast<double>(stemArea()->getNumPixels()) / parallel_pixels));
     }
@@ -214,7 +214,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     std::lock_guard<std::mutex> lck(image_update_mutex);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
     // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    auto average_factor = static_cast<double>(incoherenceEffects()->iterations());
+    auto average_factor = static_cast<double>(incoherenceEffects()->iterations(simulation_mode));
 
     for (auto const& i : ims)
     {

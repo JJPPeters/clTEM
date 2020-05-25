@@ -65,6 +65,7 @@ public:
 
     // mode
     SimulationMode mode(){return simulation_mode;}
+    bool isProbeSimulation() {return simulation_mode == SimulationMode::STEM || simulation_mode == SimulationMode::CBED;}
     void setMode(SimulationMode md){ simulation_mode = md;}
     std::string modeString() {return Utils::simModeToString(simulation_mode);}
 

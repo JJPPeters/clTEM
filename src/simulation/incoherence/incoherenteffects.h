@@ -6,6 +6,7 @@
 #define CLTEM_INCOHERENTEFFECTS_H
 
 #include <memory>
+#include <utilities/enums.h>
 
 #include "inelastic/plasmon.h"
 #include "inelastic/phonon.h"
@@ -38,12 +39,17 @@ public:
     std::shared_ptr<ChromaticAberration> chromatic() {return chromatic_effects;}
     std::shared_ptr<ProbeSourceSize> source() {return source_size;}
 
-    bool enabled() {
-        return phonon_scattering->getFrozenPhononEnabled() || plasmon_scattering->enabled() || chromatic_effects->enabled() || source_size->enabled();
+    bool enabled(SimulationMode s_m) {
+        bool enabled_all = phonon_scattering->getFrozenPhononEnabled() || plasmon_scattering->enabled();
+
+        if (s_m != SimulationMode::CTEM)
+            enabled_all = enabled_all || chromatic_effects->enabled() || source_size->enabled();
+
+        return enabled_all;
     }
 
-    unsigned int iterations() {
-        if (enabled())
+    unsigned int iterations(SimulationMode s_m) {
+        if (enabled(s_m))
             return incoherent_iterations;
         else
             return 1;

@@ -48,7 +48,7 @@ namespace Utils {
             errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
         // check TDS entries
-        if (Manager->incoherenceEffects()->enabled() && Manager->incoherenceEffects()->iterations() < 1)
+        if (Manager->incoherenceEffects()->iterations(Manager->mode()) < 1)
             errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
 
         // plasmon settings
