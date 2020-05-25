@@ -3,7 +3,7 @@
 #include <list>
 #include <clwrapper/clstatic.h>
 #include <simulationmanager.h>
-#include <utilities/json.hpp>
+#include <json.hpp>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
 #include <utilities/simutils.h>
