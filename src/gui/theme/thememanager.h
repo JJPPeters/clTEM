@@ -111,6 +111,10 @@ private:
     static void setNativeTheme() {
         setFontSize();
 
+        // it works better if this is before the stylesheet part
+        // (sometimes the palette didn't update until a second apply...)
+        qApp->setPalette(QApplication::style()->standardPalette());
+
         QFile f(":/Theme/default-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
             QTextStream in(&f);
@@ -123,8 +127,7 @@ private:
         // remove our stylesheet
 //        qApp->setStyleSheet("");
         // reset our palette
-        qApp->setPalette(QApplication::style()->standardPalette());
-        qApp->setPalette(QApplication::style()->standardPalette());
+
     }
 
     static void setDarkTheme() {
