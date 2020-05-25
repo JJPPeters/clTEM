@@ -58,7 +58,9 @@ void AberrationFrame::on_btnMore_clicked()
     if (Main == nullptr)
         throw std::runtime_error("Error connecting aberration frame to main window.");
 
-    updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
+    // here we update the current aberrations from the text boxes here so the dialog can show the same
+    // this will also update from this frame
+    Main->updateAberrationManager();
 
     AberrationsDialog* myDialog = new AberrationsDialog(nullptr, Main->Manager->microscopeParams());
 

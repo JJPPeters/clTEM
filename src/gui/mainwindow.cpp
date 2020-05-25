@@ -420,7 +420,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
         simulationFailed();
     }
 
-    nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
+    nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm, false, true);
     original_settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
     // we've been given a list of images, got to display them now....
@@ -695,6 +695,12 @@ void MainWindow::updateAberrationBoxes() {
     ui->tIncoherence->updateTemTextBoxes();
 }
 
+void MainWindow::updateAberrationManager() {
+    ui->tAberr->updateAberrations();
+    ui->tIncoherence->updateManager();
+    ui->tMicroscope->updateManagerFromGui();
+}
+
 void MainWindow::set_ctem_crop(bool state) {
     // do the real images
     int n = ui->twReal->count();
@@ -941,8 +947,10 @@ void MainWindow::on_actionSet_area_triggered()
 
 void MainWindow::on_actionAberrations_triggered()
 {
-    ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
-    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
+    // here we update the current aberrations from the text boxes here so the dialog can show the same
+    updateAberrationManager();
+
+    auto* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
 
     connect(myDialog, &AberrationsDialog::appliedSignal, this, &MainWindow::updateAberrationBoxes);
 
@@ -950,13 +958,13 @@ void MainWindow::on_actionAberrations_triggered()
 }
 
 void MainWindow::on_actionThermal_scattering_triggered() {
-    ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
+    auto* myDialog = new ThermalScatteringDialog(this, Manager);
     connect(myDialog, &ThermalScatteringDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
 
 void MainWindow::on_actionPlasmons_triggered() {
-    PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
+    auto* myDialog = new PlasmonDialog(this, Manager);
     connect(myDialog, &PlasmonDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }

@@ -358,17 +358,17 @@ namespace JSONUtils {
         std::vector<double> vibs;
         std::vector<int> els;
 
-        try { force_default = readJsonEntry<bool>(j, "inelastic scattering", "phonon","thermal parameters", "force default");
+        try { force_default = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "force default");
         } catch (std::exception& e) {}
 
-        try { override_file = readJsonEntry<bool>(j, "inelastic scattering", "phonon", "thermal parameters", "override file");
+        try { override_file = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "override file");
         } catch (std::exception& e) {}
 
-        try { def = readJsonEntry<double>(j, "inelastic scattering", "phonon", "thermal parameters", "default");
+        try { def = readJsonEntry<double>(j, "incoherence", "inelastic scattering", "phonon", "default");
         } catch (std::exception& e) {}
 
         try {
-            json element_section = readJsonEntry<json>(j, "inelastic scattering", "phonon", "thermal parameters", "values");
+            json element_section = readJsonEntry<json>(j, "incoherence", "inelastic scattering", "phonon", "values");
             for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
                 std::string element = it.key();
                 try{
@@ -389,7 +389,7 @@ namespace JSONUtils {
 
     json FullManagerToJson(SimulationManager& man) {
         // this gets pretty much everything that is set
-        json j = BasicManagerToJson(man, true);
+        json j = BasicManagerToJson(man, true, false);
 
         for (auto det : man.stemDetectors())
         {
@@ -399,9 +399,11 @@ namespace JSONUtils {
         return j;
     }
 
-    json BasicManagerToJson(SimulationManager& man, bool force_all) {
+    json BasicManagerToJson(SimulationManager& man, bool force_all, bool sim_relevant) {
 
         json j;
+
+        bool have_structure = man.simulationCell()->crystalStructure().get() == nullptr;
 
         // no file input here as it is not always needed
 
@@ -421,35 +423,37 @@ namespace JSONUtils {
         j["slice offset"]["val"] = man.simulationCell()->sliceOffset();
         j["slice offset"]["units"] = "Å";
 
-        j["slice count"] = man.simulationCell()->sliceCount();
+        if (have_structure && sim_relevant)
+            j["slice count"] = man.simulationCell()->sliceCount();
 
         j["intermediate output"]["slice interval"] = man.intermediateSliceStep();
         j["intermediate output"]["enabled"] = man.intermediateSlicesEnabled();
 
         j["maintain areas"] = man.maintainAreas();
 
-        auto xl = man.paddedSimLimitsX(0);
-        auto yl = man.paddedSimLimitsY(0);
-        auto zl = man.paddedSimLimitsZ(); // z never changes, so always is struct limits
+        if (sim_relevant && have_structure) {
+            auto xl = man.paddedSimLimitsX(0);
+            auto yl = man.paddedSimLimitsY(0);
+            auto zl = man.paddedSimLimitsZ(); // z never changes, so always is struct limits
 
-        // padding is always plus/minus one value, with the second element ([1]) being positive
-        auto xp = man.simulationCell()->paddingX()[1];
-        auto yp = man.simulationCell()->paddingY()[1];
-        auto zp = man.simulationCell()->paddingZ()[1];
+            // padding is always plus/minus one value, with the second element ([1]) being positive
+            auto xp = man.simulationCell()->paddingX()[1];
+            auto yp = man.simulationCell()->paddingY()[1];
+            auto zp = man.simulationCell()->paddingZ()[1];
 
-        j["simulation area"]["x"]["start"] = xl[0];
-        j["simulation area"]["x"]["finish"] = xl[1];
-        j["simulation area"]["x"]["padding"] = xp;
-        j["simulation area"]["x"]["units"] = "Å";
-        j["simulation area"]["y"]["start"] = yl[0];
-        j["simulation area"]["y"]["finish"] = yl[1];
-        j["simulation area"]["y"]["padding"] = yp;
-        j["simulation area"]["y"]["units"] = "Å";
-        j["simulation area"]["z"]["start"] = zl[0];
-        j["simulation area"]["z"]["finish"] = zl[1];
-        j["simulation area"]["z"]["padding"] = zp;
-        j["simulation area"]["z"]["units"] = "Å";
-
+            j["simulation area"]["x"]["start"] = xl[0];
+            j["simulation area"]["x"]["finish"] = xl[1];
+            j["simulation area"]["x"]["padding"] = xp;
+            j["simulation area"]["x"]["units"] = "Å";
+            j["simulation area"]["y"]["start"] = yl[0];
+            j["simulation area"]["y"]["finish"] = yl[1];
+            j["simulation area"]["y"]["padding"] = yp;
+            j["simulation area"]["y"]["units"] = "Å";
+            j["simulation area"]["z"]["start"] = zl[0];
+            j["simulation area"]["z"]["finish"] = zl[1];
+            j["simulation area"]["z"]["padding"] = zp;
+            j["simulation area"]["z"]["units"] = "Å";
+        }
 
         auto p_z_d_val = man.simulationCell()->defaultPaddingZ();
         auto p_xy_d_val = man.simulationCell()->defaultPaddingXY();
@@ -645,7 +649,7 @@ namespace JSONUtils {
         bool phonon_used = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
         if (phonon_used || force_all) {
 
-            j["incoherence"]["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
+            j["incoherence"]["inelastic scattering"]["phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
 
             // don't export if we have file defined vibrations and no override
             bool export_thermals = true;
@@ -656,9 +660,9 @@ namespace JSONUtils {
 
             if (export_thermals || force_all) {
                 if (force_all)
-                    j["incoherence"]["inelastic scattering"]["thermal parameters"]["phonon"] = thermalVibrationsToJson(man);
+                    j["incoherence"]["inelastic scattering"]["phonon"] = thermalVibrationsToJson(man);
             } else {
-                j["incoherence"]["inelastic scattering"]["thermal parameters"]["phonon"] = "input file defined";
+                j["incoherence"]["inelastic scattering"]["phonon"] = "input file defined";
             }
         }
 
@@ -745,6 +749,7 @@ namespace JSONUtils {
 
         for(int i = 0; i < els.size(); ++i) {
             j["values"][ Utils::NumberToElementSymbol(els[i]) ] = vibs[i];
+            j["values"]["units"] = "Å²";
         }
 
         return j;

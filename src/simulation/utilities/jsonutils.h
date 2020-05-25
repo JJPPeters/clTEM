@@ -16,7 +16,7 @@ namespace JSONUtils {
 
     using json = nlohmann::json;
 
-    json BasicManagerToJson(SimulationManager& man, bool force_all = false);
+    json BasicManagerToJson(SimulationManager& man, bool force_all = false, bool sim_relevant = false);
 
     json FullManagerToJson(SimulationManager& man);
 

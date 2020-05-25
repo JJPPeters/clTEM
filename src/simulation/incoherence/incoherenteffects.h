@@ -26,13 +26,11 @@ private:
 
 public:
 
-    IncoherentEffects() {
-        incoherent_iterations = 1;
-        plasmon_scattering = std::make_shared<PlasmonScattering>();
-        phonon_scattering = std::make_shared<PhononScattering>();
-        chromatic_effects = std::make_shared<ChromaticAberration>();
-        source_size = std::make_shared<ProbeSourceSize>();
-    }
+    IncoherentEffects();
+
+    IncoherentEffects(const IncoherentEffects& sm);
+
+    IncoherentEffects& operator=(const IncoherentEffects& sm);
 
     std::shared_ptr<PlasmonScattering> plasmons() {return plasmon_scattering;}
     std::shared_ptr<PhononScattering> phonons() {return phonon_scattering;}

@@ -48,8 +48,7 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
     cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
     incoherence_effects = std::make_shared<IncoherentEffects>(*(sm.incoherence_effects));
 
-    if (sm.simulation_cell)// structure doesnt always exist
-        simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
+    simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
 }
 
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
@@ -77,8 +76,7 @@ SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
     structure_parameters_name = sm.structure_parameters_name;
     maintain_area = sm.maintain_area;
 
-    if (sm.simulation_cell) // structure doesnt always exist
-        simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
+    simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));

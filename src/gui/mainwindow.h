@@ -58,6 +58,8 @@ public:
 
     void updateAberrationBoxes();
 
+    void updateAberrationManager();
+
 public slots:
     void updateScales();
 

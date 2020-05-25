@@ -187,7 +187,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
 
 void imageReturned(SimulationManager sm)
 {
-    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
+    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm, false, true);
     settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
 #ifdef _WIN32
