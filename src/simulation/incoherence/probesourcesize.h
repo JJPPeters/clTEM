@@ -21,7 +21,7 @@ public:
     ProbeSourceSize();
 
     bool enabled() {return is_enabled;}
-    bool setEnabled(bool e) {is_enabled = e;}
+    void setEnabled(bool e) {is_enabled = e;}
 
     void setStandardDeviation(double sigma);
     void setFullWidthHalfMax(double fwhm);
