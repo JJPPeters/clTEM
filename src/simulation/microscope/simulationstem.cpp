@@ -8,8 +8,6 @@
 template <class T>
 void SimulationStem<T>::initialiseBuffers() {
 
-    SimulationCbed<T>::initialiseBuffers();
-
     auto sm = job->simManager;
     unsigned int rs = sm->resolution();
 
@@ -27,8 +25,6 @@ void SimulationStem<float>::initialiseKernels() {
     }
 
     do_initialise_stem = false;
-
-    SimulationCbed<float>::initialiseKernels();
 }
 
 template <>
@@ -40,8 +36,6 @@ void SimulationStem<double>::initialiseKernels() {
     }
 
     do_initialise_stem = false;
-
-    SimulationCbed<double>::initialiseKernels();
 }
 
 template <class T>
@@ -142,7 +136,7 @@ void SimulationStem<GPU_Type>::initialiseSimulation() {
     initialiseBuffers();
     initialiseKernels();
 
-    SimulationGeneral<GPU_Type>::initialiseSimulation();
+    SimulationCbed<GPU_Type>::initialiseSimulation();
 }
 
 template<class GPU_Type>
@@ -242,12 +236,16 @@ void SimulationStem<GPU_Type>::simulate() {
         if (slice_step > 0 && (i+1) % slice_step == 0) {
             for (const auto &det : job->simManager->stemDetectors()) {
                 std::vector<double> im(stemPixels->getNumPixels(), 0.0);
+                std::vector<double> im_w(stemPixels->getNumPixels(), 0.0);
 
                 for (int j = 0; j < job->pixels.size(); ++j) {
                     im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+                    im_w[job->pixels[i]] = 1.0;
                 }
 
                 Images[det.name].getSliceRef(output_counter) = im;
+
+                Images[det.name].getWeightingRef() = im_w;
             }
             ++output_counter;
         }
@@ -264,12 +262,15 @@ void SimulationStem<GPU_Type>::simulate() {
     if (output_counter < output_count) {
         for (const auto &det : job->simManager->stemDetectors()) {
             std::vector<double> im(stemPixels->getNumPixels(), 0.0);
+            std::vector<double> im_w(stemPixels->getNumPixels(), 0.0);
 
             for (int i = 0; i < job->pixels.size(); ++i) {
                 im[job->pixels[i]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, i, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+                im_w[job->pixels[i]] = 1.0;
             }
 
             Images[det.name].getSliceRef(output_counter) = im;
+            Images[det.name].getWeightingRef() = im_w;
         }
     }
 

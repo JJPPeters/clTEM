@@ -537,7 +537,8 @@ void MainWindow::imagesChanged(SimulationManager sm)
         }
     }
 
-    simulationComplete();
+    if (sm.allPartsCompleted())
+        simulationComplete();
 }
 
 void MainWindow::setUiActive(bool active)

@@ -29,6 +29,9 @@ protected:
     using SimulationGeneral<GPU_Type>::getDiffractionImage;
     using SimulationGeneral<GPU_Type>::getExitWaveImage;
 
+    using SimulationGeneral<GPU_Type>::reference_perturb_x;
+    using SimulationGeneral<GPU_Type>::reference_perturb_y;
+
     void initialiseBuffers();
     void initialiseKernels();
 

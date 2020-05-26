@@ -7,7 +7,7 @@
 
 template <class T>
 void SimulationCbed<T>::initialiseBuffers() {
-    SimulationCtem<T>::initialiseBuffers();
+    // this does nothing!
 }
 
 template <>
@@ -18,8 +18,6 @@ void SimulationCbed<float>::initialiseKernels() {
     }
 
     do_initialise_cbed = false;
-
-    SimulationGeneral<float>::initialiseKernels();
 }
 
 template <>
@@ -30,8 +28,6 @@ void SimulationCbed<double>::initialiseKernels() {
     }
 
     do_initialise_cbed = false;
-
-    SimulationGeneral<double>::initialiseKernels();
 }
 
 // n_parallel is the index (from 0) of the current parallel pixel

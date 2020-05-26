@@ -32,7 +32,7 @@ class Image
 {
 public:
     /// Default constructer
-    Image() : width(0), height(0), depth(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) {}
+    Image() : width(0), height(0), depth(0), pad_t(0), pad_l(0), pad_b(0), pad_r(0) , weighting({1.0}){}
 
     /// Constructor for an empty image (where you want to add the data later)
     Image(unsigned int w, unsigned int h, unsigned int d = 1, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
@@ -45,6 +45,8 @@ public:
         for(auto& slice: data)
             slice.resize(w*h);
 
+        weighting = {1.0};
+
         pad_t = pt;
         pad_l = pl;
         pad_b = pb;
@@ -52,8 +54,9 @@ public:
     }
 
     /// Constructor for a single image
-    Image(std::vector<T> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) {
+    Image(std::vector<T> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0, std::vector<double> wt = {1.0}) {
         data.push_back(image);
+        weighting = wt;
         width = w;
         height = h;
         depth = 1;
@@ -65,16 +68,17 @@ public:
     }
 
     /// Constructor for a stack of images
-    Image(std::vector<std::vector<T>> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0) : data(image),
+    Image(std::vector<std::vector<T>> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0, std::vector<double> wt = {1.0}) : data(image),
                                                                                                                                                                   width(w), height(h), depth(image.size()),
                                                                                                                                                                   pad_t(pt), pad_l(pl),
-                                                                                                                                                                  pad_b(pb), pad_r(pr) {}
+                                                                                                                                                                  pad_b(pb), pad_r(pr), weighting(wt) {}
 
     Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), depth(rhs.depth), data(rhs.data),
                                                                                          pad_t(rhs.pad_t),
                                                                                          pad_l(rhs.pad_l),
                                                                                          pad_b(rhs.pad_b),
-                                                                                         pad_r(rhs.pad_r) {}
+                                                                                         pad_r(rhs.pad_r),
+                                                                                         weighting(rhs.weighting) {}
 
     Image<T>& operator=(const Image<T>& rhs) {
         width = rhs.width;
@@ -85,6 +89,7 @@ public:
         pad_l = rhs.pad_l;
         pad_b = rhs.pad_b;
         pad_r = rhs.pad_r;
+        weighting = rhs.weighting;
 
         return *this;
     }
@@ -102,6 +107,9 @@ public:
         else
             return width * height;
     }
+    unsigned int getWeightingSize() {
+        return weighting.size();
+    }
 
     std::valarray<unsigned int> getDimensions() { return {getWidth(), getHeight(), getDepth()}; }
     std::valarray<unsigned int> getCroppedDimensions() { return {getCroppedWidth(), getCroppedHeight(), getDepth()}; }
@@ -113,6 +121,20 @@ public:
     unsigned int getCroppedHeight() {return height - pad_t - pad_b;}
 
     std::valarray<unsigned int> getPadding() { return {pad_t, pad_l, pad_b, pad_r}; }
+
+    std::vector<double> getWeighting() {return weighting;}
+    std::vector<double>& getWeightingRef() {return weighting;}
+    double getWeightingVal(unsigned int index) {
+        if (index >= getSliceSize())
+            throw std::runtime_error("Accessing image weighting with index outside of image range");
+        else if (weighting.size() == 1)
+            return weighting[0];
+        else if (index >= weighting.size())
+            throw std::runtime_error("Accessing image weighting with index outside of weighting range");
+        else
+            return weighting[index];
+    }
+
 
     std::vector<T>& getSliceRef(unsigned int slice = 0) {
         return data[slice];
@@ -146,6 +168,8 @@ private:
     unsigned int depth;
     unsigned int pad_t, pad_l, pad_b, pad_r;
     std::vector<std::vector<T>> data;
+
+    std::vector<double> weighting;
 };
 
 struct ComplexAberration {

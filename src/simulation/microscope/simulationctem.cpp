@@ -7,9 +7,6 @@
 
 template <class T>
 void SimulationCtem<T>::initialiseBuffers() {
-
-    SimulationGeneral<T>::initialiseBuffers();
-
     auto sm = job->simManager;
     unsigned int rs = sm->resolution();
 
@@ -36,8 +33,6 @@ void SimulationCtem<float>::initialiseKernels() {
     }
 
     do_initialise_ctem = false;
-
-    SimulationGeneral<float>::initialiseKernels();
 }
 
 template <>
@@ -52,8 +47,6 @@ void SimulationCtem<double>::initialiseKernels() {
     }
 
     do_initialise_ctem = false;
-
-    SimulationGeneral<double>::initialiseKernels();
 }
 
 template <class T>
@@ -61,6 +54,10 @@ void SimulationCtem<T>::initialiseSimulation()
 {
     initialiseBuffers();
     initialiseKernels();
+
+    // should never be needed, but just to be safe
+    reference_perturb_x = 0.0;
+    reference_perturb_y = 0.0;
 
     SimulationGeneral<T>::initialiseSimulation();
 

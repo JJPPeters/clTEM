@@ -162,11 +162,13 @@ public:
     void setProgressSliceReporterFunc(std::function<void(double)> f) { report_progress_slice_func = std::move(f);}
 
     std::map<std::string, Image<double>> images() { return image_container; }
-    void updateImages(std::map<std::string, Image<double>> &ims, int jobCount);
+    void updateImages(std::map<std::string, Image<double>> &ims, int jobCount, bool update=false);
     void failedSimulation();
 
     void reportTotalProgress(double prog);
     void reportSliceProgress(double prog);
+
+    bool allPartsCompleted() {return complete_jobs == totalParts();}
 
 private:
     // simulation cell contains the structure
