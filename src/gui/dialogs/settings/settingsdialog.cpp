@@ -144,8 +144,8 @@ StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, 
 
 
 
-ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
-    tFrame = new GeneralSettingsFrame(this);
+ThemeDialog::ThemeDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) : SettingsDialog(parent) {
+    tFrame = new GeneralSettingsFrame(this, simManager);
     ui->vLayout->insertWidget(0, tFrame);
 
     this->setWindowTitle("General settings");

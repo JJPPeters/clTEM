@@ -48,6 +48,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     loadSavedOpenClSettings();
 
+    bool live_stem_set = settings.value("live stem").toBool();
+    Manager->setLiveStemEnabled(live_stem_set);
+
     ui->setupUi(this);
 
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
@@ -996,7 +999,7 @@ void MainWindow::updateVoltageMrad(double voltage) {
 
 void MainWindow::on_actionTheme_triggered() {
     // open out theme selector dialog
-    ThemeDialog* myDialog = new ThemeDialog(this);
+    ThemeDialog* myDialog = new ThemeDialog(this, Manager);
     myDialog->exec();
 }
 

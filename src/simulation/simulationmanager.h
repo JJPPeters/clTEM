@@ -170,6 +170,13 @@ public:
 
     bool allPartsCompleted() {return complete_jobs == totalParts();}
 
+    bool liveStemEnabled() {
+        return live_stem;
+    }
+    void setLiveStemEnabled(bool enable) {
+        live_stem = enable;
+    }
+
 private:
     // simulation cell contains the structure
     std::shared_ptr<SimulationCell> simulation_cell;
@@ -196,6 +203,10 @@ private:
     SimulationArea currentAreaBase(int pixel);
 
     void calculateBlocks();
+
+    //
+
+    bool live_stem;
 
     //
 

@@ -79,7 +79,7 @@ private:
     GeneralSettingsFrame* tFrame;
 
 public:
-    explicit ThemeDialog(QWidget *parent);
+    explicit ThemeDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
 };
 
 

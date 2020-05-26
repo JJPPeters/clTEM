@@ -22,6 +22,9 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     full_3d_integrals = 20;
     use_full_3d = false;
 
+    //
+    live_stem = false;
+
     // I'm really assuming the rest of the aberrations are default 0
     micro_params->CondenserAperture = 20;
     micro_params->ObjectiveAperture = 100;
@@ -39,7 +42,7 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
           blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulate_ctem_image(sm.simulate_ctem_image),
           max_inverse_factor(sm.max_inverse_factor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
           structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
-          use_double_precision(sm.use_double_precision),
+          use_double_precision(sm.use_double_precision), live_stem(sm.live_stem),
           intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
 {
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
@@ -75,6 +78,7 @@ SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
     ccd_dose = sm.ccd_dose;
     structure_parameters_name = sm.structure_parameters_name;
     maintain_area = sm.maintain_area;
+    live_stem = sm.live_stem;
 
     simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));

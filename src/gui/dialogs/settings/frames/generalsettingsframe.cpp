@@ -7,8 +7,8 @@
 #include "utilities/logging.h"
 
 
-GeneralSettingsFrame::GeneralSettingsFrame(QWidget *parent) :
-    QWidget(parent),
+GeneralSettingsFrame::GeneralSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
+    QWidget(parent), manager(simManager),
     ui(new Ui::GeneralSettingsFrame)
 {
     ui->setupUi(this);
@@ -37,12 +37,15 @@ GeneralSettingsFrame::GeneralSettingsFrame(QWidget *parent) :
     int ind = ui->cmbMultisampling->findText( ms );
     ui->cmbMultisampling->setCurrentIndex(ind);
 
+    ui->chkLiveStem->setChecked(manager->liveStemEnabled());
+
     ui->chkLogging->setChecked(el::Loggers::getLogger("default")->configurations()->get(el::Level::Debug, el::ConfigurationType::ToFile)->value() == "true");
 
     auto parent_dlg = dynamic_cast<ThemeDialog*>(parentWidget());
     connect(parent_dlg, &ThemeDialog::okSignal, this, &GeneralSettingsFrame::dlgOk_clicked);
     connect(parent_dlg, &ThemeDialog::cancelSignal, this, &GeneralSettingsFrame::dlgCancel_clicked);
     connect(parent_dlg, &ThemeDialog::applySignal, this, &GeneralSettingsFrame::dlgApply_clicked);
+
 }
 
 GeneralSettingsFrame::~GeneralSettingsFrame()
@@ -88,7 +91,11 @@ void GeneralSettingsFrame::dlgApply_clicked()
     if (ui->cmbMultisampling->currentText() != "None")
         msaa = std::stoi(ui->cmbMultisampling->currentText().toStdString());
 
+    bool do_live = ui->chkLiveStem->isChecked();
+    manager->setLiveStemEnabled(do_live);
+
     QSettings settings;
+    settings.setValue("live stem", do_live);
     settings.setValue("logging", state);
     settings.setValue("MSAA", msaa);
 }

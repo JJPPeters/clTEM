@@ -244,7 +244,6 @@ void SimulationStem<GPU_Type>::simulate() {
                 }
 
                 Images[det.name].getSliceRef(output_counter) = im;
-
                 Images[det.name].getWeightingRef() = im_w;
             }
             ++output_counter;
@@ -274,7 +273,7 @@ void SimulationStem<GPU_Type>::simulate() {
         }
     }
 
-    job->simManager->updateImages(Images, 1);
+    job->simManager->updateImages(Images, 1, job->simManager->liveStemEnabled());
 }
 
 template class SimulationStem<float>;
