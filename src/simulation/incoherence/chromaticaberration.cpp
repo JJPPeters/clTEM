@@ -91,7 +91,7 @@ double ChromaticAberration::getFocusChange(double kilo_volts) {
     // want result in Angstroms
     // hance factor of 100
 
-    return 100 * chromatic_aberration * generateDist() / kilo_volts;
+    return 10000 * chromatic_aberration * generateDist() / kilo_volts;
 }
 
 void ChromaticAberration::setHalfWidthHalfMaxs(double hwhm_neg, double hwhm_pos) {
