@@ -23,13 +23,6 @@ set ( clTEM_SRCS
         main.cpp
         parseopencl.h)
 
-find_package(Boost COMPONENTS filesystem system REQUIRED)
-
-if(Boost_FOUND)
-    message(STATUS "Boost include directories: " ${Boost_INCLUDE_DIRS})
-    message(STATUS "Boost libraries: " ${Boost_LIBRARY_DIRS})
-endif()
-
 add_executable ( clTEM_cmd ${clTEM_SRCS})
 target_include_directories(clTEM_cmd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation)
-target_link_libraries ( clTEM_cmd ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} simulation )
+target_link_libraries ( clTEM_cmd simulation )

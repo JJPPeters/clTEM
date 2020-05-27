@@ -93,17 +93,9 @@ public:
 
 private:
     static void setFontSize() {
-        // This probably only works for windows and possibly only in a limited set of cases
-        // maybe in fiture Qt this will be handled sensibly, but for now this is my bodge
+        // Some of the HiSPI stuff seems to work only if I set the font?
         QFont font = QGuiApplication::font();
-        QScreen* primary_screen = QGuiApplication::primaryScreen();
-        double dpi_normal = 96;
-        double dpi_current = primary_screen->logicalDotsPerInch();
-
         double font_size = 11;
-        font_size *= dpi_current / dpi_normal;
-        font_size = std::ceil(font_size);
-
         font.setPixelSize((int) font_size);
         qApp->setFont(font);
     }
@@ -123,11 +115,6 @@ private:
 
             qApp->setStyleSheet(s);
         }
-
-        // remove our stylesheet
-//        qApp->setStyleSheet("");
-        // reset our palette
-
     }
 
     static void setDarkTheme() {

@@ -11,7 +11,7 @@
 #include "getopt.h"
 #include "parseopencl.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <threading/simulationrunner.h>
 #include <structure/structureparameters.h>
@@ -30,7 +30,7 @@
 
 #include "utilities/logging.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 static std::string out_path;
 
@@ -690,7 +690,7 @@ int main(int argc, char *argv[])
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
     man_ptr->setStructureParameters(p_name);
 
-    for (const auto& params_file: boost::filesystem::directory_iterator(params_path))
+    for (const auto& params_file: fs::directory_iterator(params_path))
         Utils::readParams(params_file.path().string());
 
     // check all our prerequisites here (some repeated?)

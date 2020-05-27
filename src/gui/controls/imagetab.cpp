@@ -22,10 +22,8 @@ ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex
 
     connect(ui->widget, &ImagePlotWidget::mouseHoverEvent, this, &ImageTab::updatePositionLabels);
 
-    QScreen* primary_screen = QGuiApplication::primaryScreen();
-    double pixel_ratio = primary_screen->devicePixelRatio();
-    ui->widget->setMinimumHeight(500 / pixel_ratio);
-    ui->widget->setMinimumWidth(500 / pixel_ratio);
+    ui->widget->setMinimumHeight(500);
+    ui->widget->setMinimumWidth(500);
 }
 
 ImageTab::~ImageTab()
