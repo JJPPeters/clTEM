@@ -3,6 +3,7 @@ QPushButton {
 	max-height: 1.6em;
 	min-width: 8em;
 	max-width: 12em;
+	padding: 0.1em 0.2em;
 }
 
 QLineEdit {
@@ -10,12 +11,14 @@ QLineEdit {
 	max-height: 1.6em;
 	min-width: 4em;
 	max-width: 12em;
+	padding: 0.1em 0.2em;
 }
 
 QComboBox {
 	min-height: 1.6em;
 	max-height: 1.6em;
     min-width: 8em;
+	padding: 0.1em 0.2em;
 }
 
 QProgressBar {
