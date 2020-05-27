@@ -96,7 +96,7 @@ public:
             out = std::vector<T>(sx*sy);
 
             // get cropped data
-            auto temp = data_real.getSlice(slice, crop_image);
+            auto temp = data_real.getWeightedSlice(slice, crop_image);
 
             int s_out = out.size();
             int s_in = temp.size();
@@ -288,7 +288,7 @@ private:
         int sz = data_complex.getSliceSize(crop);
         std::vector<double> im_d(sz);
 
-        std::vector<std::complex<double>> im_c = data_complex.getSlice(slice, crop);
+        std::vector<std::complex<double>> im_c = data_complex.getWeightedSlice(slice, crop);
 
         if (complex_type == ShowComplex::Real) {
             for (int i = 0; i < sz; ++i)

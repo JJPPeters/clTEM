@@ -168,7 +168,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
         std::vector<double> data;
 
         for (int i = 0; i < im.getSliceSize(); ++i) {
-            data = im.getSlice(i, false);
+            data = im.getWeightedSlice(i, false);
 
             // get the name to use for the output
             //  remember we don't start getting slices from the first slice
@@ -181,7 +181,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
         }
 
     } else {
-        fileio::SaveTiff<float>(filename+".tif", im.getSlice(0, false), im.getWidth(), im.getHeight()); // save data
+        fileio::SaveTiff<float>(filename+".tif", im.getWeightedSlice(0, false), im.getWidth(), im.getHeight()); // save data
     }
 }
 

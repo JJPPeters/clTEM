@@ -146,6 +146,17 @@ public:
         return data[slice];
     }
 
+    std::vector<T> getWeightedSlice(unsigned int slice = 0, bool crop = false) {
+        if (crop)
+            return getCroppedWeighteddSlice(slice);
+        std::vector<T> out = data[slice];
+        // we don't store the averaged data, so do it now
+        for (int p = 0; p < data.size(); ++p)
+            out[p] /= getWeightingVal(p);
+
+        return out;
+    }
+
     std::vector<T> getCroppedSlice(unsigned int slice = 0) {
 
         std::vector<T> out(getCroppedSliceSize());
@@ -155,6 +166,21 @@ public:
             for (int i = pad_l; i < getWidth() - pad_r; ++i) {
                 unsigned int index = j * getWidth() + i;
                 out[counter] = data[slice][index];
+                counter++;
+            }
+
+        return out;
+    }
+
+    std::vector<T> getCroppedWeighteddSlice(unsigned int slice = 0) {
+
+        std::vector<T> out(getCroppedSliceSize());
+
+        unsigned int counter = 0;
+        for (int j = pad_b; j < getHeight()-pad_t; ++j)
+            for (int i = pad_l; i < getWidth() - pad_r; ++i) {
+                unsigned int index = j * getWidth() + i;
+                out[counter] = data[slice][index] / getWeightingVal(index);
                 counter++;
             }
 

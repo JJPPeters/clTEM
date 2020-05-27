@@ -764,7 +764,6 @@ void MainWindow::saveTiff(bool full_stack) {
 
         for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
             origin->getPlot()->getData(data, sx, sy, i); // get data
-
             // get the name to use for the output
             //  remember we don't start getting slices from the first slice
             unsigned int slice_id = (i+1)*si-1;
