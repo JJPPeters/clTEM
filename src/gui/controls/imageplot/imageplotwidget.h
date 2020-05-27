@@ -5,7 +5,7 @@
 #include <memory>
 #include <cmath>
 
-#include "qcustomplot.h"
+#include <qcustomplot.h>
 
 #include <iostream>
 #include <fstream>

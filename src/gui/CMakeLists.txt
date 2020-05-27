@@ -27,7 +27,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 
 if(Qt5Widgets_FOUND)
-    message(STATUS "Found Qt version2: " ${Qt5Widgets_VERSION})
+    message(STATUS "Found Qt version: " ${Qt5Widgets_VERSION})
 endif()
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS})

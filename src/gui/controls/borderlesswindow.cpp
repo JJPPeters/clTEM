@@ -74,8 +74,8 @@ bool BorderlessWindow::testHitGlobal(QWidget* w, long x, long y)
 {
     QPoint pg(x, y);
     QPoint p = w->mapFromGlobal(pg);
-
-    return w->rect().contains(p);
+    bool hit = w->rect().contains(p);
+    return hit;
 }
 
 void BorderlessWindow::window_shadow(int border)
@@ -87,11 +87,8 @@ void BorderlessWindow::window_shadow(int border)
 bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, long *result)
 {
     bool is_borderless = ThemeManager::CurrentTheme != ThemeManager::Theme::Native;
-    auto* t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
-
-    if (!is_borderless) {
+    if (!is_borderless)
         return QWidget::nativeEvent(eventType, message, result);
-    }
 
     MSG* msg;
     if ( eventType == "windows_generic_MSG" )
@@ -112,7 +109,8 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
             int w = clientRect->right - clientRect->left;
             int h = clientRect->bottom - clientRect->top;
 
-            auto scr_rect = QApplication::desktop()->availableGeometry(this);
+//            auto scr_rect = QApplication::desktop()->availableGeometry(this);
+            auto scr_rect = QApplication::screenAt(rect().center())->availableGeometry();
 
             if (w > scr_rect.width() && h > scr_rect.height()) {
                 clientRect->left += (cx);
@@ -124,6 +122,7 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
             *result = 0;
             return true;
         }
+//        case WM_NCPAINT:
         case WM_NCHITTEST:
         {
             *result = 0;
@@ -194,10 +193,15 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
             // this handles if we are in the title bar, or the main content
             if(*result == 0) {
                 // get the height of our title bar
-                if (t_bar && testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
+
+                // I use the Qt version here, because it actually works with it's own fucky HiDPI stuff...
+                auto qt_cursor_pos = QCursor::pos();
+                auto* t_bar = menuWidget()->findChild<FlatTitleBar*>("title_bar");
+                if (t_bar && testHitGlobal(t_bar, qt_cursor_pos.x(), qt_cursor_pos.y()) && !t_bar->testHitButtonsGlobal(qt_cursor_pos.x(), qt_cursor_pos.y())) {
                     *result = HTCAPTION; // this says we are in a title bar...
-                else
+                } else {
                     *result = HTCLIENT; // this is client space
+                }
             }
 
             return true;
@@ -206,10 +210,9 @@ bool BorderlessWindow::nativeEvent(const QByteArray& eventType, void *message, l
         {
             return close();
         }
-        default: {
-            return QWidget::nativeEvent(eventType, message, result);
-        }
     }
+
+    return QWidget::nativeEvent(eventType, message, result);
 }
 
 void BorderlessWindow::setWindowTitle(const QString &title) {
