@@ -37,6 +37,7 @@ public:
     explicit BorderlessDialog(QWidget *parent = nullptr);
 
 #ifdef _WIN32
+
     void setMenuBarVisible(bool visible);
 
     bool testHitGlobal(QWidget* w, long x, long y);
@@ -59,6 +60,24 @@ public:
 
 private:
     FlatTitleBar* tb;
+
+    QScreen* old_screen;
+
+    void moveEvent(QMoveEvent * e) override
+    {
+        if (old_screen == nullptr) {
+            old_screen = screen();
+        } else if (old_screen == screen()) {
+            // screen is the same, we don't case...
+        } else {
+            old_screen = screen();
+
+            HWND id = (HWND)winId();
+            SetWindowPos(id, NULL, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+    }
 #endif
 };
 
