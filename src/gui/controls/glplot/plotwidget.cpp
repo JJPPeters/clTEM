@@ -57,7 +57,7 @@ namespace PGL {
         _camera->setOrthoProjection(10, -10, -10, 10, -100, 10000);
 
         _camera->setWidthHeight(_width, _height);
-        _camera->setPixelRatio(devicePixelRatio());
+        _camera->setPixelRatio(devicePixelRatioF());
     }
 
     void PlotWidget::SetCamera(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up, ViewMode mode) {
