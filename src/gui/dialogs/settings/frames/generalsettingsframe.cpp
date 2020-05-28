@@ -16,8 +16,8 @@ GeneralSettingsFrame::GeneralSettingsFrame(QWidget *parent, std::shared_ptr<Simu
 #ifdef _WIN32
     if (ThemeManager::CurrentTheme == ThemeManager::Theme::Dark)
         ui->cmbTheme->setCurrentText("Dark");
-    else if (ThemeManager::CurrentTheme == ThemeManager::Theme::Light)
-        ui->cmbTheme->setCurrentText("Light");
+    else if (ThemeManager::CurrentTheme == ThemeManager::Theme::DarkGrey)
+        ui->cmbTheme->setCurrentText("Dark-grey");
     else
         ui->cmbTheme->setCurrentText("Native");
 #else
@@ -72,8 +72,8 @@ void GeneralSettingsFrame::dlgApply_clicked()
     // Theme
     if (ui->cmbTheme->currentText() == "Dark")
         ThemeManager::setTheme(ThemeManager::Theme::Dark);
-    else if (ui->cmbTheme->currentText() == "Light")
-        ThemeManager::setTheme(ThemeManager::Theme::Light);
+    else if (ui->cmbTheme->currentText() == "Dark-grey")
+        ThemeManager::setTheme(ThemeManager::Theme::DarkGrey);
     else
         ThemeManager::setTheme(ThemeManager::Theme::Native);
 #endif

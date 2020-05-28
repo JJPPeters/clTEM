@@ -138,18 +138,18 @@ QCheckBox, QRadioButton {
 	color: {l1};
 }
 
-QCheckBox::indicator {
+QCheckBox::indicator, QRadioButton::indicator {
     width: 10px;
     height: 10px;
 	border-radius: 8px;
 	border: 3px solid {d1};
 }
 
-QCheckBox::indicator::unchecked  {
+QCheckBox::indicator::unchecked, QRadioButton::indicator::unchecked  {
 	background-color: {d1};
 }
 
-QCheckBox::indicator::checked {
+QCheckBox::indicator::checked, QRadioButton::indicator::checked {
 	background-color: {a1};
 }
 

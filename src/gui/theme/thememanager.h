@@ -24,7 +24,7 @@ public:
     enum Theme {
         Native,
         Dark,
-        Light
+        DarkGrey
     };
 
     static Theme CurrentTheme;
@@ -32,8 +32,8 @@ public:
     static void setTheme(std::string th) {
         if (th == "Dark") {
             setTheme(Theme::Dark);
-        } else if (th == "Light") {
-            setTheme(Theme::Light);
+        } else if (th == "Dark-grey") {
+            setTheme(Theme::DarkGrey);
         } else {
             setTheme(Theme::Native);
         }
@@ -43,8 +43,8 @@ public:
         CurrentTheme = th;
         if (th == Theme::Dark) {
             setDarkTheme();
-        } else if (th == Theme::Light) {
-            setLightTheme();
+        } else if (th == Theme::DarkGrey) {
+            setDarkGreyTheme();
         } else {
             setNativeTheme();
         }
@@ -84,8 +84,8 @@ public:
         QSettings settings;
         if (th == Theme::Dark) {
             settings.setValue("theme", "Dark");
-        } else if (th == Theme::Light) {
-            settings.setValue("theme", "Light");
+        } else if (th == Theme::DarkGrey) {
+            settings.setValue("theme", "Dark-grey");
         } else {
             settings.setValue("theme", "Native");
         }
@@ -127,13 +127,13 @@ private:
             f.close();
 
             QString t = "dark"; // theme name (for icons)
-            QString d1 = "#2A2A2A"; // darkest
-            QString d2 = "#404040"; // dark
+            QString d1 = "#30343F"; // darkest
+            QString d2 = "#3F4551"; // dark
             QString l1 = "#D8D8D8"; // lightest
-            QString l2 = "#777777"; // light
-            QString e1 = "#808080"; // disabled/inactive colour
+            QString l2 = "#576070"; // light
+            QString e1 = "#3A3F4B"; // disabled/inactive colour
 
-            QString a1 = "#6A9D1A"; // accent
+            QString a1 = "#689324"; // accent
             QString a2 = "#7db81e"; // accent (hover)
             QString a3 = "#9ac653"; // accent (clicked)
             QString c1 = "#9D1A29"; // close/negative
@@ -145,7 +145,7 @@ private:
             darkPalette.setColor(QPalette::Mid, QColor(l2));
 
             // this is for our 'inactive but still usable' text boxes
-            darkPalette.setColor(QPalette::Disabled, QPalette::Base, QColor("#808080"));
+            darkPalette.setColor(QPalette::Disabled, QPalette::Base, QColor(e1));
 
             qApp->setPalette(darkPalette);
 
@@ -177,7 +177,7 @@ private:
 
     }
 
-    static void setLightTheme() {
+    static void setDarkGreyTheme() {
         setFontSize();
 
         QFile f(":/Theme/flat-theme.qss");
@@ -186,14 +186,14 @@ private:
             QString s = in.readAll();
             f.close();
 
-            QString t = "light"; // theme name (for icons)
-            QString d1 = "#F0F0F0"; // darkest
-            QString d2 = "#FFFFFF"; // dark
-            QString l1 = "#1a1a1a"; // lightest
-            QString l2 = "#9c9c9c"; // light
-            QString e1 = "#a1a1a1"; // disabled/inactive colour
+            QString t = "dark"; // theme name (for icons)
+            QString d1 = "#2A2A2A"; // darkest
+            QString d2 = "#404040"; // dark
+            QString l1 = "#D8D8D8"; // lightest
+            QString l2 = "#777777"; // light
+            QString e1 = "#4E4E4E"; // disabled/inactive colour
 
-            QString a1 = "#6A9D1A"; // accent
+            QString a1 = "#689324"; // accent
             QString a2 = "#7db81e"; // accent (hover)
             QString a3 = "#9ac653"; // accent (clicked)
             QString c1 = "#9D1A29"; // close/negative
@@ -203,6 +203,9 @@ private:
             QPalette darkPalette;
             darkPalette.setColor(QPalette::Window, QColor(d1));
             darkPalette.setColor(QPalette::Mid, QColor(l2));
+
+            // this is for our 'inactive but still usable' text boxes
+            darkPalette.setColor(QPalette::Disabled, QPalette::Base, QColor(e1));
 
             qApp->setPalette(darkPalette);
 

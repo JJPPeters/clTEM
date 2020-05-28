@@ -42,7 +42,7 @@ void StemFrame::on_btnArea_clicked()
 
     Main->updateManagerFromGui();
 
-    SimAreaDialog* myDialog = new SimAreaDialog(nullptr, Main->Manager);
+    SimAreaDialog* myDialog = new SimAreaDialog(Main, Main->Manager);
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, Main->getSimulationFrame(), &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);

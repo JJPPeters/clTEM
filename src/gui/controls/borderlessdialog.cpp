@@ -33,6 +33,22 @@ void BorderlessDialog::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     window_borderless();
+
+    auto prnt = dynamic_cast<QWidget*>(this->parent());
+    if (prnt == nullptr)
+        return;
+
+    auto g_prnt = prnt->geometry();
+    auto g_this = geometry();
+
+    auto w = g_this.width();
+    auto h = g_this.height();
+
+    auto cntr_prnt = g_prnt.center();
+    auto l = cntr_prnt.x() - w / 2;
+    auto t = cntr_prnt.y() - h / 2;
+
+    setGeometry(QRect(l, t, w, h));
 }
 
 void BorderlessDialog::window_borderless()
