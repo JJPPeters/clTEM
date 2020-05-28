@@ -63,19 +63,22 @@ public:
 private:
     QScreen* old_screen;
 
+    // This is to fix an error when moving the borderless window between screens
+    // basically I detect when I have moved between screens, and just set the size to be the same!
     void moveEvent(QMoveEvent * e) override
     {
         if (old_screen == nullptr) {
+            qDebug() << "window no screen";
             old_screen = screen();
         } else if (old_screen == screen()) {
             // screen is the same, we don't case...
         } else {
+            qDebug() << "window new screen";
             old_screen = screen();
 
-            HWND id = (HWND)winId();
-            SetWindowPos(id, NULL, 0, 0, 0, 0,
+            SetWindowPos((HWND) winId(), NULL, 0, 0, 0, 0,
                          SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
         }
     }
 

@@ -10,6 +10,7 @@
 BorderlessDialog::BorderlessDialog(QWidget *parent) :
         QDialog(parent)
 {
+    old_screen = nullptr;
 }
 
 #ifdef _WIN32
@@ -38,6 +39,10 @@ void BorderlessDialog::window_borderless()
 {
     if (isVisible()) {
         int border = (int)(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
+        HWND id = (HWND)winId();
+        SetWindowPos(id, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                     SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
         window_shadow(border);
     }
 }
@@ -107,10 +112,9 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
         {
             return close();
         }
-        default: {
-            return QWidget::nativeEvent(eventType, message, result);
-        }
     }
+
+    return QWidget::nativeEvent(eventType, message, result);
 }
 
 void BorderlessDialog::setWindowTitle(const QString &title) {
@@ -125,7 +129,7 @@ void BorderlessDialog::changeEvent(QEvent *event) {
 
     // also compensate for maximised with extra padding
     if (event->type() == QEvent::WindowStateChange) {
-        auto t_bar = layout()->menuBar()->findChild<FlatTitleBar *>("title_bar");
+        auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
         if (t_bar)
             t_bar->setMaximiseIcon();
 
@@ -134,6 +138,14 @@ void BorderlessDialog::changeEvent(QEvent *event) {
             win->setContentsMargins(0, 9, 0, 0);
         } else {
             win->setContentsMargins(0, 0, 0, 0);
+        }
+    } else if (event->type() == QEvent::ActivationChange) {
+        auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+        if (this->isActiveWindow()) {
+            t_bar->setStyleSheet("");
+        } else {
+            QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+            t_bar->setStyleSheet("background-color: " + disabled_col.name() + ";");
         }
     }
 

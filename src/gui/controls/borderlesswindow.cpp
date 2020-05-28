@@ -10,6 +10,7 @@
 BorderlessWindow::BorderlessWindow(QWidget *parent) :
         QMainWindow(parent)
 {
+    old_screen = nullptr;
 }
 
 #ifdef _WIN32
@@ -66,6 +67,10 @@ void BorderlessWindow::window_borderless()
 {
     if (isVisible()) {
         int border = (int)(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
+        HWND id = (HWND)winId();
+        SetWindowPos(id, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                     SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
         window_shadow(border);
     }
 }
@@ -240,6 +245,16 @@ void BorderlessWindow::changeEvent(QEvent *event) {
             }
         }
     }
+    else if (event->type() == QEvent::ActivationChange) {
+        auto t_bar = menuWidget()->findChild<FlatTitleBar *>("title_bar");
+        if (this->isActiveWindow()) {
+            t_bar->setStyleSheet("");
+        } else {
+            QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+            t_bar->setStyleSheet("background-color: " + disabled_col.name() + ";");
+        }
+    }
+
 
     QWidget::changeEvent(event);
 }

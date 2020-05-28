@@ -59,23 +59,30 @@ public:
     bool nativeEvent(const QByteArray& eventType, void *message, long *result) override;
 
 private:
-    FlatTitleBar* tb;
-
     QScreen* old_screen;
 
+    // This is to fix an error when moving the borderless window between screens
+    // basically I detect when I have moved between screens, and just set the size to be the same!
     void moveEvent(QMoveEvent * e) override
     {
         if (old_screen == nullptr) {
             old_screen = screen();
+            qDebug() << "dialog new screen";
+
+//            HWND id = (HWND)winId();
+//            SetWindowPos(id, NULL, 0, 0, 0, 0,
+//                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+//                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+//            update();
         } else if (old_screen == screen()) {
             // screen is the same, we don't case...
         } else {
+            qDebug() << "dialog change screen";
             old_screen = screen();
 
-            HWND id = (HWND)winId();
-            SetWindowPos(id, NULL, 0, 0, 0, 0,
+            SetWindowPos((HWND) winId(), NULL, 0, 0, 0, 0,
                          SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+                         SWP_FRAMECHANGED | SWP_NOACTIVATE);
         }
     }
 #endif
