@@ -67,17 +67,9 @@ private:
     {
         if (old_screen == nullptr) {
             old_screen = screen();
-            qDebug() << "dialog new screen";
-
-//            HWND id = (HWND)winId();
-//            SetWindowPos(id, NULL, 0, 0, 0, 0,
-//                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-//                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-//            update();
         } else if (old_screen == screen()) {
             // screen is the same, we don't case...
         } else {
-            qDebug() << "dialog change screen";
             old_screen = screen();
 
             SetWindowPos((HWND) winId(), NULL, 0, 0, 0, 0,

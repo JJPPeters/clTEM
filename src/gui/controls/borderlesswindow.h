@@ -31,8 +31,6 @@
 //// for the mouse move event filter stuff:
 //// https://stackoverflow.com/questions/1935021/getting-mousemoveevents-in-qt
 
-#include <qdebug.h>
-
 class BorderlessWindow : public QMainWindow {
     Q_OBJECT
 
@@ -68,12 +66,10 @@ private:
     void moveEvent(QMoveEvent * e) override
     {
         if (old_screen == nullptr) {
-            qDebug() << "window no screen";
             old_screen = screen();
         } else if (old_screen == screen()) {
             // screen is the same, we don't case...
         } else {
-            qDebug() << "window new screen";
             old_screen = screen();
 
             SetWindowPos((HWND) winId(), NULL, 0, 0, 0, 0,
