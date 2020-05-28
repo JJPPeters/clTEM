@@ -59,7 +59,6 @@ void BorderlessDialog::window_shadow(int border)
 bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, long *result)
 {
     bool is_borderless = ThemeManager::CurrentTheme != ThemeManager::Theme::Native;
-    auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
 
     if (!is_borderless) {
         return QWidget::nativeEvent(eventType, message, result);
@@ -90,10 +89,16 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
 
             // this handles if we are in the title bar, or the main content
             if(*result == 0) {
-                    if (t_bar && testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
-                        *result = HTCAPTION; // this says we are in a title bar...
-                    else
-                        *result = HTCLIENT; // this is client space
+                // get the height of our title bar
+
+                // I use the Qt version here, because it actually works with it's own fucky HiDPI stuff...
+                auto qt_cursor_pos = QCursor::pos();
+                auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+                if (t_bar && testHitGlobal(t_bar, qt_cursor_pos.x(), qt_cursor_pos.y()) && !t_bar->testHitButtonsGlobal(qt_cursor_pos.x(), qt_cursor_pos.y())) {
+                    *result = HTCAPTION; // this says we are in a title bar...
+                } else {
+                    *result = HTCLIENT; // this is client space
+                }
             }
 
             return true;
