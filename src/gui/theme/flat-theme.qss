@@ -49,7 +49,7 @@ QComboBox::drop-down {
 
 QComboBox::down-arrow {
     width: 8px;
-    image: url(:/Theme/icons/down-arrow_{t}.png);
+    image: url(:/Theme/icons/down-arrow_{t}.svg);
 }
 
 /* muc of this scrollbar stuff is from: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/style.qss */
@@ -68,7 +68,7 @@ QScrollBar::handle:vertical {
 
 QScrollBar::sub-line:vertical {
     margin: 5px 0px 5px 0px;
-    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    border-image: url(:/Theme/icons/up-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: top;
@@ -77,7 +77,7 @@ QScrollBar::sub-line:vertical {
 
 QScrollBar::add-line:vertical {
     margin: 5px 0px 5px 0px;
-    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    border-image: url(:/Theme/icons/down-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: bottom;
@@ -86,7 +86,7 @@ QScrollBar::add-line:vertical {
 
 QScrollBar::sub-line:vertical:hover,
 QScrollBar::sub-line:vertical:on {
-    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    border-image: url(:/Theme/icons/up-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: top;
@@ -95,7 +95,7 @@ QScrollBar::sub-line:vertical:on {
 
 QScrollBar::add-line:vertical:hover,
 QScrollBar::add-line:vertical:on {
-    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    border-image: url(:/Theme/icons/down-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: bottom;
@@ -227,7 +227,7 @@ QMenu::separator {
 }
 
 QMenu::right-arrow {
-    image: url(:/Theme/icons/right-arrow_{t}.png);
+    image: url(:/Theme/icons/right-arrow_{t}.svg);
 }
 
 /* === QMenuBar === */
@@ -332,6 +332,7 @@ QPushButton[accessibleName="title_min"] {
 	max-height: 1.6em;
 	min-width: 0 px;
 	padding: 0.3em 1em;
+	image: url(:/Theme/icons/minimise.svg);
 }
 
 QPushButton[accessibleName="title_max"] {
@@ -340,6 +341,7 @@ QPushButton[accessibleName="title_max"] {
     max-height: 1.6em;
 	min-width: 0 px;
 	padding: 0.3em 1em;
+	image: url(:/Theme/icons/maximise.svg);
 }
 
 QPushButton[accessibleName="title_close"] {
@@ -348,6 +350,7 @@ QPushButton[accessibleName="title_close"] {
     max-height: 1.6em;
 	min-width: 0 px;
 	padding: 0.3em 1em;
+	image: url(:/Theme/icons/close.svg);
 }
 
 QPushButton[accessibleName="title_min"]:hover {

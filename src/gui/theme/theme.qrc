@@ -2,15 +2,15 @@
     <qresource prefix="/Theme">
         <file>flat-theme.qss</file>
         <file>default-theme.qss</file>
-        <file>icons/close.png</file>
-        <file>icons/maximise.png</file>
-        <file>icons/unmaximise.png</file>
-        <file>icons/minimise.png</file>
-        <file>icons/up-arrow_dark.png</file>
-        <file>icons/down-arrow_dark.png</file>
-        <file>icons/right-arrow_dark.png</file>
-        <file>icons/up-arrow_light.png</file>
-        <file>icons/down-arrow_light.png</file>
-        <file>icons/right-arrow_light.png</file>
+        <file>icons/close.svg</file>
+        <file>icons/maximise.svg</file>
+        <file>icons/unmaximise.svg</file>
+        <file>icons/minimise.svg</file>
+        <file>icons/up-arrow_dark.svg</file>
+        <file>icons/down-arrow_dark.svg</file>
+        <file>icons/right-arrow_dark.svg</file>
+        <file>icons/up-arrow_light.svg</file>
+        <file>icons/down-arrow_light.svg</file>
+        <file>icons/right-arrow_light.svg</file>
     </qresource>
 </RCC>
