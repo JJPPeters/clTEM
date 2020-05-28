@@ -39,7 +39,7 @@ FlatTitleBar::FlatTitleBar(QWidget *parent, bool is_dialog) {
 
     QFileInfo fileInfo(qApp->arguments().at(0));
     auto icon = QFileIconProvider().icon(fileInfo);
-    auto icon_pxmp = icon.pixmap(18, 18);
+    auto icon_pxmp = icon.pixmap(8, 8);
     icon_pxmp.setDevicePixelRatio(devicePixelRatioF());
     app_icon->setPixmap(icon_pxmp);
 
