@@ -38,7 +38,7 @@ void InelasticFrame::on_btnPhononMore_clicked() {
     // here we update the current manager from the text boxes here so the dialog can show the same
     updateManager();
 
-    auto myDialog = new ThermalScatteringDialog(this, Main->Manager);
+    auto myDialog = new ThermalScatteringDialog(Main, Main->Manager);
     connect(myDialog, &ThermalScatteringDialog::appliedSignal, this, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
@@ -50,7 +50,7 @@ void InelasticFrame::on_btnPlasmonMore_clicked() {
     // here we update the current manager from the text boxes here so the dialog can show the same
     updateManager();
 
-    auto myDialog = new PlasmonDialog(this, Main->Manager);
+    auto myDialog = new PlasmonDialog(Main, Main->Manager);
     connect(myDialog, &PlasmonDialog::appliedSignal, this, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
