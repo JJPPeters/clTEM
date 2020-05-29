@@ -300,7 +300,7 @@ QTableWidget::item:selected {
 }
 
 QHeaderView {
-    background-color: {d1};
+    background-color: {d2};
     padding: 4px;
     border-style: none;
     border: 0px solid transparent;
@@ -309,7 +309,7 @@ QHeaderView {
 }
 
 QHeaderView::section {
-    background-color: {d1};
+    background-color: {d2};
     padding: 4px;
     border-style: none;
     border: 0px solid transparent;
