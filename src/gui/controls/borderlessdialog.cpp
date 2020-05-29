@@ -161,7 +161,8 @@ void BorderlessDialog::changeEvent(QEvent *event) {
             t_bar->setStyleSheet("");
         } else {
             QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
-            t_bar->setStyleSheet("background-color: " + disabled_col.name() + ";");
+            QColor disabled_tex_col = qApp->palette().color(QPalette::Disabled, QPalette::Text);
+            t_bar->setStyleSheet("QLabel { color: " + disabled_tex_col.name() + ";} FlatTitleBar { background-color: " + disabled_col.name() + ";}");
         }
     }
 

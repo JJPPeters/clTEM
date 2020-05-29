@@ -28,6 +28,12 @@
   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0,0,0">
    <item row="1" column="1" colspan="2">
     <widget class="Line" name="line_2">
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -35,6 +41,12 @@
    </item>
    <item row="1" column="5" colspan="2">
     <widget class="Line" name="line_3">
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -330,6 +342,12 @@
    </item>
    <item row="1" column="3" colspan="2">
     <widget class="Line" name="line">
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>

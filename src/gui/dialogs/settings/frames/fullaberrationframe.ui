@@ -60,6 +60,12 @@
        </item>
        <item row="1" column="4" colspan="3">
         <widget class="Line" name="line_14">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -211,6 +217,12 @@
        </item>
        <item row="1" column="7" colspan="3">
         <widget class="Line" name="line_13">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -218,6 +230,12 @@
        </item>
        <item row="1" column="1" colspan="3">
         <widget class="Line" name="line_11">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -255,6 +273,12 @@
        </item>
        <item row="1" column="10" colspan="3">
         <widget class="Line" name="line_12">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -378,6 +402,12 @@
        </item>
        <item row="1" column="0" colspan="12">
         <widget class="Line" name="line_15">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>

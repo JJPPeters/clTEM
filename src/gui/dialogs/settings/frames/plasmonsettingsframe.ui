@@ -254,6 +254,12 @@
        </item>
        <item row="2" column="3" colspan="2">
         <widget class="Line" name="line">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -272,15 +278,15 @@
    <header>controls/editunitsbox.h</header>
   </customwidget>
   <customwidget>
+   <class>NthUnitsBox</class>
+   <extends>QLineEdit</extends>
+   <header>controls/nthunitsbox.h</header>
+  </customwidget>
+  <customwidget>
    <class>tabPanel</class>
    <extends>QTabWidget</extends>
    <header>controls/tabpanel.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>NthUnitsBox</class>
-   <extends>QLineEdit</extends>
-   <header>controls/nthunitsbox.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
