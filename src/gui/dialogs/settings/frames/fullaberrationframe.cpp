@@ -12,20 +12,20 @@
 
 #include "utilities/commonstructs.h"
 
-FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<MicroscopeParameters> params) :
+FullAberrationFrame::FullAberrationFrame(QWidget *parent, std::shared_ptr<SimulationManager> params) :
     QWidget(parent),
     ui(new Ui::FullAberrationFrame)
 {
     ui->setupUi(this);
 
-    MicroParams = std::move(params);
+    Manager = std::move(params);
 
-    connect(ui->edtAperture, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
-    connect(ui->edtDefocusSpread, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
-    connect(ui->edtConverge, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtConAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
+    connect(ui->edtObjAp, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
     connect(ui->edtVoltage, &QLineEdit::textChanged, this, &FullAberrationFrame::checkEditZero);
 
     setValidators();
+    setBackgroundStyles();
     setUnits();
     setValues();
 
@@ -41,14 +41,17 @@ void FullAberrationFrame::setValidators()
     QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtVoltage->setValidator(pValidator);
-    ui->edtAperture->setValidator(pValidator);
     ui->edtDefocusSpread->setValidator(pValidator);
     ui->edtConverge->setValidator(pValidator);
 
     ui->edtBeamTilt->setValidator(pmValidator);
     ui->edtBeamAzimuth->setValidator(pmValidator);
 
-    ui->edtApertureSmooth->setValidator(pValidator);
+    ui->edtConAp->setValidator(pValidator);
+    ui->edtConApSmooth->setValidator(pValidator);
+
+    ui->edtObjAp->setValidator(pValidator);
+    ui->edtObjApSmooth->setValidator(pValidator);
 
     ui->edtC10->setValidator(pmValidator);
     ui->edtC12Mag->setValidator(pmValidator);
@@ -83,15 +86,21 @@ void FullAberrationFrame::setValidators()
 
 void FullAberrationFrame::setValues()
 {
+    auto MicroParams = Manager->microscopeParams();
     // this is fun, right?
     ui->edtVoltage->setText(Utils_Qt::numToQString(MicroParams->Voltage)); // kV
-    ui->edtAperture->setText(Utils_Qt::numToQString(MicroParams->Aperture)); // mrad
+
+    ui->edtConAp->setText(Utils_Qt::numToQString(MicroParams->CondenserAperture)); // mrad
+    ui->edtConApSmooth->setText(Utils_Qt::numToQString(MicroParams->CondenserApertureSmoothing)); // mrad
+
+    ui->edtObjAp->setText(Utils_Qt::numToQString(MicroParams->ObjectiveAperture)); // mrad
+    ui->edtObjApSmooth->setText(Utils_Qt::numToQString(MicroParams->ObjectiveApertureSmoothing)); // mrad
+
     ui->edtDefocusSpread->setText(Utils_Qt::numToQString(MicroParams->Delta / 10)); // nm
     ui->edtConverge->setText(Utils_Qt::numToQString(MicroParams->Alpha)); // mrad
 
     ui->edtBeamTilt->setText(Utils_Qt::numToQString(MicroParams->BeamTilt)); // mrad
     ui->edtBeamAzimuth->setText(Utils_Qt::numToQString((180 / Constants::Pi) * MicroParams->BeamAzimuth)); // mrad
-    ui->edtApertureSmooth->setText(Utils_Qt::numToQString(MicroParams->ApertureSmoothing)); // mrad
 
     ui->edtC10->setText(Utils_Qt::numToQString(MicroParams->C10 / 10)); // nm
     ui->edtC12Mag->setText(Utils_Qt::numToQString(MicroParams->C12.Mag / 10)); // nm
@@ -141,9 +150,9 @@ void FullAberrationFrame::checkEditZero(QString dud)
     double val = edt->text().toDouble();
 
     if (val <= 0)
-        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
+        edt->setForegroundStyle("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
     else
-        edt->setStyleSheet("");
+        edt->setForegroundStyle("");
 }
 
 void FullAberrationFrame::dlgCancel_clicked()
@@ -170,12 +179,16 @@ bool FullAberrationFrame::dlgApply_clicked()
 
     double voltage = ui->edtVoltage->text().toDouble();
     double dfSpread = ui->edtDefocusSpread->text().toDouble() * 10;
-    double apert = ui->edtAperture->text().toDouble();
     double converge = ui->edtConverge->text().toDouble();
+
+    double con_ap = ui->edtConAp->text().toDouble();
+    double con_ap_sig = ui->edtConApSmooth->text().toDouble();
+
+    double obj_ap = ui->edtObjAp->text().toDouble();
+    double obj_ap_sig = ui->edtObjApSmooth->text().toDouble();
 
     double beam_tilt = ui->edtBeamTilt->text().toDouble();
     double beam_azimuth = ui->edtBeamAzimuth->text().toDouble() * Constants::Pi / 180;
-    double apert_smooth = ui->edtApertureSmooth->text().toDouble();
 
     double C10 = ui->edtC10->text().toDouble() * 10;
     double C12m = ui->edtC12Mag->text().toDouble() * 10;
@@ -209,14 +222,20 @@ bool FullAberrationFrame::dlgApply_clicked()
 
     // now we have all the data, assign it to our class storing everything
 
+    auto MicroParams = Manager->microscopeParams();
+
     MicroParams->Voltage = voltage;
-    MicroParams->Aperture = apert;
+    MicroParams->CondenserAperture = con_ap;
+    MicroParams->CondenserApertureSmoothing = con_ap_sig;
+
+    MicroParams->ObjectiveAperture = obj_ap;
+    MicroParams->ObjectiveApertureSmoothing = obj_ap_sig;
+
     MicroParams->Delta = dfSpread;
     MicroParams->Alpha = converge;
 
     MicroParams->BeamTilt = beam_tilt;
     MicroParams->BeamAzimuth = beam_azimuth;
-    MicroParams->ApertureSmoothing = apert_smooth;
 
     MicroParams->C10 = C10;
     MicroParams->C12 = ComplexAberration(C12m, C12a);
@@ -244,14 +263,17 @@ bool FullAberrationFrame::dlgApply_clicked()
 
 void FullAberrationFrame::setUnits() {
     ui->edtVoltage->setUnits("kV");
-    ui->edtAperture->setUnits("mrad");
     ui->edtDefocusSpread->setUnits("nm");
     ui->edtConverge->setUnits("mrad");
 
     ui->edtBeamTilt->setUnits("mrad");
     ui->edtBeamAzimuth->setUnits("°");
 
-    ui->edtApertureSmooth->setUnits("mrad");
+    ui->edtConAp->setUnits("mrad");
+    ui->edtConApSmooth->setUnits("mrad");
+
+    ui->edtObjAp->setUnits("mrad");
+    ui->edtObjApSmooth->setUnits("mrad");
 
     ui->edtC10->setUnits("nm");
     ui->edtC12Mag->setUnits("nm");
@@ -283,6 +305,70 @@ void FullAberrationFrame::setUnits() {
     ui->edtC56Mag->setUnits("μm");
     ui->edtC56Ang->setUnits("°");
 
+}
+
+void FullAberrationFrame::setBackgroundStyles() {
+    
+    auto md = Manager->mode();
+    bool do_im = Manager->ctemImageEnabled();
+
+    QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+    std::string disabled_hex = disabled_col.name().toStdString();
+    std::string disabled_Default = "background-color: " + disabled_hex;
+
+    std::string ab_style = "";
+    std::string ctem_image_style = "";
+    std::string condens_style = "";
+
+    if (md == SimulationMode::CTEM and !do_im)
+        ab_style = disabled_Default;
+    
+    if (md != SimulationMode::CTEM || !do_im)
+        ctem_image_style = disabled_Default;
+
+    if (md == SimulationMode::CTEM)
+        condens_style = disabled_Default;
+
+    ui->edtConAp->setBackgroundStyle(condens_style);
+    ui->edtConApSmooth->setBackgroundStyle(condens_style);
+
+    //
+    ui->edtDefocusSpread->setBackgroundStyle(ctem_image_style);
+    ui->edtConverge->setBackgroundStyle(ctem_image_style);
+
+    ui->edtObjAp->setBackgroundStyle(ctem_image_style);
+    ui->edtObjApSmooth->setBackgroundStyle(ctem_image_style);
+
+    //
+    ui->edtC10->setBackgroundStyle(ab_style);
+    ui->edtC12Mag->setBackgroundStyle(ab_style);
+    ui->edtC12Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC21Mag->setBackgroundStyle(ab_style);
+    ui->edtC21Ang->setBackgroundStyle(ab_style);
+    ui->edtC23Mag->setBackgroundStyle(ab_style);
+    ui->edtC23Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC30->setBackgroundStyle(ab_style);
+    ui->edtC32Mag->setBackgroundStyle(ab_style);
+    ui->edtC32Ang->setBackgroundStyle(ab_style);
+    ui->edtC34Mag->setBackgroundStyle(ab_style);
+    ui->edtC34Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC41Mag->setBackgroundStyle(ab_style);
+    ui->edtC41Ang->setBackgroundStyle(ab_style);
+    ui->edtC43Mag->setBackgroundStyle(ab_style);
+    ui->edtC43Ang->setBackgroundStyle(ab_style);
+    ui->edtC45Mag->setBackgroundStyle(ab_style);
+    ui->edtC45Ang->setBackgroundStyle(ab_style);
+
+    ui->edtC50->setBackgroundStyle(ab_style);
+    ui->edtC52Mag->setBackgroundStyle(ab_style);
+    ui->edtC52Ang->setBackgroundStyle(ab_style);
+    ui->edtC54Mag->setBackgroundStyle(ab_style);
+    ui->edtC54Ang->setBackgroundStyle(ab_style);
+    ui->edtC56Mag->setBackgroundStyle(ab_style);
+    ui->edtC56Ang->setBackgroundStyle(ab_style);
 }
 
 

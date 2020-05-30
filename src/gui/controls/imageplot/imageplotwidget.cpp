@@ -280,9 +280,34 @@ ImagePlotWidget::SetImageData(const std::vector<double> &image, bool redraw, boo
     else
         ImageObject->setDataScaleType(QCPAxis::ScaleType::stLinear);
 
+    // set data and calculate our contrast limits
+
+    double minHeight = std::numeric_limits<double>::infinity();
+    double maxHeight = -1 * std::numeric_limits<double>::infinity();
+
+    // need to get weightings from appropriate image (real or complex)
+
     for (int xIndex=0; xIndex<full_size_x; ++xIndex)
-        for (int yIndex=0; yIndex<full_size_y; ++yIndex)
-            ImageObject->data()->setCell(xIndex, yIndex, image[yIndex*full_size_x+xIndex]);
+        for (int yIndex=0; yIndex<full_size_y; ++yIndex) {
+            int ind = yIndex * full_size_x + xIndex;
+            double val = image[ind];
+            double wt;
+            if (is_complex)
+                wt = data_complex.getWeightingVal(ind);
+            else
+                wt = data_real.getWeightingVal(ind);
+
+            val /= wt;
+
+            ImageObject->data()->setCell(xIndex, yIndex, val);
+
+            if (wt > 0.0) {
+                if (val > maxHeight)
+                    maxHeight = val;
+                if (val < minHeight)
+                    minHeight = val;
+            }
+        }
 
     // calculate the aspect ration (so we can maintain it)
     if (crop_image) {
@@ -292,7 +317,9 @@ ImagePlotWidget::SetImageData(const std::vector<double> &image, bool redraw, boo
 
     haveImage = true;
 
-    ImageObject->rescaleDataRange(true);
+    // I basically do this function manually, so I can account for 'empty' pixels
+//    ImageObject->rescaleDataRange(true);
+    ImageObject->setDataRange(QCPRange(minHeight, maxHeight));
 
     if (reset)
         resetAxes(false);

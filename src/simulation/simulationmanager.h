@@ -11,9 +11,9 @@
 #include <mutex>
 #include <map>
 #include <valarray>
-#include <inelastic/phonon.h>
-#include <inelastic/plasmon.h>
-#include <inelastic/inelastic.h>
+#include "incoherence/inelastic/phonon.h"
+#include "incoherence/inelastic/plasmon.h"
+#include <incoherence/incoherenteffects.h>
 #include <structure/simulationcell.h>
 
 #include "structure/structureparameters.h"
@@ -52,7 +52,7 @@ public:
 
     SimulationArea ctemArea() {return *sim_area;}
 
-    std::shared_ptr<InelasticScattering> inelasticScattering() {return inelastic_scattering;}
+    std::shared_ptr<IncoherentEffects> incoherenceEffects() {return incoherence_effects;}
 
     // structure setters
     void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo(), bool fix_cif=false);
@@ -65,6 +65,7 @@ public:
 
     // mode
     SimulationMode mode(){return simulation_mode;}
+    bool isProbeSimulation() {return simulation_mode == SimulationMode::STEM || simulation_mode == SimulationMode::CBED;}
     void setMode(SimulationMode md){ simulation_mode = md;}
     std::string modeString() {return Utils::simModeToString(simulation_mode);}
 
@@ -161,18 +162,27 @@ public:
     void setProgressSliceReporterFunc(std::function<void(double)> f) { report_progress_slice_func = std::move(f);}
 
     std::map<std::string, Image<double>> images() { return image_container; }
-    void updateImages(std::map<std::string, Image<double>> &ims, int jobCount);
+    void updateImages(std::map<std::string, Image<double>> &ims, int jobCount, bool update=false);
     void failedSimulation();
 
     void reportTotalProgress(double prog);
     void reportSliceProgress(double prog);
+
+    bool allPartsCompleted() {return complete_jobs == totalParts();}
+
+    bool liveStemEnabled() {
+        return live_stem;
+    }
+    void setLiveStemEnabled(bool enable) {
+        live_stem = enable;
+    }
 
 private:
     // simulation cell contains the structure
     std::shared_ptr<SimulationCell> simulation_cell;
 
     // inelastic effects such as phonons and plasmons
-    std::shared_ptr<InelasticScattering> inelastic_scattering;
+    std::shared_ptr<IncoherentEffects> incoherence_effects;
 
     std::shared_ptr<MicroscopeParameters> micro_params;
 
@@ -193,6 +203,10 @@ private:
     SimulationArea currentAreaBase(int pixel);
 
     void calculateBlocks();
+
+    //
+
+    bool live_stem;
 
     //
 

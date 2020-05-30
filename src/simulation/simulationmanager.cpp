@@ -16,14 +16,18 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     sim_area = std::make_shared<SimulationArea>();
     stem_sim_area = std::make_shared<StemArea>();
     cbed_pos = std::make_shared<CbedPosition>();
-    inelastic_scattering = std::make_shared<InelasticScattering>();
+    incoherence_effects = std::make_shared<IncoherentEffects>();
     simulation_cell = std::make_shared<SimulationCell>();
 
     full_3d_integrals = 20;
     use_full_3d = false;
 
+    //
+    live_stem = false;
+
     // I'm really assuming the rest of the aberrations are default 0
-    micro_params->Aperture = 20;
+    micro_params->CondenserAperture = 20;
+    micro_params->ObjectiveAperture = 100;
     micro_params->Voltage = 200;
     micro_params->Delta = 30;
     micro_params->Alpha = 0.3;
@@ -38,17 +42,16 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
           blocks_x(sm.blocks_x), blocks_y(sm.blocks_y), simulate_ctem_image(sm.simulate_ctem_image),
           max_inverse_factor(sm.max_inverse_factor), ccd_name(sm.ccd_name), ccd_binning(sm.ccd_binning), ccd_dose(sm.ccd_dose),
           structure_parameters_name(sm.structure_parameters_name), maintain_area(sm.maintain_area),
-          use_double_precision(sm.use_double_precision),
+          use_double_precision(sm.use_double_precision), live_stem(sm.live_stem),
           intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
 {
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
     cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
-    inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
+    incoherence_effects = std::make_shared<IncoherentEffects>(*(sm.incoherence_effects));
 
-    if (sm.simulation_cell)// structure doesnt always exist
-        simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
+    simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
 }
 
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
@@ -75,14 +78,14 @@ SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
     ccd_dose = sm.ccd_dose;
     structure_parameters_name = sm.structure_parameters_name;
     maintain_area = sm.maintain_area;
+    live_stem = sm.live_stem;
 
-    if (sm.simulation_cell) // structure doesnt always exist
-        simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
+    simulation_cell = std::make_shared<SimulationCell>(*(sm.simulation_cell));
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
     cbed_pos = std::make_shared<CbedPosition>(*(sm.cbed_pos));
-    inelastic_scattering = std::make_shared<InelasticScattering>(*(sm.inelastic_scattering));
+    incoherence_effects = std::make_shared<IncoherentEffects>(*(sm.incoherence_effects));
 
     return *this;
 }
@@ -196,10 +199,10 @@ double SimulationManager::inverseMaxAngle()
 unsigned long SimulationManager::totalParts()
 {
     if (simulation_mode == SimulationMode::CTEM || simulation_mode == SimulationMode::CBED)
-        return static_cast<unsigned long>(inelastic_scattering->iterations());
+        return static_cast<unsigned long>(incoherence_effects->iterations(simulation_mode));
     else if (simulation_mode == SimulationMode::STEM) {
         // round up as still need to complete that 'fraction of a job'
-        unsigned int inelastic_runs = inelastic_scattering->iterations();
+        unsigned int inelastic_runs = incoherence_effects->iterations(simulation_mode);
         return static_cast<unsigned long>(inelastic_runs * std::ceil(
                 static_cast<double>(stemArea()->getNumPixels()) / parallel_pixels));
     }
@@ -207,13 +210,11 @@ unsigned long SimulationManager::totalParts()
     return 0;
 }
 
-void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, int jobCount)
+void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, int jobCount, bool update)
 {
     CLOG(DEBUG, "sim") << "Updating images";
     std::lock_guard<std::mutex> lck(image_update_mutex);
     CLOG(DEBUG, "sim") << "Got a mutex lock";
-    // this average factor is here to remove the effect of summing TDS configurations. i.e. the exposure is the same for TDS and non TDS
-    auto average_factor = static_cast<double>(inelasticScattering()->iterations());
 
     for (auto const& i : ims)
     {
@@ -222,23 +223,31 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
             CLOG(DEBUG, "sim") << "Adding to existing image";
             auto current = image_container[i.first];
             auto im = i.second;
+
             if (im.getSliceSize() != current.getSliceSize()) {
                 CLOG(ERROR, "sim") << "Tried to merge simulation jobs with different output size";
                 throw std::runtime_error("Tried to merge simulation jobs with different output size");
             }
+            if (im.getWeightingSize() != current.getWeightingSize()) {
+                CLOG(ERROR, "sim") << "Tried to merge simulation jobs with different weighting sizes";
+                throw std::runtime_error("Tried to merge simulation jobs with different weighting sizes");
+            }
+
             CLOG(DEBUG, "sim") << "Copying data";
             for (int j = 0; j < current.getDepth(); ++j)
                 // we need to account for my complex number, that I have sort of bodged in, hence I calculate the k range as I have (and not slicesize)
                 for (int k = 0; k < current.getSliceRef(j).size(); ++k)
-                    current.getSliceRef(j)[k] += im.getSliceRef(j)[k] / average_factor;
+                    current.getSliceRef(j)[k] += im.getSliceRef(j)[k]; // average factor is calculated using weighting now...
+
+            // there is no weighting per slice at the moment
+            for (int k = 0; k < current.getWeightingSize(); ++k)
+                current.getWeightingRef()[k] += im.getWeightingRef()[k];
+
             image_container[i.first] = current;
         } else {
             CLOG(DEBUG, "sim") << "First time so creating image";
-            auto new_averaged = i.second;
-            for (int j = 0; j < new_averaged.getDepth(); ++j)
-                for (double &d : new_averaged.getSliceRef(j))
-                    d /= average_factor; // need to average this as the image is created (if TDS)
-            image_container[i.first] = new_averaged;
+            // weighting is not done inside the image class
+            image_container[i.first] = i.second;
         }
     }
 
@@ -259,7 +268,7 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
     reportTotalProgress(prgrss);
 
     // this means this simulation is finished
-    if (complete_jobs == v && image_return_func) {
+    if (image_return_func && (complete_jobs == v || update)) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
         image_return_func(*this);
     }

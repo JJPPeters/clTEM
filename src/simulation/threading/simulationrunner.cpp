@@ -61,22 +61,34 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
             jobs[i] = std::make_shared<SimulationJob>(simManager, i);
     else if (mode == SimulationMode::STEM)
     {
-        int StemParallel = simManager->parallelPixels();
+        unsigned int StemParallel = simManager->parallelPixels();
         //TODO: avoid most of this if StemParallel is set to 1
         // generate an array of all our pixels (just increment them)
         std::vector<int> pixelIndices((unsigned long) simManager->stemArea()->getNumPixels());
-        std::iota(std::begin(pixelIndices), std::end(pixelIndices), 0); // this is the bit that fills the vector with incrementing integers
+        //std::iota(std::begin(pixelIndices), std::end(pixelIndices), 0); // this is the bit that fills the vector with incrementing integers
+
+        int counter = 0;
+        int px = simManager->stemArea()->getPixelsX();
+        int py = simManager->stemArea()->getPixelsY();
+        for (int i = 0; i < py; ++i)
+            for (int j = 0; j < px; ++j) {
+                int ind = j + (py - i - 1) * px;
+                pixelIndices[counter] = ind;
+                ++counter;
+            }
+
 
         // random generator stuff from https://stackoverflow.com/a/6926473
 //        std::random_device rd;
         std::mt19937_64 rng(std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count()));
 
         unsigned int jobCount = 0;
-        unsigned int inelastic_iterations = simManager->inelasticScattering()->iterations();
+        unsigned int inelastic_iterations = simManager->incoherenceEffects()->iterations(mode);
         for (int i = 0; i < inelastic_iterations; ++i)
         {
             // this works in place (?) so we are continuously shuffling the same array, probably a good thing??
-            std::shuffle(pixelIndices.begin(), pixelIndices.end(), rng);
+            if (simManager->incoherenceEffects()->enabled(mode) && simManager->parallelPixels() > 1)
+                std::shuffle(pixelIndices.begin(), pixelIndices.end(), rng);
 
             // now divvy up the array into out StemParallel segments
             // here I will even out the load (so there isn't one short simulation just doing a last few pixels at the end
@@ -84,7 +96,7 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
             // get the number of sims we need to do, redivide it to work out how to split this evenly
             // and calculate the straggling remainders
             auto total_pixels = simManager->stemArea()->getNumPixels();
-            auto nSims = (unsigned int) std::ceil( (float) total_pixels / StemParallel );
+            auto nSims = (unsigned int) std::ceil( (double) total_pixels / (double) StemParallel );
 //            unsigned int pxPerSim = (unsigned int) std::floor(simManager->stemArea()->getNumPixels() / nSims );
 //            int remainder = simManager->stemArea()->getNumPixels() % nSims;
 
@@ -92,7 +104,7 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
             for (int j = 0; j < nSims; ++j)
             {
                 // account for the remainding pixels
-                int n = StemParallel;
+                unsigned int n = StemParallel;
 
                 if (current + n > total_pixels) {
                     n = total_pixels - current;

@@ -27,7 +27,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 
 if(Qt5Widgets_FOUND)
-    message(STATUS "Found Qt version2: " ${Qt5Widgets_VERSION})
+    message(STATUS "Found Qt version: " ${Qt5Widgets_VERSION})
 endif()
 
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
@@ -74,6 +74,8 @@ set ( clTEM_SRCS
         frames/cbedframe.cpp
         frames/aberrationframe.cpp
         frames/inelasticframe.cpp
+        frames/sourceframe.cpp
+        frames/incoherenceframe.cpp
         #
         dialogs/settings/settingsdialog.cpp
         dialogs/settings/frames/openclframe.cpp
@@ -97,12 +99,16 @@ set ( clTEM_SRCS
 
 set ( clTEM_UIS
         mainwindow.ui
+        #
         frames/simulationframe.ui
         frames/temframe.ui
         frames/stemframe.ui
         frames/cbedframe.ui
         frames/aberrationframe.ui
         frames/inelasticframe.ui
+        frames/sourceframe.ui
+        frames/incoherenceframe.ui
+        #
         controls/imagetab.ui
         controls/statuslayout.ui
         dialogs/settings/settingsdialog.ui

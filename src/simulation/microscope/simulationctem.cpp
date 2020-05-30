@@ -7,9 +7,6 @@
 
 template <class T>
 void SimulationCtem<T>::initialiseBuffers() {
-
-    SimulationGeneral<T>::initialiseBuffers();
-
     auto sm = job->simManager;
     unsigned int rs = sm->resolution();
 
@@ -36,8 +33,6 @@ void SimulationCtem<float>::initialiseKernels() {
     }
 
     do_initialise_ctem = false;
-
-    SimulationGeneral<float>::initialiseKernels();
 }
 
 template <>
@@ -52,8 +47,6 @@ void SimulationCtem<double>::initialiseKernels() {
     }
 
     do_initialise_ctem = false;
-
-    SimulationGeneral<double>::initialiseKernels();
 }
 
 template <class T>
@@ -61,6 +54,10 @@ void SimulationCtem<T>::initialiseSimulation()
 {
     initialiseBuffers();
     initialiseKernels();
+
+    // should never be needed, but just to be safe
+    reference_perturb_x = 0.0;
+    reference_perturb_y = 0.0;
 
     SimulationGeneral<T>::initialiseSimulation();
 
@@ -141,9 +138,10 @@ void SimulationCtem<T>::simulateImagePerfect()
     ImagingKernel.SetArg(18, static_cast<std::complex<T>>(mParams->C52.getComplex()));
     ImagingKernel.SetArg(19, static_cast<std::complex<T>>(mParams->C54.getComplex()));
     ImagingKernel.SetArg(20, static_cast<std::complex<T>>(mParams->C56.getComplex()));
-    ImagingKernel.SetArg(21, static_cast<T>(mParams->Aperture));
-    ImagingKernel.SetArg(22, static_cast<T>(mParams->Alpha)); //TODO check this is right...
-    ImagingKernel.SetArg(23, static_cast<T>(mParams->Delta));
+    ImagingKernel.SetArg(21, static_cast<T>(mParams->ObjectiveAperture));
+    ImagingKernel.SetArg(22, static_cast<T>(mParams->ObjectiveApertureSmoothing));
+    ImagingKernel.SetArg(23, static_cast<T>(mParams->Alpha)); //TODO check this is right...
+    ImagingKernel.SetArg(24, static_cast<T>(mParams->Delta));
 
     clWorkGroup Work(resolution, resolution, 1);
 
@@ -313,7 +311,7 @@ void SimulationCtem<GPU_Type>::simulate() {
     //
     // plasmon setup
     //
-    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->inelasticScattering()->plasmons();
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->incoherenceEffects()->plasmons();
     bool do_plasmons = plasmon->enabled();
     double slice_dz = job->simManager->simulationCell()->sliceThickness();
     int padding_slices = (int) job->simManager->simulationCell()->preSliceCount();
@@ -351,7 +349,7 @@ void SimulationCtem<GPU_Type>::simulate() {
 
             // update parameters for next scattering event!
             scattering_count++;
-            next_scattering_depth = job->simManager->inelasticScattering()->plasmons()->getGeneratedDepth(job->id, scattering_count);
+            next_scattering_depth = job->simManager->incoherenceEffects()->plasmons()->getGeneratedDepth(job->id, scattering_count);
         }
 
         // this is mostly here because large images can take an age to copy across (so skip that if we are cancelling)

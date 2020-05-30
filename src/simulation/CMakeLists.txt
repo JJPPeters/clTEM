@@ -31,10 +31,10 @@ if(EASYLOGGINGPP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE -DELPP_NO_LOG_TO_FILE -DELPP_THREAD_SAFE -DELPP_FORCE_USE_STD_THREAD") #
 endif()
 
-find_package (Eigen3 REQUIRED)
-if(EIGEN3_FOUND)
-    message(STATUS "Found EIGEN3: " ${EIGEN3_INCLUDE_DIR})
-endif(EIGEN3_FOUND)
+find_package (ModernJson REQUIRED)
+if(JSON_FOUND)
+    message(STATUS "Found Modern JSON for c++: " ${JSON_INCLUDE_DIRS})
+endif(JSON_FOUND)
 
 set(SIM_HDRS
         simulationmanager.h
@@ -45,9 +45,9 @@ set(SIM_HDRS
         structure/atom.h
         structure/structureparameters.h
         #
-        inelastic/inelastic.h
-        inelastic/plasmon.h
-        inelastic/phonon.h
+        incoherence/incoherenteffects.h
+        incoherence/inelastic/plasmon.h
+        incoherence/inelastic/phonon.h
         #
         utilities/commonstructs.h
         utilities/stringutils.h
@@ -79,9 +79,9 @@ set(SIM_SCRS
         structure/crystalstructure.cpp
         structure/structureparameters.cpp
         #
-        inelastic/inelastic.cpp
-        inelastic/plasmon.cpp
-        inelastic/phonon.cpp
+        incoherence/incoherenteffects.cpp
+        incoherence/inelastic/plasmon.cpp
+        incoherence/inelastic/phonon.cpp
         #
         utilities/commonstructs.cpp
         utilities/stringutils.cpp
@@ -101,9 +101,9 @@ set(SIM_SCRS
         microscope/simulationworker.cpp
         microscope/simulationctem.cpp
         microscope/simulationcbed.cpp
-        microscope/simulationstem.cpp structure/simulationcell.cpp structure/simulationcell.h)
+        microscope/simulationstem.cpp structure/simulationcell.cpp structure/simulationcell.h incoherence/probesourcesize.cpp incoherence/probesourcesize.h incoherence/chromaticaberration.cpp incoherence/chromaticaberration.h)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 
-target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} clwrapper cif)
+target_include_directories (simulation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EASYLOGGINGPP_INCLUDE_DIR} ${JSON_INCLUDE_DIRS} clwrapper cif)
 target_link_libraries (simulation ${TIFF_LIBRARY} ${EASYLOGGINGPP_LIBRARY} clwrapper cif)

@@ -33,7 +33,9 @@ namespace Utils {
         auto mp = Manager->microscopeParams();
         if (mp->Voltage <= 0)
             errorList.emplace_back("Voltage must be a non-zero positive number.");
-        if (mp->Aperture <= 0)
+        if (Manager->mode() != SimulationMode::CTEM && mp->CondenserAperture <= 0)
+            errorList.emplace_back("Aperture must be a non-zero positive number.");
+        if (Manager->mode() == SimulationMode::CTEM && mp->ObjectiveAperture <= 0)
             errorList.emplace_back("Aperture must be a non-zero positive number.");
 
         if (Manager->structureParameters().parameters.empty())
@@ -46,12 +48,12 @@ namespace Utils {
             errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
         // check TDS entries
-        if (Manager->inelasticScattering()->enabled() && Manager->inelasticScattering()->iterations() < 1)
+        if (Manager->incoherenceEffects()->iterations(Manager->mode()) < 1)
             errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
 
         // plasmon settings
-        if (Manager->inelasticScattering()->plasmons()->enabled()) {
-            auto plasmon = Manager->inelasticScattering()->plasmons();
+        if (Manager->incoherenceEffects()->plasmons()->enabled()) {
+            auto plasmon = Manager->incoherenceEffects()->plasmons();
             if (plasmon->meanFreePath() <= 0.0)
                 errorList.emplace_back("Plasmon mean free path must be non-zero positive number.");
 

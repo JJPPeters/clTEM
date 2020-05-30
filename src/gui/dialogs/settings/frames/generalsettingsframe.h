@@ -22,10 +22,12 @@ private slots:
     void dlgCancel_clicked();
 
 public:
-    explicit GeneralSettingsFrame(QWidget *parent);
+    explicit GeneralSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
     ~GeneralSettingsFrame();
 
 private:
+    std::shared_ptr<SimulationManager> manager;
+
     Ui::GeneralSettingsFrame *ui;
 };
 

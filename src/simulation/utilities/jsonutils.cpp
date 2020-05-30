@@ -73,12 +73,20 @@ namespace JSONUtils {
         try { mp->Voltage = readJsonEntry<double>(j, "microscope", "voltage", "val");
         } catch (std::exception& e) {}
 
-        try { mp->Aperture = readJsonEntry<double>(j, "microscope", "aperture", "val");
+        // apertures
+        try { mp->CondenserAperture = readJsonEntry<double>(j, "microscope", "condenser aperture", "semi-angle");
         } catch (std::exception& e) {}
 
-        try { mp->ApertureSmoothing = readJsonEntry<double>(j, "microscope", "aperture smooth radius", "val");
+        try { mp->CondenserApertureSmoothing = readJsonEntry<double>(j, "microscope", "condenser aperture", "smoothing");
         } catch (std::exception& e) {}
 
+        try { mp->ObjectiveAperture = readJsonEntry<double>(j, "microscope", "objective aperture", "semi-angle");
+        } catch (std::exception& e) {}
+
+        try { mp->ObjectiveApertureSmoothing = readJsonEntry<double>(j, "microscope", "objective aperture", "smoothing");
+        } catch (std::exception& e) {}
+
+        //
         try { mp->BeamTilt = readJsonEntry<double>(j, "microscope", "beam tilt", "inclination", "val");
         } catch (std::exception& e) {}
 
@@ -249,46 +257,87 @@ namespace JSONUtils {
 
 
         //
-        // Inelastic scattering
+        // incoherence effects
         //
 
         try {
-            man.inelasticScattering()->setIterations(
-                    readJsonEntry<unsigned int>(j, "inelastic scattering", "iterations"));
+            man.incoherenceEffects()->setIterations(
+                    readJsonEntry<unsigned int>(j, "incoherence", "iterations"));
         } catch (std::exception& e) {}
+
+        // TEM effects are in the microscope part
+
+        // chromatic
+
+        try {
+            man.incoherenceEffects()->chromatic()->setEnabled(
+                    readJsonEntry<bool>(j, "incoherence", "probe", "chromatic", "enabled"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->chromatic()->setChromaticAberration(
+                    readJsonEntry<double>(j, "incoherence", "probe", "chromatic", "Cc", "val"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->chromatic()->setHalfWidthHalfMaxPositive(
+                    readJsonEntry<double>(j, "incoherence", "probe", "chromatic", "dE", "HWHM +"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->chromatic()->setHalfWidthHalfMaxNegative(
+                    readJsonEntry<double>(j, "incoherence", "probe", "chromatic", "dE", "HWHM -"));
+        } catch (std::exception& e) {}
+
+        // source size
+
+        try {
+            man.incoherenceEffects()->source()->setEnabled(
+                    readJsonEntry<bool>(j, "incoherence", "probe", "source size", "enabled"));
+        } catch (std::exception& e) {}
+
+        try {
+            man.incoherenceEffects()->source()->setFullWidthHalfMax(
+                    readJsonEntry<double>(j, "incoherence", "probe", "source size", "FWHM", "val"));
+        } catch (std::exception& e) {}
+
+        //
+        // Inelastic scattering
+        //
+
 
         // phonon
 
         try {
-            man.inelasticScattering()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "inelastic scattering", "phonon", "frozen phonon", "enabled"));
+            man.incoherenceEffects()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "frozen phonon", "enabled"));
         } catch (std::exception& e) {}
 
-        *(man.inelasticScattering()->phonons()) = JsonToThermalVibrations(j);
+        *(man.incoherenceEffects()->phonons()) = JsonToThermalVibrations(j);
 
         // plasmon
 
         try {
-            std::string p_type = readJsonEntry<std::string>(j, "inelastic scattering", "plasmon", "type");
+            std::string p_type = readJsonEntry<std::string>(j, "incoherence", "inelastic scattering", "plasmon", "type");
             if (p_type == "full")
-                man.inelasticScattering()->plasmons()->setSimType(PlasmonType::Full);
+                man.incoherenceEffects()->plasmons()->setSimType(PlasmonType::Full);
             else if (p_type == "individual")
-                man.inelasticScattering()->plasmons()->setSimType(PlasmonType::Individual);
+                man.incoherenceEffects()->plasmons()->setSimType(PlasmonType::Individual);
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "inelastic scattering", "plasmon", "individual", "number"));
+            man.incoherenceEffects()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "incoherence", "inelastic scattering", "plasmon", "individual", "number"));
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
+            man.incoherenceEffects()->plasmons()->setMeanFreePath(readJsonEntry<double>(j, "incoherence", "inelastic scattering", "plasmon", "mean free path", "value") * 10); // convert nm to angstroms
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "characteristic angle", "value"));
+            man.incoherenceEffects()->plasmons()->setCharacteristicAngle(readJsonEntry<double>(j, "incoherence", "inelastic scattering", "plasmon", "characteristic angle", "value"));
         } catch (std::exception& e) {}
 
         try {
-            man.inelasticScattering()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "inelastic scattering", "plasmon", "critical angle", "value"));
+            man.incoherenceEffects()->plasmons()->setCriticalAngle(readJsonEntry<double>(j, "incoherence", "inelastic scattering", "plasmon", "critical angle", "value"));
         } catch (std::exception& e) {}
 
         //
@@ -309,17 +358,17 @@ namespace JSONUtils {
         std::vector<double> vibs;
         std::vector<int> els;
 
-        try { force_default = readJsonEntry<bool>(j, "inelastic scattering", "phonon","thermal parameters", "force default");
+        try { force_default = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "force default");
         } catch (std::exception& e) {}
 
-        try { override_file = readJsonEntry<bool>(j, "inelastic scattering", "phonon", "thermal parameters", "override file");
+        try { override_file = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "override file");
         } catch (std::exception& e) {}
 
-        try { def = readJsonEntry<double>(j, "inelastic scattering", "phonon", "thermal parameters", "default");
+        try { def = readJsonEntry<double>(j, "incoherence", "inelastic scattering", "phonon", "default");
         } catch (std::exception& e) {}
 
         try {
-            json element_section = readJsonEntry<json>(j, "inelastic scattering", "phonon", "thermal parameters", "values");
+            json element_section = readJsonEntry<json>(j, "incoherence", "inelastic scattering", "phonon", "values");
             for (json::iterator it = element_section.begin(); it != element_section.end(); ++it) {
                 std::string element = it.key();
                 try{
@@ -340,7 +389,7 @@ namespace JSONUtils {
 
     json FullManagerToJson(SimulationManager& man) {
         // this gets pretty much everything that is set
-        json j = BasicManagerToJson(man, true);
+        json j = BasicManagerToJson(man, true, false);
 
         for (auto det : man.stemDetectors())
         {
@@ -350,9 +399,11 @@ namespace JSONUtils {
         return j;
     }
 
-    json BasicManagerToJson(SimulationManager& man, bool force_all) {
+    json BasicManagerToJson(SimulationManager& man, bool force_all, bool sim_relevant) {
 
         json j;
+
+        bool have_structure = man.simulationCell()->crystalStructure().get() == nullptr;
 
         // no file input here as it is not always needed
 
@@ -372,35 +423,37 @@ namespace JSONUtils {
         j["slice offset"]["val"] = man.simulationCell()->sliceOffset();
         j["slice offset"]["units"] = "Å";
 
-        j["slice count"] = man.simulationCell()->sliceCount();
+        if (have_structure && sim_relevant)
+            j["slice count"] = man.simulationCell()->sliceCount();
 
         j["intermediate output"]["slice interval"] = man.intermediateSliceStep();
         j["intermediate output"]["enabled"] = man.intermediateSlicesEnabled();
 
         j["maintain areas"] = man.maintainAreas();
 
-        auto xl = man.paddedSimLimitsX(0);
-        auto yl = man.paddedSimLimitsY(0);
-        auto zl = man.paddedSimLimitsZ(); // z never changes, so always is struct limits
+        if (sim_relevant && have_structure) {
+            auto xl = man.paddedSimLimitsX(0);
+            auto yl = man.paddedSimLimitsY(0);
+            auto zl = man.paddedSimLimitsZ(); // z never changes, so always is struct limits
 
-        // padding is always plus/minus one value, with the second element ([1]) being positive
-        auto xp = man.simulationCell()->paddingX()[1];
-        auto yp = man.simulationCell()->paddingY()[1];
-        auto zp = man.simulationCell()->paddingZ()[1];
+            // padding is always plus/minus one value, with the second element ([1]) being positive
+            auto xp = man.simulationCell()->paddingX()[1];
+            auto yp = man.simulationCell()->paddingY()[1];
+            auto zp = man.simulationCell()->paddingZ()[1];
 
-        j["simulation area"]["x"]["start"] = xl[0];
-        j["simulation area"]["x"]["finish"] = xl[1];
-        j["simulation area"]["x"]["padding"] = xp;
-        j["simulation area"]["x"]["units"] = "Å";
-        j["simulation area"]["y"]["start"] = yl[0];
-        j["simulation area"]["y"]["finish"] = yl[1];
-        j["simulation area"]["y"]["padding"] = yp;
-        j["simulation area"]["y"]["units"] = "Å";
-        j["simulation area"]["z"]["start"] = zl[0];
-        j["simulation area"]["z"]["finish"] = zl[1];
-        j["simulation area"]["z"]["padding"] = zp;
-        j["simulation area"]["z"]["units"] = "Å";
-
+            j["simulation area"]["x"]["start"] = xl[0];
+            j["simulation area"]["x"]["finish"] = xl[1];
+            j["simulation area"]["x"]["padding"] = xp;
+            j["simulation area"]["x"]["units"] = "Å";
+            j["simulation area"]["y"]["start"] = yl[0];
+            j["simulation area"]["y"]["finish"] = yl[1];
+            j["simulation area"]["y"]["padding"] = yp;
+            j["simulation area"]["y"]["units"] = "Å";
+            j["simulation area"]["z"]["start"] = zl[0];
+            j["simulation area"]["z"]["finish"] = zl[1];
+            j["simulation area"]["z"]["padding"] = zp;
+            j["simulation area"]["z"]["units"] = "Å";
+        }
 
         auto p_z_d_val = man.simulationCell()->defaultPaddingZ();
         auto p_xy_d_val = man.simulationCell()->defaultPaddingXY();
@@ -428,14 +481,17 @@ namespace JSONUtils {
         // TODO: check which parameters are relevant to which modes
         // TODO: get whether CTEM is image, EW or diff...
 
-        // apert
-        j["microscope"]["aperture"]["val"] = mp->Aperture;
-        j["microscope"]["aperture"]["units"] = "mrad";
+        // apertures
+        if (mode == SimulationMode::CTEM || force_all) {
+            j["microscope"]["objective aperture"]["semi-angle"] = mp->ObjectiveAperture;
+            j["microscope"]["objective aperture"]["smoothing"] =  mp->ObjectiveApertureSmoothing;
+            j["microscope"]["objective aperture"]["units"] = "mrad";
+        }
 
         if (mode != SimulationMode::CTEM || force_all) {
-            // alpha
-            j["microscope"]["aperture smooth radius"]["val"] = mp->ApertureSmoothing;
-            j["microscope"]["aperture smooth radius"]["units"] = "mrad";
+            j["microscope"]["condenser aperture"]["semi-angle"] = mp->CondenserAperture;
+            j["microscope"]["condenser aperture"]["smoothing"] = mp->CondenserApertureSmoothing;
+            j["microscope"]["condenser aperture"]["units"] = "mrad";
         }
 
         j["microscope"]["beam tilt"]["inclination"]["val"] = mp->BeamTilt;
@@ -443,17 +499,6 @@ namespace JSONUtils {
 
         j["microscope"]["beam tilt"]["azimuth"]["val"] = mp->BeamAzimuth * 180 / Constants::Pi;
         j["microscope"]["beam tilt"]["azimuth"]["units"] = "°";
-
-
-        if (mode == SimulationMode::CTEM || force_all) {
-            // alpha
-            j["microscope"]["alpha"]["val"] = mp->Alpha;
-            j["microscope"]["alpha"]["units"] = "mrad";
-
-            // delta
-            j["microscope"]["delta"]["val"] = mp->Delta / 10;
-            j["microscope"]["delta"]["units"] = "nm";
-        }
 
         // aberration values
         j["microscope"]["aberrations"]["C10"]["val"] = mp->C10 / 10;
@@ -557,62 +602,97 @@ namespace JSONUtils {
         }
 
         //
+        // Incoherent effects
+        //
+
+        auto inel = man.incoherenceEffects();
+        bool inelastic_used = inel->enabled(man.mode());
+
+        if (inelastic_used || force_all)
+            j["incoherence"]["iterations"] = man.incoherenceEffects()->storedIterations();
+
+        // probe only information
+
+        if ((inelastic_used && man.isProbeSimulation()) || force_all) {
+            // used stored interations in case of force all
+
+            auto chrome = inel->chromatic();
+            bool cc_used = chrome->enabled();
+            j["incoherence"]["probe"]["chromatic"]["enabled"] = cc_used;
+
+            if(cc_used || force_all) {
+                j["incoherence"]["probe"]["chromatic"]["Cc"]["val"] = chrome->chromaticAberration();
+                j["incoherence"]["probe"]["chromatic"]["Cc"]["units"] = "mm";
+
+                j["incoherence"]["probe"]["chromatic"]["dE"]["HWHM +"] = chrome->halfWidthHalfMaxPositive();
+                j["incoherence"]["probe"]["chromatic"]["dE"]["HWHM -"] = chrome->halfWidthHalfMaxNegative();
+                j["incoherence"]["probe"]["chromatic"]["dE"]["units"] = "eV";
+            }
+
+            auto p_source = inel->source();
+            bool ps_used = p_source->enabled();
+
+            j["incoherence"]["probe"]["source size"]["enabled"] = ps_used;
+
+            if(ps_used || force_all) {
+                j["incoherence"]["probe"]["source size"]["FWHM"]["val"] = p_source->fullWidthHalfMax();
+                j["incoherence"]["probe"]["source size"]["FWHM"]["units"] = "Å";
+            }
+        }
+
+        //
         // Inelastic scattering
         //
 
-        bool inelastic_used = man.inelasticScattering()->enabled();
-        if (inelastic_used || force_all)
-            j["inelastic scattering"]["iterations"] = man.inelasticScattering()->storedIterations();
-
         // phonon
 
-        bool phonon_used = man.inelasticScattering()->phonons()->getFrozenPhononEnabled();
+        bool phonon_used = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
         if (phonon_used || force_all) {
 
-            j["inelastic scattering"]["phonon"]["frozen phonon"]["enabled"] = man.inelasticScattering()->phonons()->getFrozenPhononEnabled();
+            j["incoherence"]["inelastic scattering"]["phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
 
             // don't export if we have file defined vibrations and no override
             bool export_thermals = true;
             if (man.simulationCell()->crystalStructure()) // structure does not always exist
                 export_thermals = !(man.simulationCell()->crystalStructure()->thermalFileDefined() &&
-                                    !man.inelasticScattering()->phonons()->force_default &&
-                                    !man.inelasticScattering()->phonons()->force_defined);
+                                    !man.incoherenceEffects()->phonons()->force_default &&
+                                    !man.incoherenceEffects()->phonons()->force_defined);
 
             if (export_thermals || force_all) {
                 if (force_all)
-                    j["inelastic scattering"]["thermal parameters"]["phonon"] = thermalVibrationsToJson(man);
+                    j["incoherence"]["inelastic scattering"]["phonon"] = thermalVibrationsToJson(man);
             } else {
-                j["inelastic scattering"]["thermal parameters"]["phonon"] = "input file defined";
+                j["incoherence"]["inelastic scattering"]["phonon"] = "input file defined";
             }
         }
 
         // plasmon
 
-        auto plasmon = man.inelasticScattering()->plasmons();
+        auto plasmon = man.incoherenceEffects()->plasmons();
         bool plasmon_used = plasmon->enabled();
         if (plasmon_used || force_all) {
             if (plasmon->simType() == PlasmonType::Full)
-                j["inelastic scattering"]["plasmon"]["type"] = "full";
-            else if (man.inelasticScattering()->plasmons()->simType() == PlasmonType::Individual)
-                j["inelastic scattering"]["plasmon"]["type"] = "individual";
+                j["incoherence"]["inelastic scattering"]["plasmon"]["type"] = "full";
+            else if (man.incoherenceEffects()->plasmons()->simType() == PlasmonType::Individual)
+                j["incoherence"]["inelastic scattering"]["plasmon"]["type"] = "individual";
 
             if (plasmon->simType() == PlasmonType::Individual || force_all)
-                j["inelastic scattering"]["plasmon"]["individual"] = plasmon->individualPlasmon();
+                j["incoherence"]["inelastic scattering"]["plasmon"]["individual"] = plasmon->individualPlasmon();
 
-            j["inelastic scattering"]["plasmon"]["mean free path"]["value"] = plasmon->meanFreePath() / 10;
-            j["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["value"] = plasmon->meanFreePath() / 10;
+            j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
 
-            j["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = plasmon->characteristicAngle();
-            j["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = plasmon->characteristicAngle();
+            j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
 
-            j["inelastic scattering"]["plasmon"]["critical angle"]["value"] = plasmon->criticalAngle();
-            j["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["value"] = plasmon->criticalAngle();
+            j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
         }
 
         // this is only valid if we have actually saved a simulation, so we can't force it
         if (plasmon_used && plasmon->simType() == PlasmonType::Full) {
 
-            auto pn = man.inelasticScattering()->plasmons()->getPlasmonNumbers();
+            auto pn = man.incoherenceEffects()->plasmons()->getPlasmonNumbers();
 
             // add leading zeros to make it be in correct order in json
             // (this is only for humands, it is never used by code)
@@ -628,7 +708,7 @@ namespace JSONUtils {
                 std::string str_n = std::to_string(i[0]);
                 str_n = std::string(str_len - str_n.length(), '0') + str_n;
 
-                j["inelastic scattering"]["plasmon"]["full"]["plasmon numbers"][str_n] = i[1];
+                j["incoherence"]["inelastic scattering"]["plasmon"]["full"]["plasmon numbers"][str_n] = i[1];
             }
         }
 
@@ -655,20 +735,21 @@ namespace JSONUtils {
     json thermalVibrationsToJson(SimulationManager& man) {
         json j;
 
-        j["force default"] = man.inelasticScattering()->phonons()->force_default;
-        j["override file"] = man.inelasticScattering()->phonons()->force_defined;
+        j["force default"] = man.incoherenceEffects()->phonons()->force_default;
+        j["override file"] = man.incoherenceEffects()->phonons()->force_defined;
 
-        j["default"] = man.inelasticScattering()->phonons()->getDefault();
+        j["default"] = man.incoherenceEffects()->phonons()->getDefault();
         j["units"] = "Å²";
 
-        auto els = man.inelasticScattering()->phonons()->getDefinedElements();
-        auto vibs = man.inelasticScattering()->phonons()->getDefinedVibrations();
+        auto els = man.incoherenceEffects()->phonons()->getDefinedElements();
+        auto vibs = man.incoherenceEffects()->phonons()->getDefinedVibrations();
 
         if (els.size() != vibs.size())
             throw std::runtime_error("cannot write thermal parameters to json file: element and displacement vectors have different size");
 
         for(int i = 0; i < els.size(); ++i) {
             j["values"][ Utils::NumberToElementSymbol(els[i]) ] = vibs[i];
+            j["values"]["units"] = "Å²";
         }
 
         return j;

@@ -11,7 +11,7 @@ QWidget:window {
 }
 
 QLineEdit {
-	background: {d1};
+	background: {t1};
 	border: 1em transparent {l2};
 	color: {l1}; /*text colour*/
 	selection-background-color: {a1};
@@ -21,16 +21,16 @@ QLineEdit {
 
 QComboBox {
 	color: {l1};
-	background-color: {d1};
+	background-color: {t1};
 	border: 0px solid transparent;
 }
 
 QComboBox QAbstractItemView
 {    
-	background: {d2};
+	background: {t1};
     selection-background-color: {a1};
     color: {l1};
-	border: 1px solid {d1};
+	border: 0px transparent {d1};
 }
 
 QComboBox::item:selected {
@@ -49,7 +49,7 @@ QComboBox::drop-down {
 
 QComboBox::down-arrow {
     width: 8px;
-    image: url(:/Theme/icons/down-arrow_{t}.png);
+    image: url(:/Theme/icons/down-arrow_{t}.svg);
 }
 
 /* muc of this scrollbar stuff is from: https://github.com/ColinDuquesnoy/QDarkStyleSheet/blob/master/qdarkstyle/style.qss */
@@ -68,7 +68,7 @@ QScrollBar::handle:vertical {
 
 QScrollBar::sub-line:vertical {
     margin: 5px 0px 5px 0px;
-    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    border-image: url(:/Theme/icons/up-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: top;
@@ -77,7 +77,7 @@ QScrollBar::sub-line:vertical {
 
 QScrollBar::add-line:vertical {
     margin: 5px 0px 5px 0px;
-    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    border-image: url(:/Theme/icons/down-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: bottom;
@@ -86,7 +86,7 @@ QScrollBar::add-line:vertical {
 
 QScrollBar::sub-line:vertical:hover,
 QScrollBar::sub-line:vertical:on {
-    border-image: url(:/Theme/icons/up-arrow_{t}.png);
+    border-image: url(:/Theme/icons/up-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: top;
@@ -95,7 +95,7 @@ QScrollBar::sub-line:vertical:on {
 
 QScrollBar::add-line:vertical:hover,
 QScrollBar::add-line:vertical:on {
-    border-image: url(:/Theme/icons/down-arrow_{t}.png);
+    border-image: url(:/Theme/icons/down-arrow_{t}.svg);
     height: 5px;
     width: 10px;
     subcontrol-position: bottom;
@@ -116,7 +116,7 @@ QScrollBar::sub-page:vertical {
 
 QPushButton {
 	background-color: {a1};
-	color: {d1};
+	color: {b1};
 	border: 0px solid transparent;
 }
 
@@ -138,18 +138,18 @@ QCheckBox, QRadioButton {
 	color: {l1};
 }
 
-QCheckBox::indicator {
+QCheckBox::indicator, QRadioButton::indicator {
     width: 10px;
     height: 10px;
 	border-radius: 8px;
-	border: 3px solid {d1};
+	border: 3px solid {t1};
 }
 
-QCheckBox::indicator::unchecked  {
-	background-color: {d1};
+QCheckBox::indicator::unchecked, QRadioButton::indicator::unchecked  {
+	background-color: {t1};
 }
 
-QCheckBox::indicator::checked {
+QCheckBox::indicator::checked, QRadioButton::indicator::checked {
 	background-color: {a1};
 }
 
@@ -167,7 +167,7 @@ QTabBar::tab {
 	background: transparent;
 	border: 0px solid transparent;
 	border-bottom: 2px solid transparent;
-	color: {l2};
+	color: {i1};
 	padding-left: 10px;
 	padding-right: 10px;
 	padding-top: 3px;
@@ -202,23 +202,23 @@ QLabel {
 /* === QMenu === */
 
 QMenu {
-	background-color: {d2};		/* File Menu Background color */
+	background-color: {t1};
 	color: {l1};
-	border: 1px solid {d1};
+	border: 1px solid {t1};
 }
 
 QMenu::item:selected {
 	background-color: {a1};
-	color: {d1};
+	color: {b1};
 }
 
 QMenu::item:pressed {
 	background-color: {l2};
-	color: {d1};
+	color: {l1};
 }
 
 QMenu::separator {
-	height: 2px;
+	height: 1px;
 	background: {l2};
 	margin-left: 10px;
 	margin-right: 10px;
@@ -227,7 +227,7 @@ QMenu::separator {
 }
 
 QMenu::right-arrow {
-    image: url(:/Theme/icons/right-arrow_{t}.png);
+    image: url(:/Theme/icons/right-arrow_{t}.svg);
 }
 
 /* === QMenuBar === */
@@ -239,16 +239,17 @@ QMenuBar {
 QMenuBar::item {
 	background-color: transparent;
 	color: {l1};
+	padding: 5px;
 }
 
 QMenuBar::item:selected {
-	background-color: {a1};
-	color: {d1};
+	background-color: {d2};
+	color: {l1};
 }
 
 QMenuBar::item:pressed {
-	background-color: {a1};
-	color: {d1};
+	background-color: {t1};
+	color: {l1};
 }
 
 /* === QProgressBar === */
@@ -282,7 +283,7 @@ QGroupBox::title {
 QFrame[frameShape="4"], /* QFrame::HLine == 0x0004 */
 QFrame[frameShape="5"] /* QFrame::VLine == 0x0005 */
 {
-    background: {l2};
+    color: {g1};
 }
 
 /* === QTableWidget === */
@@ -299,7 +300,7 @@ QTableWidget::item:selected {
 }
 
 QHeaderView {
-    background-color: {d1};
+    background-color: {d2};
     padding: 4px;
     border-style: none;
     border: 0px solid transparent;
@@ -308,7 +309,7 @@ QHeaderView {
 }
 
 QHeaderView::section {
-    background-color: {d1};
+    background-color: {d2};
     padding: 4px;
     border-style: none;
     border: 0px solid transparent;
@@ -332,6 +333,7 @@ QPushButton[accessibleName="title_min"] {
 	max-height: 1.6em;
 	min-width: 0 px;
 	padding: 0.3em 1em;
+	image: url(:/Theme/icons/minimise.svg);
 }
 
 QPushButton[accessibleName="title_max"] {
@@ -340,6 +342,7 @@ QPushButton[accessibleName="title_max"] {
     max-height: 1.6em;
 	min-width: 0 px;
 	padding: 0.3em 1em;
+	image: url(:/Theme/icons/maximise.svg);
 }
 
 QPushButton[accessibleName="title_close"] {
@@ -348,14 +351,15 @@ QPushButton[accessibleName="title_close"] {
     max-height: 1.6em;
 	min-width: 0 px;
 	padding: 0.3em 1em;
+	image: url(:/Theme/icons/close.svg);
 }
 
 QPushButton[accessibleName="title_min"]:hover {
-	background-color: {a2};
+	background-color: #40ffffff;
 }
 
 QPushButton[accessibleName="title_max"]:hover {
-	background-color: {a2};
+	background-color: #40ffffff;
 }
 
 QPushButton[accessibleName="title_close"]:hover {
@@ -363,11 +367,11 @@ QPushButton[accessibleName="title_close"]:hover {
 }
 
 QPushButton[accessibleName="title_min"]:pressed {
-	background-color: {a3};
+	background-color: #66ffffff;
 }
 
 QPushButton[accessibleName="title_max"]:pressed {
-	background-color: {a3};
+	background-color: #66ffffff;
 }
 
 QPushButton[accessibleName="title_close"]:pressed {
@@ -380,5 +384,5 @@ QLabel[accessibleName="app_icon"] {
 }
 
 QLabel[accessibleName="title_title"] {
-	color: {d1};
+	color: {b1};
 }

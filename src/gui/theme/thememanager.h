@@ -11,12 +11,70 @@
 #include <QtGui/QPalette>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QWidget>
+#include <QColor>
+#include <qrgb>
 
 #include <windows.h>
 #include <controls/borderlesswindow.h>
 #include <controls/borderlessdialog.h>
 #include <QtCore/QSettings>
 #include <QScreen>
+#include <utility>
+
+struct ThemeColours {
+    explicit ThemeColours(QString _icons="dark",
+                          const QString& _background="#000000",
+                          const QString& _panels="#000000",
+                          const QString& _dividers="#000000",
+                          const QString& _text="#000000",
+                          const QString& _button_text="#000000",
+                          const QString& _textbox="#000000",
+                          const QString& _inactive="#000000",
+                          const QString& _text_inactive="#000000",
+                          const QString& _accent="#689324",
+                          const QString& _accent_hover="#8EAE5B",
+                          const QString& _accent_activated="#A5BF7C",
+                          const QString& _close_hover="#9D1A29",
+                          const QString& _close_acivated="#c52033") {
+        icons = std::move(_icons);
+
+        background = QColor(_background);
+        panels = QColor(_panels);
+        dividers = QColor(_dividers);
+        text = QColor(_text);
+        button_text = QColor(_button_text);
+        textbox = QColor(_textbox);
+
+        inactive = QColor(_inactive);
+        text_inactive = QColor(_text_inactive);
+
+        accent = QColor(_accent);
+        accent_hover = QColor(_accent_hover);
+        accent_activated = QColor(_accent_activated);
+
+        close_hover = QColor(_close_hover);
+        close_acivated = QColor(_close_acivated);
+    }
+
+    QString icons;
+
+    QColor background;
+    QColor panels;
+    QColor dividers;
+    QColor text;
+    QColor button_text;
+    QColor textbox;
+
+    QColor inactive;
+    QColor text_inactive;
+
+    QColor accent;
+    QColor accent_hover;
+    QColor accent_activated;
+
+    QColor close_hover;
+    QColor close_acivated;
+};
 
 struct ThemeManager {
 
@@ -24,27 +82,102 @@ public:
     enum Theme {
         Native,
         Dark,
-        Light
+        MidDark,
+        MidLight,
+        Light,
+        DarkGrey,
+        MidDarkGrey,
+        MidLightGrey,
+        LightGrey,
+        _dummy_last
     };
 
     static Theme CurrentTheme;
 
-    static void setTheme(std::string th) {
-        if (th == "Dark") {
-            setTheme(Theme::Dark);
-        } else if (th == "Light") {
-            setTheme(Theme::Light);
+    static ThemeColours DarkTheme;
+    static ThemeColours MidDarkTheme;
+    static ThemeColours MidLightTheme;
+    static ThemeColours LightTheme;
+
+    static std::vector<QString> getThemeNameList() {
+        std::vector<QString> out;
+        for (int i = 0; i != Theme::_dummy_last; ++i)
+            out.emplace_back(themeEnumtoQString(static_cast<Theme>(i)));
+        return out;
+    }
+
+    static Theme themeQStringtoEnum(QString name) {
+        return themeStringtoEnum(name.toStdString());
+    }
+    static Theme themeStringtoEnum(std::string name) {
+        if (name == "Dark") {
+            return Theme::Dark;
+        } else if (name == "Mid-dark") {
+            return Theme::MidDark;
+        } else if (name == "Mid-light") {
+            return Theme::MidLight;
+        } else if (name == "Light") {
+            return Theme::Light;
+        }else if (name == "Dark-grey") {
+            return Theme::DarkGrey;
+        } else if (name == "Mid-dark-grey") {
+            return Theme::MidDarkGrey;
+        } else if (name == "Mid-light-grey") {
+            return Theme::MidLightGrey;
+        } else if (name == "Light-grey") {
+            return Theme::LightGrey;
         } else {
-            setTheme(Theme::Native);
+            return Theme::Native;
         }
+    }
+
+    static QString themeEnumtoQString(Theme name) {
+        return QString::fromStdString(themeEnumtoString(name));
+    }
+    static std::string themeEnumtoString(Theme name) {
+        if (name == Theme::Dark) {
+            return "Dark";
+        } else if (name == Theme::MidDark) {
+            return "Mid-dark";
+        } else if (name == Theme::MidLight) {
+            return "Mid-light";
+        } else if (name == Theme::Light) {
+            return "Light";
+        }else if (name == Theme::DarkGrey) {
+            return "Dark-grey";
+        } else if (name == Theme::MidDarkGrey) {
+            return "Mid-dark-grey";
+        } else if (name == Theme::MidLightGrey) {
+            return "Mid-light-grey";
+        } else if (name == Theme::LightGrey) {
+            return "Light-grey";
+        } else {
+            return "Native";
+        }
+    }
+
+    static void setTheme(const std::string& th) {
+        setTheme(themeStringtoEnum(th));
     }
 
     static void setTheme(Theme th) {
         CurrentTheme = th;
         if (th == Theme::Dark) {
-            setDarkTheme();
+            setFlatTheme(DarkTheme);
+        } else if (th == Theme::MidDark) {
+            setFlatTheme(MidDarkTheme);
+        } else if (th == Theme::MidLight) {
+            setFlatTheme(MidLightTheme);
         } else if (th == Theme::Light) {
-            setLightTheme();
+            setFlatTheme(LightTheme);
+        } else if (th == Theme::DarkGrey) {
+            setFlatTheme(DarkTheme, true);
+        } else if (th == Theme::MidDarkGrey) {
+            setFlatTheme(MidDarkTheme, true);
+        } else if (th == Theme::MidLightGrey) {
+            setFlatTheme(MidLightTheme, true);
+        } else if (th == Theme::LightGrey) {
+            setFlatTheme(LightTheme, true);
         } else {
             setNativeTheme();
         }
@@ -82,34 +215,32 @@ public:
 
     static void setSettings(Theme th) {
         QSettings settings;
-        if (th == Theme::Dark) {
-            settings.setValue("theme", "Dark");
-        } else if (th == Theme::Light) {
-            settings.setValue("theme", "Light");
-        } else {
-            settings.setValue("theme", "Native");
-        }
+        settings.setValue("theme", themeEnumtoQString(th));
     }
 
 private:
+    static QColor colourToGrey(QColor c, bool v=false) {
+        if (v) {
+            int g = qGray(c.rgb());
+            return QColor(g, g, g);
+        } else
+            return c;
+    }
+
     static void setFontSize() {
-        // This probably only works for windows and possibly only in a limited set of cases
-        // maybe in fiture Qt this will be handled sensibly, but for now this is my bodge
+        // Some of the HiSPI stuff seems to work only if I set the font?
         QFont font = QGuiApplication::font();
-        QScreen* primary_screen = QGuiApplication::primaryScreen();
-        double dpi_normal = 96;
-        double dpi_current = primary_screen->logicalDotsPerInch();
-
         double font_size = 11;
-        font_size *= dpi_current / dpi_normal;
-        font_size = std::ceil(font_size);
-
         font.setPixelSize((int) font_size);
         qApp->setFont(font);
     }
 
     static void setNativeTheme() {
         setFontSize();
+
+        // it works better if this is before the stylesheet part
+        // (sometimes the palette didn't update until a second apply...)
+        qApp->setPalette(QApplication::style()->standardPalette());
 
         QFile f(":/Theme/default-theme.qss");
         if (f.open(QFile::ReadOnly | QFile::Text)) {
@@ -119,14 +250,9 @@ private:
 
             qApp->setStyleSheet(s);
         }
-
-        // remove our stylesheet
-//        qApp->setStyleSheet("");
-        // reset our palette
-        QGuiApplication::setPalette(QApplication::style()->standardPalette());
     }
 
-    static void setDarkTheme() {
+    static void setFlatTheme(ThemeColours thm, bool is_grey=false) {
         setFontSize();
 
         QFile f(":/Theme/flat-theme.qss");
@@ -135,94 +261,33 @@ private:
             QString s = in.readAll();
             f.close();
 
-            QString t = "dark"; // theme name (for icons)
-            QString d1 = "#2A2A2A"; // darkest
-            QString d2 = "#404040"; // dark
-            QString l1 = "#D8D8D8"; // lightest
-            QString l2 = "#777777"; // light
-            QString e1 = "#808080"; // disabled/inactive colour
-
-            QString a1 = "#6A9D1A"; // accent
-            QString a2 = "#7db81e"; // accent (hover)
-            QString a3 = "#9ac653"; // accent (clicked)
-            QString c1 = "#9D1A29"; // close/negative
-            QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
-
             // this is so the plots function properly...
             QPalette darkPalette;
-            darkPalette.setColor(QPalette::Window, QColor(d1));
-            darkPalette.setColor(QPalette::Mid, QColor(l2));
+            darkPalette.setColor(QPalette::Window, colourToGrey(thm.textbox, is_grey));
+            darkPalette.setColor(QPalette::Mid, colourToGrey(thm.dividers, is_grey));
 
-            QGuiApplication::setPalette(darkPalette);
+            // this is for our 'inactive but still usable' text boxes
+            darkPalette.setColor(QPalette::Disabled, QPalette::Text, colourToGrey(thm.text, is_grey));
+            darkPalette.setColor(QPalette::Disabled, QPalette::Base, colourToGrey(thm.inactive, is_grey));
 
-            s.replace("{t}", t);
+            qApp->setPalette(darkPalette);
 
-            s.replace("{d1}", d1);
-            s.replace("{d2}", d2);
-            s.replace("{l1}", l1);
-            s.replace("{l2}", l2);
-            s.replace("{e1}", e1);
-            s.replace("{a1}", a1);
-            s.replace("{a2}", a2);
-            s.replace("{a3}", a3);
-            s.replace("{c1}", c1);
-            s.replace("{c2}", c2);
+            s.replace("{t}", thm.icons);
 
-            QFile f_default(":/Theme/default-theme.qss");
-            if (f_default.open(QFile::ReadOnly | QFile::Text)) {
-                QTextStream in_default(&f_default);
-                QString s_default = in_default.readAll();
-                f_default.close();
-
-                s.replace("{default_settings}", s_default);
-            } else
-                s.replace("{default_settings}", "");
-
-            qApp->setStyleSheet(s);
-        }
-
-    }
-
-    static void setLightTheme() {
-        setFontSize();
-
-        QFile f(":/Theme/flat-theme.qss");
-        if (f.open(QFile::ReadOnly | QFile::Text)) {
-            QTextStream in(&f);
-            QString s = in.readAll();
-            f.close();
-
-            QString t = "light"; // theme name (for icons)
-            QString d1 = "#F0F0F0"; // darkest
-            QString d2 = "#FFFFFF"; // dark
-            QString l1 = "#1a1a1a"; // lightest
-            QString l2 = "#9c9c9c"; // light
-            QString e1 = "#a1a1a1"; // disabled/inactive colour
-
-            QString a1 = "#6A9D1A"; // accent
-            QString a2 = "#7db81e"; // accent (hover)
-            QString a3 = "#9ac653"; // accent (clicked)
-            QString c1 = "#9D1A29"; // close/negative
-            QString c2 = "#c52033"; // close/negative lighter (acts as a 'clicked' for c1)
-
-            // this is so the plots function properly...
-            QPalette darkPalette;
-            darkPalette.setColor(QPalette::Window, QColor(d1));
-            darkPalette.setColor(QPalette::Mid, QColor(l2));
-
-            QGuiApplication::setPalette(darkPalette);
-
-            s.replace("{t}", t);
-            s.replace("{d1}", d1);
-            s.replace("{d2}", d2);
-            s.replace("{l1}", l1);
-            s.replace("{l2}", l2);
-            s.replace("{e1}", e1);
-            s.replace("{a1}", a1);
-            s.replace("{a2}", a2);
-            s.replace("{a3}", a3);
-            s.replace("{c1}", c1);
-            s.replace("{c2}", c2);
+            s.replace("{d1}", colourToGrey(thm.background, is_grey).name());
+            s.replace("{d2}", colourToGrey(thm.panels, is_grey).name());
+            s.replace("{l1}", colourToGrey(thm.text, is_grey).name());
+            s.replace("{l2}", colourToGrey(thm.dividers, is_grey).name());
+            s.replace("{g1}", colourToGrey(thm.dividers, is_grey).name());
+            s.replace("{t1}", colourToGrey(thm.textbox, is_grey).name());
+            s.replace("{i1}", colourToGrey(thm.text_inactive, is_grey).name());
+            s.replace("{b1}", colourToGrey(thm.button_text, is_grey).name());
+            s.replace("{e1}", colourToGrey(thm.inactive, is_grey).name());
+            s.replace("{a1}", colourToGrey(thm.accent, false).name());
+            s.replace("{a2}", colourToGrey(thm.accent_hover, false).name());
+            s.replace("{a3}", colourToGrey(thm.accent_activated, false).name());
+            s.replace("{c1}", colourToGrey(thm.close_hover, false).name());
+            s.replace("{c2}", colourToGrey(thm.close_acivated, false).name());
 
             QFile f_default(":/Theme/default-theme.qss");
             if (f_default.open(QFile::ReadOnly | QFile::Text)) {

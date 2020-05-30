@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <simulationmanager.h>
 #include <structure/structureparameters.h>
-#include <inelastic/plasmon.h>
+#include <incoherence/inelastic/plasmon.h>
 
 
 namespace Ui {

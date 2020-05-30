@@ -17,10 +17,10 @@
 int main(int argc, char *argv[]) {
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 //    QGuiApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     // Create our application
     QApplication a(argc, argv);
-
 
     // set the app details so we can save/load settings (this is critical for using the QStandardPaths)
     QCoreApplication::setOrganizationName("PetersSoft");
@@ -81,8 +81,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    MainWindow w;
-
 #ifdef _WIN32
 
     if (!settings.contains("theme"))
@@ -94,6 +92,8 @@ int main(int argc, char *argv[]) {
     ThemeManager::setTheme(theme);
 
 #endif
+
+    MainWindow w;
 
     w.show();
 

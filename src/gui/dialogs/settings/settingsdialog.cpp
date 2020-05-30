@@ -45,7 +45,7 @@ OpenClDialog::OpenClDialog(QWidget *parent, std::vector<clDevice>& current_devic
 
     this->setWindowTitle("OpenCL");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 
@@ -58,11 +58,11 @@ GlobalSettingsDialog::GlobalSettingsDialog(QWidget *parent, std::shared_ptr<Simu
 
     this->setWindowTitle("General settings");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 
-AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params) :
+AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<SimulationManager> params) :
     SettingsDialog(parent)
 {
     AberrFrame = new FullAberrationFrame(this, params);
@@ -70,7 +70,7 @@ AberrationsDialog::AberrationsDialog(QWidget *parent, std::shared_ptr<Microscope
 
     this->setWindowTitle("Aberrations");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 
@@ -83,7 +83,7 @@ SimAreaDialog::SimAreaDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Simulation area");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 
@@ -97,7 +97,7 @@ StemDetectorDialog::StemDetectorDialog(QWidget *parent, std::vector<StemDetector
 
     connect(DetFrame, &StemDetectorFrame::detectorsChanged, this, &StemDetectorDialog::coreDetectorsChanged);
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 void StemDetectorDialog::coreDetectorsChanged()
@@ -114,7 +114,7 @@ ThermalScatteringDialog::ThermalScatteringDialog(QWidget *parent, std::shared_pt
 
     this->setWindowTitle("Phonon scattering");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) :
@@ -125,7 +125,7 @@ PlasmonDialog::PlasmonDialog(QWidget *parent, std::shared_ptr<SimulationManager>
 
     this->setWindowTitle("Plasmon scattering");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 
@@ -138,19 +138,19 @@ StemAreaDialog::StemAreaDialog(QWidget *parent, std::shared_ptr<StemArea> area, 
 {
     this->setWindowTitle("STEM area");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 
 
 
-ThemeDialog::ThemeDialog(QWidget *parent) : SettingsDialog(parent) {
-    tFrame = new GeneralSettingsFrame(this);
+ThemeDialog::ThemeDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager) : SettingsDialog(parent) {
+    tFrame = new GeneralSettingsFrame(this, simManager);
     ui->vLayout->insertWidget(0, tFrame);
 
     this->setWindowTitle("General settings");
 
-    this->setFixedSize(this->minimumSizeHint());
+    this->setFixedSize(this->minimumSize());
 }
 
 

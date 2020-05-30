@@ -124,7 +124,7 @@ template <class T>
 void SimulationGeneral<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
 
-    bool do_phonon = job->simManager->inelasticScattering()->phonons()->getFrozenPhononEnabled();
+    bool do_phonon = job->simManager->incoherenceEffects()->phonons()->getFrozenPhononEnabled();
 
     // TODO: check that this is only useful here
     if (job->simManager == current_manager && !do_phonon) {
@@ -162,9 +162,9 @@ void SimulationGeneral<T>::sortAtoms() {
         double dx = 0.0, dy = 0.0, dz = 0.0;
         if (do_phonon) {
             // TODO: need a log guard here or in the structure file?
-            dx = job->simManager->inelasticScattering()->phonons()->generateTdsFactor(atoms[i], 0);
-            dy = job->simManager->inelasticScattering()->phonons()->generateTdsFactor(atoms[i], 1);
-            dz = job->simManager->inelasticScattering()->phonons()->generateTdsFactor(atoms[i], 2);
+            dx = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 0);
+            dy = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 1);
+            dz = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 2);
         }
 
         // TODO: could move this check before the TDS if I can get a good estimate of the maximum displacement
@@ -484,8 +484,8 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CalculateTransmissionFunction.SetArg(23, load_blocks_y);
     CalculateTransmissionFunction.SetArg(24, load_blocks_z);
     CalculateTransmissionFunction.SetArg(25, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
-    CalculateTransmissionFunction.SetArg(26, static_cast<T>(startx));
-    CalculateTransmissionFunction.SetArg(27, static_cast<T>(starty));
+    CalculateTransmissionFunction.SetArg(26, static_cast<T>(startx + reference_perturb_x));
+    CalculateTransmissionFunction.SetArg(27, static_cast<T>(starty + reference_perturb_y));
     if (isFull3D) {
         double int_shift_x = (wavevector[0] / wavevector[2]) * dz / full3dints;
         double int_shift_y = (wavevector[1] / wavevector[2]) * dz / full3dints;

@@ -16,6 +16,7 @@
 
 #include <structure/crystalstructure.h>
 #include <controls/borderlessdialog.h>
+#include <simulationmanager.h>
 
 #include <cif/supercell.h>
 
@@ -78,7 +79,7 @@ private:
     GeneralSettingsFrame* tFrame;
 
 public:
-    explicit ThemeDialog(QWidget *parent);
+    explicit ThemeDialog(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
 };
 
 
@@ -104,7 +105,7 @@ private:
     FullAberrationFrame* AberrFrame;
 
 public:
-    explicit AberrationsDialog(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
+    explicit AberrationsDialog(QWidget *parent, std::shared_ptr<SimulationManager> params);
 
 };
 

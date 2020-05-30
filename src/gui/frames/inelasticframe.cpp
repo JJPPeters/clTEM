@@ -17,36 +17,18 @@ InelasticFrame::InelasticFrame(QWidget *parent) :
     auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
     auto pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
-    connect(ui->edtIterations, &QLineEdit::textChanged, this, &InelasticFrame::checkEditZero);
-
-    ui->edtIterations->setValidator(pIntValidator);
     ui->edtPlasmonSingle->setValidator(pIntValidator);
     ui->edtPhononDefault->setValidator(pmValidator);
 
     ui->edtPhononDefault->setUnits("Å²");
+
+    connect(ui->chkPhonon, &QCheckBox::stateChanged, this, &InelasticFrame::checkStatesChanged);
+    connect(ui->chkPlasmon, &QCheckBox::stateChanged, this, &InelasticFrame::checkStatesChanged);
 }
 
 InelasticFrame::~InelasticFrame()
 {
     delete ui;
-}
-
-void InelasticFrame::checkEditZero(QString dud)
-{
-    (void)dud; // we don't use this
-
-    auto * edt = dynamic_cast<EditUnitsBox*>(sender());
-
-    if(edt == nullptr)
-        return;
-
-    auto t = edt->text().toStdString();
-    double val = edt->text().toDouble();
-
-    if (val <= 0)
-        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
-    else
-        edt->setStyleSheet("");
 }
 
 void InelasticFrame::on_btnPhononMore_clicked() {
@@ -56,7 +38,7 @@ void InelasticFrame::on_btnPhononMore_clicked() {
     // here we update the current manager from the text boxes here so the dialog can show the same
     updateManager();
 
-    auto myDialog = new ThermalScatteringDialog(this, Main->Manager);
+    auto myDialog = new ThermalScatteringDialog(Main, Main->Manager);
     connect(myDialog, &ThermalScatteringDialog::appliedSignal, this, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
@@ -68,7 +50,7 @@ void InelasticFrame::on_btnPlasmonMore_clicked() {
     // here we update the current manager from the text boxes here so the dialog can show the same
     updateManager();
 
-    auto myDialog = new PlasmonDialog(this, Main->Manager);
+    auto myDialog = new PlasmonDialog(Main, Main->Manager);
     connect(myDialog, &PlasmonDialog::appliedSignal, this, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
@@ -77,7 +59,7 @@ void InelasticFrame::updatePhononsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    auto phonon = Main->Manager->inelasticScattering()->phonons();
+    auto phonon = Main->Manager->incoherenceEffects()->phonons();
 
     bool enabled = phonon->getFrozenPhononEnabled();
     double def_u = phonon->getDefault();
@@ -90,7 +72,7 @@ void InelasticFrame::updatePlasmonsGui() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
 
-    auto plasmon = Main->Manager->inelasticScattering()->plasmons();
+    auto plasmon = Main->Manager->incoherenceEffects()->plasmons();
 
     bool enabled = plasmon->enabled();
     bool full_enabled = plasmon->simType() == PlasmonType::Full;
@@ -104,15 +86,6 @@ void InelasticFrame::updatePlasmonsGui() {
     ui->edtPlasmonSingle->setText(QString::number(single));
 }
 
-void InelasticFrame::updateIterationsGui() {
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting inelastic frame to main window.");
-
-    unsigned int its = Main->Manager->inelasticScattering()->storedIterations();
-
-    ui->edtIterations->setText(QString::number(its));
-}
-
 void InelasticFrame::updatePhononsManager() {
     if (Main == nullptr)
         throw std::runtime_error("Error connecting inelastic frame to main window.");
@@ -121,7 +94,7 @@ void InelasticFrame::updatePhononsManager() {
     bool enabled = ui->chkPhonon->isChecked();
     bool force_default = ui->chkPhononDefault->isChecked();
 
-    auto phonon = Main->Manager->inelasticScattering()->phonons();
+    auto phonon = Main->Manager->incoherenceEffects()->phonons();
 
     phonon->setFrozenPhononEnabled(enabled);
     phonon->setDefault(def_u);
@@ -137,7 +110,7 @@ void InelasticFrame::updatePlasmonsManager() {
     bool do_single = ui->rdioPlasmonSingle->isChecked();
     unsigned int single = ui->edtPlasmonSingle->text().toUInt();
 
-    auto plasmon = Main->Manager->inelasticScattering()->plasmons();
+    auto plasmon = Main->Manager->incoherenceEffects()->plasmons();
 
     plasmon->setEnabled(enabled);
     if (do_full)
@@ -145,13 +118,4 @@ void InelasticFrame::updatePlasmonsManager() {
     else if (do_single)
         plasmon->setSimType(PlasmonType::Individual);
     plasmon->setIndividualPlasmon(single);
-}
-
-void InelasticFrame::updateIterationsManager() {
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting inelastic frame to main window.");
-
-    unsigned int in_it = ui->edtIterations->text().toUInt();
-
-    Main->Manager->inelasticScattering()->setIterations(in_it);
 }

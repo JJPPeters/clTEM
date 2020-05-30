@@ -60,6 +60,7 @@ __kernel void ctem_image_d( __global const double2* input,
 							   double2 C41, double2 C43, double2 C45,
 							   double C50, double2 C52, double2 C54, double2 C56,
 							   double obj_ap,
+							   double ap_smooth,
 							   double beta,
 							   double delta)
 {
@@ -72,7 +73,9 @@ __kernel void ctem_image_d( __global const double2* input,
 		double obj_ap2 = (obj_ap * 0.001) / wavelength;
 		double beta2 = (beta * 0.001) / wavelength;
 		double k = native_sqrt((k_x[xid]*k_x[xid]) + (k_y[yid]*k_y[yid]));
-		if (k < obj_ap2)
+		double ap_smooth_radius = (ap_smooth * 0.001) / wavelength; // radius in mrad
+
+		if (k < obj_ap2 + ap_smooth_radius)
 		{
 			double2 w = (double2)(wavelength*k_x[xid], wavelength*k_y[yid]);
 			double2 wc = cConj(w);
@@ -98,8 +101,14 @@ __kernel void ctem_image_d( __global const double2* input,
 
 			double cchi = tC10 + tC12.x + tC21.x + tC23.x + tC30 + tC32.x + tC34.x + tC41.x + tC43.x + tC45.x + tC50 + tC52.x + tC54.x + tC56.x;
 			double chi = 2.0 * M_PI * cchi / wavelength;
-			output[id].x = temporalCoh * spatialCoh * ( input[id].x * native_cos(chi) + input[id].y * native_sin(chi) );
-			output[id].y = temporalCoh * spatialCoh * ( input[id].y * native_cos(chi) - input[id].x * native_sin(chi) );
+
+            // smooth the aperture edge
+            double edge_factor = 1.0;
+			if (fabs(k-obj_ap2) < ap_smooth_radius)
+                edge_factor = 1.0 - smoothstep(obj_ap2 - ap_smooth_radius, obj_ap2 + ap_smooth_radius, k);
+
+			output[id].x = edge_factor * temporalCoh * spatialCoh * ( input[id].x * native_cos(chi) + input[id].y * native_sin(chi) );
+			output[id].y = edge_factor * temporalCoh * spatialCoh * ( input[id].y * native_cos(chi) - input[id].x * native_sin(chi) );
 		}
 		else
 		{

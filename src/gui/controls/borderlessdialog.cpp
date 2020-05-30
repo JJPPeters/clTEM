@@ -10,6 +10,7 @@
 BorderlessDialog::BorderlessDialog(QWidget *parent) :
         QDialog(parent)
 {
+    old_screen = nullptr;
 }
 
 #ifdef _WIN32
@@ -32,12 +33,32 @@ void BorderlessDialog::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     window_borderless();
+
+    auto prnt = dynamic_cast<QWidget*>(this->parent());
+    if (prnt == nullptr)
+        return;
+
+    auto g_prnt = prnt->geometry();
+    auto g_this = geometry();
+
+    auto w = g_this.width();
+    auto h = g_this.height();
+
+    auto cntr_prnt = g_prnt.center();
+    auto l = cntr_prnt.x() - w / 2;
+    auto t = cntr_prnt.y() - h / 2;
+
+    setGeometry(QRect(l, t, w, h));
 }
 
 void BorderlessDialog::window_borderless()
 {
     if (isVisible()) {
         int border = (int)(ThemeManager::CurrentTheme != ThemeManager::Theme::Native);
+        HWND id = (HWND)winId();
+        SetWindowPos(id, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                     SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
         window_shadow(border);
     }
 }
@@ -59,7 +80,6 @@ void BorderlessDialog::window_shadow(int border)
 bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, long *result)
 {
     bool is_borderless = ThemeManager::CurrentTheme != ThemeManager::Theme::Native;
-    auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
 
     if (!is_borderless) {
         return QWidget::nativeEvent(eventType, message, result);
@@ -90,10 +110,16 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
 
             // this handles if we are in the title bar, or the main content
             if(*result == 0) {
-                    if (t_bar && testHitGlobal(t_bar, x, y) && !t_bar->testHitButtonsGlobal(x, y))
-                        *result = HTCAPTION; // this says we are in a title bar...
-                    else
-                        *result = HTCLIENT; // this is client space
+                // get the height of our title bar
+
+                // I use the Qt version here, because it actually works with it's own fucky HiDPI stuff...
+                auto qt_cursor_pos = QCursor::pos();
+                auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+                if (t_bar && testHitGlobal(t_bar, qt_cursor_pos.x(), qt_cursor_pos.y()) && !t_bar->testHitButtonsGlobal(qt_cursor_pos.x(), qt_cursor_pos.y())) {
+                    *result = HTCAPTION; // this says we are in a title bar...
+                } else {
+                    *result = HTCLIENT; // this is client space
+                }
             }
 
             return true;
@@ -102,10 +128,9 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
         {
             return close();
         }
-        default: {
-            return QWidget::nativeEvent(eventType, message, result);
-        }
     }
+
+    return QWidget::nativeEvent(eventType, message, result);
 }
 
 void BorderlessDialog::setWindowTitle(const QString &title) {
@@ -120,7 +145,7 @@ void BorderlessDialog::changeEvent(QEvent *event) {
 
     // also compensate for maximised with extra padding
     if (event->type() == QEvent::WindowStateChange) {
-        auto t_bar = layout()->menuBar()->findChild<FlatTitleBar *>("title_bar");
+        auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
         if (t_bar)
             t_bar->setMaximiseIcon();
 
@@ -129,6 +154,15 @@ void BorderlessDialog::changeEvent(QEvent *event) {
             win->setContentsMargins(0, 9, 0, 0);
         } else {
             win->setContentsMargins(0, 0, 0, 0);
+        }
+    } else if (event->type() == QEvent::ActivationChange) {
+        auto* t_bar = dynamic_cast<FlatTitleBar*>(layout()->menuBar());
+        if (this->isActiveWindow()) {
+            t_bar->setStyleSheet("");
+        } else {
+            QColor disabled_col = qApp->palette().color(QPalette::Disabled, QPalette::Base);
+            QColor disabled_tex_col = qApp->palette().color(QPalette::Disabled, QPalette::Text);
+            t_bar->setStyleSheet("QLabel { color: " + disabled_tex_col.name() + ";} FlatTitleBar { background-color: " + disabled_col.name() + ";}");
         }
     }
 

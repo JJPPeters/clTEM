@@ -19,13 +19,6 @@ if(CLFFT_FOUND)
     message(STATUS "clFFT library: " ${CLFFT_LIBRARIES})
 endif()
 
-find_package(Boost REQUIRED)
-
-if(Boost_FOUND)
-    message(STATUS "Boost include directories: " ${Boost_INCLUDE_DIRS})
-    message(STATUS "Boost libraries: " ${Boost_LIBRARY_DIRS})
-endif()
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 set(HEADERS
@@ -56,5 +49,5 @@ set(SOURCES
 
 add_library(clwrapper SHARED ${SOURCES} ${HEADERS})
 
-target_include_directories (clwrapper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCL_INCLUDE_DIRS} ${CLFFT_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+target_include_directories (clwrapper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCL_INCLUDE_DIRS} ${CLFFT_INCLUDE_DIRS})
 target_link_libraries (clwrapper ${OpenCL_LIBRARIES} ${CLFFT_LIBRARIES} )

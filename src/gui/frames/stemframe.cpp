@@ -10,19 +10,6 @@ StemFrame::StemFrame(QWidget *parent) :
     ui(new Ui::StemFrame)
 {
     ui->setupUi(this);
-
-    QScreen* primary_screen = QGuiApplication::primaryScreen();
-    double pixel_ratio = primary_screen->devicePixelRatio();
-
-    int col1 = 75  / pixel_ratio;
-//    int col2 = 100 / pixel_ratio;
-//    int col3 = 100 / pixel_ratio;
-
-    auto test = dynamic_cast<QGridLayout*>(this->layout());
-
-    test->setColumnMinimumWidth(0, col1);
-//    test->setColumnMinimumWidth(1, col2);
-//    test->setColumnMinimumWidth(2, col3);
 }
 
 StemFrame::~StemFrame()
@@ -55,7 +42,7 @@ void StemFrame::on_btnArea_clicked()
 
     Main->updateManagerFromGui();
 
-    SimAreaDialog* myDialog = new SimAreaDialog(nullptr, Main->Manager);
+    SimAreaDialog* myDialog = new SimAreaDialog(Main, Main->Manager);
 
     connect(myDialog->getFrame(), &AreaLayoutFrame::resolutionChanged, Main->getSimulationFrame(), &SimulationFrame::setResolutionText);
     connect(myDialog->getFrame(), &AreaLayoutFrame::modeChanged, Main, &MainWindow::set_active_mode);
@@ -76,21 +63,6 @@ void StemFrame::updateScaleLabels()
     double scaleX = Main->Manager->stemArea()->getScaleX();
     double scaleY = Main->Manager->stemArea()->getScaleY();
 
-    ui->lblStemScaleX->setText( "x: " + Utils_Qt::numToQString(scaleX, 2) + " Å" );
-    ui->lblStemScaleY->setText( "y: " + Utils_Qt::numToQString(scaleY, 2) + " Å" );
-}
-
-void StemFrame::on_btnSim_clicked()
-{
-    emit startSim();
-}
-
-void StemFrame::setActive(bool active)
-{
-    ui->btnSim->setEnabled(active);
-}
-
-void StemFrame::on_btnCancel_clicked()
-{
-    emit stopSim();
+    ui->lblStemScaleX->setText( "x scale: " + Utils_Qt::numToQString(scaleX, 2) + " Å" );
+    ui->lblStemScaleY->setText( "y scale: " + Utils_Qt::numToQString(scaleY, 2) + " Å" );
 }

@@ -23,6 +23,8 @@ private slots:
 
     void checkValidInputs();
 
+    void checkLiveChanged(int dud) {}
+
 public:
     explicit GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<SimulationManager> simManager);
     ~GlobalSimSettingsFrame();

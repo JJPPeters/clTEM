@@ -14,10 +14,6 @@ class StemFrame : public QWidget
 {
     Q_OBJECT
 
-signals:
-    void startSim();
-    void stopSim();
-
 public:
     explicit StemFrame(QWidget *parent = 0);
 
@@ -34,10 +30,6 @@ private slots:
     void on_btnDetectors_clicked();
 
     void on_btnArea_clicked();
-
-    void on_btnSim_clicked();
-
-    void on_btnCancel_clicked();
 
     void updateDetectors();
 

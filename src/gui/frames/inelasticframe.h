@@ -12,6 +12,9 @@ class InelasticFrame : public QWidget
 {
     Q_OBJECT
 
+signals:
+    void iterationsCheckedChanged();
+
 public:
     explicit InelasticFrame(QWidget *parent = 0);
 
@@ -20,8 +23,6 @@ public:
     void assignMainWindow(MainWindow* m) {Main = m; updateGui();}
 
 private slots:
-    void checkEditZero(QString dud);
-
     void on_btnPhononMore_clicked();
 
     void on_btnPlasmonMore_clicked();
@@ -31,17 +32,17 @@ public slots:
 
     void updatePlasmonsGui();
 
-    void updateIterationsGui();
-
-    void updateGui() {updatePhononsGui(); updatePlasmonsGui(); updateIterationsGui();}
+    void updateGui() {updatePhononsGui(); updatePlasmonsGui();}
 
     void updatePhononsManager();
 
     void updatePlasmonsManager();
 
-    void updateIterationsManager();
+    void updateManager() {updatePhononsManager(); updatePlasmonsManager();}
 
-    void updateManager() {updatePhononsManager(); updatePlasmonsManager(); updateIterationsManager();}
+    void checkStatesChanged(int dud){
+        emit iterationsCheckedChanged();
+    }
 
 private:
     Ui::InelasticFrame *ui;

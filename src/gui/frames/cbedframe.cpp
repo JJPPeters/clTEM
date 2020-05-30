@@ -11,19 +11,6 @@ CbedFrame::CbedFrame(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QScreen* primary_screen = QGuiApplication::primaryScreen();
-    double pixel_ratio = primary_screen->devicePixelRatio();
-
-    int col1 = 75  / pixel_ratio;
-//    int col2 = 100 / pixel_ratio;
-//    int col3 = 100 / pixel_ratio;
-
-    auto test = dynamic_cast<QGridLayout*>(this->layout());
-
-    test->setColumnMinimumWidth(0, col1);
-//    test->setColumnMinimumWidth(1, col2);
-//    test->setColumnMinimumWidth(2, col3);
-
     QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtPosX->setValidator(pmValidator);
@@ -60,24 +47,6 @@ void CbedFrame::on_edtPosX_textChanged(const QString &arg1)
     double v = ui->edtPosX->text().toDouble();
 
     Main->Manager->cbedPosition()->setXPos(v);
-}
-
-void CbedFrame::on_btnSim_clicked()
-{
-    if (Main == nullptr)
-        throw std::runtime_error("Error connecting CBED frame to main window.");
-
-    emit startSim();
-}
-
-void CbedFrame::setActive(bool active)
-{
-    ui->btnSim->setEnabled(active);
-}
-
-void CbedFrame::on_btnCancel_clicked()
-{
-    emit stopSim();
 }
 
 void CbedFrame::updateTextBoxes()

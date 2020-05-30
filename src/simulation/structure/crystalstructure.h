@@ -8,7 +8,7 @@
 
 #include "utilities/commonstructs.h"
 
-#include "inelastic/phonon.h"
+#include "incoherence/inelastic/phonon.h"
 
 #include "atom.h"
 #include "cif/cifreader.h"
@@ -48,7 +48,7 @@ private:
     unsigned int atom_count;
 
     std::mt19937_64 rng;
-    std::uniform_real_distribution<> dist;
+    std::normal_distribution<> dist;
 
     void resetLimits();
     void updateLimits(const Atom &a);

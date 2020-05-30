@@ -17,19 +17,21 @@ public:
 
     ~AberrationFrame();
 
-    void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
+    void assignMainWindow(MainWindow* m) {
+        Main = m;
+        setModeStyles(m->Manager->mode(), m->Manager->ctemImageEnabled());
+        updateTextBoxes();
+    }
 
     void updateAberrations();
 
 private slots:
-    void checkEditZero(QString dud);
-
     void on_btnMore_clicked();
-
-    void on_edtVoltage_textChanged(const QString &arg1);
 
 public slots:
     void updateTextBoxes();
+
+    void setModeStyles(SimulationMode md, bool tem_image);
 
 private:
     Ui::AberrationFrame *ui;

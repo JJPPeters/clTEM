@@ -30,8 +30,7 @@ Currently clTEM has only been released in alpha. It is fully functional, though 
  - [OpenCL](https://www.khronos.org/opencl/) - parallel programming language  
  - [clFFT](https://github.com/clMathLibraries/clFFT) - OpenCL accelerated FFTs  
  - [Qt](http://www.qt.io/) - GUI  
- - [QCustomPlot](http://qcustomplot.com/) - plotting  
- - [Boost](https://www.boost.org/) - additional C++ libraries (used for backwards compatibility of the OpenCL wrapper)  
+ - [QCustomPlot](http://qcustomplot.com/) - plotting 
  - [LibTIFF](http://simplesystems.org/libtiff/) - TIFF input/output  
  - [JSON for Modern C++](https://github.com/nlohmann/json) - JSON file creation/parsing
  - [Easylogging++](https://github.com/zuhd-org/easyloggingpp) - Error and debug Logging

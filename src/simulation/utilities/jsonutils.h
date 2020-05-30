@@ -10,13 +10,13 @@
 #include <ccdparams.h>
 #include "json.hpp"
 
-#include "inelastic/phonon.h"
+#include "incoherence/inelastic/phonon.h"
 
 namespace JSONUtils {
 
     using json = nlohmann::json;
 
-    json BasicManagerToJson(SimulationManager& man, bool force_all = false);
+    json BasicManagerToJson(SimulationManager& man, bool force_all = false, bool sim_relevant = false);
 
     json FullManagerToJson(SimulationManager& man);
 

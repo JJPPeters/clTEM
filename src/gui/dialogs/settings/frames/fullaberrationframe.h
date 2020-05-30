@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <utilities/commonstructs.h>
+#include <simulationmanager.h>
 
 namespace Ui {
 class FullAberrationFrame;
@@ -13,7 +14,7 @@ class FullAberrationFrame : public QWidget
     Q_OBJECT
 
 public:
-    explicit FullAberrationFrame(QWidget *parent, std::shared_ptr<MicroscopeParameters> params);
+    explicit FullAberrationFrame(QWidget *parent, std::shared_ptr<SimulationManager> params);
     ~FullAberrationFrame();
 
 private:
@@ -25,7 +26,9 @@ private:
 
     void setUnits();
 
-    std::shared_ptr<MicroscopeParameters> MicroParams;
+    std::shared_ptr<SimulationManager> Manager;
+
+    void setBackgroundStyles();
 
 private slots:
     void checkEditZero(QString dud);

@@ -16,11 +16,11 @@
 #include <ccdparams.h>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
-#include <frames/aberrationframe.h>
 #include <cif/supercell.h>
 
 #include <variant>
 #include <frames/inelasticframe.h>
+#include <controls/tabpanel.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     BorderlessWindow(parent),
@@ -48,17 +48,25 @@ MainWindow::MainWindow(QWidget *parent) :
 
     loadSavedOpenClSettings();
 
+    bool live_stem_set = settings.value("live stem").toBool();
+    Manager->setLiveStemEnabled(live_stem_set);
+
     ui->setupUi(this);
+
+    auto pIntValidator = new QRegExpValidator(QRegExp("[+]?\\d*"));
+    ui->edtIterations->setValidator(pIntValidator);
 
     setWindowTitle("clTEM");
 
+    dynamic_cast<tabPanel*>(ui->twSim)->setPreserveHeightEnabled(true);
+
     // this just makes it look nice without fannying about with widgets and all that
     int w = width();
-    resize(w, w*0.66);
+    resize(w, w*0.6);
 
-    ImageTab* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
-    ImageTab* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
-    ImageTab* Diff = new ImageTab(ui->twRecip, "Diffraction", TabType::DIFF);
+    auto* Img = new ImageTab(ui->twReal, "Image", TabType::CTEM);
+    auto* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
+    auto* Diff = new ImageTab(ui->twReal, "Diffraction", TabType::DIFF);
 
     StatusBar = new StatusLayout();
 
@@ -66,43 +74,41 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->twReal->addTab(Img, QString::fromStdString(Img->getTabName()));
     ui->twReal->addTab(EwAmp, QString::fromStdString(EwAmp->getTabName()));
-
-    ui->twRecip->addTab(Diff, QString::fromStdString(Diff->getTabName()));
+    ui->twReal->addTab(Diff, QString::fromStdString(Diff->getTabName()));
 
     // this is required so the frame and then dialog can access the current aberrations at any time
     // could be avoided but I've used Qt designer with the .ui files and so on
-    ui->tAberr->assignMainWindow(this);
+
     ui->tSim->assignMainWindow(this);
+
+    ui->tMicroscope->assignMainWindow(this);
+    ui->tAberr->assignMainWindow(this);
+    ui->tInelastic->assignMainWindow(this);
+    ui->tIncoherence->assignMainWindow(this);
+
     ui->tStem->assignMainWindow(this);
     ui->tCbed->assignMainWindow(this);
-    ui->tInelastic->assignMainWindow(this);
 
     connect(ui->tSim, &SimulationFrame::resolutionSet, this, &MainWindow::resolution_changed);
 
-    connect(ui->tStem, &StemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
-    connect(ui->tTem, &TemFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
-    connect(ui->tCbed, &CbedFrame::startSim, this, &MainWindow::on_actionSimulate_EW_triggered);
-    connect(ui->twMode, &QTabWidget::currentChanged, this, &MainWindow::on_twMode_currentChanged);
-
-    connect(ui->tTem, &TemFrame::stopSim, this, &MainWindow::cancel_simulation);
-    connect(ui->tCbed, &CbedFrame::stopSim, this, &MainWindow::cancel_simulation);
-    connect(ui->tStem, &StemFrame::stopSim, this, &MainWindow::cancel_simulation);
+    connect(ui->btnStartSim, &QPushButton::clicked, this, &MainWindow::on_actionSimulate_EW_triggered);
+    connect(ui->btnCancelSim, &QPushButton::clicked, this, &MainWindow::cancel_simulation);
 
     connect(ui->tTem, &TemFrame::setCtemCrop, this, &MainWindow::set_ctem_crop);
+    connect(ui->tTem, &TemFrame::setCtemImage, this, &MainWindow::ctemImageToggled);
 
     connect(this, &MainWindow::sliceProgressUpdated, this, &MainWindow::sliceProgressChanged);
     connect(this, &MainWindow::totalProgressUpdated, this, &MainWindow::totalProgressChanged);
     connect(this, &MainWindow::imagesReturned, this, &MainWindow::imagesChanged);
 
+    connect(ui->edtIterations, &QLineEdit::textChanged, this, &MainWindow::checkEditZero);
+
+    connect(ui->tInelastic, &InelasticFrame::iterationsCheckedChanged, this, &MainWindow::iterationsToggled);
+    connect(ui->tIncoherence, &IncoherenceFrame::iterationsCheckedChanged, this, &MainWindow::iterationsToggled);
+
     int n = ui->twReal->count();
     for (int j = 0; j < n; ++j) {
         auto *tab = (ImageTab *) ui->twReal->widget(j);
-        connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
-        connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
-    }
-    n = ui->twRecip->count();
-    for (int j = 0; j < n; ++j) {
-        auto *tab = (ImageTab *) ui->twRecip->widget(j);
         connect(tab, &ImageTab::saveDataActivated, this, &MainWindow::saveTiff);
         connect(tab, &ImageTab::saveImageActivated, this, &MainWindow::saveBmp);
     }
@@ -118,6 +124,8 @@ MainWindow::MainWindow(QWidget *parent) :
         msgBox.setMinimumSize(160, 125);
         msgBox.exec();
     }
+
+    iterationsToggled();
 
     updateGuiFromManager();
     ui->tTem->setCropCheck( true );
@@ -301,6 +309,7 @@ void MainWindow::on_twMode_currentChanged(int index)
     else if (index == 2)
         Manager->setMode(SimulationMode::CBED);
 
+    updateModeTextBoxes();
     updateScales();
 }
 
@@ -355,15 +364,15 @@ void MainWindow::on_actionSimulate_EW_triggered()
     // TODO: move to the manager class (then we can easily call it from the command line too)
     // TODO: operate on an exception basis...
     // Check our plasmon configuration is viable
-    if (Manager->inelasticScattering()->plasmons()->enabled()) {
+    if (Manager->incoherenceEffects()->plasmons()->enabled()) {
         int parts = Manager->totalParts();
-        Manager->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        Manager->incoherenceEffects()->plasmons()->initDepthVectors(parts);
         auto z_lims = Manager->simulationCell()->crystalStructure()->limitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
         for (int i = 0; i < parts; ++i) {
-            valid = Manager->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
+            valid = Manager->incoherenceEffects()->plasmons()->generateScatteringDepths(i, thk);
 
             if (!valid) {
                 QMessageBox msgBox(this);
@@ -424,7 +433,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
         simulationFailed();
     }
 
-    nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm);
+    nlohmann::json original_settings = JSONUtils::BasicManagerToJson(sm, false, true);
     original_settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
     // we've been given a list of images, got to display them now....
@@ -482,10 +491,10 @@ void MainWindow::imagesChanged(SimulationManager sm)
         }
         else if (name == "Diff")
         {
-            int n = ui->twRecip->count();
+            int n = ui->twReal->count();
             for (int j = 0; j < n; ++j)
             {
-                ImageTab *tab = (ImageTab *) ui->twRecip->widget(j);
+                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
                 if (tab->getTabName() == "Diffraction") {
                     auto settings = original_settings;
                     settings["microscope"].erase("aberrations");
@@ -531,15 +540,14 @@ void MainWindow::imagesChanged(SimulationManager sm)
         }
     }
 
-    simulationComplete();
+    if (sm.allPartsCompleted())
+        simulationComplete();
 }
 
 void MainWindow::setUiActive(bool active)
 {
     //disable things the user shouldn't be able to access whilst a simulation is running
-    ui->tTem->setActive(active);
-    ui->tCbed->setActive(active);
-    ui->tStem->setActive(active);
+    ui->btnStartSim->setEnabled(active);
 }
 
 void MainWindow::loadSavedOpenClSettings()
@@ -652,7 +660,7 @@ void MainWindow::loadExternalSources()
     Kernels::sum_reduction_d = Utils_Qt::kernelToChar("sum_reduction_d.cl");
     Kernels::bilinear_translate_d = Utils_Qt::kernelToChar("bilinear_translate_d.cl");
     Kernels::complex_to_real_d = Utils_Qt::kernelToChar("complex_to_real_d.cl");
-    
+
     // load parameters
     // get all the files in the parameters folder
     auto params_path = QGuiApplication::applicationDirPath() + "/params/";
@@ -694,6 +702,18 @@ void MainWindow::set_active_mode(int mode)
 SimulationFrame *MainWindow::getSimulationFrame() {return ui->tSim;}
 StemFrame *MainWindow::getStemFrame() {return ui->tStem;}
 CbedFrame *MainWindow::getCbedFrame() {return ui->tCbed;}
+
+void MainWindow::updateAberrationBoxes() {
+    ui->tAberr->updateTextBoxes();
+    ui->tMicroscope->updateTextBoxes();
+    ui->tIncoherence->updateTemTextBoxes();
+}
+
+void MainWindow::updateAberrationManager() {
+    ui->tAberr->updateAberrations();
+    ui->tIncoherence->updateManager();
+    ui->tMicroscope->updateManagerFromGui();
+}
 
 void MainWindow::set_ctem_crop(bool state) {
     // do the real images
@@ -744,7 +764,6 @@ void MainWindow::saveTiff(bool full_stack) {
 
         for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
             origin->getPlot()->getData(data, sx, sy, i); // get data
-
             // get the name to use for the output
             //  remember we don't start getting slices from the first slice
             unsigned int slice_id = (i+1)*si-1;
@@ -866,13 +885,15 @@ void MainWindow::on_actionExport_parameters_triggered() {
 }
 
 void MainWindow::updateManagerFromGui() {
-    // things to do:
-    // CBED position is set when it is changed...
-    // Aberrations
-    // CBED/STEM TDS
-    // CTEM CCD stuff
+    // update incoherent/inelastic iterations
+    unsigned int its = ui->edtIterations->text().toUInt();
+    Manager->incoherenceEffects()->setIterations(its);
+
+    ui->tMicroscope->updateManagerFromGui();
 
     ui->tInelastic->updateManager();
+
+    ui->tIncoherence->updateManager();
 
     // update aberrations from the main tab
     // aberrations in the dialog are updated when you click apply
@@ -886,8 +907,13 @@ void MainWindow::updateManagerFromGui() {
 }
 
 void MainWindow::updateGuiFromManager() {
-    // set aberrations on the panel
-    ui->tAberr->updateTextBoxes();
+    // update the iterations textbox
+    ui->edtIterations->setText(QString::number(Manager->incoherenceEffects()->storedIterations()));
+
+    // set aberrations frame
+    // set microscope frame
+    // set inelastic frame
+    updateAberrationBoxes();
 
     // set CBED stuff (position/TDS)
     ui->tCbed->updateTextBoxes();
@@ -897,6 +923,8 @@ void MainWindow::updateGuiFromManager() {
 
     // set inelastic frame parameters
     ui->tInelastic->updateGui();
+
+    ui->tIncoherence->updateTextBoxes();
 
     // set CTEM CCD stuff
     ui->tTem->update_ccd_boxes(Manager);
@@ -932,20 +960,24 @@ void MainWindow::on_actionSet_area_triggered()
 
 void MainWindow::on_actionAberrations_triggered()
 {
-    ui->tAberr->updateAberrations(); // here we update the current aberrations from the text boxes here so the dialog can show the same
-    AberrationsDialog* myDialog = new AberrationsDialog(this, Manager->microscopeParams());
-    connect(myDialog, &AberrationsDialog::appliedSignal, ui->tAberr, &AberrationFrame::updateTextBoxes);
+    // here we update the current aberrations from the text boxes here so the dialog can show the same
+    updateAberrationManager();
+
+    auto* myDialog = new AberrationsDialog(this, Manager);
+
+    connect(myDialog, &AberrationsDialog::appliedSignal, this, &MainWindow::updateAberrationBoxes);
+
     myDialog->exec();
 }
 
 void MainWindow::on_actionThermal_scattering_triggered() {
-    ThermalScatteringDialog* myDialog = new ThermalScatteringDialog(this, Manager);
+    auto* myDialog = new ThermalScatteringDialog(this, Manager);
     connect(myDialog, &ThermalScatteringDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePhononsGui);
     myDialog->exec();
 }
 
 void MainWindow::on_actionPlasmons_triggered() {
-    PlasmonDialog* myDialog = new PlasmonDialog(this, Manager);
+    auto* myDialog = new PlasmonDialog(this, Manager);
     connect(myDialog, &PlasmonDialog::appliedSignal, ui->tInelastic, &InelasticFrame::updatePlasmonsGui);
     myDialog->exec();
 }
@@ -966,7 +998,7 @@ void MainWindow::updateVoltageMrad(double voltage) {
 
 void MainWindow::on_actionTheme_triggered() {
     // open out theme selector dialog
-    ThemeDialog* myDialog = new ThemeDialog(this);
+    ThemeDialog* myDialog = new ThemeDialog(this, Manager);
     myDialog->exec();
 }
 
@@ -1045,4 +1077,49 @@ void MainWindow::on_actionShow_default_triggered() {
         dir.mkpath(".");
 
     GuiUtils::openInDefault(QString::fromStdString(dirName));
+}
+
+void MainWindow::updateModeTextBoxes() {
+    auto md = Manager->mode();
+    bool tem_image = Manager->ctemImageEnabled();
+
+    ui->tMicroscope->setModeStyles(md, tem_image);
+    ui->tAberr->setModeStyles(md, tem_image);
+    ui->tIncoherence->setModeStyles(md, tem_image);
+}
+
+void MainWindow::iterationsToggled() {
+    // update all the iterations frames
+
+
+
+    ui->tInelastic->updateManager();
+    ui->tIncoherence->updateManager();
+
+    bool use = Manager->incoherenceEffects()->enabled(Manager->mode());
+
+    if (use) {
+        ui->edtIterations->setUnits("");
+    } else {
+        ui->edtIterations->setUnits("(N/A)");
+    }
+
+    ui->edtIterations->update();
+}
+
+bool MainWindow::event(QEvent *event) {
+    // this might get spammed a bit, not sure if it is supposed to
+    if (event->type() == QEvent::PaletteChange)
+    {
+        auto md = Manager->mode();
+        auto im = Manager->ctemImageEnabled();
+
+//        iterationsToggled();
+        ui->tMicroscope->setModeStyles(md, im);
+        ui->tAberr->setModeStyles(md, im);
+        ui->tIncoherence->setModeStyles(md, im);
+    }
+
+    // very important or no other events will get through
+    return BorderlessWindow::event(event);
 }

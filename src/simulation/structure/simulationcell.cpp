@@ -36,6 +36,8 @@ SimulationCell &SimulationCell::operator=(const SimulationCell &sm) {
 
     if (sm.crystal_structure)
         crystal_structure = std::make_shared<CrystalStructure>(*(sm.crystal_structure));
+
+    return *this;
 }
 
 void SimulationCell::roundPaddingZ() {

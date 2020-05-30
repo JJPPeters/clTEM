@@ -8,7 +8,8 @@
 #include <list>
 #include <iostream>
 #include <vector>
-#include "boost/shared_ptr.hpp"
+#include <memory>
+#include <algorithm>
 
 #include "cldevice.h"
 #include "CL/cl.hpp"

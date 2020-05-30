@@ -53,6 +53,7 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
 
     connect(ui->edt3dIntegrals, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
     connect(ui->edtParallelPx, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
+
 }
 
 GlobalSimSettingsFrame::~GlobalSimSettingsFrame() {

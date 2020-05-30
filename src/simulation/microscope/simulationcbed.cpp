@@ -7,7 +7,7 @@
 
 template <class T>
 void SimulationCbed<T>::initialiseBuffers() {
-    SimulationCtem<T>::initialiseBuffers();
+    // this does nothing!
 }
 
 template <>
@@ -18,8 +18,6 @@ void SimulationCbed<float>::initialiseKernels() {
     }
 
     do_initialise_cbed = false;
-
-    SimulationGeneral<float>::initialiseKernels();
 }
 
 template <>
@@ -30,8 +28,6 @@ void SimulationCbed<double>::initialiseKernels() {
     }
 
     do_initialise_cbed = false;
-
-    SimulationGeneral<double>::initialiseKernels();
 }
 
 // n_parallel is the index (from 0) of the current parallel pixel
@@ -45,6 +41,7 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     double pixelscale = job->simManager->realScale();
     auto mParams = job->simManager->microscopeParams();
     double wavelength = mParams->Wavelength();
+    double voltage = mParams->Voltage;
 
     clWorkGroup WorkSize(resolution, resolution, 1);
 
@@ -66,16 +63,20 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     posx = resolution - posx;
     posy = resolution - posy;
 
+    double delta_focus = 0.0;
+    if (job->simManager->incoherenceEffects()->chromatic()->enabled())
+        delta_focus = job->simManager->incoherenceEffects()->chromatic()->getFocusChange(voltage);
+
     InitProbeWavefunction.SetArg(0, clWaveFunctionRecip[n_parallel]);
     InitProbeWavefunction.SetArg(1, resolution);
     InitProbeWavefunction.SetArg(2, resolution);
     InitProbeWavefunction.SetArg(3, clXFrequencies);
     InitProbeWavefunction.SetArg(4, clYFrequencies);
-    InitProbeWavefunction.SetArg(5, static_cast<T>(posx));
-    InitProbeWavefunction.SetArg(6, static_cast<T>(posy));
+    InitProbeWavefunction.SetArg(5, static_cast<T>(posx + reference_perturb_x));
+    InitProbeWavefunction.SetArg(6, static_cast<T>(posy + reference_perturb_y));
     InitProbeWavefunction.SetArg(7, static_cast<T>(pixelscale));
     InitProbeWavefunction.SetArg(8, static_cast<T>(wavelength));
-    InitProbeWavefunction.SetArg(9, static_cast<T>(mParams->C10));
+    InitProbeWavefunction.SetArg(9, static_cast<T>(mParams->C10 + delta_focus));
     InitProbeWavefunction.SetArg(10, static_cast<std::complex<T>>(mParams->C12.getComplex()));
     InitProbeWavefunction.SetArg(11, static_cast<std::complex<T>>(mParams->C21.getComplex()));
     InitProbeWavefunction.SetArg(12, static_cast<std::complex<T>>(mParams->C23.getComplex()));
@@ -89,8 +90,8 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     InitProbeWavefunction.SetArg(20, static_cast<std::complex<T>>(mParams->C52.getComplex()));
     InitProbeWavefunction.SetArg(21, static_cast<std::complex<T>>(mParams->C54.getComplex()));
     InitProbeWavefunction.SetArg(22, static_cast<std::complex<T>>(mParams->C56.getComplex()));
-    InitProbeWavefunction.SetArg(23, static_cast<T>(mParams->Aperture));
-    InitProbeWavefunction.SetArg(24, static_cast<T>(mParams->ApertureSmoothing));
+    InitProbeWavefunction.SetArg(23, static_cast<T>(mParams->CondenserAperture));
+    InitProbeWavefunction.SetArg(24, static_cast<T>(mParams->CondenserApertureSmoothing));
 
     CLOG(DEBUG, "sim") << "Run probe wavefunction generation kernel";
     InitProbeWavefunction.run(WorkSize);
@@ -109,6 +110,17 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
 
 template<class GPU_Type>
 void SimulationCbed<GPU_Type>::initialiseSimulation() {
+    // initialise our source perturbations here, they are needed when initialising the transmission function
+    // (as we will need to adjust the limits of our reference frame a bit)
+    auto ss = job->simManager->incoherenceEffects()->source();
+    if (ss->enabled()) {
+        reference_perturb_x = ss->getOffset();
+        reference_perturb_y = ss->getOffset();
+    } else {
+        reference_perturb_x = 0.0;
+        reference_perturb_y = 0.0;
+    }
+
     initialiseBuffers();
     initialiseKernels();
 
@@ -133,14 +145,14 @@ void SimulationCbed<GPU_Type>::simulate() {
     unsigned int slice_step = job->simManager->intermediateSliceStep();
     unsigned int output_count = 1;
     if (slice_step > 0)
-        output_count = std::ceil((float) numberOfSlices / slice_step);
+        output_count = std::ceil((double) numberOfSlices / slice_step);
 
     auto diff = Image<double>(resolution, resolution, output_count);
 
     //
     // plasmon setup
     //
-    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->inelasticScattering()->plasmons();
+    std::shared_ptr<PlasmonScattering> plasmon = job->simManager->incoherenceEffects()->plasmons();
     bool do_plasmons = plasmon->enabled();
     double slice_dz = job->simManager->simulationCell()->sliceThickness();
     int padding_slices = (int) job->simManager->simulationCell()->preSliceCount();
@@ -179,7 +191,7 @@ void SimulationCbed<GPU_Type>::simulate() {
 
             // update parameters for next scattering event!
             scattering_count++;
-            next_scattering_depth = job->simManager->inelasticScattering()->plasmons()->getGeneratedDepth(job->id, scattering_count);
+            next_scattering_depth = job->simManager->incoherenceEffects()->plasmons()->getGeneratedDepth(job->id, scattering_count);
         }
 
         if (pool.isStopped())

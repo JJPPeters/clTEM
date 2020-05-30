@@ -13,15 +13,12 @@ class TemFrame : public QWidget
     Q_OBJECT
 
 signals:
-    void startSim();
-    void stopSim();
     void setCtemCrop(bool);
+    void setCtemImage(bool);
 
 public:
     explicit TemFrame(QWidget *parent = 0);
     ~TemFrame();
-
-    void setActive(bool active);
 
     void setCropCheck(bool state);
     void setSimImageCheck(bool state);
@@ -41,11 +38,9 @@ public:
 private slots:
     void on_edtDose_textChanged(const QString &arg1);
 
-    void on_btnSim_clicked();
-
-    void on_btnCancel_clicked();
-
     void on_chkCrop_toggled(bool state);
+
+    void on_chkSimImage_toggled(bool state);
 
 private:
     Ui::TemFrame *ui;

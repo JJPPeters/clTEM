@@ -3,7 +3,7 @@
 #include <list>
 #include <clwrapper/clstatic.h>
 #include <simulationmanager.h>
-#include <utilities/json.hpp>
+#include <json.hpp>
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
 #include <utilities/simutils.h>
@@ -11,7 +11,7 @@
 #include "getopt.h"
 #include "parseopencl.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <threading/simulationrunner.h>
 #include <structure/structureparameters.h>
@@ -30,7 +30,7 @@
 
 #include "utilities/logging.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 static std::string out_path;
 
@@ -168,7 +168,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
         std::vector<double> data;
 
         for (int i = 0; i < im.getSliceSize(); ++i) {
-            data = im.getSlice(i, false);
+            data = im.getWeightedSlice(i, false);
 
             // get the name to use for the output
             //  remember we don't start getting slices from the first slice
@@ -181,13 +181,13 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
         }
 
     } else {
-        fileio::SaveTiff<float>(filename+".tif", im.getSlice(0, false), im.getWidth(), im.getHeight()); // save data
+        fileio::SaveTiff<float>(filename+".tif", im.getWeightedSlice(0, false), im.getWidth(), im.getHeight()); // save data
     }
 }
 
 void imageReturned(SimulationManager sm)
 {
-    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm);
+    nlohmann::json settings = JSONUtils::BasicManagerToJson(sm, false, true);
     settings["filename"] = sm.simulationCell()->crystalStructure()->fileName();
 
 #ifdef _WIN32
@@ -690,7 +690,7 @@ int main(int argc, char *argv[])
     auto p_name = JSONUtils::readJsonEntry<std::string>(j, "potentials");
     man_ptr->setStructureParameters(p_name);
 
-    for (const auto& params_file: boost::filesystem::directory_iterator(params_path))
+    for (const auto& params_file: fs::directory_iterator(params_path))
         Utils::readParams(params_file.path().string());
 
     // check all our prerequisites here (some repeated?)
@@ -702,15 +702,15 @@ int main(int argc, char *argv[])
     }
 
     // sort plasmon stuff
-    if (man_ptr->inelasticScattering()->plasmons()->enabled()) {
+    if (man_ptr->incoherenceEffects()->plasmons()->enabled()) {
         int parts = man_ptr->totalParts();
-        man_ptr->inelasticScattering()->plasmons()->initDepthVectors(parts);
+        man_ptr->incoherenceEffects()->plasmons()->initDepthVectors(parts);
         auto z_lims = man_ptr->simulationCell()->crystalStructure()->limitsZ();
         double thk = z_lims[1] - z_lims[0];
 
         bool valid = false;
         for (int i = 0; i < parts; ++i) {
-            valid = man_ptr->inelasticScattering()->plasmons()->generateScatteringDepths(i, thk);
+            valid = man_ptr->incoherenceEffects()->plasmons()->generateScatteringDepths(i, thk);
 
         if (!valid) {
             std::cout << "Could not generate valid plasmon configuration." << std::endl;

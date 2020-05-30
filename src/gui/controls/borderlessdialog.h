@@ -37,6 +37,7 @@ public:
     explicit BorderlessDialog(QWidget *parent = nullptr);
 
 #ifdef _WIN32
+
     void setMenuBarVisible(bool visible);
 
     bool testHitGlobal(QWidget* w, long x, long y);
@@ -58,7 +59,24 @@ public:
     bool nativeEvent(const QByteArray& eventType, void *message, long *result) override;
 
 private:
-    FlatTitleBar* tb;
+    QScreen* old_screen;
+
+    // This is to fix an error when moving the borderless window between screens
+    // basically I detect when I have moved between screens, and just set the size to be the same!
+    void moveEvent(QMoveEvent * e) override
+    {
+        if (old_screen == nullptr) {
+            old_screen = screen();
+        } else if (old_screen == screen()) {
+            // screen is the same, we don't case...
+        } else {
+            old_screen = screen();
+
+            SetWindowPos((HWND) winId(), NULL, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                         SWP_FRAMECHANGED | SWP_NOACTIVATE);
+        }
+    }
 #endif
 };
 

@@ -7,7 +7,7 @@
 #include <simulationmanager.h>
 
 #include "imageplot/imageplotwidget.h"
-#include "utilities/json.hpp"
+#include <json.hpp>
 
 enum class TabType{
     CTEM,

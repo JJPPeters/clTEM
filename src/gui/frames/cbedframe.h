@@ -23,8 +23,6 @@ public:
 
     void assignMainWindow(MainWindow* m) {Main = m; updateTextBoxes();}
 
-    void setActive(bool active);
-
 public slots:
     void updateTextBoxes();
 
@@ -32,10 +30,6 @@ private slots:
     void on_edtPosY_textChanged(const QString &arg1);
 
     void on_edtPosX_textChanged(const QString &arg1);
-
-    void on_btnSim_clicked();
-
-    void on_btnCancel_clicked();
 
 private:
     Ui::CbedFrame *ui;
