@@ -1,0 +1,19 @@
+- title: Home
+  url: /
+
+- title: Guide
+  url: /guide
+  sublinks:
+    - title: Input
+      url: /guide/input
+    - title: OpenCL
+      url: /guide/opencl
+    - title: Configuration
+      url: /guide/config
+    - title: Simulating
+      url: /guide/simulate
+    - title: Export
+      url: /guide/export
+
+- title: Compiling
+  url: /compile
