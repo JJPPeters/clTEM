@@ -1,7 +1,7 @@
 base: "404040"
-accent: "2679D5"
-alternative: "2668A4"
+accent: "689324"
+alternative: "3C590F"
 logo: "/assets/logo.svg" # path from base that contains the main logo/icon
 texture: "/assets/texture.png" # path from base that contains the header background (tiled) texture
-overlay_start: "40404021"
-overlay_end: "40404099"
+overlay_start: "00000021"
+overlay_end: "00000099"
