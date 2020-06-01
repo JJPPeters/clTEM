@@ -9,10 +9,10 @@ title: Home
 clTEM is an OpenCL accelerate implementation of the multislice algorithm for simulating transmission electron microscope images. The use of OpenCL means that the code will run on any hardware (AMD, Nvidia and Intel), particularly designed to exploit the power of GPUs. Some example images are shown below.
 
 <div class="image-figure">
-    <img style="width:300px;" src="{{'/assets/images/exp-tem.jpg' | relative_url}}" alt="TEM simulation">
-    <img style="width:300px;" src="{{'/assets/images/exp-cbed.jpg' | relative_url}}" alt="CBED simulation">
+    <img style="width:300px;" src="{{'/assets/images/ctem.jpg' | relative_url}}" alt="TEM simulation">
+    <img style="width:300px;" src="{{'/assets/images/cbed.jpg' | relative_url}}" alt="CBED simulation">
     <p>
-        <span class="figure-title">Figure</span> Conventional TEM and CBED image from a PbTi<sub>0.8</sub>Zr<sub>0.2</sub>O<sub>3</sub>-SrRuO<sub>3</sub> simulated using an Nvidia GeForce GTX 670. The TEM image has simulated noise from a Gatan Orius camera and the CBED image has 10 TDS configurations.
+        <span class="figure-title">Figure</span> Conventional TEM and CBED image from a simulated using an AMD Vega 56. The TEM image has simulated noise from a Gatan Orius camera and the CBED image has 10 TDS configurations.
     </p>
 </div> 
 
@@ -23,19 +23,22 @@ The main features of clTEM are
   - Support for TEM, STEM and CBED simulations
   - OpenCL acceleration for quick simulations on various devices
   - Multi-device support - STEM and CBED simulation times can be drastically decreased
-  - Thermal diffuse scattering simulation using hte frozen phonon model
+  - Thermal diffuse scattering simulation using the frozen phonon model
+  - Plasmon simulations
   - Simple input files with full occupancy and thermal vibrations defined per atom. See [here]({{ site.baseurl }}/guide/input) for more
-  - Option to use the classic single slice model or a full 3D approximation
+  - Option to use the classic projected potential model or a full 3D approximation
   - Incorporate detective quantum efficiency (DQE) and noise transfer function (NTF) into TEM simulations
   - Use via na intuitive GUI or via command line
   - Compatible with Linux and Windows
 
 <div class="image-figure">
-    <img style="width:80%;" src="{{'/assets/images/cltem-screenshot.jpg' | relative_url}}" alt="clTEM interface">
+    <img style="width:300px;" src="{{'/assets/images/ui1.jpg' | relative_url}}" alt="clTEM interface theme">
+    <img style="width:300px;" src="{{'/assets/images/ui2.jpg' | relative_url}}" alt="clTEM interface native">
     <p>
-        <span class="figure-title">Figure</span> Example screenshot of the clTEM interface running on linux mint 18.3 with the Arc theme.
+        <span class="figure-title">Figure</span> Example screenshots of the clTEM interface using the the custom and native themes. Both running on Windows 10.
     </p>
 </div> 
+
 
 ### Background
 
