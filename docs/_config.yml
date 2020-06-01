@@ -1,0 +1,15 @@
+remote_theme: JJPPeters/jekyll-graphene-theme
+
+# setup
+title: clTEM # this is the main title in the header
+tagline: GPU accelerated multislice # this is the text that appears next to the title
+baseurl: /clTEM # the subpath of your site, e.g. /blog
+url: https://jjppeters.github.io/clTEM/ # the base hostname & protocol for your site, e.g. http://example.com
+repository: JJPPeters/clTEM
+
+# contact
+author:
+  name: J. J. P. Peters
+  github_username: JJPPeters
+  url: https://github.com/JJPPeters
+  email: jonathanjppeters@gmail.com
