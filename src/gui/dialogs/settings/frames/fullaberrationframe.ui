@@ -24,211 +24,7 @@
        <string>Tab 1</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="2" column="5" colspan="2">
-        <widget class="EditUnitsBox" name="edtConAp">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="label_78">
-         <property name="text">
-          <string>kV: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="11" colspan="2">
-        <widget class="EditUnitsBox" name="edtConverge">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="7">
-        <widget class="QLabel" name="label_81">
-         <property name="text">
-          <string>Aper. σ: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4" colspan="3">
-        <widget class="Line" name="line_14">
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-         <property name="lineWidth">
-          <number>2</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="EditUnitsBox" name="edtBeamAzimuth">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="7" colspan="3">
-        <widget class="QLabel" name="label_100">
-         <property name="text">
-          <string>Objective Aper.</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="10">
-        <widget class="QLabel" name="label_90">
-         <property name="text">
-          <string>Δ: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="5" colspan="2">
-        <widget class="EditUnitsBox" name="edtConApSmooth">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="8" colspan="2">
-        <widget class="EditUnitsBox" name="edtObjAp">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="11" colspan="2">
-        <widget class="EditUnitsBox" name="edtDefocusSpread">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="EditUnitsBox" name="edtBeamTilt">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2" colspan="2">
-        <widget class="EditUnitsBox" name="edtVoltage">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" colspan="3">
-        <widget class="QLabel" name="label_86">
-         <property name="text">
-          <string>General</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="8" colspan="2">
-        <widget class="EditUnitsBox" name="edtObjApSmooth">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="7">
-        <widget class="QLabel" name="label_94">
-         <property name="text">
-          <string>Aper.: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="4">
-        <widget class="QLabel" name="label_87">
-         <property name="text">
-          <string>Aper.: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="10" colspan="3">
-        <widget class="QLabel" name="label_99">
-         <property name="text">
-          <string>TEM coherence</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="label_75">
-         <property name="text">
-          <string>Tilt: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="7" colspan="3">
-        <widget class="Line" name="line_13">
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-         <property name="lineWidth">
-          <number>2</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1" colspan="3">
+       <item row="2" column="4" colspan="2">
         <widget class="Line" name="line_11">
          <property name="frameShadow">
           <enum>QFrame::Plain</enum>
@@ -241,17 +37,44 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="4" colspan="3">
-        <widget class="QLabel" name="label_101">
+       <item row="3" column="8">
+        <widget class="QLabel" name="label_94">
          <property name="text">
-          <string>Condenser Aper.</string>
+          <string>Aper.: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="8" colspan="3">
+        <widget class="QLabel" name="label_100">
+         <property name="text">
+          <string>Objective Aper.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
-       <item row="2" column="10">
+       <item row="0" column="4" colspan="2">
+        <widget class="QLabel" name="label_86">
+         <property name="text">
+          <string>General</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="7">
+        <widget class="EditUnitsBox" name="edtConApSmooth">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="11">
         <widget class="QLabel" name="label_91">
          <property name="text">
           <string>α: </string>
@@ -261,8 +84,55 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="11">
+        <widget class="QLabel" name="label_90">
+         <property name="text">
+          <string>Δ: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="4">
-        <widget class="QLabel" name="label_97">
+        <widget class="QLabel" name="label_78">
+         <property name="text">
+          <string>kV: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="12">
+        <widget class="EditUnitsBox" name="edtDefocusSpread">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="8" colspan="3">
+        <widget class="Line" name="line_13">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="9">
+        <widget class="EditUnitsBox" name="edtObjApSmooth">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="8">
+        <widget class="QLabel" name="label_81">
          <property name="text">
           <string>Aper. σ: </string>
          </property>
@@ -271,7 +141,50 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="10" colspan="3">
+       <item row="3" column="3">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="6" colspan="2">
+        <widget class="QLabel" name="label_101">
+         <property name="text">
+          <string>Condenser Aper.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="9">
+        <widget class="EditUnitsBox" name="edtObjAp">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="6" colspan="2">
+        <widget class="Line" name="line_14">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="11" colspan="2">
         <widget class="Line" name="line_12">
          <property name="frameShadow">
           <enum>QFrame::Plain</enum>
@@ -284,7 +197,7 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="13">
+       <item row="3" column="13">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -296,6 +209,97 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="3" column="6">
+        <widget class="QLabel" name="label_87">
+         <property name="text">
+          <string>Aper.: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <widget class="QLabel" name="label_75">
+         <property name="text">
+          <string>Tilt: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5">
+        <widget class="EditUnitsBox" name="edtVoltage">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="12">
+        <widget class="EditUnitsBox" name="edtConverge">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="6">
+        <widget class="QLabel" name="label_97">
+         <property name="text">
+          <string>Aper. σ: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="7">
+        <widget class="EditUnitsBox" name="edtConAp">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="5">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="EditUnitsBox" name="edtBeamTilt">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="EditUnitsBox" name="edtBeamAzimuth">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="11" colspan="2">
+        <widget class="QLabel" name="label_99">
+         <property name="text">
+          <string>TEM coherence</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -311,44 +315,20 @@
        <string>Tab 1</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="4">
-        <widget class="EditUnitsBox" name="edtC23Mag">
+       <item row="4" column="6">
+        <widget class="QLabel" name="label_17">
          <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="8">
-        <widget class="EditUnitsBox" name="edtC34Ang">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="5">
-        <widget class="EditUnitsBox" name="edtC32Ang">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="9">
-        <widget class="QLabel" name="label_18">
-         <property name="text">
-          <string>C&lt;sub&gt;5,6&lt;/sub&gt;: </string>
+          <string>C&lt;sub&gt;3,4&lt;/sub&gt;: </string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="6" column="6">
-        <widget class="QLabel" name="label_15">
+       <item row="5" column="2">
+        <widget class="EditUnitsBox" name="edtC41Ang">
          <property name="text">
-          <string>C&lt;sub&gt;5,4&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          <string/>
          </property>
         </widget>
        </item>
@@ -356,26 +336,6 @@
         <widget class="EditUnitsBox" name="edtC32Mag">
          <property name="text">
           <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>C&lt;sub&gt;4,3&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>C&lt;sub&gt;2,1&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -393,8 +353,134 @@
          </property>
         </widget>
        </item>
+       <item row="6" column="7">
+        <widget class="EditUnitsBox" name="edtC54Mag">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="EditUnitsBox" name="edtC23Mag">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>C&lt;sub&gt;3,0&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="4">
+        <widget class="EditUnitsBox" name="edtC52Mag">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="8">
+        <widget class="EditUnitsBox" name="edtC34Ang">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="7">
+        <widget class="EditUnitsBox" name="edtC34Mag">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="3">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>C&lt;sub&gt;5,2&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="12">
+        <widget class="QLabel" name="label_88">
+         <property name="text">
+          <string>Aberrations</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>C&lt;sub&gt;1,2&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>C&lt;sub&gt;1,0&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
        <item row="5" column="8">
         <widget class="EditUnitsBox" name="edtC45Ang">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="2">
+        <widget class="EditUnitsBox" name="edtC10">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="EditUnitsBox" name="edtC21Ang">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>C&lt;sub&gt;4,3&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="6">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>C&lt;sub&gt;5,4&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="7">
+        <widget class="EditUnitsBox" name="edtC45Mag">
          <property name="text">
           <string/>
          </property>
@@ -413,15 +499,25 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="5">
-        <widget class="EditUnitsBox" name="edtC12Ang">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_11">
          <property name="text">
-          <string/>
+          <string>C&lt;sub&gt;2,1&lt;/sub&gt;: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
        <item row="6" column="10">
         <widget class="EditUnitsBox" name="edtC56Mag">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="5">
+        <widget class="EditUnitsBox" name="edtC12Ang">
          <property name="text">
           <string/>
          </property>
@@ -437,78 +533,6 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>C&lt;sub&gt;2,3&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1" colspan="2">
-        <widget class="EditUnitsBox" name="edtC50">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="6">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string>C&lt;sub&gt;3,4&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="5">
-        <widget class="EditUnitsBox" name="edtC52Ang">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>C&lt;sub&gt;3,0&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1" colspan="2">
-        <widget class="EditUnitsBox" name="edtC30">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="4">
-        <widget class="EditUnitsBox" name="edtC52Mag">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="4">
-        <widget class="EditUnitsBox" name="edtC43Mag">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="EditUnitsBox" name="edtC41Mag">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="3">
         <widget class="QLabel" name="label_8">
          <property name="text">
@@ -519,6 +543,13 @@
          </property>
         </widget>
        </item>
+       <item row="5" column="1">
+        <widget class="EditUnitsBox" name="edtC41Mag">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="1">
         <widget class="EditUnitsBox" name="edtC21Mag">
          <property name="text">
@@ -526,22 +557,15 @@
          </property>
         </widget>
        </item>
+       <item row="6" column="5">
+        <widget class="EditUnitsBox" name="edtC52Ang">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
        <item row="6" column="11">
         <widget class="EditUnitsBox" name="edtC56Ang">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="EditUnitsBox" name="edtC10">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="7">
-        <widget class="EditUnitsBox" name="edtC54Mag">
          <property name="text">
           <string/>
          </property>
@@ -557,18 +581,32 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QLabel" name="label_6">
+       <item row="5" column="5">
+        <widget class="EditUnitsBox" name="edtC43Ang">
          <property name="text">
-          <string>C&lt;sub&gt;1,2&lt;/sub&gt;: </string>
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="9">
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>C&lt;sub&gt;5,6&lt;/sub&gt;: </string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="5" column="2">
-        <widget class="EditUnitsBox" name="edtC41Ang">
+       <item row="6" column="1" colspan="2">
+        <widget class="EditUnitsBox" name="edtC50">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="EditUnitsBox" name="edtC12Mag">
          <property name="text">
           <string/>
          </property>
@@ -584,68 +622,34 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="EditUnitsBox" name="edtC21Ang">
+       <item row="5" column="4">
+        <widget class="EditUnitsBox" name="edtC43Mag">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
-       <item row="5" column="5">
-        <widget class="EditUnitsBox" name="edtC43Ang">
+       <item row="4" column="1" colspan="2">
+        <widget class="EditUnitsBox" name="edtC30">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
-       <item row="2" column="4">
-        <widget class="EditUnitsBox" name="edtC12Mag">
+       <item row="3" column="3">
+        <widget class="QLabel" name="label_7">
          <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>C&lt;sub&gt;5,2&lt;/sub&gt;: </string>
+          <string>C&lt;sub&gt;2,3&lt;/sub&gt;: </string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="5" column="7">
-        <widget class="EditUnitsBox" name="edtC45Mag">
+       <item row="4" column="5">
+        <widget class="EditUnitsBox" name="edtC32Ang">
          <property name="text">
           <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="7">
-        <widget class="EditUnitsBox" name="edtC34Mag">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>C&lt;sub&gt;1,0&lt;/sub&gt;: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="12">
-        <widget class="QLabel" name="label_88">
-         <property name="text">
-          <string>Aberrations</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -671,14 +675,8 @@
  <tabstops>
   <tabstop>tabWidget_2</tabstop>
   <tabstop>edtVoltage</tabstop>
-  <tabstop>edtBeamTilt</tabstop>
-  <tabstop>edtBeamAzimuth</tabstop>
   <tabstop>edtConAp</tabstop>
   <tabstop>edtConApSmooth</tabstop>
-  <tabstop>edtObjAp</tabstop>
-  <tabstop>edtObjApSmooth</tabstop>
-  <tabstop>edtConverge</tabstop>
-  <tabstop>edtDefocusSpread</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>edtC10</tabstop>
   <tabstop>edtC12Mag</tabstop>
