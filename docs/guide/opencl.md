@@ -1,5 +1,5 @@
 ---
-title: OpenCL
+title: OpenCL device selection
 ---
 
 # {{page.title}}
@@ -13,8 +13,20 @@ In clTEM, the device(s) you want to use need to be selected the first time you r
 If multiple devices are selected, they will be used in the order that they are listed in the table.
 
    <div class="image-figure">
-    <img style="width:80%;" src="{{'guide/assets/images/opencl-dialog.png' | relative_url}}" alt="OpenCL dialog">
+    <img style="width:80%;" src="{{'guide/assets/images/opencl_dialog.png' | relative_url}}" alt="OpenCL dialog">
   <p>
       <span class="figure-title">Figure</span> Dialog used to configure OpenCL.
   </p>
-  </div> 
+  </div>
+
+## Advanced optimisations
+
+On the right side there are several check-boxes that toggle OpenCL optimisations that may increase simulation speed with the possibility of reduced accuracy and/or stability. The effect of these is specific to your device and drivers. It is recommended that these are left off, though you are free to experiment with these.
+
+- **MAD enabled** allows <code>a * b + c</code> to be replaced by a **mad** instruction that may provide better performance.
+- **No signed zeros** optimises floating-point arithmetic that ignores the signedness of zero (i.e. 0.0 vs -0.0).
+- **Unsafe math optimisations** allows floating-point arithmetic optimisations that may break standards and/or compliances.
+- **Finite math only** allows optimizations for floating-point arithmetic that assume the arguments and results are not NaNs, +Inf or -Inf.
+- **Use native_* functions** enables math functions that map to native device functions.
+
+More information is available on the Khronos website [here](https://www.khronos.org/registry/OpenCL/sdk/2.2/docs/man/html/sin.html) for native functions and [here](https://www.khronos.org/registry/OpenCL/specs/2.2/html/OpenCL_API.html#compiler-options) for other optimisations.

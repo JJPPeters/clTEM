@@ -4,19 +4,29 @@
 - title: Guide
   url: /guide
   sublinks:
-    - title: Input
-      url: /guide/input
-    - title: OpenCL
+    - title: Overview
+      url: /guide/overview
+    - title: Device selection
       url: /guide/opencl
-    - title: Configuration
-      url: /guide/config
+    - title: Structure input
+      url: /guide/input
+    - title: Simulation area
+      url: /guide/area
+    - title: Microscope parameters
+      url: /guide/microscope
+    - title: Mode settings
+      url: /guide/mode
     - title: Simulating
       url: /guide/simulate
-    - title: Export
-      url: /guide/export
+    - title: Output
+      url: /guide/output
+    - title: Configuration files
+      url: /guide/configs
+    - title: Advanced settings
+      url: /guide/advanced
 
 - title: Compiling
   url: /compile
 
-- title: Refernces
+- title: References
   url: /references
