@@ -68,13 +68,13 @@ MainWindow::MainWindow(QWidget *parent) :
     auto* EwAmp = new ImageTab(ui->twReal, "EW", TabType::CTEM, true);
     auto* Diff = new ImageTab(ui->twReal, "Diffraction", TabType::DIFF);
 
-    StatusBar = new StatusLayout();
-
-    ui->statusBar->addWidget(StatusBar, 100);
-
     ui->twReal->addTab(Img, QString::fromStdString(Img->getTabName()));
     ui->twReal->addTab(EwAmp, QString::fromStdString(EwAmp->getTabName()));
     ui->twReal->addTab(Diff, QString::fromStdString(Diff->getTabName()));
+
+    StatusBar = new StatusLayout();
+
+    ui->statusBar->addWidget(StatusBar, 100);
 
     // this is required so the frame and then dialog can access the current aberrations at any time
     // could be avoided but I've used Qt designer with the .ui files and so on

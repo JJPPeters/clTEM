@@ -123,9 +123,9 @@ void ImagePlotWidget::setImageRatio(int axisWidth, int axisHeight) {
     // this case is needed as, when resizing the graph very fast, the values will switch and the calculation will be wrong.
     // this just sets the ratio to the intermediate point when the axes are equal, before then scaling to the correct values.
 
-    if ( lastWidth <= AspectRatio*lastHeight && axisWidth > AspectRatio*axisHeight ) // plot WAS TALL
+    if ( lastWidth < AspectRatio*lastHeight && axisWidth >= AspectRatio*axisHeight ) // plot WAS TALL
         yAxis->setRange(yAxis->range().center(), xAxis->range().size() / AspectRatio, Qt::AlignCenter);
-    else if (  lastWidth >= AspectRatio*lastHeight && axisWidth < AspectRatio*axisHeight ) // plot WAS WIDE
+    else if (  lastWidth > AspectRatio*lastHeight && axisWidth <= AspectRatio*axisHeight ) // plot WAS WIDE
         xAxis->setRange(xAxis->range().center(), AspectRatio*yAxis->range().size(), Qt::AlignCenter);
 
     lastWidth = axisWidth;
@@ -133,12 +133,16 @@ void ImagePlotWidget::setImageRatio(int axisWidth, int axisHeight) {
 
     if (axisWidth < AspectRatio*axisHeight) // plot is TALL
     {
-        double newRange = xAxis->range().size()*(double)axisHeight / (double)axisWidth;
+        auto old_range = xAxis->range().size();
+        auto new_ratio = (double)axisHeight / (double)axisWidth;
+        double newRange = old_range * new_ratio;
         yAxis->setRange(yAxis->range().center(), newRange, Qt::AlignCenter);
     }
     else if (AspectRatio*axisHeight < axisWidth) // plot is WIDE
     {
-        double newRange = yAxis->range().size()*(double)axisWidth / (double)axisHeight;
+        auto old_range = yAxis->range().size();
+        auto new_ratio = (double)axisWidth / (double)axisHeight;
+        double newRange = old_range * new_ratio;
         xAxis->setRange(xAxis->range().center(), newRange, Qt::AlignCenter);
     }
 }
