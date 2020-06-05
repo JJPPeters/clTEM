@@ -93,3 +93,10 @@ void SimulationCell::setCrystalStructure(std::string &file_path, CIF::SuperCellI
 void SimulationCell::setCrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info) {
     crystal_structure.reset(new CrystalStructure(cif, info));
 }
+
+void SimulationCell::setCrystalStructure(std::shared_ptr<CrystalStructure> structure_ptr) {
+    if (structure_ptr)
+        crystal_structure = std::make_shared<CrystalStructure>(*structure_ptr);
+    else
+        crystal_structure = std::shared_ptr<CrystalStructure>();
+}

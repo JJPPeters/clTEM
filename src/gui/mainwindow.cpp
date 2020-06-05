@@ -859,7 +859,9 @@ void MainWindow::on_actionImport_parameters_triggered() {
     nlohmann::json j = fileio::OpenSettingsJson(fileName.toStdString());
 
     SimulationManager m = JSONUtils::JsonToManager(j);
+    auto structure = Manager->simulationCell()->crystalStructure();
     *Manager = m;
+    Manager->setStructure(structure);
 
     updateGuiFromManager();
 }
@@ -1016,6 +1018,8 @@ void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {
     if(config_location.endsWith("/"))
         config_location.chop(1);
 
+    auto structure = Manager->simulationCell()->crystalStructure();
+
     try {
         nlohmann::json j = fileio::OpenSettingsJson(config_location.toStdString() + "/microscopes/" + param_name + ".json");
         *Manager = JSONUtils::JsonToManager(j);
@@ -1024,6 +1028,8 @@ void MainWindow::on_actionImport_default_triggered(bool preserve_ui) {
         // don't worry, we'll just use the default settings
         Manager = std::make_shared<SimulationManager>();
     }
+
+    Manager->setStructure(structure);
 
     if (!preserve_ui)
         updateGuiFromManager();

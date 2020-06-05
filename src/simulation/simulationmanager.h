@@ -55,6 +55,7 @@ public:
     std::shared_ptr<IncoherentEffects> incoherenceEffects() {return incoherence_effects;}
 
     // structure setters
+    void setStructure(std::shared_ptr<CrystalStructure> struc_ptr);
     void setStructure(std::string fPath, CIF::SuperCellInfo info = CIF::SuperCellInfo(), bool fix_cif=false);
     void setStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
 

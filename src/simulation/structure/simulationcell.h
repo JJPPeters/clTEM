@@ -46,6 +46,7 @@ public:
     unsigned int sliceCount();
     unsigned int preSliceCount();
 
+    void setCrystalStructure(std::shared_ptr<CrystalStructure> structure_ptr);
     void setCrystalStructure(std::string &file_path, CIF::SuperCellInfo info = CIF::SuperCellInfo(), bool fix_cif=false);
     void setCrystalStructure(CIF::CIFReader cif, CIF::SuperCellInfo info);
     std::shared_ptr<CrystalStructure> crystalStructure() {return crystal_structure;}

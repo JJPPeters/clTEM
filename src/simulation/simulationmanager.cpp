@@ -90,6 +90,27 @@ SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
     return *this;
 }
 
+void SimulationManager::setStructure(std::shared_ptr<CrystalStructure> struc_ptr) {
+    // lock this in case we need multiple devices to load this structure
+    std::unique_lock<std::mutex> lock(structure_mutex);
+
+    simulation_cell->setCrystalStructure(struc_ptr);
+
+    if (simulation_cell->crystalStructure() && !maintain_area) {
+        auto x_lims = simulation_cell->crystalStructure()->limitsX();
+        auto y_lims = simulation_cell->crystalStructure()->limitsY();
+
+        simulationArea()->setRawLimitsX(x_lims[0], x_lims[1]);
+        simulationArea()->setRawLimitsY(y_lims[0], y_lims[1]);
+
+        stemArea()->setRawLimitsX(x_lims[0], x_lims[1]);
+        stemArea()->setRawLimitsY(y_lims[0], y_lims[1]);
+
+        cbedPosition()->setXPos((x_lims[0] + x_lims[1]) / 2);
+        cbedPosition()->setYPos((y_lims[0] + y_lims[1]) / 2);
+    }
+}
+
 void SimulationManager::setStructure(std::string filePath, CIF::SuperCellInfo info, bool fix_cif)
 {
     // lock this in case we need multiple devices to load this structure
