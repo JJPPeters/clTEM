@@ -76,7 +76,7 @@ void PhononScattering::setDefault(double def) {
     std::vector<double> vibrations(set_elements.size());
 
     for(int i = 0; i < set_elements.size(); ++i) {
-        vibrations[i] = u_squareds[set_elements[i]];
+        vibrations[i] = u_squareds[set_elements[i]-1]; // -1 as hydrogen is 1, but element 0
     }
 
     setVibrations(def, set_elements, vibrations);
