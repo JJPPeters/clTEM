@@ -29,7 +29,7 @@ __kernel void band_pass_f( __global const float* restrict input,
     	float centX = width / 2.0f + x_centre;
     	float centY = height / 2.0f + y_centre;
     	float radius = native_sqrt( (xid-centX) * (xid-centX) + (yid-centY) * (yid-centY) );
-    	if (radius < outer && radius > inner) {
+    	if (radius <= outer && radius >= inner) {
 		    output[id] = input[id];
 		} else {
 		    output[id] = 0.0f;

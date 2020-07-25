@@ -29,7 +29,7 @@ __kernel void band_pass_d( __global const double* restrict input,
     	double centX = width / 2.0 + x_centre;
     	double centY = height / 2.0 + y_centre;
     	double radius = native_sqrt( (xid-centX) * (xid-centX) + (yid-centY) * (yid-centY) );
-    	if (radius < outer && radius > inner) {
+    	if (radius <= outer && radius >= inner) {
 		    output[id] = input[id];
 		} else {
 		    output[id] = 0.0;

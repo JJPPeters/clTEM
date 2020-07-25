@@ -38,9 +38,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Bessel functions (Used the the projected potential calculations
 /// These function's can be found in "Numerical recipes in C, 2nd ed." Chapter 6.6.
-/// bessi0 - calculate the zero order modified bessel function of the first kind (using only for bessk0)
 /// bessk0 - calculate the zero order modified bessel function of the second kind
-/// bessi1 - calculate the zero order modified bessel function of the first kind (using only for bessk0)
 /// bessk1 - calculate the zero order modified bessel function of the second kind
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Projected potential functions
@@ -56,110 +54,51 @@
 
 #define recip(x) (1.0 / (x))
 
-__constant double i0a[7] = {1.0, 3.5156229, 3.0899424, 1.2067492, 0.2659732, 0.0360768, 0.0045813};
-__constant double i0b[9] = {0.39894228, 0.01328592, 0.00225319, -0.00157565, 0.00916281, -0.02057706, 0.02635537, -0.01647633, 0.00392377};
-__constant double i1a[7] = {0.5, 0.87890594, 0.51498869, 0.15084934, 0.02658733, 0.00301532, 0.00032411};
-__constant double i1b[9] = {0.39894228, -0.03988024, -0.00362018, 0.00163801, -0.01031555, 0.02282967, -0.02895312, 0.01787654, 0.00420059};
-__constant double k0a[7] = {-0.57721566, 0.42278420, 0.23069756, 0.03488590, 0.00262698, 0.00010750, 0.00000740};
-__constant double k0b[7] = {1.25331414, -0.07832358, 0.02189568, -0.01062446, 0.00587872, -0.00251540, 0.00053208};
-__constant double k1a[7] = {1.0, 0.15443144, -0.67278579, -0.18156897, -0.01919402, -0.00110404, -0.00004686};
-__constant double k1b[7] = {1.25331414, 0.23498619, -0.03655620, 0.01504268, -0.00780353, 0.00325614, -0.00068245};
+__constant double k0pi[5] = {1.0, 2.346487949187396e-1, 1.187082088663404e-2, 2.150707366040937e-4, 1.425433617130587e-6};
+__constant double k0qi[3] = {9.847324170755358e-1, 1.518396076767770e-2, 8.362215678646257e-5};
+__constant double k0p[5] = {1.159315156584126e-1, 2.770731240515333e-1, 2.066458134619875e-2, 4.574734709978264e-4, 3.454715527986737e-6};
+__constant double k0q[3] = {9.836249671709183e-1, 1.627693622304549e-2, 9.809660603621949e-5};
+__constant double k0pp[8] = {1.253314137315499, 1.475731032429900e1, 6.123767403223466e1, 1.121012633939949e2, 9.285288485892228e1, 3.198289277679660e1, 3.595376024148513, 6.160228690102976e-2};
+__constant double k0qq[8] = {1.0, 1.189963006673403e1, 5.027773590829784e1, 9.496513373427093e1, 8.318077493230258e1, 3.181399777449301e1, 4.443672926432041, 1.408295601966600e-1};
 
-double bessi0(double x) {
-	int i;
-	double ax, x2, sum;
+__constant double k1pi[5] = {0.5, 5.598072040178741e-2, 1.818666382168295e-3, 2.397509908859959e-5, 1.239567816344855e-7};
+__constant double k1qi[3] = {9.870202601341150e-1, 1.292092053534579e-2, 5.881933053917096e-5};
+__constant double k1p[5] = {-3.079657578292062e-1, -8.109417631822442e-2, -3.477550948593604e-3, -5.385594871975406e-5, -3.110372465429008e-7};
+__constant double k1q[3] = {9.861813171751389e-1, 1.375094061153160e-2, 6.774221332947002e-5};
+__constant double k1pp[8] = {1.253314137315502, 1.457171340220454e1, 6.063161173098803e1, 1.147386690867892e2, 1.040442011439181e2, 4.356596656837691e1, 7.265230396353690, 3.144418558991021e-1};
+__constant double k1qq[8] = {1.0, 1.125154514806458e1, 4.427488496597630e1, 7.616113213117645e1, 5.863377227890893e1, 1.850303673841586e1, 1.857244676566022, 2.538540887654872e-2};
 
-	ax = fabs(x);
-
-	if(ax <= 3.75) {
-		x2 = x / 3.75;
-		x2 = x2 * x2;
-		sum = i0a[6];
-		for(i = 5; i >= 0; --i)
-			sum = sum*x2 + i0a[i];
-	} else {
-		x2 = 3.75 / ax;
-		sum = i0b[8];
-		for(i=7; i>=0; --i)
-			sum = sum*x2 + i0b[i];
-		sum = native_exp(ax) * sum * native_rsqrt(ax);
-	}
-
-	return sum;
-}
-
-double bessi1(double x) {
-    int i;
-    double ax, x2, sum;
-
-    ax = fabs(x);
-
-    if(ax <= 3.75) {
-        x2 = x / 3.75;
-        x2 = x2 * x2;
-        sum = i1a[6];
-        for(i = 5; i >= 0; --i)
-            sum = sum*x2 + i1a[i];
-        sum *= ax;
-    } else {
-        x2 = 3.75 / ax;
-        sum = i1b[8];
-        for(i = 2; i >= 0; --i)
-            sum = sum*x2 + i1b[i];
-        sum = native_exp(ax) * sum * native_rsqrt(ax);
-    }
-
-    return sum;
+double poly(__constant double* cof, int n, double x) {
+    double ans = cof[n];
+    for (int i = n-1; i >= 0; --i)
+        ans = ans * x + cof[i];
+    return ans;
 }
 
 double bessk0(double x) {
-	int i;
-	double ax, x2, sum;
-
-	ax = fabs(x);
-
-	if((ax > 0.0)  && (ax <=  2.0)) {
-		x2 = ax/2.0;
-		x2 = x2 * x2;
-		sum = k0a[6];
-		for(i = 5; i >= 0; --i)
-			sum = sum*x2 + k0a[i];
-		sum = -native_log(ax/2.0) * bessi0(x) + sum;
-	} else if(ax > 2.0) {
-		x2 = 2.0/ax;
-		sum = k0b[6];
-		for(i=5; i>=0; --i)
-			sum = sum*x2 + k0b[i];
-		sum = native_exp(-ax) * sum * native_rsqrt(ax);
-	} else
-		sum = FLT_MAX;
-
-	return sum;
+    double ax = fabs(x);
+    if(ax > 0.0 && ax <= 1.0) {
+        double z = x * x;
+        double term = poly(k0pi, 4, z) * native_log(x) * native_recip(poly(k0qi, 2, 1.0-z));
+        return poly(k0p, 4, z) * native_recip(poly(k0q, 2, 1.0-z)) - term;
+    } else if (ax > 1.0) {
+        double z = native_recip(x);
+        return native_exp(-x) * poly(k0pp, 7, z) * native_recip(poly(k0qq, 7, z)) * native_rsqrt(x);
+    } else
+        return DBL_MAX;
 }
 
 double bessk1(double x) {
-    int i;
-    double ax, x2, sum;
-
-    ax = fabs(x);
-
-    if((ax > 0.0)  && (ax <=  2.0)) {
-        x2 = ax/2.0;
-        x2 = x2 * x2;
-        sum = k1a[6];
-        for(i = 5; i >= 0; --i)
-            sum = sum*x2 + k1a[i];
-        sum = native_log(ax/2.0) * bessi1(x) + sum / ax;
-    } else if( ax > 2.0 ) {
-        x2 = 2.0/ax;
-        sum = k1b[6];
-        for(i=5; i>=0; --i)
-            sum = sum*x2 + k1b[i];
-        sum = native_exp(-ax) * sum * native_rsqrt(ax);
+    double ax = fabs(x);
+    if(ax > 0.0 && ax <= 1.0) {
+        double z = x * x;
+        double term = poly(k1pi, 4, z) * native_log(x) * native_recip(poly(k1qi, 2, 1.0-z));
+        return x * ( poly(k1p, 4, z) * native_recip(poly(k1q, 2, 1.0-z)) + term ) + native_recip(x);
+    } else if (ax > 1.0) {
+        double z = native_recip(x);
+        return native_exp(-x) * poly(k1pp, 7, z) * native_recip(poly(k1qq, 7, z)) * native_rsqrt(x);
     } else
-        sum = FLT_MAX;
-
-    return sum;
+        return DBL_MAX; 
 }
 
 double kirkland(__constant double* params, int i_lim, int ZNum, double rad) {

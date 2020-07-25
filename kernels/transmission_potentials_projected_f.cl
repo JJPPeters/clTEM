@@ -38,9 +38,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Bessel functions (Used the the projected potential calculations
 /// These function's can be found in "Numerical recipes in C, 2nd ed." Chapter 6.6.
-/// bessi0 - calculate the zero order modified bessel function of the first kind (using only for bessk0)
 /// bessk0 - calculate the zero order modified bessel function of the second kind
-/// bessi1 - calculate the zero order modified bessel function of the first kind (using only for bessk0)
 /// bessk1 - calculate the zero order modified bessel function of the second kind
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Projected potential functions
@@ -56,110 +54,51 @@
 
 #define recip(x) (1.0f / (x))
 
-__constant float i0a[7] = {1.0f, 3.5156229f, 3.0899424f, 1.2067492f, 0.2659732f, 0.0360768f, 0.0045813f};
-__constant float i0b[9] = {0.39894228f, 0.01328592f, 0.00225319f, -0.00157565f, 0.00916281f, -0.02057706f, 0.02635537f, -0.01647633f, 0.00392377f};
-__constant float i1a[7] = {0.5f, 0.87890594f, 0.51498869f, 0.15084934f, 0.02658733f, 0.00301532f, 0.00032411f};
-__constant float i1b[9] = {0.39894228f, -0.03988024f, -0.00362018f, 0.00163801f, -0.01031555f, 0.02282967f, -0.02895312f, 0.01787654f, 0.00420059f};
-__constant float k0a[7] = {-0.57721566f, 0.42278420f, 0.23069756f, 0.03488590f, 0.00262698f, 0.00010750f, 0.00000740f};
-__constant float k0b[7] = {1.25331414f, -0.07832358f, 0.02189568f, -0.01062446f, 0.00587872f, -0.00251540f, 0.00053208f};
-__constant float k1a[7] = {1.0f, 0.15443144f, -0.67278579f, -0.18156897f, -0.01919402f, -0.00110404f, -0.00004686f};
-__constant float k1b[7] = {1.25331414f, 0.23498619f, -0.03655620f, 0.01504268f, -0.00780353f, 0.00325614f, -0.00068245f};
+__constant float k0pi[5] = {1.0f, 2.346487949187396e-1f, 1.187082088663404e-2f, 2.150707366040937e-4f, 1.425433617130587e-6f};
+__constant float k0qi[3] = {9.847324170755358e-1f, 1.518396076767770e-2f, 8.362215678646257e-5f};
+__constant float k0p[5] = {1.159315156584126e-1f, 2.770731240515333e-1f, 2.066458134619875e-2f, 4.574734709978264e-4f, 3.454715527986737e-6f};
+__constant float k0q[3] = {9.836249671709183e-1f, 1.627693622304549e-2f, 9.809660603621949e-5f};
+__constant float k0pp[8] = {1.253314137315499f, 1.475731032429900e1f, 6.123767403223466e1f, 1.121012633939949e2f, 9.285288485892228e1f, 3.198289277679660e1f, 3.595376024148513f, 6.160228690102976e-2f};
+__constant float k0qq[8] = {1.0f, 1.189963006673403e1f, 5.027773590829784e1f, 9.496513373427093e1f, 8.318077493230258e1f, 3.181399777449301e1f, 4.443672926432041f, 1.408295601966600e-1f};
 
-float bessi0(float x) {
-	int i;
-	float ax, x2, sum;
+__constant float k1pi[5] = {0.5f, 5.598072040178741e-2f, 1.818666382168295e-3f, 2.397509908859959e-5f, 1.239567816344855e-7f};
+__constant float k1qi[3] = {9.870202601341150e-1f, 1.292092053534579e-2f, 5.881933053917096e-5f};
+__constant float k1p[5] = {-3.079657578292062e-1f, -8.109417631822442e-2f, -3.477550948593604e-3f, -5.385594871975406e-5f, -3.110372465429008e-7f};
+__constant float k1q[3] = {9.861813171751389e-1f, 1.375094061153160e-2f, 6.774221332947002e-5f};
+__constant float k1pp[8] = {1.253314137315502f, 1.457171340220454e1f, 6.063161173098803e1f, 1.147386690867892e2f, 1.040442011439181e2f, 4.356596656837691e1f, 7.265230396353690f, 3.144418558991021e-1f};
+__constant float k1qq[8] = {1.0f, 1.125154514806458e1f, 4.427488496597630e1f, 7.616113213117645e1f, 5.863377227890893e1f, 1.850303673841586e1f, 1.857244676566022f, 2.538540887654872e-2f};
 
-	ax = fabs(x);
-
-	if(ax <= 3.75f) {
-		x2 = x / 3.75f;
-		x2 = x2 * x2;
-		sum = i0a[6];
-		for(i = 5; i >= 0; --i)
-			sum = sum*x2 + i0a[i];
-	} else {
-		x2 = 3.75f / ax;
-		sum = i0b[8];
-		for(i=7; i>=0; --i)
-			sum = sum*x2 + i0b[i];
-		sum = native_exp(ax) * sum * native_rsqrt(ax);
-	}
-
-	return sum;
-}
-
-float bessi1(float x) {
-    int i;
-    float ax, x2, sum;
-
-    ax = fabs(x);
-
-    if(ax <= 3.75f) {
-        x2 = x / 3.75f;
-        x2 = x2 * x2;
-        sum = i1a[6];
-        for(i = 5; i >= 0; --i)
-            sum = sum*x2 + i1a[i];
-        sum *= ax;
-    } else {
-        x2 = 3.75f / ax;
-        sum = i1b[8];
-        for(i = 7; i >= 0; --i)
-            sum = sum*x2 + i1b[i];
-        sum = native_exp(ax) * sum * native_rsqrt(ax);
-    }
-
-    return sum;
+float poly(__constant float* cof, int n, float x) {
+    float ans = cof[n];
+    for (int i = n-1; i >= 0; --i)
+        ans = ans * x + cof[i];
+    return ans;
 }
 
 float bessk0(float x) {
-	int i;
-	float ax, x2, sum;
-
-	ax = fabs(x);
-
-	if((ax > 0.0f)  && (ax <=  2.0f)) {
-		x2 = ax/2.0f;
-		x2 = x2 * x2;
-		sum = k0a[6];
-		for(i = 5; i >= 0; --i)
-			sum = sum*x2 + k0a[i];
-		sum = -native_log(ax/2.0f) * bessi0(x) + sum;
-	} else if(ax > 2.0f) {
-		x2 = 2.0f/ax;
-		sum = k0b[6];
-		for(i=5; i>=0; --i)
-			sum = sum*x2 + k0b[i];
-		sum = native_exp(-ax) * sum * native_rsqrt(ax);
+    float ax = fabs(x);
+	if(ax > 0.0f && ax <= 1.0f) {
+		float z = x * x;
+        float term = poly(k0pi, 4, z) * native_log(x) * native_recip(poly(k0qi, 2, 1.0f-z));
+		return poly(k0p, 4, z) * native_recip(poly(k0q, 2, 1.0f-z)) - term;
+	} else if (ax > 1.0f) {
+		float z = native_recip(x);
+		return native_exp(-x) * poly(k0pp, 7, z) * native_recip(poly(k0qq, 7, z)) * native_rsqrt(x);
 	} else
-		sum = FLT_MAX;
-
-	return sum;
+        return FLT_MAX;
 }
 
 float bessk1(float x) {
-    int i;
-    float ax, x2, sum;
-
-    ax = fabs(x);
-
-    if((ax > 0.0f)  && (ax <=  2.0f)) {
-        x2 = ax/2.0f;
-        x2 = x2 * x2;
-        sum = k1a[6];
-        for(i = 5; i >= 0; --i)
-            sum = sum*x2 + k1a[i];
-        sum = native_log(ax/2.0f) * bessi1(x) + sum / ax;
-    } else if( ax > 2.0f ) {
-        x2 = 2.0f/ax;
-        sum = k1b[6];
-        for(i=5; i>=0; --i)
-            sum = sum*x2 + k1b[i];
-        sum = native_exp(-ax) * sum * native_rsqrt(ax);
+    float ax = fabs(x);
+    if(ax > 0.0f && ax <= 1.0f) {
+        float z = x * x;
+        float term = poly(k1pi, 4, z) * native_log(x) * native_recip(poly(k1qi, 2, 1.0f-z));
+        return x * ( poly(k1p, 4, z) * native_recip(poly(k1q, 2, 1.0f-z)) + term ) + native_recip(x);
+    } else if (ax > 1.0f) {
+        float z = native_recip(x);
+        return native_exp(-x) * poly(k1pp, 7, z) * native_recip(poly(k1qq, 7, z)) * native_rsqrt(x);
     } else
-        sum = FLT_MAX;
-
-    return sum;
+        return FLT_MAX; 
 }
 
 float kirkland(__constant float* params, int i_lim, int ZNum, float rad) {
@@ -292,11 +231,11 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
     float group_size_y = get_local_size(1) * pixelscale;
 
     // get the start and end position of the current workgroup
-    float group_start_x = startx +  gx      * group_size_x;
-    float group_end_x   = startx + (gx + 1) * group_size_x;
+    float group_start_x = startx + gx * group_size_x;
+    float group_end_x   = group_start_x + group_size_x;
 
-    float group_start_y = starty +  gy      * group_size_y;
-    float group_end_y   = starty + (gy + 1) * group_size_y;
+    float group_start_y = starty + gy * group_size_y;
+    float group_end_y   = group_start_y + group_size_y;
 
     // get the reciprocal of the full range (for efficiency)
     float recip_range_x = native_recip(max_x - min_x);
@@ -357,8 +296,8 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
             float rad = native_sqrt(z_prime*z_prime + x_prime*x_prime + y_prime*y_prime);
 
             float r_min = 0.25f * pixelscale;
-			if(rad < r_min) // is this sensible?
-				rad = r_min;
+            if(rad < r_min) // is this sensible?
+                rad = r_min;
 
 			if( rad <= 8.0f) { // Should also make sure is not too small
 				if (param_selector == 0)
