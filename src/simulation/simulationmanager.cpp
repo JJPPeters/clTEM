@@ -14,6 +14,9 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     parallel_stem = true;
     precalc_transmission = true;
 
+    parallel_potentials = false;
+    parallel_potentials_count = 5;
+
     // Here is where the default values are set!
     micro_params = std::make_shared<MicroscopeParameters>();
     sim_area = std::make_shared<SimulationArea>();
@@ -51,6 +54,9 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
     parallel_stem = sm.parallel_stem;
     precalc_transmission = sm.precalc_transmission;
 
+    parallel_potentials = sm.parallel_potentials;
+    parallel_potentials_count = sm.parallel_potentials_count;
+
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
@@ -61,6 +67,8 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
 }
 
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
+    parallel_potentials = sm.parallel_potentials;
+    parallel_potentials_count = sm.parallel_potentials_count;
     parallel_stem = sm.parallel_stem;
     precalc_transmission = sm.precalc_transmission;
     intermediate_slices_enabled = sm.intermediate_slices_enabled;

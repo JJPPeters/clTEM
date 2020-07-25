@@ -198,6 +198,42 @@ public:
         parallel_stem = set;
     }
 
+    bool storedUseParallelPotentials() {
+        return parallel_potentials;
+    }
+
+    bool useParallelPotentials() {
+        return (parallel_potentials) ? parallelPotentialsCount() > 1 : false;
+    }
+
+    void setUseParallelPotentials(bool set) {
+        parallel_potentials = set;
+    }
+
+    unsigned int storedParallelPotentialCount() {
+        return parallel_potentials_count;
+    }
+
+    unsigned int parallelPotentialsCount() {
+        bool fp = incoherenceEffects()->phonons()->getFrozenPhononEnabled();
+        bool pr = precalculateTransmission(); // this accounts for plasmons
+        bool pp = parallel_potentials; // important to use direct variable here to avoid recursion
+
+        bool do_parallel = fp && pr && pp;
+
+        if (mode() == SimulationMode::STEM) {
+            return (do_parallel && parallelStem()) ? parallel_potentials_count : 1;
+        } else {
+            // only bother if we have fewer parallel than the tds iterations
+            int fp_count = incoherenceEffects()->iterations(mode());
+            return (do_parallel && parallel_potentials_count < fp_count) ? parallel_potentials_count : 1;
+        }
+    }
+
+    void setParallelPotentialCount(unsigned int set) {
+        parallel_potentials_count = set;
+    }
+
 private:
     // simulation cell contains the structure
     std::shared_ptr<SimulationCell> simulation_cell;
@@ -232,6 +268,10 @@ private:
     bool precalc_transmission;
 
     bool parallel_stem;
+
+    bool parallel_potentials;
+
+    unsigned int parallel_potentials_count;
 
     //
 
