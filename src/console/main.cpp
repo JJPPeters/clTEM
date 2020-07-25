@@ -212,6 +212,7 @@ void imageReturned(SimulationManager sm)
             settings["microscope"].erase("aberrations");
             settings["microscope"].erase("alpha");
             settings["microscope"].erase("delta");
+            settings["microscope"].erase("objective aperture");
         }
         else if (name == "Image") {
             // Nothing to do here?

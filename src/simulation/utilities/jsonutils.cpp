@@ -481,11 +481,17 @@ namespace JSONUtils {
         // TODO: check which parameters are relevant to which modes
         // TODO: get whether CTEM is image, EW or diff...
 
-        // apertures
+        // ctem image stuffs
         if (mode == SimulationMode::CTEM || force_all) {
             j["microscope"]["objective aperture"]["semi-angle"] = mp->ObjectiveAperture;
             j["microscope"]["objective aperture"]["smoothing"] =  mp->ObjectiveApertureSmoothing;
             j["microscope"]["objective aperture"]["units"] = "mrad";
+
+            j["microscope"]["alpha"]["val"] = mp->Alpha;
+            j["microscope"]["alpha"]["units"] = "mrad";
+
+            j["microscope"]["delta"]["val"] = mp->Delta / 10;
+            j["microscope"]["delta"]["units"] = "nm";
         }
 
         if (mode != SimulationMode::CTEM || force_all) {

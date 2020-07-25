@@ -454,6 +454,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     settings["microscope"].erase("aberrations");
                     settings["microscope"].erase("alpha");
                     settings["microscope"].erase("delta");
+                    settings["microscope"].erase("objective aperture");
 
                     auto pd = im.getPadding(); // t l b r
                     Image<std::complex<double>> comp_im(im.getWidth(), im.getHeight(), im.getDepth(), pd[0], pd[1], pd[2], pd[3]);
@@ -846,7 +847,7 @@ void MainWindow::on_actionGeneral_triggered() {
 void MainWindow::on_actionImport_parameters_triggered() {
     // open a dialog to get the json file
     QSettings settings;
-    QString fileName = QFileDialog::getOpenFileName(this, "Save parameters", settings.value("dialog/currentPath").toString(), "All supported (*.json);; JSON (*.json)");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open parameters", settings.value("dialog/currentPath").toString(), "All supported (*.json);; JSON (*.json)");
 
     if (fileName.isNull())
         return;
@@ -858,10 +859,15 @@ void MainWindow::on_actionImport_parameters_triggered() {
 
     nlohmann::json j = fileio::OpenSettingsJson(fileName.toStdString());
 
+    // copy over structure if we have one open
     SimulationManager m = JSONUtils::JsonToManager(j);
     auto structure = Manager->simulationCell()->crystalStructure();
     *Manager = m;
     Manager->setStructure(structure);
+
+    // reset our live STEM parameter
+    bool live_stem_set = settings.value("live stem").toBool();
+    Manager->setLiveStemEnabled(live_stem_set);
 
     updateGuiFromManager();
 }
