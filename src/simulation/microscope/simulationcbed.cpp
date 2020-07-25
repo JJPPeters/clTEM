@@ -38,7 +38,6 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     unsigned int resolution = job->simManager->resolution();
-    double pixelscale = job->simManager->realScale();
     auto mParams = job->simManager->microscopeParams();
     double wavelength = mParams->Wavelength();
     double voltage = mParams->Voltage;
@@ -56,12 +55,8 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     double start_y = job->simManager->paddedSimLimitsY(current_pixel)[0];
 
     // account for the simulation area start point and convert to pixels
-    posx = (posx - start_x) / pixelscale;
-    posy = (posy - start_y) / pixelscale;
-
-    // Fix inverted images
-    posx = resolution - posx;
-    posy = resolution - posy;
+    posx = posx - start_x;
+    posy = posy - start_y;
 
     double delta_focus = 0.0;
     if (job->simManager->incoherenceEffects()->chromatic()->enabled())
@@ -72,31 +67,28 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     InitProbeWavefunction.SetArg(2, resolution);
     InitProbeWavefunction.SetArg(3, clXFrequencies);
     InitProbeWavefunction.SetArg(4, clYFrequencies);
-    InitProbeWavefunction.SetArg(5, static_cast<T>(posx + reference_perturb_x));
-    InitProbeWavefunction.SetArg(6, static_cast<T>(posy + reference_perturb_y));
-    InitProbeWavefunction.SetArg(7, static_cast<T>(pixelscale));
-    InitProbeWavefunction.SetArg(8, static_cast<T>(wavelength));
-    InitProbeWavefunction.SetArg(9, static_cast<T>(mParams->C10 + delta_focus));
-    InitProbeWavefunction.SetArg(10, static_cast<std::complex<T>>(mParams->C12.getComplex()));
-    InitProbeWavefunction.SetArg(11, static_cast<std::complex<T>>(mParams->C21.getComplex()));
-    InitProbeWavefunction.SetArg(12, static_cast<std::complex<T>>(mParams->C23.getComplex()));
-    InitProbeWavefunction.SetArg(13, static_cast<T>(mParams->C30));
-    InitProbeWavefunction.SetArg(14, static_cast<std::complex<T>>(mParams->C32.getComplex()));
-    InitProbeWavefunction.SetArg(15, static_cast<std::complex<T>>(mParams->C34.getComplex()));
-    InitProbeWavefunction.SetArg(16, static_cast<std::complex<T>>(mParams->C41.getComplex()));
-    InitProbeWavefunction.SetArg(17, static_cast<std::complex<T>>(mParams->C43.getComplex()));
-    InitProbeWavefunction.SetArg(18, static_cast<std::complex<T>>(mParams->C45.getComplex()));
-    InitProbeWavefunction.SetArg(19, static_cast<T>(mParams->C50));
-    InitProbeWavefunction.SetArg(20, static_cast<std::complex<T>>(mParams->C52.getComplex()));
-    InitProbeWavefunction.SetArg(21, static_cast<std::complex<T>>(mParams->C54.getComplex()));
-    InitProbeWavefunction.SetArg(22, static_cast<std::complex<T>>(mParams->C56.getComplex()));
-    InitProbeWavefunction.SetArg(23, static_cast<T>(mParams->CondenserAperture));
-    InitProbeWavefunction.SetArg(24, static_cast<T>(mParams->CondenserApertureSmoothing));
+    InitProbeWavefunction.SetArg(5, static_cast<T>(posx));
+    InitProbeWavefunction.SetArg(6, static_cast<T>(posy));
+    InitProbeWavefunction.SetArg(7, static_cast<T>(wavelength));
+    InitProbeWavefunction.SetArg(8, static_cast<T>(mParams->C10 + delta_focus));
+    InitProbeWavefunction.SetArg(9, static_cast<std::complex<T>>(mParams->C12.getComplex()));
+    InitProbeWavefunction.SetArg(10, static_cast<std::complex<T>>(mParams->C21.getComplex()));
+    InitProbeWavefunction.SetArg(11, static_cast<std::complex<T>>(mParams->C23.getComplex()));
+    InitProbeWavefunction.SetArg(12, static_cast<T>(mParams->C30));
+    InitProbeWavefunction.SetArg(13, static_cast<std::complex<T>>(mParams->C32.getComplex()));
+    InitProbeWavefunction.SetArg(14, static_cast<std::complex<T>>(mParams->C34.getComplex()));
+    InitProbeWavefunction.SetArg(15, static_cast<std::complex<T>>(mParams->C41.getComplex()));
+    InitProbeWavefunction.SetArg(16, static_cast<std::complex<T>>(mParams->C43.getComplex()));
+    InitProbeWavefunction.SetArg(17, static_cast<std::complex<T>>(mParams->C45.getComplex()));
+    InitProbeWavefunction.SetArg(18, static_cast<T>(mParams->C50));
+    InitProbeWavefunction.SetArg(19, static_cast<std::complex<T>>(mParams->C52.getComplex()));
+    InitProbeWavefunction.SetArg(20, static_cast<std::complex<T>>(mParams->C54.getComplex()));
+    InitProbeWavefunction.SetArg(21, static_cast<std::complex<T>>(mParams->C56.getComplex()));
+    InitProbeWavefunction.SetArg(22, static_cast<T>(mParams->CondenserAperture));
+    InitProbeWavefunction.SetArg(23, static_cast<T>(mParams->CondenserApertureSmoothing));
 
     CLOG(DEBUG, "sim") << "Run probe wavefunction generation kernel";
     InitProbeWavefunction.run(WorkSize);
-
-    ctx.WaitForQueueFinish();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// IFFT probe to real space
@@ -105,7 +97,6 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
     // IFFT
     CLOG(DEBUG, "sim") << "IFFT probe wavefunction";
     FourierTrans.run(clWaveFunctionRecip[n_parallel], clWaveFunctionReal[n_parallel], Direction::Inverse);
-    ctx.WaitForQueueFinish();
 }
 
 template<class GPU_Type>

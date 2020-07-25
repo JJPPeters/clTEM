@@ -11,9 +11,7 @@
 #include <threading/simulationjob.h>
 #include "simulationmanager.h"
 #include "threading/threadworker.h"
-
-//template <class T> class SimulationCtem;
-//template <class T> class SimulationCbed;
+#include <utilities/simutils.h>
 
 template <class GPU_Type>
 class SimulationGeneral : public ThreadWorker

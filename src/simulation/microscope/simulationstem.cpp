@@ -240,7 +240,7 @@ void SimulationStem<GPU_Type>::simulate() {
 
                 for (int j = 0; j < job->pixels.size(); ++j) {
                     im[job->pixels[j]] = getStemPixel(det.inner, det.outer, det.xcentre, det.ycentre, j, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
-                    im_w[job->pixels[i]] = 1.0;
+                    im_w[job->pixels[j]] = 1.0;
                 }
 
                 Images[det.name].getSliceRef(output_counter) = im;

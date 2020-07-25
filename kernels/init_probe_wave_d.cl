@@ -53,7 +53,6 @@ __kernel void init_probe_wave_d( __global double2* output,
 											__global const double* k_y,
 											double pos_x,
 											double pos_y,
-											double pixel_scale,
 											double wavelength,
 											double C10, double2 C12,
 											double2 C21, double2 C23,
@@ -77,7 +76,7 @@ __kernel void init_probe_wave_d( __global double2* output,
 		if (k < cond_ap2 + ap_smooth_radius)
 		{
 			// this term is easier to calculate once before it is put into the exponential
-			double posTerm = 2.0 * M_PI * (k_x[xid]*pos_x*pixel_scale + k_y[yid]*pos_y*pixel_scale);
+			double posTerm = 2.0 * M_PI * (k_x[xid]*pos_x + k_y[yid]*pos_y);
 			double2 w = (double2)(wavelength*k_x[xid], wavelength*k_y[yid]);
 			double2 wc = cConj(w);
 			// all the aberration terms, calculated in w (omega)
@@ -107,8 +106,8 @@ __kernel void init_probe_wave_d( __global double2* output,
             if (fabs(k-cond_ap2) < ap_smooth_radius)
                 edge_factor = 1.0f - smoothstep(cond_ap2 - ap_smooth_radius, cond_ap2 + ap_smooth_radius, k);
 
-			output[id].x = native_cos(posTerm - chi);
-            output[id].y = native_sin(posTerm - chi);
+			output[id].x = native_cos(-posTerm - chi);
+            output[id].y = native_sin(-posTerm - chi);
 		}
 		else
 		{

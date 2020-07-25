@@ -2,6 +2,7 @@
 // Created by Jon on 31/01/2020.
 //
 
+#include <utilities/simutils.h>
 #include "simulationgeneral.h"
 
 template <class T>
@@ -465,6 +466,12 @@ void SimulationGeneral<T>::initialiseSimulation() {
     double dz = job->simManager->simulationCell()->sliceThickness();
     int load_blocks_z = (int) std::ceil(3.0 / dz);
 
+    auto full_lims_x = job->simManager->paddedFullLimitsX();
+    auto full_lims_y = job->simManager->paddedFullLimitsY();
+
+    auto blocks_x = job->simManager->blocksX();
+    auto blocks_y = job->simManager->blocksY();
+
     // Set some of the arguments which dont change each iteration
     CalculateTransmissionFunction.SetArg(0, clTransmissionFunction, ArgumentType::Output);
     CalculateTransmissionFunction.SetArg(5, ClParameterisation, ArgumentType::Input);
@@ -473,13 +480,13 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CalculateTransmissionFunction.SetArg(9, resolution);
     CalculateTransmissionFunction.SetArg(10, resolution);
     CalculateTransmissionFunction.SetArg(14, static_cast<T>(dz));
-    CalculateTransmissionFunction.SetArg(15, static_cast<T>(pixelscale)); // TODO: does this want to be different?
-    CalculateTransmissionFunction.SetArg(16, job->simManager->blocksX());
-    CalculateTransmissionFunction.SetArg(17, job->simManager->blocksY());
-    CalculateTransmissionFunction.SetArg(18, static_cast<T>(job->simManager->paddedFullLimitsX()[1]));
-    CalculateTransmissionFunction.SetArg(19, static_cast<T>(job->simManager->paddedFullLimitsX()[0]));
-    CalculateTransmissionFunction.SetArg(20, static_cast<T>(job->simManager->paddedFullLimitsY()[1]));
-    CalculateTransmissionFunction.SetArg(21, static_cast<T>(job->simManager->paddedFullLimitsY()[0]));
+    CalculateTransmissionFunction.SetArg(15, static_cast<T>(pixelscale));
+    CalculateTransmissionFunction.SetArg(16, blocks_x);
+    CalculateTransmissionFunction.SetArg(17, blocks_y);
+    CalculateTransmissionFunction.SetArg(18, static_cast<T>(full_lims_x[1]));
+    CalculateTransmissionFunction.SetArg(19, static_cast<T>(full_lims_x[0]));
+    CalculateTransmissionFunction.SetArg(20, static_cast<T>(full_lims_y[1]));
+    CalculateTransmissionFunction.SetArg(21, static_cast<T>(full_lims_y[0]));
     CalculateTransmissionFunction.SetArg(22, load_blocks_x);
     CalculateTransmissionFunction.SetArg(23, load_blocks_y);
     CalculateTransmissionFunction.SetArg(24, load_blocks_z);
@@ -565,8 +572,7 @@ void SimulationGeneral<T>::modifyBeamTilt(double kx, double ky, double kz){
 }
 
 template <class T>
-void SimulationGeneral<T>::doMultiSliceStep(int slice)
-{
+void SimulationGeneral<T>::doMultiSliceStep(int slice) {
     CLOG(DEBUG, "sim") << "Start multislice step " << slice;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
@@ -663,21 +669,21 @@ std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, 
     FftShift.SetArg(0, clWaveFunctionRecip[parallel_ind], ArgumentType::Input);
     FftShift.run(Work);
 
-    int output_type = 4; // square abs
+    auto output_type = Utils::ComplexDisplay::AbsSquared; // should be 4
 
     CLOG(DEBUG, "sim") << "Getting abs of diffraction pattern";
 
     if (d_kx != 0.0 || d_ky != 0.0) {
         ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexToReal.SetArg(1, clWaveFunctionTemp_2, ArgumentType::Output);
-        ComplexToReal.SetArg(2, output_type); // should be 4
+        ComplexToReal.SetArg(2, static_cast<int>(output_type)); // should be 4
         ComplexToReal.run(Work);
 
         translateDiffImage(d_kx, d_ky);
     } else {
         ComplexToReal.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexToReal.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
-        ComplexToReal.SetArg(2, output_type); // should be 4
+        ComplexToReal.SetArg(2, static_cast<int>(output_type)); // should be 4
         ComplexToReal.run(Work);
     }
 

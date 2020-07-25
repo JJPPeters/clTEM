@@ -53,7 +53,6 @@ __kernel void init_probe_wave_f( __global float2* output,
 											__global const float* k_y,
 											float pos_x,
 											float pos_y,
-											float pixel_scale,
 											float wavelength,
 											float C10, float2 C12,
 											float2 C21, float2 C23,
@@ -77,7 +76,7 @@ __kernel void init_probe_wave_f( __global float2* output,
 		if (k < cond_ap2 + ap_smooth_radius)
 		{
 			// this term is easier to calculate once before it is put into the exponential
-			float posTerm = 2.0f * M_PI_F * (k_x[xid]*pos_x*pixel_scale + k_y[yid]*pos_y*pixel_scale);
+			float posTerm = 2.0f * M_PI_F * (k_x[xid]*pos_x + k_y[yid]*pos_y);
 			float2 w = (float2)(wavelength*k_x[xid], wavelength*k_y[yid]);
 			float2 wc = cConj(w);
 			// all the aberration terms, calculated in w (omega)
@@ -107,8 +106,8 @@ __kernel void init_probe_wave_f( __global float2* output,
             if (fabs(k-cond_ap2) < ap_smooth_radius)
                 edge_factor = 1.0f - smoothstep(cond_ap2 - ap_smooth_radius, cond_ap2 + ap_smooth_radius, k);
 
-			output[id].x = native_cos(posTerm - chi) * edge_factor;
-            output[id].y = native_sin(posTerm - chi) * edge_factor;
+			output[id].x = native_cos(-posTerm - chi) * edge_factor;
+            output[id].y = native_sin(-posTerm - chi) * edge_factor;
 		}
 		else
 		{

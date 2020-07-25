@@ -3,6 +3,7 @@
 //
 
 #include "simutils.h"
+
 namespace Utils {
     bool checkSimulationPrerequisites(std::shared_ptr<SimulationManager> Manager, std::vector<clDevice> &Devices) {
         std::vector <std::string> errorList;

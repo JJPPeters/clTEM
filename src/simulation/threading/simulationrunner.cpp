@@ -72,7 +72,8 @@ std::vector<std::shared_ptr<SimulationJob>> SimulationRunner::SplitJobs(std::sha
         int py = simManager->stemArea()->getPixelsY();
         for (int i = 0; i < py; ++i)
             for (int j = 0; j < px; ++j) {
-                int ind = j + (py - i - 1) * px;
+                // this modifies the pixels to scan from top to bottom (like a real STEM)
+                int ind = j + (py - 1 - i) * px;
                 pixelIndices[counter] = ind;
                 ++counter;
             }
