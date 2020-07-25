@@ -328,6 +328,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
 
     // phonon is needed as the atoms need to be resorted (and transmission functions regenerated)
     // phonons are important as the transmission function will need to be modified
+    // the moving stem frame is important as we will need to regenerate the transmission functions
 
     if (same_simulation && !do_phonon && !do_plasmon && !moving_stem_frame) {
         CLOG(DEBUG, "sim") << "Manager already initialised, reusing that data";
