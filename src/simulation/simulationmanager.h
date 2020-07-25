@@ -210,7 +210,7 @@ public:
         parallel_potentials = set;
     }
 
-    unsigned int storedParallelPotentialCount() {
+    unsigned int storedParallelPotentialsCount() {
         return parallel_potentials_count;
     }
 
@@ -230,7 +230,7 @@ public:
         }
     }
 
-    void setParallelPotentialCount(unsigned int set) {
+    void setParallelPotentialsCount(unsigned int set) {
         parallel_potentials_count = set;
     }
 

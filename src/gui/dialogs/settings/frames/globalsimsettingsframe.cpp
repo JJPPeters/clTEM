@@ -40,7 +40,7 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     ui->edtPaddingXY->setText(QString::number(Manager->simulationCell()->defaultPaddingXY()[1]));
     ui->edtPaddingZ->setText(QString::number(Manager->simulationCell()->defaultPaddingZ()[1]));
 
-    ui->edtMixPot->setText(QString::number(Manager->storedParallelPotentialCount()));
+    ui->edtMixPot->setText(QString::number(Manager->storedParallelPotentialsCount()));
     ui->chkMixPot->setChecked(Manager->storedUseParallelPotentials());
 
     // make the label widths the same so they line up
@@ -122,7 +122,7 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     Manager->setDoublePrecisionEnabled(do_double);
     Manager->setPrecalculateTransmission(precalc);
     Manager->setParallelStem(prlll);
-    Manager->setParallelPotentialCount(n_mp);
+    Manager->setParallelPotentialsCount(n_mp);
     Manager->setUseParallelPotentials(use_mp);
 
     emit dynamic_cast<GlobalSettingsDialog*>(parentWidget())->appliedSignal();
