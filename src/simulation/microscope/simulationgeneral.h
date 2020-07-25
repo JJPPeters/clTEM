@@ -84,7 +84,8 @@ protected:
     clMemory<GPU_Type, Manual> clXFrequencies;
     clMemory<GPU_Type, Manual> clYFrequencies;
     clMemory<std::complex<GPU_Type>, Manual> clPropagator;
-    clMemory<std::complex<GPU_Type>, Manual> clTransmissionFunction;
+//    clMemory<std::complex<GPU_Type>, Manual> clTransmissionFunction;
+    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clTransmissionFunction;
 
     // General kernels
     clFourier<GPU_Type> FourierTrans;

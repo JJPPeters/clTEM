@@ -117,7 +117,10 @@ public:
     bool intermediateSlicesEnabled() {return intermediate_slices_enabled;}
     void setIntermediateSlicesEnabled(bool ise) {intermediate_slices_enabled = ise;}
 
-    unsigned int parallelPixels() {return (simulation_mode != SimulationMode::STEM) ? 1 : parallel_pixels;}
+    unsigned int storedParallelPixels() { return parallel_pixels; }
+    unsigned int parallelPixels() {
+        return (simulation_mode != SimulationMode::STEM || !parallelStem()) ? 1 : parallel_pixels;
+    }
     void setParallelPixels(unsigned int npp) { parallel_pixels = npp;}
 
     unsigned long totalParts();
@@ -178,6 +181,23 @@ public:
         live_stem = enable;
     }
 
+    bool precalculateTransmission() {
+        bool do_plasmon = incoherenceEffects()->plasmons()->enabled();
+        return precalc_transmission && !do_plasmon;
+    }
+
+    void setPrecalculateTransmission(bool set) {
+        precalc_transmission = set;
+    }
+
+    bool parallelStem() {
+        return parallel_stem;
+    }
+
+    void setParallelStem(bool set) {
+        parallel_stem = set;
+    }
+
 private:
     // simulation cell contains the structure
     std::shared_ptr<SimulationCell> simulation_cell;
@@ -208,6 +228,10 @@ private:
     //
 
     bool live_stem;
+
+    bool precalc_transmission;
+
+    bool parallel_stem;
 
     //
 

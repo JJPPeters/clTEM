@@ -48,6 +48,9 @@ namespace JSONUtils {
         try { man.setFull3dIntegrals( readJsonEntry<unsigned int>(j, "full 3d", "integrals") );
         } catch (std::exception& e) {}
 
+        try { man.setPrecalculateTransmission( readJsonEntry<bool>(j, "precalculate transmission") );
+        } catch (std::exception& e) {}
+
         try { man.setMaintainAreas( readJsonEntry<bool>(j, "maintain areas") );
         } catch (std::exception& e) {}
 
@@ -215,7 +218,10 @@ namespace JSONUtils {
                 area_set = true;
         } catch (std::exception& e) {}
 
-        try { man.setParallelPixels(readJsonEntry<unsigned int>(j, "stem", "concurrent pixels"));
+        try { man.setParallelPixels(readJsonEntry<unsigned int>(j, "stem", "static area", "concurrent pixels"));
+        } catch (std::exception& e) {}
+
+        try { man.setParallelStem(readJsonEntry<bool>(j, "stem", "static area", "enabled"));
         } catch (std::exception& e) {}
 
         // detectors...
@@ -473,6 +479,12 @@ namespace JSONUtils {
         } else
             j["full 3d"]["state"] = f3d;
 
+        j["precalculate transmission"] = man.precalculateTransmission();
+
+        //
+        //
+        //
+
         auto mp = man.microscopeParams();
 
         j["microscope"]["voltage"]["val"] = mp->Voltage;
@@ -595,7 +607,8 @@ namespace JSONUtils {
 
             // stem detector bit...
 
-            j["stem"]["concurrent pixels"] = man.parallelPixels();
+            j["stem"]["static area"]["concurrent pixels"] = man.parallelPixels();
+            j["stem"]["static area"]["enabled"] = man.parallelStem();
         }
 
         // If CBED, get position info

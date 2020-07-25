@@ -34,7 +34,18 @@ void SimulationGeneral<T>::initialiseBuffers() {
         clXFrequencies = clMemory<T, Manual>(ctx, rs);
         clYFrequencies = clMemory<T, Manual>(ctx, rs);
         clPropagator = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
-        clTransmissionFunction = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+
+        bool precalc_transmisson = job->simManager->precalculateTransmission();
+        if (precalc_transmisson) {
+            int n_slice = job->simManager->simulationCell()->sliceCount();
+            clTransmissionFunction.resize(n_slice);
+            for (int ns = 0; ns < n_slice; ++ns)
+                clTransmissionFunction[ns] = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        } else {
+            clTransmissionFunction.resize(1);
+            clTransmissionFunction[0] = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
+        }
+
         clWaveFunctionTemp_1 = clMemory<std::complex<T>, Manual>(ctx, rs * rs);
         clWaveFunctionTemp_2 = clMemory<T, Manual>(ctx, rs * rs);
         clWaveFunctionTemp_3 = clMemory<T, Manual>(ctx, rs * rs);
@@ -126,13 +137,6 @@ void SimulationGeneral<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Sorting Atoms";
 
     bool do_phonon = job->simManager->incoherenceEffects()->phonons()->getFrozenPhononEnabled();
-
-    // TODO: check that this is only useful here
-    if (job->simManager == current_manager && !do_phonon) {
-        CLOG(DEBUG, "sim") << "Atoms already sorted, reusing that data";
-        return;
-    }
-    current_manager = job->simManager;
 
     std::vector<AtomSite> atoms = job->simManager->simulationCell()->crystalStructure()->atoms();
     auto atom_count = static_cast<unsigned int>(atoms.size()); // Needs to be cast to int as opencl kernel expects that size
@@ -315,11 +319,31 @@ void SimulationGeneral<T>::sortAtoms() {
 
 template <class T>
 void SimulationGeneral<T>::initialiseSimulation() {
+
+    bool same_simulation = job->simManager == current_manager;
+
+    bool do_phonon = job->simManager->incoherenceEffects()->phonons()->getFrozenPhononEnabled();
+    bool do_plasmon = job->simManager->incoherenceEffects()->plasmons()->enabled();
+    bool moving_stem_frame = !job->simManager->parallelStem();
+
+    // phonon is needed as the atoms need to be resorted (and transmission functions regenerated)
+    // phonons are important as the transmission function will need to be modified
+
+    if (same_simulation && !do_phonon && !do_plasmon && !moving_stem_frame) {
+        CLOG(DEBUG, "sim") << "Manager already initialised, reusing that data";
+        return;
+    }
+    current_manager = job->simManager;
+
     CLOG(DEBUG, "sim") << "Initialising all buffers";
     initialiseBuffers();
 
     CLOG(DEBUG, "sim") << "Setting up all kernels";
     initialiseKernels();
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Upload our parameters
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     CLOG(DEBUG, "sim") << "Getting parameters";
     std::vector<double> params_d = job->simManager->structureParameters().parameters;
@@ -327,10 +351,19 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CLOG(DEBUG, "sim") << "Uploading parameters";
     ClParameterisation.Write(params);
 
-    CLOG(DEBUG, "sim") << "Starting general initialisation";
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Sort our atoms!
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CLOG(DEBUG, "sim") << "Sorting atoms";
+
+    // this can take a while and doesnt affect plasmons
+    if (!same_simulation || do_phonon)
+        sortAtoms();
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Get local copies of variables (for convenience)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CLOG(DEBUG, "sim") << "Starting general initialisation";
     auto current_pixel = job->getPixel();
 
     bool isFull3D = job->simManager->full3dEnabled();
@@ -343,6 +376,8 @@ void SimulationGeneral<T>::initialiseSimulation() {
     double starty = job->simManager->paddedSimLimitsY(current_pixel)[0];
     int full3dints = job->simManager->full3dIntegrals();
 
+    // for running opencl kernels
+    clWorkGroup WorkSize(resolution, resolution, 1);
 
     std::string param_name = job->simManager->structureParameters().name;
 
@@ -395,11 +430,6 @@ void SimulationGeneral<T>::initialiseSimulation() {
     clYFrequencies.Write(k0y);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Create a few buffers we will need later
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    clWorkGroup WorkSize(resolution, resolution, 1);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up FFT shift kernel
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Set up FFT shift kernel";
@@ -416,9 +446,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CLOG(DEBUG, "sim") << "Set up complex to real kernel";
 
     // these will never change, so set them here
-//    ComplexToReal.SetArg(0, ..., ArgumentType::Input);
     ComplexToReal.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
-//    ComplexToReal.SetArg(2, 0);
     ComplexToReal.SetArg(3, resolution);
     ComplexToReal.SetArg(4, resolution);
 
@@ -430,10 +458,6 @@ void SimulationGeneral<T>::initialiseSimulation() {
     // these will never change, so set them here
     BilinearTranslate.SetArg(0, clWaveFunctionTemp_2, ArgumentType::Input);
     BilinearTranslate.SetArg(1, clWaveFunctionTemp_3, ArgumentType::Output);
-//    BilinearTranslate.SetArg(2, 0);
-//    BilinearTranslate.SetArg(3, 0);
-//    BilinearTranslate.SetArg(4, static_cast<T>(0.0));
-//    BilinearTranslate.SetArg(5, static_cast<T>(0.0));
     BilinearTranslate.SetArg(6, resolution);
     BilinearTranslate.SetArg(7, resolution);
 
@@ -472,13 +496,24 @@ void SimulationGeneral<T>::initialiseSimulation() {
     auto blocks_x = job->simManager->blocksX();
     auto blocks_y = job->simManager->blocksY();
 
+    int number_of_slices = job->simManager->simulationCell()->sliceCount();
+    double slice_dz = job->simManager->simulationCell()->sliceThickness();
+
     // Set some of the arguments which dont change each iteration
-    CalculateTransmissionFunction.SetArg(0, clTransmissionFunction, ArgumentType::Output);
+//    CalculateTransmissionFunction.SetArg(0, clTransmissionFunction, ArgumentType::Output);
+    CalculateTransmissionFunction.SetArg(1, ClAtomX, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(2, ClAtomY, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(3, ClAtomZ, ArgumentType::Input);
+    CalculateTransmissionFunction.SetArg(4, ClAtomA, ArgumentType::Input);
     CalculateTransmissionFunction.SetArg(5, ClParameterisation, ArgumentType::Input);
     CalculateTransmissionFunction.SetArg(6, static_cast<int>(job->simManager->structureParameters().form));
     CalculateTransmissionFunction.SetArg(7, job->simManager->structureParameters().i_per_atom);
+    CalculateTransmissionFunction.SetArg(8, ClBlockStartPositions, ArgumentType::Input);
     CalculateTransmissionFunction.SetArg(9, resolution);
     CalculateTransmissionFunction.SetArg(10, resolution);
+//    CalculateTransmissionFunction.SetArg(11, slice);
+    CalculateTransmissionFunction.SetArg(12, number_of_slices);
+    CalculateTransmissionFunction.SetArg(13, static_cast<T>(slice_dz));
     CalculateTransmissionFunction.SetArg(14, static_cast<T>(dz));
     CalculateTransmissionFunction.SetArg(15, static_cast<T>(pixelscale));
     CalculateTransmissionFunction.SetArg(16, blocks_x);
@@ -504,6 +539,30 @@ void SimulationGeneral<T>::initialiseSimulation() {
         CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamTilt));
         CalculateTransmissionFunction.SetArg(29, static_cast<T>(mParams->BeamAzimuth));
     }
+
+    bool precalc_transmisson = job->simManager->precalculateTransmission();
+
+    if (precalc_transmisson) {
+        clWorkGroup LocalWork(16, 16, 1);
+        for (int i = 0; i < number_of_slices; ++i) {
+            CLOG(DEBUG, "sim") << "Calculating potentials";
+            CalculateTransmissionFunction.SetArg(0, clTransmissionFunction[i], ArgumentType::Output);
+            CalculateTransmissionFunction.SetArg(11, i);
+
+            CalculateTransmissionFunction.run(WorkSize, LocalWork);
+
+            /// Apply low pass filter to transmission function
+            CLOG(DEBUG, "sim") << "FFT transmission function";
+            FourierTrans.run(clTransmissionFunction[i], clWaveFunctionTemp_1, Direction::Forwards);
+            CLOG(DEBUG, "sim") << "Band limit transmission function";
+            BandLimit.run(WorkSize);
+            CLOG(DEBUG, "sim") << "IFFT band limited transmission function";
+            FourierTrans.run(clWaveFunctionTemp_1, clTransmissionFunction[i], Direction::Inverse);
+        }
+    } else {
+        CalculateTransmissionFunction.SetArg(0, clTransmissionFunction[0], ArgumentType::Output);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Set up the propagator
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -530,12 +589,6 @@ void SimulationGeneral<T>::initialiseSimulation() {
 
     ComplexMultiply.SetArg(3, resolution);
     ComplexMultiply.SetArg(4, resolution);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Finally, sort our atoms!
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    CLOG(DEBUG, "sim") << "Sorting atoms";
-    sortAtoms();
 }
 
 template <class T>
@@ -574,6 +627,7 @@ void SimulationGeneral<T>::modifyBeamTilt(double kx, double ky, double kz){
 template <class T>
 void SimulationGeneral<T>::doMultiSliceStep(int slice) {
     CLOG(DEBUG, "sim") << "Start multislice step " << slice;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Create local variables for convenience
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -583,76 +637,64 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice) {
     int n_parallel = job->simManager->parallelPixels(); // total number of parallel pixels
     auto z_lim = job->simManager->paddedSimLimitsZ();
 
-    // Didn't have MinimumZ so it wasnt correctly rescaled z-axis from 0 to SizeZ...
-    double currentz = z_lim[1] - slice * dz;
-
     clWorkGroup Work(resolution, resolution, 1);
     clWorkGroup LocalWork(16, 16, 1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Get our *transmission* function for the current slice
+    /// Generate transmission function if we need to!
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    unsigned int numberOfSlices = job->simManager->simulationCell()->sliceCount();
 
-    CalculateTransmissionFunction.SetArg(1, ClAtomX, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(2, ClAtomY, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(3, ClAtomZ, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(4, ClAtomA, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(8, ClBlockStartPositions, ArgumentType::Input);
-    CalculateTransmissionFunction.SetArg(11, slice);
-    CalculateTransmissionFunction.SetArg(12, numberOfSlices);
-    CalculateTransmissionFunction.SetArg(13, static_cast<T>(currentz));
+    int trans_id = slice;
 
-    CLOG(DEBUG, "sim") << "Calculating potentials";
+    bool precalc_transmisson = job->simManager->precalculateTransmission();
+    if (!precalc_transmisson) {
 
-    CalculateTransmissionFunction.run(Work, LocalWork);
+        trans_id = 0;
 
-    ctx.WaitForQueueFinish();
+        CLOG(DEBUG, "sim") << "Calculating potentials";
+        CalculateTransmissionFunction.SetArg(0, clTransmissionFunction[0], ArgumentType::Output);
+        CalculateTransmissionFunction.SetArg(11, slice);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Apply low pass filter to transmission function
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    CLOG(DEBUG, "sim") << "FFT transmission function";
-    FourierTrans.run(clTransmissionFunction, clWaveFunctionTemp_1, Direction::Forwards);
-    ctx.WaitForQueueFinish();
-    CLOG(DEBUG, "sim") << "Band limit transmission function";
-    BandLimit.run(Work);
-    ctx.WaitForQueueFinish();
-    CLOG(DEBUG, "sim") << "IFFT band limited transmission function";
-    FourierTrans.run(clWaveFunctionTemp_1, clTransmissionFunction, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+        CalculateTransmissionFunction.run(Work, LocalWork);
+
+        /// Apply low pass filter to transmission function
+        CLOG(DEBUG, "sim") << "FFT transmission function";
+        FourierTrans.run(clTransmissionFunction[0], clWaveFunctionTemp_1, Direction::Forwards);
+        CLOG(DEBUG, "sim") << "Band limit transmission function";
+        BandLimit.run(Work);
+        CLOG(DEBUG, "sim") << "IFFT band limited transmission function";
+        FourierTrans.run(clWaveFunctionTemp_1, clTransmissionFunction[0], Direction::Inverse);
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Propogate slice
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for (int i = 1; i <= n_parallel; i++)
-    {
+    for (int i = 0; i < n_parallel; i++) {
         CLOG(DEBUG, "sim") << "Propogating (" << i << " of " << n_parallel << " parallel)";
 
         // Multiply transmission function with wavefunction
-        ComplexMultiply.SetArg(0, clTransmissionFunction, ArgumentType::Input);
-        ComplexMultiply.SetArg(1, clWaveFunctionReal[i - 1], ArgumentType::Input);
-        ComplexMultiply.SetArg(2, clWaveFunctionRecip[i - 1], ArgumentType::Output);
+        ComplexMultiply.SetArg(0, clTransmissionFunction[trans_id], ArgumentType::Input);
+        ComplexMultiply.SetArg(1, clWaveFunctionReal[i], ArgumentType::Input);
+        ComplexMultiply.SetArg(2, clWaveFunctionRecip[i], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Multiply wavefunction and potentials";
         ComplexMultiply.run(Work);
-        ctx.WaitForQueueFinish();
 
         // go to reciprocal space
         CLOG(DEBUG, "sim") << "FFT to reciprocal space";
-        FourierTrans.run(clWaveFunctionRecip[i - 1], clWaveFunctionTemp_1, Direction::Forwards);
-        ctx.WaitForQueueFinish();
+        FourierTrans.run(clWaveFunctionRecip[i], clWaveFunctionTemp_1, Direction::Forwards);
 
         // convolve with propagator
         ComplexMultiply.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
         ComplexMultiply.SetArg(1, clPropagator, ArgumentType::Input);
-        ComplexMultiply.SetArg(2, clWaveFunctionRecip[i - 1], ArgumentType::Output);
+        ComplexMultiply.SetArg(2, clWaveFunctionRecip[i], ArgumentType::Output);
         CLOG(DEBUG, "sim") << "Convolve with propagator";
         ComplexMultiply.run(Work);
-        ctx.WaitForQueueFinish();
 
         // IFFT back to real space
         CLOG(DEBUG, "sim") << "IFFT to real space";
-        FourierTrans.run(clWaveFunctionRecip[i - 1], clWaveFunctionReal[i - 1], Direction::Inverse);
+        FourierTrans.run(clWaveFunctionRecip[i], clWaveFunctionReal[i], Direction::Inverse);
+
+        // I think this is important as each parallel pixel shares (and particularly writes) to shared buffers
         ctx.WaitForQueueFinish();
     }
 }

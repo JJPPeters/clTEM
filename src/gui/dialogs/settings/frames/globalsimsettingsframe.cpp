@@ -26,9 +26,11 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     ui->edtPaddingZ->setValidator(pValidator);
 
     int three_d_int = simManager->full3dIntegrals();
-    int num_parallel = simManager->parallelPixels();
+    int num_parallel = simManager->storedParallelPixels();
 
     ui->chkDoublePrec->setChecked(simManager->doublePrecisionEnabled());
+    ui->chkParallelStem->setChecked(simManager->parallelStem());
+    ui->chkPrecalcTrans->setChecked(simManager->precalculateTransmission());
 
     ui->edt3dIntegrals->setText(QString::number(three_d_int));
     ui->edtParallelPx->setText(QString::number(num_parallel));
@@ -48,6 +50,7 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     ui->lblParameters->setMinimumWidth(w);
     ui->lblPaddingXY->setMinimumWidth(w);
     ui->lblPaddingZ->setMinimumWidth(w);
+    // TODO: do this for all labels
 
     populateParamsCombo();
 
@@ -98,6 +101,8 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     double pad_xy = ui->edtPaddingXY->text().toDouble();
     double pad_z = ui->edtPaddingZ->text().toDouble();
     bool do_double = ui->chkDoublePrec->isChecked();
+    bool precalc = ui->chkPrecalcTrans->isChecked();
+    bool prlll = ui->chkParallelStem->isChecked();
 
     Manager->setFull3dIntegrals(n_3d);
     Manager->setParallelPixels(n_parallel);
@@ -105,6 +110,8 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     Manager->simulationCell()->setDefaultPaddingXY({-pad_xy, pad_xy});
     Manager->simulationCell()->setDefaultPaddingZ({-pad_z, pad_z});
     Manager->setDoublePrecisionEnabled(do_double);
+    Manager->setPrecalculateTransmission(precalc);
+    Manager->setParallelStem(prlll);
 
     emit dynamic_cast<GlobalSettingsDialog*>(parentWidget())->appliedSignal();
 }

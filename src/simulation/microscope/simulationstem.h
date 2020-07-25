@@ -17,6 +17,7 @@ protected:
     using SimulationGeneral<GPU_Type>::ctx;
 
     using SimulationGeneral<GPU_Type>::clWaveFunctionRecip;
+    using SimulationGeneral<GPU_Type>::clWaveFunctionReal;
     using SimulationGeneral<GPU_Type>::clWaveFunctionTemp_1;
     using SimulationGeneral<GPU_Type>::FftShift;
 

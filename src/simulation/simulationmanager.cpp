@@ -11,6 +11,9 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
                                          structure_parameters_name("kirkland"), maintain_area(false),
                                          simulation_mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
 {
+    parallel_stem = true;
+    precalc_transmission = true;
+
     // Here is where the default values are set!
     micro_params = std::make_shared<MicroscopeParameters>();
     sim_area = std::make_shared<SimulationArea>();
@@ -45,6 +48,9 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
           use_double_precision(sm.use_double_precision), live_stem(sm.live_stem),
           intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
 {
+    parallel_stem = sm.parallel_stem;
+    precalc_transmission = sm.precalc_transmission;
+
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
     stem_sim_area = std::make_shared<StemArea>(*(sm.stem_sim_area));
@@ -55,6 +61,8 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
 }
 
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
+    parallel_stem = sm.parallel_stem;
+    precalc_transmission = sm.precalc_transmission;
     intermediate_slices_enabled = sm.intermediate_slices_enabled;
     intermediate_slices = sm.intermediate_slices;
     use_double_precision = sm.use_double_precision;
@@ -225,7 +233,7 @@ unsigned long SimulationManager::totalParts()
         // round up as still need to complete that 'fraction of a job'
         unsigned int inelastic_runs = incoherence_effects->iterations(simulation_mode);
         return static_cast<unsigned long>(inelastic_runs * std::ceil(
-                static_cast<double>(stemArea()->getNumPixels()) / parallel_pixels));
+                static_cast<double>(stemArea()->getNumPixels()) / parallelPixels()));
     }
 
     return 0;
@@ -432,7 +440,7 @@ SimulationArea SimulationManager::currentAreaBase(int pixel) {
     // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
     // limits
 
-    if (simulation_mode == SimulationMode::STEM && parallel_pixels == 1)
+    if (simulation_mode == SimulationMode::STEM && !parallel_stem)
         // if parallel pixels are used, we need the full sim area...
         return stem_sim_area->getPixelSimArea(pixel);
     else
