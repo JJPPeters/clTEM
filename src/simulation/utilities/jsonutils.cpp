@@ -314,13 +314,13 @@ namespace JSONUtils {
 
         // phonon
 
-        try {
-            man.incoherenceEffects()->phonons()->setFrozenPhononEnabled(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "frozen phonon", "enabled"));
-        } catch (std::exception& e) {}
-
         *(man.incoherenceEffects()->phonons()) = JsonToThermalVibrations(j);
 
         // plasmon
+
+        try {
+            man.incoherenceEffects()->plasmons()->setEnabled(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "plasmon", "enabled"));
+        } catch (std::exception& e) {}
 
         try {
             std::string p_type = readJsonEntry<std::string>(j, "incoherence", "inelastic scattering", "plasmon", "type");
@@ -331,7 +331,7 @@ namespace JSONUtils {
         } catch (std::exception& e) {}
 
         try {
-            man.incoherenceEffects()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "incoherence", "inelastic scattering", "plasmon", "individual", "number"));
+            man.incoherenceEffects()->plasmons()->setIndividualPlasmon(readJsonEntry<unsigned int>(j, "incoherence", "inelastic scattering", "plasmon", "individual"));
         } catch (std::exception& e) {}
 
         try {
@@ -357,6 +357,8 @@ namespace JSONUtils {
 
         PhononScattering out_therms;
 
+
+        bool frozen_phonon_enabled = false;
         bool force_default = false;
         bool override_file = false;
         double def = 0.0;
@@ -364,13 +366,17 @@ namespace JSONUtils {
         std::vector<double> vibs;
         std::vector<int> els;
 
+        try {
+            frozen_phonon_enabled = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "enabled");
+        } catch (std::exception& e) {}
+
         try { force_default = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "force default");
         } catch (std::exception& e) {}
 
         try { override_file = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "override file");
         } catch (std::exception& e) {}
 
-        try { def = readJsonEntry<double>(j, "incoherence", "inelastic scattering", "phonon", "default");
+        try { def = readJsonEntry<double>(j, "incoherence", "inelastic scattering", "phonon", "default", "value");
         } catch (std::exception& e) {}
 
         try {
@@ -386,9 +392,10 @@ namespace JSONUtils {
 
         } catch (std::exception& e) {}
 
+        out_therms.setFrozenPhononEnabled(frozen_phonon_enabled);
         out_therms.setVibrations(def, els, vibs);
-        out_therms.force_defined = override_file;
-        out_therms.force_default = force_default;
+        out_therms.setForceDefined(override_file);
+        out_therms.setForceDefault(force_default);
 
         return out_therms;
     }
@@ -668,14 +675,12 @@ namespace JSONUtils {
         bool phonon_used = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
         if (phonon_used || force_all) {
 
-            j["incoherence"]["inelastic scattering"]["phonon"]["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
-
             // don't export if we have file defined vibrations and no override
             bool export_thermals = true;
             if (man.simulationCell()->crystalStructure()) // structure does not always exist
                 export_thermals = !(man.simulationCell()->crystalStructure()->thermalFileDefined() &&
-                                    !man.incoherenceEffects()->phonons()->force_default &&
-                                    !man.incoherenceEffects()->phonons()->force_defined);
+                                    !man.incoherenceEffects()->phonons()->forceDefault() &&
+                                    !man.incoherenceEffects()->phonons()->forceDefined());
 
             if (export_thermals || force_all) {
                 if (force_all)
@@ -690,6 +695,8 @@ namespace JSONUtils {
         auto plasmon = man.incoherenceEffects()->plasmons();
         bool plasmon_used = plasmon->enabled();
         if (plasmon_used || force_all) {
+            j["incoherence"]["inelastic scattering"]["plasmon"]["enabled"] = plasmon_used;
+
             if (plasmon->simType() == PlasmonType::Full)
                 j["incoherence"]["inelastic scattering"]["plasmon"]["type"] = "full";
             else if (man.incoherenceEffects()->plasmons()->simType() == PlasmonType::Individual)
@@ -699,13 +706,13 @@ namespace JSONUtils {
                 j["incoherence"]["inelastic scattering"]["plasmon"]["individual"] = plasmon->individualPlasmon();
 
             j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["value"] = plasmon->meanFreePath() / 10;
-            j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["unit"] = "nm";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["mean free path"]["units"] = "nm";
 
             j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["value"] = plasmon->characteristicAngle();
-            j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["unit"] = "mrad";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["characteristic angle"]["units"] = "mrad";
 
             j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["value"] = plasmon->criticalAngle();
-            j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["unit"] = "mrad";
+            j["incoherence"]["inelastic scattering"]["plasmon"]["critical angle"]["units"] = "mrad";
         }
 
         // this is only valid if we have actually saved a simulation, so we can't force it
@@ -754,11 +761,13 @@ namespace JSONUtils {
     json thermalVibrationsToJson(SimulationManager& man) {
         json j;
 
-        j["force default"] = man.incoherenceEffects()->phonons()->force_default;
-        j["override file"] = man.incoherenceEffects()->phonons()->force_defined;
+        j["enabled"] = man.incoherenceEffects()->phonons()->getFrozenPhononEnabled();
 
-        j["default"] = man.incoherenceEffects()->phonons()->getDefault();
-        j["units"] = "Å²";
+        j["force default"] = man.incoherenceEffects()->phonons()->forceDefault();
+        j["override file"] = man.incoherenceEffects()->phonons()->forceDefined();
+
+        j["default"]["value"] = man.incoherenceEffects()->phonons()->getDefault();
+        j["default"]["units"] = "Å²";
 
         auto els = man.incoherenceEffects()->phonons()->getDefinedElements();
         auto vibs = man.incoherenceEffects()->phonons()->getDefinedVibrations();

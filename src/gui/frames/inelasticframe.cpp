@@ -63,8 +63,10 @@ void InelasticFrame::updatePhononsGui() {
 
     bool enabled = phonon->getFrozenPhononEnabled();
     double def_u = phonon->getDefault();
+    bool use_def = phonon->forceDefault();
 
     ui->edtPhononDefault->setText(QString::number(def_u));
+    ui->chkPhononDefault->setChecked(use_def);
     ui->chkPhonon->setChecked(enabled);
 }
 
@@ -98,7 +100,7 @@ void InelasticFrame::updatePhononsManager() {
 
     phonon->setFrozenPhononEnabled(enabled);
     phonon->setDefault(def_u);
-    phonon->force_default = force_default;
+    phonon->setForceDefault(force_default);
 }
 
 void InelasticFrame::updatePlasmonsManager() {

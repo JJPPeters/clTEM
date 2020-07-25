@@ -22,6 +22,8 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
 
     ui->edt3dIntegrals->setValidator(pIntValidator);
     ui->edtParallelPx->setValidator(pIntValidator);
+    ui->edtMixPot->setValidator(pIntValidator);
+
     ui->edtPaddingXY->setValidator(pValidator);
     ui->edtPaddingZ->setValidator(pValidator);
 
@@ -38,24 +40,30 @@ GlobalSimSettingsFrame::GlobalSimSettingsFrame(QWidget *parent, std::shared_ptr<
     ui->edtPaddingXY->setText(QString::number(Manager->simulationCell()->defaultPaddingXY()[1]));
     ui->edtPaddingZ->setText(QString::number(Manager->simulationCell()->defaultPaddingZ()[1]));
 
+    ui->edtMixPot->setText(QString::number(Manager->storedParallelPotentialCount()));
+    ui->chkMixPot->setChecked(Manager->storedUseParallelPotentials());
+
     // make the label widths the same so they line up
     auto w1 = ui->lbl3d->width();
     auto w2 = ui->lblParallel->width();
     auto w3 = ui->lblParameters->width();
     auto w4 = ui->lblPaddingXY->width();
     auto w5 = ui->lblPaddingZ->width();
-    auto w = std::max(std::max(w1, w2), std::max(w3, std::max(w4, w5)));
+    auto w6 = ui->lblUseMixPot->width();
+    auto w = std::max(std::max(w1, w2), std::max(w3, std::max(w4, std::max(w5, w6))));
     ui->lbl3d->setMinimumWidth(w);
     ui->lblParallel->setMinimumWidth(w);
     ui->lblParameters->setMinimumWidth(w);
     ui->lblPaddingXY->setMinimumWidth(w);
     ui->lblPaddingZ->setMinimumWidth(w);
+    ui->lblUseMixPot->setMinimumWidth(w);
     // TODO: do this for all labels
 
     populateParamsCombo();
 
     connect(ui->edt3dIntegrals, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
     connect(ui->edtParallelPx, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
+    connect(ui->edtMixPot, &QLineEdit::textChanged, this, &GlobalSimSettingsFrame::checkValidInputs);
 
 }
 
@@ -103,6 +111,8 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     bool do_double = ui->chkDoublePrec->isChecked();
     bool precalc = ui->chkPrecalcTrans->isChecked();
     bool prlll = ui->chkParallelStem->isChecked();
+    unsigned int n_mp = ui->edtMixPot->text().toUInt();
+    bool use_mp = ui->chkMixPot->isChecked();
 
     Manager->setFull3dIntegrals(n_3d);
     Manager->setParallelPixels(n_parallel);
@@ -112,6 +122,8 @@ void GlobalSimSettingsFrame::dlgApply_clicked() {
     Manager->setDoublePrecisionEnabled(do_double);
     Manager->setPrecalculateTransmission(precalc);
     Manager->setParallelStem(prlll);
+    Manager->setParallelPotentialCount(n_mp);
+    Manager->setUseParallelPotentials(use_mp);
 
     emit dynamic_cast<GlobalSettingsDialog*>(parentWidget())->appliedSignal();
 }
