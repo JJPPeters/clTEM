@@ -464,9 +464,20 @@ SimulationArea SimulationManager::currentAreaBase(int pixel) {
     // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
     // limits
 
-    if (simulation_mode == SimulationMode::STEM && !parallel_stem)
+    if (simulation_mode == SimulationMode::STEM && !parallel_stem) {
         // if parallel pixels are used, we need the full sim area...
-        return stem_sim_area->getPixelSimArea(pixel);
-    else
+
+        // We need this real scale to correctly align the stem potentials
+        // Note that we can't call the realScal() function as it calls this (recursion!)
+        // Also assumes the simulation is square (why wouldn't it be!)
+        auto padding = simulation_cell->paddingX();
+        double pad_range = padding[1] - padding[0];
+
+        auto area = stem_sim_area->getCorrectedLimitsX();
+        double area_range = area[1] - area[0];
+
+        double rs = (pad_range + area_range) / static_cast<double>(resolution());
+        return stem_sim_area->getPixelSimArea(pixel, rs);
+    } else
         return fullAreaBase(); // These don't ever change!
 }

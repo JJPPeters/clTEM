@@ -376,13 +376,21 @@ struct StemArea : public SimulationArea {
 
     unsigned int getNumPixels() {return xPixels * yPixels;}
 
-    SimulationArea getPixelSimArea(int pixel) {
+    SimulationArea getPixelSimArea(int pixel, double real_scale) {
         // convert pixel id to x, y position
         unsigned int x_px = pixel % xPixels;
         unsigned int y_px = (unsigned int) std::floor(pixel / xPixels);
 
-        float xPos = getRawLimitsX()[0] + getScaleX() * x_px;
-        float yPos = getRawLimitsY()[0] + getScaleY() * y_px;
+        // get the pos from the start position
+        double pos_x = getScaleX() * x_px;
+        double pos_y = getScaleY() * y_px;
+
+        // get this in units of real_scale
+        double real_pos_x = real_scale * std::floor(pos_x / real_scale);
+        double real_pos_y = real_scale * std::floor(pos_y / real_scale);
+
+        double xPos = getRawLimitsX()[0] + real_pos_x;
+        double yPos = getRawLimitsY()[0] + real_pos_y;
         // pad equally on both sides
         return SimulationArea(xPos, xPos, yPos, yPos, padding);
     }
