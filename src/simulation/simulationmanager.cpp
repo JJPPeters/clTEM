@@ -17,6 +17,8 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     parallel_potentials = false;
     parallel_potentials_count = 5;
 
+    last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
+
     // Here is where the default values are set!
     micro_params = std::make_shared<MicroscopeParameters>();
     sim_area = std::make_shared<SimulationArea>();
@@ -51,6 +53,8 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
           use_double_precision(sm.use_double_precision), live_stem(sm.live_stem),
           intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
 {
+    last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
+
     parallel_stem = sm.parallel_stem;
     precalc_transmission = sm.precalc_transmission;
 
@@ -67,6 +71,8 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
 }
 
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
+    last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
+
     parallel_potentials = sm.parallel_potentials;
     parallel_potentials_count = sm.parallel_potentials_count;
     parallel_stem = sm.parallel_stem;
@@ -304,10 +310,15 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
 
     reportTotalProgress(prgrss);
 
+    std::chrono::time_point<std::chrono::system_clock> time_now = std::chrono::system_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_update).count();
+
     // this means this simulation is finished
-    if (image_return_func && (complete_jobs == v || update)) {
+    if (image_return_func && (complete_jobs == v || (update && duration > 100))) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
         image_return_func(*this);
+        last_update = std::chrono::system_clock::now();
     }
 }
 

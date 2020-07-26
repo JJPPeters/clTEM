@@ -274,6 +274,7 @@ private:
     unsigned int parallel_potentials_count;
 
     //
+    std::chrono::time_point<std::chrono::system_clock> last_update;
 
     bool use_double_precision;
 
