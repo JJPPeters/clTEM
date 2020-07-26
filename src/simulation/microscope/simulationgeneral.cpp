@@ -367,8 +367,12 @@ void SimulationGeneral<T>::initialiseSimulation() {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     CLOG(DEBUG, "sim") << "Sorting atoms";
 
-    // this can take a while and doesnt affect plasmons
-    if (!same_simulation || (do_phonon && !do_multi_potential_tds))
+    bool force_tds_resort = job->simManager->forcePhononAtomResort();
+
+    // sort atoms if this is a new simulation (i.e. this hasn't been called before)
+    // also sort if we are doing phonons and not using the multi-potential approximation
+    // or if we are doing phonons and are forcing the resort
+    if (!same_simulation || (do_phonon && (!do_multi_potential_tds || force_tds_resort)))
         sortAtoms();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

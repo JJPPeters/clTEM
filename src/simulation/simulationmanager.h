@@ -234,6 +234,14 @@ public:
         parallel_potentials_count = set;
     }
 
+    bool forcePhononAtomResort() {
+        return force_tds_atom_resort;
+    }
+
+    void setForcePhononAtomResort(bool set) {
+        force_tds_atom_resort = set;
+    }
+
 private:
     // simulation cell contains the structure
     std::shared_ptr<SimulationCell> simulation_cell;
@@ -272,6 +280,8 @@ private:
     bool parallel_potentials;
 
     unsigned int parallel_potentials_count;
+
+    bool force_tds_atom_resort;
 
     //
     std::chrono::time_point<std::chrono::system_clock> last_update;

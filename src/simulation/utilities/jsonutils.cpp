@@ -325,6 +325,9 @@ namespace JSONUtils {
         try { man.setUseParallelPotentials(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "mixed static potentials", "enabled"));
         } catch (std::exception& e) {}
 
+        try { man.setForcePhononAtomResort(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "force atom resort"));
+        } catch (std::exception& e) {}
+
         // plasmon
 
         try {
@@ -706,15 +709,7 @@ namespace JSONUtils {
                 j["incoherence"]["inelastic scattering"]["phonon"]["mixed static potentials"]["enabled"] = man.useParallelPotentials();
             }
 
-
-            try {
-                man.setParallelPotentialsCount(
-                        readJsonEntry<unsigned int>(j, "incoherence", "inelastic scattering", "phonon",
-                                                    "mixed static potentials", "count"));
-            } catch (std::exception& e) {}
-
-            try { man.setUseParallelPotentials(readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "mixed static potentials", "enabled"));
-            } catch (std::exception& e) {}
+            j["incoherence"]["inelastic scattering"]["phonon"]["force atom resort"] = man.forcePhononAtomResort();
         }
 
         // plasmon

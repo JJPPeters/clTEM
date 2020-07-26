@@ -17,6 +17,8 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     parallel_potentials = false;
     parallel_potentials_count = 5;
 
+    force_tds_atom_resort = false;
+
     last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
 
     // Here is where the default values are set!
@@ -55,6 +57,8 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
 {
     last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
 
+    force_tds_atom_resort = sm.force_tds_atom_resort;
+
     parallel_stem = sm.parallel_stem;
     precalc_transmission = sm.precalc_transmission;
 
@@ -73,6 +77,7 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
     last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
 
+    force_tds_atom_resort = sm.force_tds_atom_resort;
     parallel_potentials = sm.parallel_potentials;
     parallel_potentials_count = sm.parallel_potentials_count;
     parallel_stem = sm.parallel_stem;
