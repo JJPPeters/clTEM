@@ -327,7 +327,7 @@ void SimulationGeneral<T>::sortAtoms() {
 }
 
 template <class T>
-void SimulationGeneral<T>::initialiseSimulation() {
+bool SimulationGeneral<T>::initialiseSimulation() {
 
     bool same_simulation = job->simManager == current_manager;
 
@@ -342,7 +342,7 @@ void SimulationGeneral<T>::initialiseSimulation() {
 
     if (same_simulation && (!do_phonon || do_multi_potential_tds) && !do_plasmon && !moving_stem_frame) {
         CLOG(DEBUG, "sim") << "Manager already initialised, reusing that data";
-        return;
+        return true;
     }
     current_manager = job->simManager;
 
@@ -508,11 +508,12 @@ void SimulationGeneral<T>::initialiseSimulation() {
     auto full_lims_x = job->simManager->paddedFullLimitsX();
     auto full_lims_y = job->simManager->paddedFullLimitsY();
 
+    auto min_z = job->simManager->paddedSimLimitsZ()[0];
+
     auto blocks_x = job->simManager->blocksX();
     auto blocks_y = job->simManager->blocksY();
 
     int number_of_slices = job->simManager->simulationCell()->sliceCount();
-    double slice_dz = job->simManager->simulationCell()->sliceThickness();
 
     // Set some of the arguments which dont change each iteration
 //    CalculateTransmissionFunction.SetArg(0, clTransmissionFunction, ArgumentType::Output);
@@ -528,31 +529,31 @@ void SimulationGeneral<T>::initialiseSimulation() {
     CalculateTransmissionFunction.SetArg(10, resolution);
 //    CalculateTransmissionFunction.SetArg(11, slice);
     CalculateTransmissionFunction.SetArg(12, number_of_slices);
-    CalculateTransmissionFunction.SetArg(13, static_cast<T>(slice_dz));
-    CalculateTransmissionFunction.SetArg(14, static_cast<T>(dz));
-    CalculateTransmissionFunction.SetArg(15, static_cast<T>(pixelscale));
-    CalculateTransmissionFunction.SetArg(16, blocks_x);
-    CalculateTransmissionFunction.SetArg(17, blocks_y);
-    CalculateTransmissionFunction.SetArg(18, static_cast<T>(full_lims_x[1]));
-    CalculateTransmissionFunction.SetArg(19, static_cast<T>(full_lims_x[0]));
-    CalculateTransmissionFunction.SetArg(20, static_cast<T>(full_lims_y[1]));
-    CalculateTransmissionFunction.SetArg(21, static_cast<T>(full_lims_y[0]));
-    CalculateTransmissionFunction.SetArg(22, load_blocks_x);
-    CalculateTransmissionFunction.SetArg(23, load_blocks_y);
-    CalculateTransmissionFunction.SetArg(24, load_blocks_z);
-    CalculateTransmissionFunction.SetArg(25, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
-    CalculateTransmissionFunction.SetArg(26, static_cast<T>(startx + reference_perturb_x));
-    CalculateTransmissionFunction.SetArg(27, static_cast<T>(starty + reference_perturb_y));
+    CalculateTransmissionFunction.SetArg(13, static_cast<T>(dz));
+    CalculateTransmissionFunction.SetArg(14, static_cast<T>(pixelscale));
+    CalculateTransmissionFunction.SetArg(15, blocks_x);
+    CalculateTransmissionFunction.SetArg(16, blocks_y);
+    CalculateTransmissionFunction.SetArg(17, static_cast<T>(full_lims_x[1]));
+    CalculateTransmissionFunction.SetArg(18, static_cast<T>(full_lims_x[0]));
+    CalculateTransmissionFunction.SetArg(19, static_cast<T>(full_lims_y[1]));
+    CalculateTransmissionFunction.SetArg(20, static_cast<T>(full_lims_y[0]));
+    CalculateTransmissionFunction.SetArg(21, load_blocks_x);
+    CalculateTransmissionFunction.SetArg(22, load_blocks_y);
+    CalculateTransmissionFunction.SetArg(23, load_blocks_z);
+    CalculateTransmissionFunction.SetArg(24, static_cast<T>(sigma)); // Not sure why I am using this sigma and not commented sigma...
+    CalculateTransmissionFunction.SetArg(25, static_cast<T>(startx + reference_perturb_x));
+    CalculateTransmissionFunction.SetArg(26, static_cast<T>(starty + reference_perturb_y));
     if (isFull3D) {
         double int_shift_x = (wavevector[0] / wavevector[2]) * dz / full3dints;
         double int_shift_y = (wavevector[1] / wavevector[2]) * dz / full3dints;
 
+//        CalculateTransmissionFunction.SetArg(27, static_cast<T>(slice_z);
         CalculateTransmissionFunction.SetArg(28, static_cast<T>(int_shift_x));
         CalculateTransmissionFunction.SetArg(29, static_cast<T>(int_shift_y));
         CalculateTransmissionFunction.SetArg(30, full3dints);
     } else {
-        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamTilt));
-        CalculateTransmissionFunction.SetArg(29, static_cast<T>(mParams->BeamAzimuth));
+        CalculateTransmissionFunction.SetArg(27, static_cast<T>(mParams->BeamTilt));
+        CalculateTransmissionFunction.SetArg(28, static_cast<T>(mParams->BeamAzimuth));
     }
 
     bool precalc_transmisson = job->simManager->precalculateTransmission();
@@ -570,6 +571,11 @@ void SimulationGeneral<T>::initialiseSimulation() {
                 CalculateTransmissionFunction.SetArg(0, clTransmissionFunction[j][i], ArgumentType::Output);
                 CalculateTransmissionFunction.SetArg(11, i);
 
+                if (isFull3D) {
+                    double slice_z = min_z + (number_of_slices - i) * dz;
+                    CalculateTransmissionFunction.SetArg(27, static_cast<T>(slice_z));
+                }
+
                 CalculateTransmissionFunction.run(WorkSize, LocalWork);
 
                 /// Apply low pass filter to transmission function
@@ -581,6 +587,9 @@ void SimulationGeneral<T>::initialiseSimulation() {
                 FourierTrans.run(clWaveFunctionTemp_1, clTransmissionFunction[j][i], Direction::Inverse);
 
                 ctx.WaitForQueueFinish();
+
+                if (pool.isStopped())
+                    return false;
             }
 
             // sort for our next iteration
@@ -617,6 +626,8 @@ void SimulationGeneral<T>::initialiseSimulation() {
 
     ComplexMultiply.SetArg(3, resolution);
     ComplexMultiply.SetArg(4, resolution);
+
+    return true;
 }
 
 template <class T>
@@ -681,6 +692,15 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice) {
         CLOG(DEBUG, "sim") << "Calculating potentials";
         CalculateTransmissionFunction.SetArg(0, clTransmissionFunction[0][0], ArgumentType::Output);
         CalculateTransmissionFunction.SetArg(11, slice);
+
+        bool isFull3D = job->simManager->full3dEnabled();
+        if (isFull3D) {
+            auto min_z = job->simManager->paddedSimLimitsZ()[0];
+            int number_of_slices = job->simManager->simulationCell()->sliceCount();
+
+            double slice_z = min_z + (number_of_slices - slice) * dz;
+            CalculateTransmissionFunction.SetArg(27, static_cast<T>(slice_z));
+        }
 
         CalculateTransmissionFunction.run(Work, LocalWork);
 

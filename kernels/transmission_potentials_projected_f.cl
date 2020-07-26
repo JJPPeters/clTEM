@@ -181,35 +181,34 @@ float peng(__constant float* params, int i_lim, int ZNum, float rad) {
 }
 
 __kernel void transmission_potentials_projected_f( __global float2* potential,
-							         __global const float* restrict pos_x,
-						  		     __global const float* restrict pos_y,
-						 		     __global const float* restrict pos_z,
-								     __global const int* restrict atomic_num,
-								     __constant float* params,
-								     unsigned int param_selector,
-									 unsigned int param_i_count,
-						 		     __global const int* restrict block_start_pos,
-								     unsigned int width,
-								     unsigned int height,
-								     int current_slice,
-								     int total_slices,
-								     float z,
-								     float dz,
-								     float pixelscale, 
-								     int blocks_x,
-								     int blocks_y,
-								     float max_x,
-								     float min_x,
-								     float max_y,
-								     float min_y,
-								     int block_load_x,
-								     int block_load_y,
-								     int slice_load_z,
-								     float sigma,
-						  		     float startx,
-								     float starty,
-								     float beam_theta,
-								     float beam_phi)
+							                       __global const float* restrict pos_x,
+						  		                   __global const float* restrict pos_y,
+						 		                   __global const float* restrict pos_z,
+								                   __global const int* restrict atomic_num,
+								                   __constant float* params,
+								                   unsigned int param_selector,
+									               unsigned int param_i_count,
+						 		                   __global const int* restrict block_start_pos,
+								                   unsigned int width,
+								                   unsigned int height,
+								                   int current_slice,
+								                   int total_slices,
+								                   float dz,
+								                   float pixelscale, 
+								                   int blocks_x,
+								                   int blocks_y,
+								                   float max_x,
+								                   float min_x,
+								                   float max_y,
+								                   float min_y,
+								                   int block_load_x,
+								                   int block_load_y,
+								                   int slice_load_z,
+								                   float sigma,
+						  		                   float startx,
+								                   float starty,
+								                   float beam_theta,
+								                   float beam_phi)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
@@ -232,10 +231,10 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
 
     // get the start and end position of the current workgroup
     float group_start_x = startx + gx * group_size_x;
-    float group_end_x   = group_start_x + group_size_x;
+    float group_end_x = group_start_x + group_size_x;
 
     float group_start_y = starty + gy * group_size_y;
-    float group_end_y   = group_start_y + group_size_y;
+    float group_end_y = group_start_y + group_size_y;
 
     // get the reciprocal of the full range (for efficiency)
     float recip_range_x = native_recip(max_x - min_x);
@@ -251,7 +250,6 @@ __kernel void transmission_potentials_projected_f( __global float2* potential,
         k = 0;
     if (k >= total_slices)
         k = total_slices - 1;
-
 
     // loop through our bins (y only, x is handled using the workgroup)
 	for (int j = startj ; j <= endj; j++) {

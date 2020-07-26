@@ -31,7 +31,7 @@ protected:
 
     using SimulationGeneral<GPU_Type>::translateDiffImage;
 
-    void initialiseSimulation();
+    bool initialiseSimulation();
 
     void initialiseBuffers();
     void initialiseKernels();

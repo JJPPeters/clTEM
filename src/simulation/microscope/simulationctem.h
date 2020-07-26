@@ -45,7 +45,7 @@ public:
     void simulate();
 
 private:
-    void initialiseSimulation();
+    bool initialiseSimulation();
 
     void simulateCtemImage();
 

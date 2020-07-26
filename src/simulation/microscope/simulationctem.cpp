@@ -50,7 +50,7 @@ void SimulationCtem<double>::initialiseKernels() {
 }
 
 template <class T>
-void SimulationCtem<T>::initialiseSimulation()
+bool SimulationCtem<T>::initialiseSimulation()
 {
     initialiseBuffers();
     initialiseKernels();
@@ -59,7 +59,8 @@ void SimulationCtem<T>::initialiseSimulation()
     reference_perturb_x = 0.0;
     reference_perturb_y = 0.0;
 
-    SimulationGeneral<T>::initialiseSimulation();
+    if(!SimulationGeneral<T>::initialiseSimulation())
+        return false;
 
     CLOG(DEBUG, "sim") << "Starting CTEM initialisation";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +82,8 @@ void SimulationCtem<T>::initialiseSimulation()
     InitPlaneWavefunction.run(WorkSize);
 
     ctx.WaitForQueueFinish();
+
+    return true;
 }
 
 template <class T>
@@ -280,7 +283,8 @@ std::vector<double> SimulationCtem<T>::getCtemImage()
 
 template<class GPU_Type>
 void SimulationCtem<GPU_Type>::simulate() {
-    initialiseSimulation();
+    if (!initialiseSimulation())
+        return;
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
 

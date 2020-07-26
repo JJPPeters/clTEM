@@ -32,7 +32,7 @@ protected:
 
     void initialiseProbeWave(double posx, double posy, int n_parallel = 0);
 
-    void initialiseSimulation();
+    bool initialiseSimulation();
 
     void initialiseBuffers();
     void initialiseKernels();

@@ -45,7 +45,7 @@ protected:
 
     void sortAtoms();
 
-    void initialiseSimulation();
+    bool initialiseSimulation();
 
     void doMultiSliceStep(int slice);
 
