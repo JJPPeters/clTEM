@@ -48,9 +48,12 @@ namespace Utils {
         if (Manager->mode() == SimulationMode::STEM && Manager->parallelPixels() < 1)
             errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
 
+        if (Manager->mode() == SimulationMode::STEM && Manager->parallelPixels() < 1)
+            errorList.emplace_back("Parallel STEM pixels must be non-zero positive number.");
+
         // check TDS entries
-        if (Manager->incoherenceEffects()->iterations(Manager->mode()) < 1)
-            errorList.emplace_back("Inelastic scattering iterations must be larger than 0.");
+        if (Manager->parallelPotentialsCount() < 1)
+            errorList.emplace_back("Mixed potential phonon approximation must be a non-zero positive number.");
 
         // plasmon settings
         if (Manager->incoherenceEffects()->plasmons()->enabled()) {
