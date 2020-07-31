@@ -167,7 +167,7 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
 
         std::vector<double> data;
 
-        for (int i = 0; i < im.getSliceSize(); ++i) {
+        for (int i = 0; i < im.getDepth(); ++i) {
             data = im.getWeightedSlice(i, false);
 
             // get the name to use for the output
