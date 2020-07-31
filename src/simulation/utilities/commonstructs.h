@@ -151,7 +151,7 @@ public:
             return getCroppedWeighteddSlice(slice);
         std::vector<T> out = data[slice];
         // we don't store the averaged data, so do it now
-        for (int p = 0; p < data.size(); ++p)
+        for (int p = 0; p < out.size(); ++p)
             out[p] /= getWeightingVal(p);
 
         return out;

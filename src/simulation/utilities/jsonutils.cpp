@@ -428,7 +428,7 @@ namespace JSONUtils {
 
         json j;
 
-        bool have_structure = man.simulationCell()->crystalStructure().get() == nullptr;
+        bool have_structure = man.simulationCell()->crystalStructure().get() != nullptr;
 
         // no file input here as it is not always needed
 
