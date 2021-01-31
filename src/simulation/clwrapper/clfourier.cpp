@@ -51,32 +51,40 @@ void clFourier<T>::Setup(unsigned int _width, unsigned int _height) {
     //	Default plan creates a plan that expects an inPlace transform with interleaved complex numbers
     fftStatus = clfftSetResultLocation( fftplan, place );
     clFftError::Throw(fftStatus, "clFourier");
+
     if (sizeof(T) == 4) // This only works because I have limited my template types to float and double
         fftStatus = clfftSetPlanPrecision(fftplan, CLFFT_SINGLE);
     else if (sizeof(T) == 8)
         fftStatus = clfftSetPlanPrecision(fftplan, CLFFT_DOUBLE);
     else
         throw std::runtime_error("clFourier: Unknown bit depth");
-
     clFftError::Throw(fftStatus, "clFourier");
+
     fftStatus = clfftSetLayout( fftplan, inLayout, outLayout );
     clFftError::Throw(fftStatus, "clFourier");
-    fftStatus = clfftSetPlanBatchSize( fftplan, batchSize );
-    clFftError::Throw(fftStatus, "clFourier");
-    fftStatus = clfftSetPlanScale (fftplan, CLFFT_FORWARD, 1.0f / sqrtf(_width * _height));
-    clFftError::Throw(fftStatus, "clFourier");
-    fftStatus = clfftSetPlanScale (fftplan, CLFFT_BACKWARD, 1.0f / sqrtf(_width * _height));
-    clFftError::Throw(fftStatus, "clFourier");
 
-    // Not using padding here yet
-    if ((clPadding[ 0 ] | clPadding[ 1 ] | clPadding[ 2 ]) != 0) {
-        clfftSetPlanInStride  ( fftplan, fftdim, clStrides );
-        clfftSetPlanOutStride ( fftplan, fftdim, clStrides );
-        clfftSetPlanDistance  ( fftplan, clStrides[ fftdim ], clStrides[ fftdim ]);
-    }
+//    fftStatus = clfftSetPlanBatchSize( fftplan, batchSize );
+//    clFftError::Throw(fftStatus, "clFourier");
+
+//    fftStatus = clfftSetPlanScale (fftplan, CLFFT_FORWARD, 1.0f / sqrtf(_width * _height));
+//    clFftError::Throw(fftStatus, "clFourier");
+//
+//    fftStatus = clfftSetPlanScale (fftplan, CLFFT_BACKWARD, 1.0f / sqrtf(_width * _height));
+//    clFftError::Throw(fftStatus, "clFourier");
+
+//    // Not using padding here yet
+//    if ((clPadding[ 0 ] | clPadding[ 1 ] | clPadding[ 2 ]) != 0) {
+//        clfftSetPlanInStride(fftplan, fftdim, clStrides);
+//        clfftSetPlanOutStride(fftplan, fftdim, clStrides);
+//        clfftSetPlanDistance(fftplan, clStrides[fftdim], clStrides[fftdim]);
+//    }
 
     fftStatus = clfftBakePlan( fftplan, 1, &Context.GetQueue()(), nullptr, nullptr);
     clFftError::Throw(fftStatus, "clFourier");
+
+//    clfftDestroyPlan(&fftplan);
+
+    return;
 
     //get the buffersize
 

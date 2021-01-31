@@ -38,9 +38,9 @@ protected:
     bool do_initialise_ctem;
 
 public:
-    explicit SimulationCtem(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationGeneral<GPU_Type>(_ctx, s, _id), do_initialise_ctem(true) {}
+    explicit SimulationCtem(clDevice &_dev, ThreadPool &s, unsigned int _id) : SimulationGeneral<GPU_Type>(_dev, s, _id), do_initialise_ctem(true) {}
 
-    ~SimulationCtem() = default;
+    ~SimulationCtem() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
 
     void simulate();
 

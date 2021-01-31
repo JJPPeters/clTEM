@@ -17,14 +17,19 @@ template <class GPU_Type>
 class SimulationGeneral : public ThreadWorker
 {
 public:
-    explicit SimulationGeneral(const clContext &_ctx, ThreadPool &s, unsigned int _id)
-        : ThreadWorker(s, _id), ctx(_ctx),
+    explicit SimulationGeneral(clDevice &_dev_list, ThreadPool &s, unsigned int _id)
+        : ThreadWorker(s, _id),
         last_mode(SimulationMode::None), last_do_3d(false), do_initialise_general(true),
-          reference_perturb_x(0.0), reference_perturb_y(0.0) {
+        reference_perturb_x(0.0), reference_perturb_y(0.0) {
+
+        ctx = OpenCL::MakeContext(_dev_list);
 
     }
 
-    ~SimulationGeneral() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
+    ~SimulationGeneral() {
+        ctx.WaitForQueueFinish();
+        ctx.WaitForIOQueueFinish();
+    }
 
 protected:
     SimulationMode last_mode;

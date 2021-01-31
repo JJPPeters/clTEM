@@ -43,9 +43,9 @@ protected:
     bool do_initialise_stem;
 
 public:
-    explicit SimulationStem(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationCbed<GPU_Type>(_ctx, s, _id), do_initialise_stem(true) {}
+    explicit SimulationStem(clDevice &_dev, ThreadPool &s, unsigned int _id) : SimulationCbed<GPU_Type>(_dev, s, _id), do_initialise_stem(true) {}
 
-    ~SimulationStem() = default;
+    ~SimulationStem() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
 
     void simulate();
 

@@ -75,10 +75,10 @@ bool SimulationCtem<T>::initialiseSimulation()
 
     clWorkGroup WorkSize(resolution, resolution, 1);
     double InitialValue = 1.0;
+    InitPlaneWavefunction.SetArg(0, clWaveFunctionReal[0], ArgumentType::Output);
     InitPlaneWavefunction.SetArg(1, resolution);
     InitPlaneWavefunction.SetArg(2, resolution);
     InitPlaneWavefunction.SetArg(3, static_cast<T>(InitialValue));
-    InitPlaneWavefunction.SetArg(0, clWaveFunctionReal[0], ArgumentType::Output);
     InitPlaneWavefunction.run(WorkSize);
 
     ctx.WaitForQueueFinish();
@@ -285,6 +285,8 @@ template<class GPU_Type>
 void SimulationCtem<GPU_Type>::simulate() {
     if (!initialiseSimulation())
         return;
+
+    return;
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
 

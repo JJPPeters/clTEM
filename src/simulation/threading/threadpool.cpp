@@ -11,9 +11,9 @@ ThreadPool::ThreadPool(std::vector<clDevice> devList, int num_jobs, bool double_
     size_t n_threads = std::min(devList.size(), (size_t) num_jobs);
     for(unsigned int i = 0; i < n_threads; ++i) { // TODO: depends what is lower, n jobs or n devices
         if (double_precision)
-            workers.emplace_back(std::thread(std::move(SimulationWorker<double>(*this, i, OpenCL::MakeContext(devList[i])))));
+            workers.emplace_back(std::thread(std::move(SimulationWorker<double>(devList[i], *this, i))));
         else
-            workers.emplace_back(std::thread(std::move(SimulationWorker<float>(*this, i, OpenCL::MakeContext(devList[i])))));
+            workers.emplace_back(std::thread(std::move(SimulationWorker<float>(devList[i], *this, i))));
     }
 }
 

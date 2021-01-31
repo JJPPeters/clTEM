@@ -23,7 +23,7 @@ class SimulationWorker : public SimulationStem<GPU_Type>
     using SimulationGeneral<GPU_Type>::ctx;
 
 public:
-    SimulationWorker(ThreadPool &s, unsigned int _id, const clContext &_ctx) : SimulationStem<GPU_Type>(_ctx, s, _id) {}
+    SimulationWorker(clDevice &_dev, ThreadPool &_s, unsigned int _id) : SimulationStem<GPU_Type>(_dev, _s, _id) {}
 
     ~SimulationWorker() = default;
 

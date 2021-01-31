@@ -17,6 +17,10 @@ void SimulationWorker<GPU_Type>::Run(const std::shared_ptr<SimulationJob> &_job)
 
     job = _job;
 
+//    pool.setStopped();
+//    _job->promise.set_value();
+//    return;
+
     if (!_job->simManager) {
         CLOG(DEBUG, "sim") << "Cannot access simulation parameters";
         pool.setStopped();
