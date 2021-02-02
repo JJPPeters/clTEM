@@ -8,8 +8,8 @@ template <class GPU_Type>
 void SimulationWorker<GPU_Type>::Run(const std::shared_ptr<SimulationJob> &_job) {
     // here is where the simulation gubbins happens
     // Or, in the words of Adam Dyson, this is where the magic happens :)
-    int p_num = ctx.GetContextDevice().GetPlatformNumber();
-    int d_num = ctx.GetContextDevice().GetDeviceNumber();
+    int p_num = ctx->GetContextDevice().GetPlatformNumber();
+    int d_num = ctx->GetContextDevice().GetDeviceNumber();
 
     el::Helpers::setThreadName("p" + std::to_string(p_num) + ":d" + std::to_string(d_num));
 
@@ -51,7 +51,6 @@ void SimulationWorker<GPU_Type>::Run(const std::shared_ptr<SimulationJob> &_job)
         pool.setStopped();
         _job->simManager->failedSimulation();
     }
-
 
     CLOG(DEBUG, "sim") << "Completed simulation";
     // finally, end this thread ?

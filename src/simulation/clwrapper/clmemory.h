@@ -28,7 +28,7 @@ private:
     cl::Buffer Buffer;
 
     size_t Size;
-    clContext Context;
+    std::shared_ptr<clContext> Context;
     std::shared_ptr<MemoryRecord> Rec;
 
 public:
@@ -43,9 +43,9 @@ public:
 
     clMemory<T,AutoPolicy>() : AutoPolicy<T>(0), Size(0) {}
 
-    clMemory<T,AutoPolicy>(clContext context, size_t size, enum MemoryFlags flags = MemoryFlags::ReadWrite)
-            : AutoPolicy<T>(size), Context(context), Size(size), FinishedReadEvent(), FinishedWriteEvent(), StartReadEvent(), StartWriteEvent(){
-        Buffer = cl::Buffer(context.GetContext(), flags, Size*sizeof(T));
+    clMemory<T,AutoPolicy>(const std::shared_ptr<clContext>& context, size_t size, enum MemoryFlags flags = MemoryFlags::ReadWrite)
+            : AutoPolicy<T>(size), Context(context), Size(size), FinishedReadEvent(), FinishedWriteEvent(), StartReadEvent(), StartWriteEvent() {
+        Buffer = cl::Buffer(context->GetContext(), flags, Size*sizeof(T));
     };
 
     clMemory<T, AutoPolicy>& operator=(const clMemory<T, AutoPolicy>& rhs) {
@@ -60,6 +60,7 @@ public:
 
 
     cl::Buffer& GetBuffer(){ return Buffer; };
+    cl_mem& GetBufferHandle(){ return Buffer(); };
     size_t	GetSize(){ return Size; }//*sizeof(MemType); }; // Why did I have this using bytes?
 
     virtual clEvent GetFinishedWriteEvent(){return FinishedWriteEvent;};
@@ -69,7 +70,7 @@ public:
 
     clEvent Read(std::vector<T> &data) {
         cl_int status;
-        status = Context.GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedReadEvent.event);
+        status = Context->GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedReadEvent.event);
         clError::Throw(status);
         return FinishedReadEvent;
     };
@@ -81,14 +82,14 @@ public:
         std::vector<cl::Event> start_vector;
         if (StartReadEvent.event())
             start_vector.push_back(StartReadEvent.event);
-        status = Context.GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedReadEvent.event);
+        status = Context->GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedReadEvent.event);
         clError::Throw(status);
         return FinishedReadEvent;
     };
 
     clEvent Write(std::vector<T> &data) {
         cl_int status;
-        status = Context.GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedWriteEvent.event);
+        status = Context->GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedWriteEvent.event);
         clError::Throw(status);
         return FinishedWriteEvent;
     };
@@ -100,7 +101,7 @@ public:
         std::vector<cl::Event> start_vector;
         if (StartReadEvent.event())
             start_vector.push_back(StartReadEvent.event);
-        status = Context.GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedWriteEvent.event);
+        status = Context->GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedWriteEvent.event);
         clError::Throw(status);
         return FinishedWriteEvent;
     };
@@ -111,7 +112,8 @@ public:
     };
 
     ~clMemory<T, AutoPolicy>() {
-        Context.RemoveMemRecord(Rec);
+        if (Context && Rec)
+            Context->RemoveMemRecord(Rec);
     };
 };
 

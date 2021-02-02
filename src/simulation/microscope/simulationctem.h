@@ -40,7 +40,7 @@ protected:
 public:
     explicit SimulationCtem(clDevice &_dev, ThreadPool &s, unsigned int _id) : SimulationGeneral<GPU_Type>(_dev, s, _id), do_initialise_ctem(true) {}
 
-    ~SimulationCtem() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
+    ~SimulationCtem() {ctx->WaitForQueueFinish(); ctx->WaitForIOQueueFinish();}
 
     void simulate();
 

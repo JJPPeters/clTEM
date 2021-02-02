@@ -45,7 +45,7 @@ protected:
 public:
     explicit SimulationStem(clDevice &_dev, ThreadPool &s, unsigned int _id) : SimulationCbed<GPU_Type>(_dev, s, _id), do_initialise_stem(true) {}
 
-    ~SimulationStem() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
+    ~SimulationStem() {ctx->WaitForQueueFinish(); ctx->WaitForIOQueueFinish();}
 
     void simulate();
 

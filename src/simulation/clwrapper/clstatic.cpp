@@ -66,3 +66,27 @@ clContext OpenCL::MakeContext(clDevice &dev, Queue::QueueType Qtype)
 
     return clContext(ctx, q, dev);
 }
+
+std::shared_ptr<clContext> OpenCL::MakeSharedTwoQueueContext(clDevice& dev, Queue::QueueType Qtype, Queue::QueueType IOQtype)
+{
+    cl_int status = CL_SUCCESS;
+    std::vector<cl::Device> device_list = {dev.getDevice()};
+    cl::Context ctx(device_list);
+    cl::CommandQueue q(ctx, dev.getDevice(), Qtype, &status);
+    clError::Throw(status);
+    cl::CommandQueue ioq(ctx, dev.getDevice(), IOQtype, &status);
+    clError::Throw(status);
+
+    return std::make_shared<clContext>(ctx, q, ioq, dev);
+}
+
+std::shared_ptr<clContext> OpenCL::MakeSharedContext(clDevice &dev, Queue::QueueType Qtype)
+{
+    cl_int status = CL_SUCCESS;
+    std::vector<cl::Device> device_list = {dev.getDevice()};
+    cl::Context ctx(device_list);
+    cl::CommandQueue q(ctx, dev.getDevice(), Qtype, &status);
+    clError::Throw(status);
+
+    return std::make_shared<clContext>(ctx, q, dev);
+}

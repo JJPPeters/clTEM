@@ -22,13 +22,15 @@ public:
         last_mode(SimulationMode::None), last_do_3d(false), do_initialise_general(true),
         reference_perturb_x(0.0), reference_perturb_y(0.0) {
 
-        ctx = OpenCL::MakeContext(_dev_list);
+        ctx = OpenCL::MakeSharedContext(_dev_list);
 
     }
 
     ~SimulationGeneral() {
-        ctx.WaitForQueueFinish();
-        ctx.WaitForIOQueueFinish();
+        ctx->WaitForQueueFinish();
+        ctx->WaitForIOQueueFinish();
+
+        FourierTrans.releaseResources();
     }
 
 protected:
@@ -40,7 +42,7 @@ protected:
     // these are used to perturb the reference frame (i.e. when moving the source)
     double reference_perturb_x, reference_perturb_y;
 
-    clContext ctx;
+    std::shared_ptr<clContext> ctx;
 
     // this is only used to check if the manager has changed (only to avoid sorting atoms multiple times)
     // TODO: could be more specific, instead of testing the whole manager?

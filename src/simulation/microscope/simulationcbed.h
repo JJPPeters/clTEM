@@ -42,7 +42,7 @@ protected:
 public:
     explicit SimulationCbed(clDevice &_dev, ThreadPool &s, unsigned int _id) : SimulationCtem<GPU_Type>(_dev, s, _id), do_initialise_cbed(true) {}
 
-    ~SimulationCbed() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
+    ~SimulationCbed() {ctx->WaitForQueueFinish(); ctx->WaitForIOQueueFinish();}
 
     void simulate();
 

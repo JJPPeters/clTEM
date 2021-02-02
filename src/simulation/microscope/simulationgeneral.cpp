@@ -242,7 +242,7 @@ void SimulationGeneral<T>::sortAtoms() {
     CLOG(DEBUG, "sim") << "Running sort kernel";
     AtomSort.run(SortSize);
 
-    ctx.WaitForQueueFinish(); // test
+    ctx->WaitForQueueFinish(); // test
 
     CLOG(DEBUG, "sim") << "Reading sort kernel output";
 
@@ -323,7 +323,7 @@ void SimulationGeneral<T>::sortAtoms() {
     ClBlockStartPositions.Write(blockStartPositions);
 
     // wait for the IO queue here so that we are sure the data is uploaded before we start using it
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 }
 
 template <class T>
@@ -351,8 +351,6 @@ bool SimulationGeneral<T>::initialiseSimulation() {
 
     CLOG(DEBUG, "sim") << "Setting up all kernels";
     initialiseKernels();
-
-    return true;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Upload our parameters
@@ -588,7 +586,7 @@ bool SimulationGeneral<T>::initialiseSimulation() {
                 CLOG(DEBUG, "sim") << "IFFT band limited transmission function";
                 FourierTrans.run(clWaveFunctionTemp_1, clTransmissionFunction[j][i], Direction::Inverse);
 
-                ctx.WaitForQueueFinish();
+                ctx->WaitForQueueFinish();
 
                 if (pool.isStopped())
                     return false;
@@ -621,7 +619,7 @@ bool SimulationGeneral<T>::initialiseSimulation() {
 
     // actually run this kernel now
     GeneratePropagator.run(WorkSize);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
 
     CLOG(DEBUG, "sim") << "Set up complex multiply kernel";
@@ -662,7 +660,7 @@ void SimulationGeneral<T>::modifyBeamTilt(double kx, double ky, double kz){
 
     clWorkGroup WorkSize(resolution, resolution, 1);
     GeneratePropagator.run(WorkSize);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 }
 
 template <class T>
@@ -751,7 +749,7 @@ void SimulationGeneral<T>::doMultiSliceStep(int slice) {
         FourierTrans.run(clWaveFunctionRecip[i], clWaveFunctionReal[i], Direction::Inverse);
 
         // I think this is important as each parallel pixel shares (and particularly writes) to shared buffers
-        ctx.WaitForQueueFinish();
+        ctx->WaitForQueueFinish();
     }
 }
 

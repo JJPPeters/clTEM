@@ -28,6 +28,9 @@ public:
     static clContext MakeContext(clDevice &dev, Queue::QueueType Qtype = Queue::QueueType::InOrder);
     static clContext MakeTwoQueueContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder);
 
+    static std::shared_ptr<clContext> MakeSharedContext(clDevice &dev, Queue::QueueType Qtype = Queue::QueueType::InOrder);
+    static std::shared_ptr<clContext> MakeSharedTwoQueueContext(clDevice& dev, Queue::QueueType Qtype = Queue::QueueType::InOrder, Queue::QueueType IOQtype = Queue::QueueType::InOrder);
+
 //    template<class T,template <class> class AutoPolicy>
 //    static std::shared_ptr<clMemory<T,AutoPolicy>> CreateBuffer(std::shared_ptr<clContext> ctx, size_t size)
 //    {

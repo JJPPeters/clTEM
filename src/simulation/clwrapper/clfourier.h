@@ -32,7 +32,7 @@ namespace Direction
 template <class T>
 class clFourier
 {
-    clContext Context;
+    std::shared_ptr<clContext> Context;
     clfftStatus fftStatus;
     clfftSetupData fftSetupData;
     clfftPlanHandle fftplan;
@@ -47,30 +47,24 @@ public:
 
     clFourier() : fftplan(0), width(0), height(0) {}
 
-    clFourier(clContext Context, unsigned int _width, unsigned int _height);
+    clFourier(std::shared_ptr<clContext> Context, unsigned int _width, unsigned int _height);
 
     clFourier(const clFourier &RHS): Context(RHS.Context), fftplan(0), width(RHS.width), height(RHS.height), buffersize(0) {
-        if (Context.GetContext()())
+        if (Context && Context->GetContextHandle())
             Setup(width,height);
     };
 
-    clFourier& operator=(const clFourier &RHS) {
-        if(this != &RHS){
-            if (fftplan) {
-                fftStatus = clfftDestroyPlan(&fftplan);
-                clFftError::Throw(fftStatus, "clFourier");
-            }
-            fftplan = 0;
-            Context = RHS.Context;
-            width = RHS.width;
-            height = RHS.height;
-            if (Context.GetContext()())
-                Setup(width,height);
-        }
-        return *this;
-    };
-
     ~clFourier();
+
+    void releaseResources() {
+        if (fftplan) {
+            fftStatus = clfftDestroyPlan(&fftplan);
+            clFftError::Throw(fftStatus, "clFourier");
+        }
+
+        fftStatus = clfftTeardown();
+        clFftError::Throw(fftStatus, "FourierTearDownTest");
+    }
 
     template <template <class> class AutoPolicy, template <class> class AutoPolicy2>
     clEvent run(clMemory<std::complex<T>, AutoPolicy2> &input, clMemory<std::complex<T>, AutoPolicy> &output,
@@ -89,13 +83,13 @@ public:
         clEvent finished;
 
         if(buffersize)
-            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context.GetQueue()(), (cl_uint)eventwaitlist.size(),
+            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueueHandle(), (cl_uint)eventwaitlist.size(),
                                                !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event(),
-                                               &input.GetBuffer()(), &output.GetBuffer()(), clMedBuffer.GetBuffer()() );
+                                               &input.GetBufferHandle(), &output.GetBufferHandle(), clMedBuffer.GetBufferHandle() );
         else
-            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context.GetQueue()(), (cl_uint)eventwaitlist.size(),
+            fftStatus = clfftEnqueueTransform( fftplan, Dir, 1, &Context->GetQueueHandle(), (cl_uint)eventwaitlist.size(),
                                                !eventwaitlist.empty() ? &eventwaitlist[0] : nullptr, &finished.event(),
-                                               &input.GetBuffer()(), &output.GetBuffer()(), NULL );
+                                               &input.GetBufferHandle(), &output.GetBufferHandle(), NULL );
 
         if(output.getAuto())
             output.Update(finished);

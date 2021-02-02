@@ -56,7 +56,7 @@ double SimulationStem<T>::doSumReduction(clMemory<T, Manual> data, clWorkGroup g
 
     SumReduction.run(globalSizeSum, localSizeSum);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // Now copy back
     CLOG(DEBUG, "sim") << "Copy from buffer";
@@ -120,7 +120,7 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
 
     BandPassAbs.run(WorkSize);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     unsigned int totalSize = resolution * resolution;
     unsigned int nGroups = totalSize / 256;

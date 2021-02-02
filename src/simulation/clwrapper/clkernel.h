@@ -36,7 +36,7 @@ namespace ArgumentType
 class clKernel
 {
 private:
-    clContext Context;
+    std::shared_ptr<clContext> Context;
     cl::Program Program;
     cl::Kernel Kernel;
     std::string Name;
@@ -48,17 +48,17 @@ private:
 public:
     clKernel() {}
 
-    clKernel(clContext _context, const std::string &codestring, std::string _name, unsigned int _numArgs, std::string opts="")
+    clKernel(std::shared_ptr<clContext> _context, const std::string &codestring, std::string _name, unsigned int _numArgs, std::string opts="")
             : Context(std::move(_context)), Name(std::move(_name)), NumberOfArgs(_numArgs)
     {
         ArgType.resize(NumberOfArgs);
         Callbacks.resize(NumberOfArgs);
 
         cl_int status;
-        Program = cl::Program(Context.GetContext(), codestring, false, &status);
+        Program = cl::Program(Context->GetContext(), codestring, false, &status);
         status = Program.build(opts.c_str()); // could just put true above - need to remember to pass it the string
 
-        std::string buildlog_str = Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(Context.GetContextDevice().getDevice(), &status);
+        std::string buildlog_str = Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(Context->GetContextDevice().getDevice(), &status);
         clError::Throw(status, Name + "\nBuild log:\n" + buildlog_str);
 
         Kernel = cl::Kernel(Program, Name.c_str(), &status);

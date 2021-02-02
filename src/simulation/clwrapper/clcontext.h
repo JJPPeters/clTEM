@@ -7,6 +7,7 @@
 
 #include <list>
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -44,11 +45,11 @@ private:
 public:
     clContext() {}
 
-    clContext(cl::Context _context, cl::CommandQueue _queue, clDevice _device)
-            : Context(_context), Queue(_queue), IOQueue(_queue), ContextDevice(_device){}
+    clContext(const cl::Context& _context, const cl::CommandQueue& _queue, clDevice _device)
+            : Context(_context), Queue(_queue), IOQueue(_queue), ContextDevice(std::move(_device)){}
 
-    clContext(cl::Context _context, cl::CommandQueue _queue, cl::CommandQueue _ioqueue, clDevice _device)
-            : Context(_context), Queue(_queue), IOQueue(_ioqueue), ContextDevice(_device){}
+    clContext(const cl::Context& _context, const cl::CommandQueue& _queue, const cl::CommandQueue& _ioqueue, clDevice _device)
+            : Context(_context), Queue(_queue), IOQueue(_ioqueue), ContextDevice(std::move(_device)){}
 
     ~clContext() = default;
 
@@ -69,10 +70,14 @@ public:
         clError::Throw(status);
     }
 
-    clDevice& GetContextDevice(){return ContextDevice;}
-    cl::Context& GetContext(){return Context;}
+    clDevice& GetContextDevice(){ return ContextDevice; }
+    cl::Context& GetContext(){ return Context;}
     cl::CommandQueue& GetQueue(){ return Queue; }
-    cl::CommandQueue& GetIOQueue(){return IOQueue;}
+    cl::CommandQueue& GetIOQueue(){ return IOQueue; }
+
+    cl_context& GetContextHandle(){ return Context();}
+    cl_command_queue& GetQueueHandle(){ return Queue();}
+    cl_command_queue& GetIOQueueHandle(){ return IOQueue();}
 
     size_t GetOccupiedMemorySize()
     {
