@@ -34,6 +34,9 @@ class PhononScattering {
     // if this is set, then the values defined here override values set by the file
     bool force_defined;
 
+    //
+    bool force_xyz_thermal_disps;
+
 public:
 
     PhononScattering();
@@ -71,6 +74,12 @@ public:
 
     void setForceDefault(bool set) {
         force_default = set;
+    }
+
+    bool forceXyzDisps() {return force_xyz_thermal_disps;}
+
+    void setForceXyzDisps(bool set) {
+        force_xyz_thermal_disps = set;
     }
 };
 

@@ -174,20 +174,35 @@ void SimulationGeneral<T>::sortAtoms() {
     std::valarray<double> y_lims = job->simManager->paddedFullLimitsY();
     std::valarray<double> z_lims = job->simManager->paddedSimLimitsZ();
 
+    Eigen::Vector3d u1v = {1.0, 0.0, 0.0};
+    Eigen::Vector3d u2v = {0.0, 1.0, 0.0};
+    Eigen::Vector3d u3v = {0.0, 0.0, 1.0};
+
+    // If NOT forcing xyz, then get actual values
+    if (!job->simManager->incoherenceEffects()->phonons()->forceXyzDisps()) {
+        u1v = job->simManager->simulationCell()->crystalStructure()->getU1Vector();
+        u2v = job->simManager->simulationCell()->crystalStructure()->getU2Vector();
+        u3v = job->simManager->simulationCell()->crystalStructure()->getU3Vector();
+    }
+
     for(int i = 0; i < atom_count; i++) {
-        double dx = 0.0, dy = 0.0, dz = 0.0;
+        double disp_1 = 0.0, disp_2 = 0.0, disp_3 = 0.0;
         if (do_phonon) {
             // TODO: need a log guard here or in the structure file?
-            dx = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 0);
-            dy = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 1);
-            dz = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 2);
+            disp_1 = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 0);
+            disp_2 = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 1);
+            disp_3 = job->simManager->incoherenceEffects()->phonons()->generateTdsFactor(atoms[i], 2);
         }
+
+        auto d1 = disp_1 * u1v;
+        auto d2 = disp_2 * u2v;
+        auto d3 = disp_3 * u3v;
 
         // TODO: could move this check before the TDS if I can get a good estimate of the maximum displacement
 
-        int new_x = atoms[i].x + dx;
-        int new_y = atoms[i].y + dy;
-        int new_z = atoms[i].z + dz;
+        double new_x = atoms[i].x + d1[0] + d2[0] + d3[0];
+        double new_y = atoms[i].y + d1[1] + d2[1] + d3[1];
+        double new_z = atoms[i].z + d1[2] + d2[2] + d3[2];
         bool in_x = new_x > x_lims[0] && new_x < x_lims[1];
         bool in_y = new_y > y_lims[0] && new_y < y_lims[1];
         bool in_z = new_z > z_lims[0] && new_z < z_lims[1];
@@ -195,9 +210,9 @@ void SimulationGeneral<T>::sortAtoms() {
         if (in_x && in_y && in_z) {
             // puch back is OK because I have reserved the vector
             AtomANum.push_back(atoms[i].A);
-            AtomXPos.push_back(atoms[i].x + dx);
-            AtomYPos.push_back(atoms[i].y + dy);
-            AtomZPos.push_back(atoms[i].z + dz);
+            AtomXPos.push_back(new_x);
+            AtomYPos.push_back(new_y);
+            AtomZPos.push_back(new_z);
         }
     }
 

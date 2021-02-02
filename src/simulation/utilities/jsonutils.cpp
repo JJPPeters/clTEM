@@ -373,6 +373,7 @@ namespace JSONUtils {
         bool frozen_phonon_enabled = false;
         bool force_default = false;
         bool override_file = false;
+        bool force_xyz_disps = false;
         double def = 0.0;
 
         std::vector<double> vibs;
@@ -383,6 +384,9 @@ namespace JSONUtils {
         } catch (std::exception& e) {}
 
         try { force_default = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "force default");
+        } catch (std::exception& e) {}
+
+        try { force_xyz_disps = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "force xyz displacements");
         } catch (std::exception& e) {}
 
         try { override_file = readJsonEntry<bool>(j, "incoherence", "inelastic scattering", "phonon", "override file");
@@ -408,6 +412,7 @@ namespace JSONUtils {
         out_therms.setVibrations(def, els, vibs);
         out_therms.setForceDefined(override_file);
         out_therms.setForceDefault(force_default);
+        out_therms.setForceXyzDisps(force_xyz_disps);
 
         return out_therms;
     }
@@ -787,6 +792,7 @@ namespace JSONUtils {
 
         j["force default"] = man.incoherenceEffects()->phonons()->forceDefault();
         j["override file"] = man.incoherenceEffects()->phonons()->forceDefined();
+        j["force xyz displacements"] = man.incoherenceEffects()->phonons()->forceXyzDisps();
 
         j["default"]["value"] = man.incoherenceEffects()->phonons()->getDefault();
         j["default"]["units"] = "Å²";

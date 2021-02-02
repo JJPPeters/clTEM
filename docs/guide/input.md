@@ -49,7 +49,7 @@ The first line contains the number of atoms and the second line is reserved for 
 
 ### Extra information
 
-To add any more information, clTEM will look at the comments section as a sort of header section for the columns. This has defaults and multiple options to try and easily support as much as possible. They keywords that are looked for are `A`, `x`, `y`, `z`, `occ`, `u`, `ux`, `uy` and `uz`. Any other terms will be ignored, so comments can be added (just make sure they don't contain any of these terms separated by spaces).
+To add any more information, clTEM will look at the comments section as a sort of header section for the columns. This has defaults and multiple options to try and easily support as much as possible. They keywords that are looked for are `A`, `x`, `y`, `z`, `occ`, `u`, `u1`, `u2` and `u3`. Any other terms will be ignored, so comments can be added (just make sure they don't contain any of these terms separated by spaces).
 
 `A`, `x`, `y`, `z` do not need to be stated, if none of them are found, it is assumed that they form columns 1-4 in the order shown. Other terms are then treated as columns 5 onwards, in the order they are written in the comments section.
 
@@ -59,7 +59,7 @@ Many structures require occupancies for the same sites. If the column `occ` is d
 
 #### Thermal vibrations
 
-Thermal vibrations are defined by the headers `u`, `ux`, `uy` and `uz` that define the isotropic vibration and then the vibration specific to each cartesian axis. `u` is set first, then any of `ux`, `uy` or `uz` will override the relevant component of `u`. `u` is defined here as the mean square displacement of the atom, <u²>, and will have the units of Å² (or nm² if the `nm` tag has been set).
+Thermal vibrations are defined by the headers `u`, `u1`, `u2` and `u3` that define the isotropic vibration and then the vibration specific to each cartesian axis. `u` is set first, then any of `u1`, `u2` or `u3` will override the relevant component of `u`. `u` is defined here as the mean square displacement of the atom, <u²>, and will have the units of Å² (or nm² if the `nm` tag has been set).
 
 #### Example file
 

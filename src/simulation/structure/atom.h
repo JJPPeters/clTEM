@@ -27,22 +27,22 @@ struct AtomSite : public Atom
 {
     double occ;
     bool defined_u;
-    double ux, uy, uz;
-    AtomSite() : Atom(), occ(1.0), defined_u(false), ux(0.0), uy(0.0), uz(0.0) {}
-    AtomSite(unsigned int _a, double _x, double _y, double _z) : Atom(_a, _x, _y, _z), occ(1.0), defined_u(false), ux(0.0), uy(0.0), uz(0.0) {}
-    AtomSite(unsigned int _a, double _x, double _y, double _z, double _occ) : Atom(_a, _x, _y, _z), occ(_occ), defined_u(false), ux(0.0), uy(0.0), uz(0.0) {}
-    AtomSite(unsigned int _a, double _x, double _y, double _z, double _occ, double _ux, double _uy, double _uz) : Atom(_a, _x, _y, _z), occ(_occ), defined_u(true), ux(_ux), uy(_uy), uz(_uz) {}
-    AtomSite(unsigned int _a, double _x, double _y, double _z, double _occ, bool _defined_u, double _ux, double _uy, double _uz) : Atom(_a, _x, _y, _z), occ(_occ), defined_u(_defined_u), ux(_ux), uy(_uy), uz(_uz) {}
+    double u1, u2, u3;
+    AtomSite() : Atom(), occ(1.0), defined_u(false), u1(0.0), u2(0.0), u3(0.0) {}
+    AtomSite(unsigned int _a, double _x, double _y, double _z) : Atom(_a, _x, _y, _z), occ(1.0), defined_u(false), u1(0.0), u2(0.0), u3(0.0) {}
+    AtomSite(unsigned int _a, double _x, double _y, double _z, double _occ) : Atom(_a, _x, _y, _z), occ(_occ), defined_u(false), u1(0.0), u2(0.0), u3(0.0) {}
+    AtomSite(unsigned int _a, double _x, double _y, double _z, double _occ, double _ux, double _uy, double _uz) : Atom(_a, _x, _y, _z), occ(_occ), defined_u(true), u1(_ux), u2(_uy), u3(_uz) {}
+    AtomSite(unsigned int _a, double _x, double _y, double _z, double _occ, bool _defined_u, double _ux, double _uy, double _uz) : Atom(_a, _x, _y, _z), occ(_occ), defined_u(_defined_u), u1(_ux), u2(_uy), u3(_uz) {}
 
     AtomSite operator* (double f) {
         // u is in Angstrom squared
-        return AtomSite(A, f*x, f*y, f*z, occ, defined_u, f*f*ux, f*f*uy, f*f*uz);
+        return AtomSite(A, f*x, f*y, f*z, occ, defined_u, f * f * u1, f * f * u2, f * f * u3);
     }
 //
 //    void setThermal(double u) {
-//        ux = u;
-//        uy = u;
-//        uz = u;
+//        u1 = u;
+//        u2 = u;
+//        u3 = u;
 //    }
 };
 
