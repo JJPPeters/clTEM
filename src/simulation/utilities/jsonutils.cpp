@@ -435,6 +435,16 @@ namespace JSONUtils {
 
         bool have_structure = man.simulationCell()->crystalStructure().get() != nullptr;
 
+        //
+        auto sim_dur = man.simDurationSplit();
+        if (!std::all_of(sim_dur.begin(), sim_dur.end(), [](int i){ return i == 0; })) {
+            j["simulation time"]["hours"] = sim_dur[0];
+            j["simulation time"]["minutes"] = sim_dur[1];
+            j["simulation time"]["seconds"] = sim_dur[2];
+            j["simulation time"]["milliseconds"] = sim_dur[3];
+            j["simulation time"]["microseconds"] = sim_dur[4];
+        }
+
         // no file input here as it is not always needed
 
         j["double precision"] = man.doublePrecisionEnabled();

@@ -15,6 +15,7 @@
 #include "incoherence/inelastic/plasmon.h"
 #include <incoherence/incoherenteffects.h>
 #include <structure/simulationcell.h>
+#include <iomanip>
 
 #include "structure/structureparameters.h"
 #include "utilities/commonstructs.h"
@@ -242,6 +243,65 @@ public:
         force_tds_atom_resort = set;
     }
 
+    void startTimer() {
+        std::lock_guard<std::mutex> lck(timer_mutex);
+        if (!timer_started) {
+            sim_start_time = std::chrono::high_resolution_clock::now();
+            timer_started = true;
+        }
+    }
+
+    void stopTimer() {
+        std::lock_guard<std::mutex> lck(timer_mutex);
+        if (timer_started) {
+            sim_end_time = std::chrono::high_resolution_clock::now();
+            timer_started = false; // possibly never used, but should be more flexible
+        }
+    }
+
+    std::chrono::duration<double, std::micro> simDuration() {
+        return sim_end_time - sim_start_time;
+    }
+
+    std::array<long long, 5> simDurationSplit() {
+        // get our duration
+        auto dur = simDuration();
+
+        auto hours = std::chrono::duration_cast<std::chrono::hours>(dur);
+        dur -= hours;
+
+        auto minutes = std::chrono::duration_cast<std::chrono::minutes>(dur);
+        dur -= minutes;
+
+        auto seconds = std::chrono::duration_cast<std::chrono::seconds>(dur);
+        dur -= seconds;
+
+        auto milli = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+        dur -= milli;
+
+        auto micro = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+
+        return {hours.count(),
+                minutes.count(),
+                seconds.count(),
+                milli.count(),
+                micro.count()};
+    }
+
+    std::string simDurationReadable() {
+        // get our duration
+        auto dur = simDurationSplit();
+        std::ostringstream os;
+        os.fill('0');
+        os << dur[0] << "h:"
+           << std::setw(2) << dur[1] << "m:"
+           << std::setw(2) << dur[2] << "s:"
+           << std::setw(3) << dur[3] << "ms:"
+           << std::setw(3) << dur[4] << "us";
+
+        return os.str();
+    }
+
 private:
     // simulation cell contains the structure
     std::shared_ptr<SimulationCell> simulation_cell;
@@ -259,7 +319,11 @@ private:
 
     std::shared_ptr<CbedPosition> cbed_pos;
 
-    //
+    // For timing the simulation
+    bool timer_started;
+    std::mutex timer_mutex;
+    std::chrono::time_point<std::chrono::high_resolution_clock> sim_start_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock> sim_end_time;
 
     // full area covers the entire possible sim area (i.e. ALL pixels for STEM)
     SimulationArea fullAreaBase();

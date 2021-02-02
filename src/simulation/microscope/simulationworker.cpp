@@ -32,7 +32,10 @@ void SimulationWorker<GPU_Type>::Run(const std::shared_ptr<SimulationJob> &_job)
         return;
     }
 
-    // do teh actual simulation here
+    // start the simulation timing
+    _job->simManager->startTimer();
+
+    // do the actual simulation here
     auto mode = _job->simManager->mode();
 
     try {
