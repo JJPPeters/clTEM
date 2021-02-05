@@ -261,8 +261,8 @@ void SimulationGeneral<T>::sortAtoms() {
 
     CLOG(DEBUG, "sim") << "Reading sort kernel output";
 
-    std::vector<int> HostBlockIDs = ClBlockIds.CreateLocalCopy();
-    std::vector<int> HostZIDs = ClZIds.CreateLocalCopy();
+    std::vector<int> HostBlockIDs = ClBlockIds.GetLocal();
+    std::vector<int> HostZIDs = ClZIds.GetLocal();
 
     CLOG(DEBUG, "sim") << "Binning atoms";
 
@@ -799,7 +799,7 @@ std::vector<double> SimulationGeneral<T>::getDiffractionImage(int parallel_ind, 
     }
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<T> data_typed = clWaveFunctionTemp_3.CreateLocalCopy();
+    std::vector<T> data_typed = clWaveFunctionTemp_3.GetLocal();
 
     return std::vector<double>(data_typed.begin(), data_typed.end());
 }
@@ -811,7 +811,7 @@ std::vector<double> SimulationGeneral<T>::getExitWaveImage(unsigned int t, unsig
     std::vector<double> data_out(2*((resolution - t - b) * (resolution - l - r)));
 
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<std::complex<T>> compdata = clWaveFunctionReal[0].CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clWaveFunctionReal[0].GetLocal();
 
     CLOG(DEBUG, "sim") << "Process complex data";
     int cnt = 0;

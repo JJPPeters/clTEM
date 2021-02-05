@@ -217,7 +217,7 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
 
     CLOG(DEBUG, "sim") << "Read from buffer";
     double N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
-    std::vector<std::complex<T>> compdata = clImageWaveFunction.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clImageWaveFunction.GetLocal();
 
     CLOG(DEBUG, "sim") << "Add noise";
 
@@ -272,7 +272,7 @@ std::vector<double> SimulationCtem<T>::getCtemImage()
 
     // Original data is complex so copy complex version down first
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<std::complex<T>> compdata = clImageWaveFunction.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clImageWaveFunction.GetLocal();
 
     CLOG(DEBUG, "sim") << "Getting only real part";
     for (int i = 0; i < resolution * resolution; i++)

@@ -60,7 +60,7 @@ double SimulationStem<T>::doSumReduction(clMemory<T, Manual> data, clWorkGroup g
 
     // Now copy back
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<T> sums = clReductionBuffer.CreateLocalCopy();
+    std::vector<T> sums = clReductionBuffer.GetLocal();
 
     CLOG(DEBUG, "sim") << "Doing final sum on CPU (" << nGroups << " parts)";
     // Find out which numbers to read back

@@ -10,9 +10,11 @@
 class Notify
 {
 public:
-    virtual void Update(clEvent KernelFinished)=0;
+    virtual void Update(clEvent KernelFinished) = 0;
     virtual void UpdateEventOnly(clEvent KernelFinished) = 0;
-    virtual clEvent GetFinishedWriteEvent()=0;
-    virtual clEvent GetFinishedReadEvent()=0;
+    virtual clEvent GetFinishedWriteEvent() = 0;
+    virtual clEvent GetFinishedReadEvent() = 0;
+
+    virtual size_t GetSizeInBytes() = 0;
 };
 #endif //CLWRAPPER_MAIN_NOTIFY_H

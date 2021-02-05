@@ -14,21 +14,15 @@
 
 #include "cldevice.h"
 #include "CL/cl.hpp"
+#include "notify.h"
 
-template <class T, template <class> class AutoPolicy> class clMemory;
+template <class T, template <class> class AutoPolicy> class clMemory_impl;
 
 enum MemoryFlags
 {
     ReadWrite = CL_MEM_READ_WRITE,
     ReadOnly = CL_MEM_READ_ONLY,
     WriteOnly = CL_MEM_WRITE_ONLY
-};
-
-class MemoryRecord
-{
-public:
-    explicit MemoryRecord(size_t _size): size(_size){};
-    size_t size;
 };
 
 class clContext
@@ -40,7 +34,7 @@ private:
     cl::CommandQueue IOQueue;
     clDevice ContextDevice;
 
-    std::vector<std::shared_ptr<MemoryRecord>> MemList;
+    std::vector<std::weak_ptr<Notify>> MemList;
 
 public:
     clContext() {}
@@ -83,20 +77,37 @@ public:
     {
         size_t total = 0;
         for (auto &it : MemList)
-            total += it->size;
+            if (auto p = it.lock())
+                total += p->GetSizeInBytes();
         return total;
     }
 
-    void AddMemRecord(const std::shared_ptr<MemoryRecord> &rec)
+    template <class T, template <class> class AutoPolicy>
+    void AddMemRecord(const std::shared_ptr<clMemory_impl<T, AutoPolicy>> &rec)
     {
-        auto it = std::find(MemList.begin(), MemList.end(), rec);
+        std::weak_ptr<Notify> base_ptr = std::static_pointer_cast<Notify>(rec);
+
+        // std::find doesn't play nice with weak_ptrs
+        // https://stackoverflow.com/questions/55226398/find-weak-ptr-in-vector
+        auto it = std::find_if(MemList.begin(), MemList.end(),
+                               [&base_ptr](const std::weak_ptr<Notify>& ptr1) {
+                                   return ptr1.lock() == base_ptr.lock();
+                               });
+
         if (it == MemList.end())
-            MemList.emplace_back(rec);
+            MemList.emplace_back(base_ptr);
     }
 
-    void RemoveMemRecord(const std::shared_ptr<MemoryRecord> &rec)
+    template <class T, template <class> class AutoPolicy>
+    void RemoveMemRecord(const std::shared_ptr<clMemory_impl<T, AutoPolicy>> &rec)
     {
-        auto it = std::find(MemList.begin(), MemList.end(), rec);
+        std::weak_ptr<Notify> base_ptr = std::static_pointer_cast<Notify>(rec);
+
+        auto it = std::find_if(MemList.begin(), MemList.end(),
+                               [&base_ptr](const std::weak_ptr<Notify>& ptr1) {
+                                   return ptr1.lock() == base_ptr.lock();
+                               });
+
         if (it != MemList.end())
             MemList.erase(it);
     }

@@ -43,7 +43,7 @@ private:
 
     unsigned int NumberOfArgs;
     std::vector<ArgumentType::ArgTypes> ArgType;
-    std::vector<Notify*> Callbacks;
+    std::vector<std::shared_ptr<Notify>> Callbacks;
 
 public:
     clKernel() {}
@@ -68,7 +68,7 @@ public:
     template <class T, template <class> class AutoPolicy>
     void SetArg(cl_uint index, clMemory<T, AutoPolicy>& arg, ArgumentType::ArgTypes ArgumentType = ArgumentType::Unspecified) {
         ArgType[index] = ArgumentType;
-        Callbacks[index] = &arg;
+        Callbacks[index] = arg.mem_ptr;
 
         cl_int status = Kernel.setArg(index, arg.GetBuffer());
         clError::Throw(status,  Name + " arg " + std::to_string(index));
