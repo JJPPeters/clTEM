@@ -134,52 +134,54 @@ double peng(__constant double* params, int i_lim, int ZNum, double rad) {
 }
 
 __kernel void transmission_potentials_full_3d_d( __global double2* potential,
-										  __global const double* restrict pos_x,
-										  __global const double* restrict pos_y,
-										  __global const double* restrict pos_z,
-										  __global const int* restrict atomic_num,
-										  __constant double* params,
-                                          unsigned int param_selector,
-									      unsigned int param_i_count,
-										  __global const int* restrict block_start_pos,
-										  unsigned int width,
-										  unsigned int height,
-										  int current_slice,
-										  int total_slices,
-										  double z,
-										  double dz,
-										  double pixel_scale,
-										  int blocks_x,
-										  int blocks_y,
-										  double max_x,
-										  double min_x,
-										  double max_y,
-										  double min_y,
-										  int block_load_x,
-										  int block_load_y,
-										  int slice_load_z,
-										  double sigma,
-										  double startx,
-										  double starty,
-                                          double slice_shift_x,
-                                          double slice_shift_y,
-                                          int integrals)
+										         __global const double* restrict pos_x,
+										         __global const double* restrict pos_y,
+										         __global const double* restrict pos_z,
+										         __global const int* restrict atomic_num,
+										         __constant double* params,
+                                                 unsigned int param_selector,
+									             unsigned int param_i_count,
+										         __global const int* restrict block_start_pos,
+										         unsigned int width,
+										         unsigned int height,
+										         int current_slice,
+										         int total_slices,
+										         double dz,
+										         double pixel_scale,
+										         int blocks_x,
+										         int blocks_y,
+										         double max_x,
+										         double min_x,
+										         double max_y,
+										         double min_y,
+										         int block_load_x,
+										         int block_load_y,
+										         int slice_load_z,
+										         double sigma,
+										         double startx,
+										         double starty,
+                                                 double current_z,
+                                                 double slice_shift_x,
+                                                 double slice_shift_y,
+                                                 int integrals)
 {
 	int xid = get_global_id(0);
 	int yid = get_global_id(1);
 	int lid = get_local_id(0) + get_local_size(0)*get_local_id(1);
 	int id = xid + width * yid;
-	int topz = current_slice - slice_load_z;
-	int bottomz = current_slice + slice_load_z;
 	double sumz = 0.0;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
-	double int_r = native_recip(integrals);
+
+    int topz = current_slice - slice_load_z;
+    int bottomz = current_slice + slice_load_z;
+    double int_r = native_recip(integrals);
+    double sub_slice_thickness = dz * int_r;
 
 	if(topz < 0 )
 		topz = 0;
 	if(bottomz >= total_slices )
-		bottomz = total_slices-1;
+		bottomz = total_slices - 1;
 
 	__local double atx[256];
 	__local double aty[256];
@@ -192,11 +194,11 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
     double group_size_y = get_local_size(1) * pixel_scale;
 
     // get the start and end position of the current workgroup
-    double group_start_x = startx +  gx      * group_size_x;
-    double group_end_x   = startx + (gx + 1) * group_size_x;
+    double group_start_x = startx + gx * group_size_x;
+    double group_end_x = group_start_x + group_size_x;
 
-    double group_start_y = starty +  gy      * group_size_y;
-    double group_end_y   = starty + (gy + 1) * group_size_y;
+    double group_start_y = starty + gy * group_size_y;
+    double group_end_y = group_start_y + group_size_y;
 
     // get the reciprocal of the full range (for efficiency)
     double recip_range_x = native_recip(max_x - min_x);
@@ -210,8 +212,8 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 	for(int k = topz; k <= bottomz; k++) {
 		for (int j = startj ; j <= endj; j++) {
 			//Need list of atoms to load, so we can load in sequence
-			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti];
-			int end = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
+			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti  ];
+			int end   = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
 
 			int gid = start + lid;
 
@@ -224,7 +226,8 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 
 			barrier(CLK_LOCAL_MEM_FENCE);
 
-			double p2=0.0;
+			double p2 = 0.0;
+
 			for (int l = 0; l < end-start; l++) {
 				// calculate the radius from the current position in space (i.e. pixel?)
                 double im_pos_x = startx + xid * pixel_scale;
@@ -233,7 +236,7 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
                 double im_pos_y = starty + yid * pixel_scale;
                 double rad_y = im_pos_y - aty[l];
 
-				for (int h = 0; h < integrals; h++) {
+				for (int h = 0; h <= integrals; h++) {
 					// not sure how the integrals work here (integrals = integrals)
 					// I think we are generating multiple subslices for each slice (nut not propagating through them,
 					// just building our single slice potential from them
@@ -244,8 +247,9 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 
                     double xyrad2 = rad_x*rad_x + rad_y*rad_y;
 
-					// z is the slice position, h is the 'sub' integral, dz is the slice thickness and int_r is 1/integrals
-                    double im_pos_z = z - h * dz * int_r;
+					// current_z is the slice position, h is the 'sub' integral, dz is the slice thickness and int_r is 1/integrals
+                    // so basically this gets our exact z position...
+                    double im_pos_z = current_z - h * dz * int_r;
                     double rad_z = im_pos_z - atz[l];
 
                     double rad = native_sqrt(xyrad2 + rad_z*rad_z);
@@ -258,6 +262,7 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
 
 					if(xyrad2 <= 64.0 && rad_z <= 3.0) {
     					double p1;
+
     					if (param_selector == 0)
     					    p1 = kirkland(params, param_i_count, atZ[l], rad);
                         else if (param_selector == 1)
@@ -265,20 +270,21 @@ __kernel void transmission_potentials_full_3d_d( __global double2* potential,
                         else if (param_selector == 2)
                             p1 = lobato(params, param_i_count, atZ[l], rad);
 
-    					// why make sure h!=0 when we can just remove it from the loop?
-    					// surely h == 0 will be in the previous slice??
-    					// because p1 is used in the next iteration (why it is set to p2)
-    					sumz += (h!=0) * (p1+p2)*0.5;
+    					// Q: why make sure h!=0 when we can just remove it from the loop?
+                        // A: because p1 is used in the next iteration (why it is set to p2)
+                        // note that the sub slice thickness is included in the final sin/cos
+    					sumz += (h != 0) * (p1 + p2) * 0.5;
     					p2 = p1;
-    					}
+					}
 				}
 			}
 
 			barrier(CLK_LOCAL_MEM_FENCE);
 		}
 	}
+
 	if(xid < width && yid < height) {
-		potential[id].x = native_cos((dz * int_r) * sigma * sumz);
-		potential[id].y = native_sin((dz * int_r) * sigma * sumz);
+		potential[id].x = native_cos(sub_slice_thickness * sigma * sumz);
+		potential[id].y = native_sin(sub_slice_thickness * sigma * sumz);
 	}
 }

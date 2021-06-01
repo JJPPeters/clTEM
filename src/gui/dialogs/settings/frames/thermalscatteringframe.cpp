@@ -40,8 +40,9 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
 
     ui->chkEnabled->setChecked(Phonons->getFrozenPhononEnabled());
     
-    ui->chkForceDefault->setChecked(Phonons->force_default);
-    ui->chkOverride->setChecked(Phonons->force_defined);
+    ui->chkForceDefault->setChecked(Phonons->forceDefault());
+    ui->chkOverride->setChecked(Phonons->forceDefined());
+    ui->chkForceXyz->setChecked(Phonons->forceXyzDisps());
 
     // add the defined elements to the table...
     auto el = Phonons->getDefinedElements();
@@ -104,8 +105,9 @@ bool ThermalScatteringFrame::dlgApply_clicked()
 
     Phonons->setVibrations(def, elements, displacements);
 
-    Phonons->force_defined = ui->chkOverride->isChecked();
-    Phonons->force_default = ui->chkForceDefault->isChecked();
+    Phonons->setForceDefined(ui->chkOverride->isChecked());
+    Phonons->setForceDefault(ui->chkForceDefault->isChecked());
+    Phonons->setForceXyzDisps(ui->chkForceXyz->isChecked());
 
     // this only needs to be set to update the other UI elements, it will be set just before simulation anyway
     // (but it is set from the other ui elements)

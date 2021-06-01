@@ -15,19 +15,22 @@ template <class T> class Manual : public Notify
 {
     const bool isAuto;
     size_t Size;
-    clEvent KernelFinished;
+    clEvent kernel_finished;
 
 public:
     Manual<T>(): Size(0), isAuto(false) {}
     explicit Manual<T>(size_t size): Size(size), isAuto(false) {}
     Manual<T>& operator=(const Manual<T> &rhs) {
         Size = rhs.Size;
-        KernelFinished = rhs.KernelFinished;
+        kernel_finished = rhs.KernelFinished;
 
         return *this;
     }
 
-    void Update(clEvent _KernelFinished) override {KernelFinished = _KernelFinished;};
+    void Update(clEvent _KernelFinished) override {
+        kernel_finished = _KernelFinished;
+        UpdateEventOnly(_KernelFinished);
+    }
 
     virtual clEvent Read(std::vector<T>&data)=0;
     virtual clEvent Read(std::vector<T>&data, clEvent KernelFinished)=0;
@@ -40,23 +43,24 @@ public:
 
     // This will create a vector filled with the current contents of the memory
     // Will block until the read has been completed
-    std::vector<T> CreateLocalCopy() {
+    std::vector<T> GetLocal() {
         cl_int status = CL_SUCCESS;
 
         std::vector<T> Local(Size);
 
-        clEvent e = Read(Local, KernelFinished);
+        clEvent e = Read(Local, kernel_finished);
         e.Wait();
 
         clError::Throw(status);
         return Local;
-    };
+    }
 
     void UpdateEventOnly(clEvent KernelFinished) {
         SetFinishedEvent(KernelFinished);
-    };
+    }
 
     bool getAuto() {return isAuto;}
+    virtual size_t GetSizeInBytes()=0;
 };
 
 #endif //CLWRAPPER_MAIN_MANUAL_H

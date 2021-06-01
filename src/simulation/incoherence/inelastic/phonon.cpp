@@ -11,6 +11,7 @@ PhononScattering::PhononScattering() {
     frozen_phonon_enabled = false;
     force_default = false;
     force_defined = false;
+    force_xyz_thermal_disps = false;
     u_default = 0.0f;
     set_elements = {};
     u_squareds = std::vector<double>(Utils::VectorSymbolToNumber.size(), u_default);
@@ -23,6 +24,7 @@ PhononScattering::PhononScattering(const PhononScattering &ps) {
     frozen_phonon_enabled = ps.frozen_phonon_enabled;
     force_default = ps.force_default;
     force_defined = ps.force_defined;
+    force_xyz_thermal_disps = ps.force_xyz_thermal_disps;
     u_default = ps.u_default;
     set_elements = ps.set_elements;
     u_squareds = ps.u_squareds;
@@ -35,6 +37,7 @@ PhononScattering& PhononScattering::operator=(const PhononScattering &ps) {
     frozen_phonon_enabled = ps.frozen_phonon_enabled;
     force_default = ps.force_default;
     force_defined = ps.force_defined;
+    force_xyz_thermal_disps = ps.force_xyz_thermal_disps;
     u_default = ps.u_default;
     set_elements = ps.set_elements;
     u_squareds = ps.u_squareds;
@@ -109,11 +112,11 @@ double PhononScattering::generateTdsFactor(AtomSite& at, int direction) {
         u = getVibrations((unsigned int) at.A);
     else if (at.defined_u) {
         if (direction == 0)
-            u = at.ux;
+            u = at.u1;
         else if (direction == 1)
-            u = at.uy;
+            u = at.u2;
         else if (direction == 2)
-            u = at.uz;
+            u = at.u3;
     } else {
         // defaults are built into this
         u = getVibrations((unsigned int) at.A);
@@ -123,4 +126,6 @@ double PhononScattering::generateTdsFactor(AtomSite& at, int direction) {
     double randNormal = std::sqrt(u) * jj;
 
     return randNormal;
+
+
 }

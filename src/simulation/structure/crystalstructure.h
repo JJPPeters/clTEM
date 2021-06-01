@@ -6,6 +6,8 @@
 #include <valarray>
 #include <random>
 
+#include <Eigen/Dense>
+
 #include "utilities/commonstructs.h"
 
 #include "incoherence/inelastic/phonon.h"
@@ -35,13 +37,19 @@ private:
     /// Use to conver the structure/file units to Angstrom
     double scale_factor;
 
-    /// Spacial ;imits of our structure
+    /// Spacial limits of our structure
     double max_x;
     double min_x;
     double max_y;
     double min_y;
     double max_z;
     double min_z;
+
+    /// Vectors for thermal displacements
+
+    Eigen::Vector3d u1_vector;
+    Eigen::Vector3d u2_vector;
+    Eigen::Vector3d u3_vector;
 
     /// MAx atomic number - used to see our parameterisation covers this (assumes parameterisation does not have gaps)
     unsigned int max_atomic_number;
@@ -84,6 +92,10 @@ public:
     std::valarray<double> limitsY() {return {min_y, max_y};}
 
     std::valarray<double> limitsZ() {return {min_z, max_z};}
+
+    Eigen::Vector3d getU1Vector() {return u1_vector;}
+    Eigen::Vector3d getU2Vector() {return u2_vector;}
+    Eigen::Vector3d getU3Vector() {return u3_vector;}
 
     unsigned int maxAtomicNumber() {return max_atomic_number;}
 

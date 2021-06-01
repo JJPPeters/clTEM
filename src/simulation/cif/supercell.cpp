@@ -7,15 +7,17 @@
 namespace CIF {
 
     void makeSuperCell(CIFReader cif, SuperCellInfo info, std::vector<std::string> &A, std::vector<double> &x,
-                       std::vector<double> &y, std::vector<double> &z, std::vector<double> &occ, std::vector<bool> &defined_u, std::vector<double> &ux,
-                       std::vector<double> &uy, std::vector<double> &uz) {
-        makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ, defined_u, ux, uy, uz);
+                       std::vector<double> &y, std::vector<double> &z, std::vector<double> &occ, std::vector<bool> &defined_u,
+                       std::vector<double> &ux, std::vector<double> &uy, std::vector<double> &uz,
+                       Eigen::Vector3d& u1_vec, Eigen::Vector3d& u2_vec, Eigen::Vector3d& u3_vec) {
+        makeSuperCell(cif, info.uvw, info.abc, info.widths, info.tilts, A, x, y, z, occ, defined_u, ux, uy, uz, u1_vec, u2_vec, u3_vec);
     }
 
     void makeSuperCell(CIFReader cif, Eigen::Vector3d uvw, Eigen::Vector3d abc, Eigen::Vector3d widths,
                        Eigen::Vector3d tilts, std::vector<std::string> &A, std::vector<double> &x, std::vector<double> &y,
-                       std::vector<double> &z, std::vector<double> &occ, std::vector<bool> &defined_u, std::vector<double> &ux, std::vector<double> &uy,
-                       std::vector<double> &uz) {
+                       std::vector<double> &z, std::vector<double> &occ, std::vector<bool> &defined_u,
+                       std::vector<double> &ux, std::vector<double> &uy, std::vector<double> &uz,
+                       Eigen::Vector3d& u1_vec, Eigen::Vector3d& u2_vec, Eigen::Vector3d& u3_vec) {
         // TODO: check that the uvw and abc vectors are no colinear
         UnitCell cell = cif.getUnitCell();
 
@@ -23,10 +25,6 @@ namespace CIF {
         auto a_vector = Eigen::Vector3d(geom.getAVector().data());
         auto b_vector = Eigen::Vector3d(geom.getBVector().data());
         auto c_vector = Eigen::Vector3d(geom.getCVector().data());
-
-        // TODO: try to use more eigen matrices/vectors instead of stl
-//    Eigen::Matrix3d basis;
-//    basis << // use std::Vectors here?
 
         // for easy loopage
         // TODO: make this an eigen vector of eigen vectors
@@ -87,6 +85,15 @@ namespace CIF {
             basis[i] = y_rotation * basis[i];
             basis[i] = z_rotation * basis[i];
         }
+
+        //
+        // Now I have the rotated basic vectors, so set these to our output variables
+        //
+        u1_vec = basis[0];
+        u2_vec = basis[1];
+        u3_vec = basis[2];
+
+//        Eigen::Vector3d u1_vec, Eigen::Vector3d u2_vec, Eigen::Vector3d u3_vec
 
         Eigen::Vector3i mins, maxs;
         calculateTiling(basis, widths(0), widths(1), widths(2), mins, maxs);

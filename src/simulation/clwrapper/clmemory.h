@@ -16,22 +16,21 @@
 #include <iostream>
 
 class clContext;
-class MemoryRecord;
+class clKernel;
+template <class T, template <class> class AutoPolicy> class clMemory;
 
 template <class T, template <class> class AutoPolicy>
-class clMemory : public AutoPolicy<T>
+class clMemory_impl : public AutoPolicy<T>
 {
     friend class clContext;
-    typedef T MemType;
+    friend class clMemory<T, AutoPolicy>;
 
 private:
     cl::Buffer Buffer;
 
     size_t Size;
-    clContext Context;
-    std::shared_ptr<MemoryRecord> Rec;
+//    std::shared_ptr<MemoryRecord> Rec;
 
-public:
     // Will wait for this event to complete before performing read.
     clEvent StartReadEvent;
     // This event signifies a read has been performed.
@@ -41,38 +40,40 @@ public:
     // Write will not begin until this event is completed.
     clEvent StartWriteEvent;
 
-    clMemory<T,AutoPolicy>() : AutoPolicy<T>(0), Size(0) {}
+    enum MemoryFlags BufferFlags;
 
-    clMemory<T,AutoPolicy>(clContext context, size_t size, enum MemoryFlags flags = MemoryFlags::ReadWrite)
-            : AutoPolicy<T>(size), Context(context), Size(size), FinishedReadEvent(), FinishedWriteEvent(), StartReadEvent(), StartWriteEvent(){
-        Buffer = cl::Buffer(context.GetContext(), flags, Size*sizeof(T));
-    };
+protected:
+    std::shared_ptr<clContext> Context;
 
-    clMemory<T, AutoPolicy>& operator=(const clMemory<T, AutoPolicy>& rhs) {
-        AutoPolicy<T>::operator=(rhs);
-        Buffer = rhs.Buffer;
-        Size = rhs.Size;
-        Context = rhs.Context;
-        Rec = rhs.Rec;
+public:
 
-        return *this;
+    clMemory_impl<T,AutoPolicy>(const std::shared_ptr<clContext>& context, size_t size, enum MemoryFlags flags = MemoryFlags::ReadWrite)
+            : AutoPolicy<T>(size), Context(context), Size(size), BufferFlags(flags),
+              FinishedReadEvent(), FinishedWriteEvent(), StartReadEvent(), StartWriteEvent() {
+        Buffer = cl::Buffer(context->GetContext(), flags, Size*sizeof(T));
+
+        Fill(0);
     }
 
+    cl::Buffer& GetBuffer(){ return Buffer; }
+    cl_mem& GetBufferHandle(){ return Buffer(); }
+    size_t	GetSize() { return Size; }
 
-    cl::Buffer& GetBuffer(){ return Buffer; };
-    size_t	GetSize(){ return Size; }//*sizeof(MemType); }; // Why did I have this using bytes?
+    clEvent GetFinishedWriteEvent() override{return FinishedWriteEvent;}
+    clEvent GetFinishedReadEvent() override{return FinishedReadEvent;}
+    clEvent GetStartWriteEvent(){return StartWriteEvent;}
+    clEvent GetStartReadEvent(){return StartReadEvent;}
 
-    virtual clEvent GetFinishedWriteEvent(){return FinishedWriteEvent;};
-    virtual clEvent GetFinishedReadEvent(){return FinishedReadEvent;};
-    virtual clEvent GetStartWriteEvent(){return StartWriteEvent;};
-    virtual clEvent GetStartReadEvent(){return StartReadEvent;};
+    void SetFinishedEvent(clEvent KernelFinished) {
+        StartReadEvent = KernelFinished;
+    };
 
     clEvent Read(std::vector<T> &data) {
         cl_int status;
-        status = Context.GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedReadEvent.event);
+        status = Context->GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedReadEvent.event);
         clError::Throw(status);
         return FinishedReadEvent;
-    };
+    }
 
     // Wait on single event before reading
     clEvent Read(std::vector<T> &data, clEvent Start) {
@@ -81,38 +82,162 @@ public:
         std::vector<cl::Event> start_vector;
         if (StartReadEvent.event())
             start_vector.push_back(StartReadEvent.event);
-        status = Context.GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedReadEvent.event);
+        status = Context->GetIOQueue().enqueueReadBuffer(Buffer, CL_FALSE, 0, Size * sizeof(T), &data[0],
+                                                         &start_vector, &FinishedReadEvent.event);
         clError::Throw(status);
         return FinishedReadEvent;
-    };
+    }
 
     clEvent Write(std::vector<T> &data) {
         cl_int status;
-        status = Context.GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedWriteEvent.event);
+        status = Context->GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedWriteEvent.event);
+
         clError::Throw(status);
+
         return FinishedWriteEvent;
-    };
+    }
+
+    cl_int _Write(std::vector<T> &data) {
+        cl_int status;
+        status = Context->GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], nullptr, &FinishedWriteEvent.event);
+        clError::Throw(status);
+
+        return status;
+    }
 
     // Wait on single event before writing.
     clEvent Write(std::vector<T> &data, clEvent Start) {
         cl_int status;
         StartWriteEvent = Start;
         std::vector<cl::Event> start_vector;
-        if (StartReadEvent.event())
-            start_vector.push_back(StartReadEvent.event);
-        status = Context.GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedWriteEvent.event);
+        if (StartWriteEvent.event())
+            start_vector.push_back(StartWriteEvent.event);
+        status = Context->GetIOQueue().enqueueWriteBuffer(Buffer, CL_FALSE, 0, Size*sizeof(T), &data[0], &start_vector, &FinishedWriteEvent.event);
         clError::Throw(status);
+
         return FinishedWriteEvent;
-    };
+    }
+
+    clEvent Fill(T value) {
+        cl_int status;
+        status = Context->GetIOQueue().enqueueFillBuffer(Buffer, &value, 0, Size, nullptr,
+                                                         &FinishedWriteEvent.event);
+
+        clError::Throw(status);
+
+        return FinishedWriteEvent;
+    }
+
+    size_t GetSizeInBytes() {
+        return Size * sizeof(T);
+    }
+
+};
 
 
-    void SetFinishedEvent(clEvent KernelFinished) {
-        StartReadEvent = KernelFinished;
+
+
+
+
+
+
+
+
+
+
+
+
+template <class T, template <class> class AutoPolicy>
+class clMemory
+{
+    friend class clKernel;
+
+protected:
+    std::shared_ptr<clMemory_impl<T,AutoPolicy>> mem_ptr;
+
+public:
+    clMemory<T,AutoPolicy>() {};
+
+    clMemory<T,AutoPolicy>(const std::shared_ptr<clContext>& context, size_t size, enum MemoryFlags flags = MemoryFlags::ReadWrite) {
+        mem_ptr = std::make_shared<clMemory_impl<T,AutoPolicy>>(context, size, flags);
+        mem_ptr->Context->AddMemRecord(mem_ptr);
     };
 
-    ~clMemory<T, AutoPolicy>() {
-        Context.RemoveMemRecord(Rec);
-    };
+    void SetNeededNow(bool value) {
+        mem_ptr->SetNeededNow(value);
+    }
+
+    void EnsureOnDevice() {
+        mem_ptr->EnsureOnDevice();
+    }
+
+    cl::Buffer& GetBuffer(){
+        return mem_ptr->GetBuffer();
+    }
+    cl_mem& GetBufferHandle(){
+        return mem_ptr->GetBufferHandle();
+    }
+    size_t	GetSize(){
+        if (mem_ptr)
+            return mem_ptr->GetSize();
+        else
+            return 0;
+    }
+
+    clEvent GetFinishedWriteEvent() {
+        return mem_ptr->GetFinishedWriteEvent();
+    }
+    clEvent GetFinishedReadEvent() {
+        return mem_ptr->GetFinishedReadEvent();
+    }
+    clEvent GetStartWriteEvent(){
+        return mem_ptr->GetStartWriteEvent();
+    }
+    clEvent GetStartReadEvent(){
+        return mem_ptr->GetStartReadEvent();
+    }
+
+    clEvent Read(std::vector<T> &data) {
+        return mem_ptr->Read(data);
+    }
+
+    // Wait on single event before reading
+    clEvent Read(std::vector<T> &data, clEvent& Start) {
+        return mem_ptr->Read(data, Start);
+    }
+
+    clEvent Write(std::vector<T> &data) {
+        auto ev = mem_ptr->Write(data);
+        return ev;
+
+    }
+
+    // Wait on single event before writing.
+    clEvent Write(std::vector<T> &data, clEvent& Start) {
+        return mem_ptr->Write(data, Start);
+    }
+
+
+    void SetFinishedEvent(clEvent& KernelFinished) {
+        mem_ptr->SetFinishedEvent(KernelFinished);
+    }
+
+    bool getAuto() {
+        return mem_ptr->getAuto();
+    }
+
+    void UpdateEventOnly(clEvent& KernelFinished) {
+        mem_ptr->UpdateEventOnly(KernelFinished);
+    }
+
+    void Update(clEvent& KernelFinished) {
+        mem_ptr->Update(KernelFinished);
+    }
+
+    std::vector<T> GetLocal() {
+        return mem_ptr->GetLocal();
+    }
+
 };
 
 #endif //CLWRAPPER_MAIN_CLMEMORY_H

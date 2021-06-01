@@ -193,7 +193,6 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 												   unsigned int height,
 												   int current_slice,
 												   int total_slices,
-												   double z,
 												   double dz,
 												   double pixelscale, 
 												   int blocks_x,
@@ -215,18 +214,11 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
 	int yid = get_global_id(1);
 	int lid = get_local_id(0) + get_local_size(0)*get_local_id(1);
 	int id = xid + width * yid;
-	int topz = current_slice;
-	int bottomz = current_slice;
 	double sumz = 0.0;
 	int gx = get_group_id(0);
 	int gy = get_group_id(1);
 	// convert from mrad to radians (and get beam tilt from the surface)
     beam_theta = M_PI_2 - beam_theta * 0.001;
-
-	if(topz < 0 )
-		topz = 0;
-	if(bottomz >= total_slices )
-		bottomz = total_slices-1;
 
 	__local double atx[256];
 	__local double aty[256];
@@ -238,11 +230,11 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
     double group_size_y = get_local_size(1) * pixelscale;
 
     // get the start and end position of the current workgroup
-    double group_start_x = startx +  gx      * group_size_x;
-    double group_end_x   = startx + (gx + 1) * group_size_x;
+    double group_start_x = startx + gx * group_size_x;
+    double group_end_x = group_start_x + group_size_x;
 
-    double group_start_y = starty +  gy      * group_size_y;
-    double group_end_y   = starty + (gy + 1) * group_size_y;
+    double group_start_y = starty + gy * group_size_y;
+    double group_end_y = group_start_y + group_size_y;
 
     // get the reciprocal of the full range (for efficiency)
     double recip_range_x = native_recip(max_x - min_x);
@@ -253,64 +245,73 @@ __kernel void transmission_potentials_projected_d( __global double2* potential,
     int startj = fmax(floor( blocks_y * (group_start_y - min_y) * recip_range_y) - block_load_y, 0);
     int endj   = fmin( ceil( blocks_y * (group_end_y   - min_y) * recip_range_y) + block_load_y, blocks_y - 1);
 
-	for(int k = topz; k <= bottomz; k++) {
-		for (int j = startj ; j <= endj; j++) {
-			//Need list of atoms to load, so we can load in sequence
-			int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti  ];
-			int end   = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
+    int k = current_slice;
+    if (k < 0)
+        k = 0;
+    if (k >= total_slices)
+        k = total_slices - 1;
 
-			int gid = start + lid;
+    // loop through our bins (y only, x is handled using the workgroup)
+	for (int j = startj ; j <= endj; j++) {
+		// for this y block, get the range of indices to use (this is what the block_Start_pos is) from the x blocks
+		int start = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + starti  ];
+		int end   = block_start_pos[k*blocks_x*blocks_y + blocks_x*j + endi + 1];
 
-			if(lid < end-start) {
-				atx[lid] = pos_x[gid];
-				aty[lid] = pos_y[gid];
-				atZ[lid] = atomic_num[gid];
-			}
+        // this gid is effectively where the atoms indices are looped through (using the local ids)
+        // so we are parellelising this over the local workgroup
+		int gid = start + lid;
 
-			barrier(CLK_LOCAL_MEM_FENCE);
-
-			for (int l = 0; l < end-start; l++) {
-				// calculate the radius from the current position in space (i.e. pixel?)
-				double im_pos_x = startx + xid * pixelscale;
-                double rad_x = im_pos_x - atx[l];
-
-                double im_pos_y = starty + yid * pixelscale;
-                double rad_y = im_pos_y - aty[l];
-
-                //double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
-                double cos_beam_phi = native_cos(beam_phi);
-                double sin_beam_phi = native_sin(beam_phi);
-                double sin_beam_2theta = native_sin(2.0 * beam_theta);
-
-                double z_prime = -0.5 * (rad_x * cos_beam_phi + rad_y * sin_beam_phi) * sin_beam_2theta;
-
-                double z_by_tan_beam_theta = z_prime / native_tan(beam_theta);
-
-                double x_prime = rad_x + z_by_tan_beam_theta * cos_beam_phi;
-                double y_prime = rad_y + z_by_tan_beam_theta * sin_beam_phi;
-
-                double rad = native_sqrt(z_prime*z_prime + x_prime*x_prime + y_prime*y_prime);
-
-                double r_min = 0.25 * pixelscale;
-				if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
-					rad = r_min;
-
-				if( rad <= 8.0) {
-					if (param_selector == 0)
-                        sumz += kirkland(params, param_i_count, atZ[l], rad);
-                    else if (param_selector == 1)
-                        sumz += peng(params, param_i_count, atZ[l], rad);
-                    else if (param_selector == 2)
-                        sumz += lobato(params, param_i_count, atZ[l], rad);
-				}
-			}
-
-			barrier(CLK_LOCAL_MEM_FENCE);
+		if(lid < end-start) {
+			atx[lid] = pos_x[gid];
+			aty[lid] = pos_y[gid];
+			atZ[lid] = atomic_num[gid];
 		}
+
+        // this makes sure all the local threads have finished getting the atoms we need, atx, aty and atZ are complete
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+        // now we parallelise over pixels, not atoms
+		for (int l = 0; l < end-start; l++) {
+			// calculate the radius from the current position in space (i.e. pixel?)
+			double im_pos_x = startx + xid * pixelscale;
+            double rad_x = im_pos_x - atx[l];
+
+            double im_pos_y = starty + yid * pixelscale;
+            double rad_y = im_pos_y - aty[l];
+
+            //double rad = native_sqrt(rad_x*rad_x + rad_y*rad_y);
+            double cos_beam_phi = native_cos(beam_phi);
+            double sin_beam_phi = native_sin(beam_phi);
+            double sin_beam_2theta = native_sin(2.0 * beam_theta);
+
+            double z_prime = -0.5 * (rad_x * cos_beam_phi + rad_y * sin_beam_phi) * sin_beam_2theta;
+
+            double z_by_tan_beam_theta = z_prime / native_tan(beam_theta);
+
+            double x_prime = rad_x + z_by_tan_beam_theta * cos_beam_phi;
+            double y_prime = rad_y + z_by_tan_beam_theta * sin_beam_phi;
+
+            double rad = native_sqrt(z_prime*z_prime + x_prime*x_prime + y_prime*y_prime);
+
+            double r_min = 0.25 * pixelscale;
+			if(rad < r_min) // avoid singularity at 0 (value used by kirkland)
+				rad = r_min;
+
+			if( rad <= 8.0) {
+				if (param_selector == 0)
+                    sumz += kirkland(params, param_i_count, atZ[l], rad);
+                else if (param_selector == 1)
+                    sumz += peng(params, param_i_count, atZ[l], rad);
+                else if (param_selector == 2)
+                    sumz += lobato(params, param_i_count, atZ[l], rad);
+			}
+		}
+
+		barrier(CLK_LOCAL_MEM_FENCE);
 	}
 
 	if(xid < width && yid < height) {
-		potential[id].x = native_cos(sigma*sumz);
-		potential[id].y = native_sin(sigma*sumz);
+		potential[id].x = native_cos(sigma * sumz);
+		potential[id].y = native_sin(sigma * sumz);
 	}
 }

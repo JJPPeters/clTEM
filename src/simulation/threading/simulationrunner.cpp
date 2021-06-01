@@ -35,8 +35,15 @@ void SimulationRunner::runSingle(std::shared_ptr<SimulationManager> sim_pointer)
     std::vector<std::future<void>> results;
 
     // enqueue the jobs here using the thread pool
-    for (const auto &job : jobs)
-        results.emplace_back(t_pool->enqueue(job));
+    for (const auto &job : jobs) {
+        try {
+            results.emplace_back(t_pool->enqueue(job));
+        } catch (std::runtime_error & e)
+        {
+            CLOG(ERROR, "cmd") << "Could not run all jobs: " << e.what();
+            return;
+        }
+    }
 
     for (auto && result: results)
         result.get();

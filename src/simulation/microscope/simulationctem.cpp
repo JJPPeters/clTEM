@@ -50,7 +50,7 @@ void SimulationCtem<double>::initialiseKernels() {
 }
 
 template <class T>
-void SimulationCtem<T>::initialiseSimulation()
+bool SimulationCtem<T>::initialiseSimulation()
 {
     initialiseBuffers();
     initialiseKernels();
@@ -59,7 +59,8 @@ void SimulationCtem<T>::initialiseSimulation()
     reference_perturb_x = 0.0;
     reference_perturb_y = 0.0;
 
-    SimulationGeneral<T>::initialiseSimulation();
+    if(!SimulationGeneral<T>::initialiseSimulation())
+        return false;
 
     CLOG(DEBUG, "sim") << "Starting CTEM initialisation";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,13 +75,15 @@ void SimulationCtem<T>::initialiseSimulation()
 
     clWorkGroup WorkSize(resolution, resolution, 1);
     double InitialValue = 1.0;
+    InitPlaneWavefunction.SetArg(0, clWaveFunctionReal[0], ArgumentType::Output);
     InitPlaneWavefunction.SetArg(1, resolution);
     InitPlaneWavefunction.SetArg(2, resolution);
     InitPlaneWavefunction.SetArg(3, static_cast<T>(InitialValue));
-    InitPlaneWavefunction.SetArg(0, clWaveFunctionReal[0], ArgumentType::Output);
     InitPlaneWavefunction.run(WorkSize);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
+
+    return true;
 }
 
 template <class T>
@@ -146,12 +149,12 @@ void SimulationCtem<T>::simulateImagePerfect()
     clWorkGroup Work(resolution, resolution, 1);
 
     ImagingKernel.run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // Now get and display absolute value
     CLOG(DEBUG, "sim") << "IFFT to real space";
     FourierTrans.run(clImageWaveFunction, clWaveFunctionTemp_1, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Calculate absolute squared";
     ABS2.SetArg(0, clWaveFunctionTemp_1, ArgumentType::Input);
@@ -159,7 +162,7 @@ void SimulationCtem<T>::simulateImagePerfect()
     ABS2.SetArg(2, resolution);
     ABS2.SetArg(3, resolution);
     ABS2.run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 }
 
 // TODO: what should be done with the conversion factor?
@@ -189,12 +192,12 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
     // FFT
     CLOG(DEBUG, "sim") << "FFT back to reciprocal space";
     FourierTrans.run(clImageWaveFunction, clTempBuffer, Direction::Forwards);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // write DQE to opencl
     CLOG(DEBUG, "sim") << "Upload DQE buffer";
     clCcdBuffer.Write(dqe_data);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Apply DQE";
     // apply DQE
@@ -205,16 +208,16 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
     DqeKernel.SetArg(4, binning);
 
     DqeKernel.run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // IFFT back
     CLOG(DEBUG, "sim") << "IFFT to real space";
     FourierTrans.run(clTempBuffer, clImageWaveFunction, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Read from buffer";
     double N_tot = doseperpix * binning * binning; // Get this passed in, its dose per binned pixel i think.
-    std::vector<std::complex<T>> compdata = clImageWaveFunction.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clImageWaveFunction.GetLocal();
 
     CLOG(DEBUG, "sim") << "Add noise";
 
@@ -235,15 +238,15 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
 
     CLOG(DEBUG, "sim") << "Write back to buffer";
     clImageWaveFunction.Write(compdata);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "FFT to reciprocal space";
     FourierTrans.run(clImageWaveFunction, clTempBuffer, Direction::Forwards);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Upload NTF buffer";
     clCcdBuffer.Write(ntf_data);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "Apply NTF";
     NtfKernel.SetArg(0, clTempBuffer, ArgumentType::InputOutput);
@@ -253,11 +256,11 @@ void SimulationCtem<T>::simulateImageDose(std::vector<T> dqe_data, std::vector<T
     NtfKernel.SetArg(4, binning);
 
     NtfKernel.run(Work);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     CLOG(DEBUG, "sim") << "FFT to real space";
     FourierTrans.run(clTempBuffer, clImageWaveFunction, Direction::Inverse);
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 }
 
 template <class T>
@@ -269,7 +272,7 @@ std::vector<double> SimulationCtem<T>::getCtemImage()
 
     // Original data is complex so copy complex version down first
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<std::complex<T>> compdata = clImageWaveFunction.CreateLocalCopy();
+    std::vector<std::complex<T>> compdata = clImageWaveFunction.GetLocal();
 
     CLOG(DEBUG, "sim") << "Getting only real part";
     for (int i = 0; i < resolution * resolution; i++)
@@ -280,7 +283,8 @@ std::vector<double> SimulationCtem<T>::getCtemImage()
 
 template<class GPU_Type>
 void SimulationCtem<GPU_Type>::simulate() {
-    initialiseSimulation();
+    if (!initialiseSimulation())
+        return;
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
 

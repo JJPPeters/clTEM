@@ -32,7 +32,7 @@ protected:
 
     void initialiseProbeWave(double posx, double posy, int n_parallel = 0);
 
-    void initialiseSimulation();
+    bool initialiseSimulation();
 
     void initialiseBuffers();
     void initialiseKernels();
@@ -40,9 +40,9 @@ protected:
     bool do_initialise_cbed;
 
 public:
-    explicit SimulationCbed(const clContext &_ctx, ThreadPool &s, unsigned int _id) : SimulationCtem<GPU_Type>(_ctx, s, _id), do_initialise_cbed(true) {}
+    explicit SimulationCbed(clDevice &_dev, ThreadPool &s, unsigned int _id) : SimulationCtem<GPU_Type>(_dev, s, _id), do_initialise_cbed(true) {}
 
-    ~SimulationCbed() = default;
+    ~SimulationCbed() {ctx->WaitForQueueFinish(); ctx->WaitForIOQueueFinish();}
 
     void simulate();
 

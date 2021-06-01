@@ -125,20 +125,30 @@
        <string>Page</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_2">
+       <item row="2" column="1">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="4">
+        <widget class="QCheckBox" name="chkForceDefault">
          <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
+          <enum>Qt::RightToLeft</enum>
          </property>
          <property name="text">
-          <string>Default: </string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          <string>Force default</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="2" colspan="4">
+       <item row="0" column="2" colspan="5">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <spacer name="horizontalSpacer_5">
@@ -175,25 +185,31 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="4">
-        <widget class="QCheckBox" name="chkForceDefault">
-         <property name="layoutDirection">
-          <enum>Qt::RightToLeft</enum>
+       <item row="1" column="2" colspan="5">
+        <widget class="Line" name="line">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
          </property>
-         <property name="text">
-          <string>Force default</string>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="2" column="5">
-        <widget class="QCheckBox" name="chkOverride">
-         <property name="layoutDirection">
-          <enum>Qt::RightToLeft</enum>
+       <item row="2" column="8">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
-         <property name="text">
-          <string>Override file</string>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
-        </widget>
+        </spacer>
        </item>
        <item row="2" column="3">
         <widget class="EditUnitsBox" name="edtDefault">
@@ -208,42 +224,36 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_2">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
+         <property name="text">
+          <string>Default: </string>
          </property>
-        </spacer>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
        </item>
        <item row="2" column="6">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QCheckBox" name="chkOverride">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
+         <property name="text">
+          <string>Override file</string>
          </property>
-        </spacer>
+        </widget>
        </item>
-       <item row="1" column="2" colspan="4">
-        <widget class="Line" name="line">
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
+       <item row="2" column="5">
+        <widget class="QCheckBox" name="chkForceXyz">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
          </property>
-         <property name="lineWidth">
-          <number>2</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+         <property name="text">
+          <string>Force XYZ vectors</string>
          </property>
         </widget>
        </item>
