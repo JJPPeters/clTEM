@@ -11,7 +11,8 @@
 #include "utilities/structureutils.h"
 
 CrystalStructure::CrystalStructure(std::string &fPath, CIF::SuperCellInfo info, bool fix_cif)
-        : scale_factor(1.0), atom_count(0), file_defined_thermals(false), max_atomic_number(0) {
+        : scale_factor(1.0), atom_count(0), file_defined_thermals(false), max_atomic_number(0),
+        u1_vector(1.0, 0.0, 0.0), u2_vector(0.0, 1.0, 0.0), u3_vector(0.0, 0.0, 1.0){
     // create our random number stuffs
     dist = std::normal_distribution<>(0, 1);
     rng = std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count());
@@ -84,9 +85,9 @@ void CrystalStructure::openXyz(std::string fPath) {
     int h_occ = Utils::findItemIndex(headers, std::string("occ"));
 
     int h_u = Utils::findItemIndex(headers, std::string("u"));
-    int h_ux = Utils::findItemIndex(headers, std::string("ux"));
-    int h_uy = Utils::findItemIndex(headers, std::string("uy"));
-    int h_uz = Utils::findItemIndex(headers, std::string("uz"));
+    int h_ux = Utils::findItemIndex(headers, std::string("u1"));
+    int h_uy = Utils::findItemIndex(headers, std::string("u2"));
+    int h_uz = Utils::findItemIndex(headers, std::string("u3"));
 
     bool default_headers = false;
     // set defaults to A, x, y, z if they ALL don't exist
@@ -196,13 +197,18 @@ void CrystalStructure::openCif(CIF::CIFReader cif, CIF::SuperCellInfo info) {
 
     // need to create the vectors the data will be put into
     std::vector<std::string> A;
-    std::vector<double> x, y, z, occ, ux, uy, uz;
+    std::vector<double> x, y, z, occ, u1, u2, u3;
     std::vector<bool> def_u;
 
+    Eigen::Vector3d u1_vec, u2_vec, u3_vec;
 
-    CIF::makeSuperCell(cif, info, A, x, y, z, occ, def_u, ux, uy, uz);
+    CIF::makeSuperCell(cif, info, A, x, y, z, occ, def_u, u1, u2, u3, u1_vec, u2_vec, u3_vec);
 
-    processAtomList(A, x, y, z, occ, def_u, ux, uy, uz);
+    u1_vector = u1_vec.normalized();
+    u2_vector = u2_vec.normalized();
+    u3_vector = u3_vec.normalized();
+
+    processAtomList(A, x, y, z, occ, def_u, u1, u2, u3);
 }
 
 void CrystalStructure::processOccupancyList(std::vector<AtomSite> &aList)
@@ -317,11 +323,11 @@ void CrystalStructure::processAtomList(std::vector<std::string> A, std::vector<d
         if (use_occ)
             thisAtom.occ = occ[i];
 
-        // for loading cif files, the ux etc will have valid 0 values, but for xyz files they could be empty vectors
+        // for loading cif files, the u1 etc will have valid 0 values, but for xyz files they could be empty vectors
         if (def_u[i]) {
-            thisAtom.ux = ux[i];
-            thisAtom.uy = uy[i];
-            thisAtom.uz = uz[i];
+            thisAtom.u1 = ux[i];
+            thisAtom.u2 = uy[i];
+            thisAtom.u3 = uz[i];
         }
 
         if (use_occ) {

@@ -7,12 +7,19 @@
 
 SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
                                          blocks_x(80), blocks_y(80), max_inverse_factor(2.0 / 3.0), parallel_pixels(1), simulate_ctem_image(false),
-                                         ccd_name(""), ccd_binning(1), ccd_dose(10000.0),
+                                         ccd_binning(1), ccd_dose(10000.0),
                                          structure_parameters_name("kirkland"), maintain_area(false),
                                          simulation_mode(SimulationMode::CTEM), use_double_precision(false), intermediate_slices_enabled(false), intermediate_slices(0)
 {
     parallel_stem = true;
     precalc_transmission = true;
+
+    parallel_potentials = false;
+    parallel_potentials_count = 5;
+
+    force_tds_atom_resort = false;
+
+    last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
 
     // Here is where the default values are set!
     micro_params = std::make_shared<MicroscopeParameters>();
@@ -25,8 +32,13 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
     full_3d_integrals = 20;
     use_full_3d = false;
 
+    ccd_name = "";
+
     //
     live_stem = false;
+
+    // timing stuff
+    timer_started = false;
 
     // I'm really assuming the rest of the aberrations are default 0
     micro_params->CondenserAperture = 20;
@@ -38,7 +50,7 @@ SimulationManager::SimulationManager() : sim_resolution(256), complete_jobs(0),
 }
 
 SimulationManager::SimulationManager(const SimulationManager &sm)
-        : structure_mutex(), image_update_mutex(), sim_resolution(sm.sim_resolution),
+        : structure_mutex(), image_update_mutex(), timer_mutex(), sim_resolution(sm.sim_resolution), timer_started(sm.timer_started),
           parallel_pixels(sm.parallel_pixels), use_full_3d(sm.use_full_3d), full_3d_integrals(sm.full_3d_integrals),
           complete_jobs(sm.complete_jobs), image_return_func(sm.image_return_func), report_progress_total_func(sm.report_progress_total_func), report_progress_slice_func(sm.report_progress_slice_func),
           image_container(sm.image_container), simulation_mode(sm.simulation_mode), stem_dets(sm.stem_dets),
@@ -48,8 +60,19 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
           use_double_precision(sm.use_double_precision), live_stem(sm.live_stem),
           intermediate_slices_enabled(sm.intermediate_slices_enabled), intermediate_slices(sm.intermediate_slices)
 {
+    last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
+
+    timer_started = sm.timer_started;
+    sim_start_time = sm.sim_start_time;
+    sim_end_time = sm.sim_end_time;
+
+    force_tds_atom_resort = sm.force_tds_atom_resort;
+
     parallel_stem = sm.parallel_stem;
     precalc_transmission = sm.precalc_transmission;
+
+    parallel_potentials = sm.parallel_potentials;
+    parallel_potentials_count = sm.parallel_potentials_count;
 
     micro_params = std::make_shared<MicroscopeParameters>(*(sm.micro_params));
     sim_area = std::make_shared<SimulationArea>(*(sm.sim_area));
@@ -61,6 +84,15 @@ SimulationManager::SimulationManager(const SimulationManager &sm)
 }
 
 SimulationManager &SimulationManager::operator=(const SimulationManager &sm) {
+    last_update = std::chrono::system_clock::now() - std::chrono::hours(24);
+
+    timer_started = sm.timer_started;
+    sim_start_time = sm.sim_start_time;
+    sim_end_time = sm.sim_end_time;
+
+    force_tds_atom_resort = sm.force_tds_atom_resort;
+    parallel_potentials = sm.parallel_potentials;
+    parallel_potentials_count = sm.parallel_potentials_count;
     parallel_stem = sm.parallel_stem;
     precalc_transmission = sm.precalc_transmission;
     intermediate_slices_enabled = sm.intermediate_slices_enabled;
@@ -294,12 +326,26 @@ void SimulationManager::updateImages(std::map<std::string, Image<double>> &ims, 
 
     CLOG(DEBUG, "sim") << "Report progress: " << prgrss*100 << "%";
 
+    // TODO: report the memory usage here too?
+    // TODO: report the time so far here?
     reportTotalProgress(prgrss);
 
+    std::chrono::time_point<std::chrono::system_clock> time_now = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_update).count();
+
     // this means this simulation is finished
-    if (image_return_func && (complete_jobs == v || update)) {
+    if (image_return_func && (complete_jobs == v || (update && duration > 100))) {
         CLOG(DEBUG, "sim") << "All parts of this job finished";
+
+        // stop the timer (if we have done all the jobs)
+        if (complete_jobs == v)
+            stopTimer();
+
+        // call the function that will return this class (and therefore all the actual results)
         image_return_func(*this);
+
+        // this makes sure we aren't updating too often
+        last_update = std::chrono::system_clock::now();
     }
 }
 
@@ -440,9 +486,20 @@ SimulationArea SimulationManager::currentAreaBase(int pixel) {
     // This function takes whatever simulation type is active, and returns a 'SimulationArea' class to describe it's
     // limits
 
-    if (simulation_mode == SimulationMode::STEM && !parallel_stem)
+    if (simulation_mode == SimulationMode::STEM && !parallel_stem) {
         // if parallel pixels are used, we need the full sim area...
-        return stem_sim_area->getPixelSimArea(pixel);
-    else
+
+        // We need this real scale to correctly align the stem potentials
+        // Note that we can't call the realScal() function as it calls this (recursion!)
+        // Also assumes the simulation is square (why wouldn't it be!)
+        auto padding = simulation_cell->paddingX();
+        double pad_range = padding[1] - padding[0];
+
+        auto area = stem_sim_area->getCorrectedLimitsX();
+        double area_range = area[1] - area[0];
+
+        double rs = (pad_range + area_range) / static_cast<double>(resolution());
+        return stem_sim_area->getPixelSimArea(pixel, rs);
+    } else
         return fullAreaBase(); // These don't ever change!
 }

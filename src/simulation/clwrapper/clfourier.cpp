@@ -5,13 +5,14 @@
 #include "clfourier.h"
 
 #include <cmath>
+#include <utility>
 
 template <class T>
 clFourier<T>::~clFourier() {
-    if (fftplan) {
-        fftStatus = clfftDestroyPlan(&fftplan);
-        clFftError::Throw(fftStatus, "clFourier");
-    }
+//    if (fftplan) {
+//        fftStatus = clfftDestroyPlan(&fftplan);
+//        clFftError::Throw(fftStatus, "clFourier");
+//    }
 }
 
 template <class T>
@@ -45,37 +46,41 @@ void clFourier<T>::Setup(unsigned int _width, unsigned int _height) {
     clStrides[ 2 ] = clStrides[ 1 ] * (clLengths[ 1 ] + clPadding[ 1 ]);
     clStrides[ 3 ] = clStrides[ 2 ] * (clLengths[ 2 ] + clPadding[ 2 ]);
 
-    fftStatus = clfftCreateDefaultPlan( &fftplan, Context.GetContext()(), fftdim, clLengths );
+    fftStatus = clfftCreateDefaultPlan( &fftplan, Context->GetContextHandle(), fftdim, clLengths );
     clFftError::Throw(fftStatus, "clFourier");
 
     //	Default plan creates a plan that expects an inPlace transform with interleaved complex numbers
     fftStatus = clfftSetResultLocation( fftplan, place );
     clFftError::Throw(fftStatus, "clFourier");
+
     if (sizeof(T) == 4) // This only works because I have limited my template types to float and double
         fftStatus = clfftSetPlanPrecision(fftplan, CLFFT_SINGLE);
     else if (sizeof(T) == 8)
         fftStatus = clfftSetPlanPrecision(fftplan, CLFFT_DOUBLE);
     else
         throw std::runtime_error("clFourier: Unknown bit depth");
-
     clFftError::Throw(fftStatus, "clFourier");
+
     fftStatus = clfftSetLayout( fftplan, inLayout, outLayout );
     clFftError::Throw(fftStatus, "clFourier");
+
     fftStatus = clfftSetPlanBatchSize( fftplan, batchSize );
     clFftError::Throw(fftStatus, "clFourier");
+
     fftStatus = clfftSetPlanScale (fftplan, CLFFT_FORWARD, 1.0f / sqrtf(_width * _height));
     clFftError::Throw(fftStatus, "clFourier");
+
     fftStatus = clfftSetPlanScale (fftplan, CLFFT_BACKWARD, 1.0f / sqrtf(_width * _height));
     clFftError::Throw(fftStatus, "clFourier");
 
     // Not using padding here yet
     if ((clPadding[ 0 ] | clPadding[ 1 ] | clPadding[ 2 ]) != 0) {
-        clfftSetPlanInStride  ( fftplan, fftdim, clStrides );
-        clfftSetPlanOutStride ( fftplan, fftdim, clStrides );
-        clfftSetPlanDistance  ( fftplan, clStrides[ fftdim ], clStrides[ fftdim ]);
+        clfftSetPlanInStride(fftplan, fftdim, clStrides);
+        clfftSetPlanOutStride(fftplan, fftdim, clStrides);
+        clfftSetPlanDistance(fftplan, clStrides[fftdim], clStrides[fftdim]);
     }
 
-    fftStatus = clfftBakePlan( fftplan, 1, &Context.GetQueue()(), nullptr, nullptr);
+    fftStatus = clfftBakePlan( fftplan, 1, &Context->GetQueueHandle(), nullptr, nullptr);
     clFftError::Throw(fftStatus, "clFourier");
 
     //get the buffersize
@@ -90,7 +95,7 @@ void clFourier<T>::Setup(unsigned int _width, unsigned int _height) {
 }
 
 template <class T>
-clFourier<T>::clFourier(clContext Context, unsigned int _width, unsigned int _height): Context(Context), width(_width), height(_height), buffersize(0), fftplan(0) {
+clFourier<T>::clFourier(std::shared_ptr<clContext> Context, unsigned int _width, unsigned int _height): Context(std::move(Context)), width(_width), height(_height), buffersize(0), fftplan(0) {
     Setup(_width,_height);
     AutoTeardownFFT::GetInstance();
 }

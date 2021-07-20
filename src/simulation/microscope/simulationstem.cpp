@@ -56,11 +56,11 @@ double SimulationStem<T>::doSumReduction(clMemory<T, Manual> data, clWorkGroup g
 
     SumReduction.run(globalSizeSum, localSizeSum);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     // Now copy back
     CLOG(DEBUG, "sim") << "Copy from buffer";
-    std::vector<T> sums = clReductionBuffer.CreateLocalCopy();
+    std::vector<T> sums = clReductionBuffer.GetLocal();
 
     CLOG(DEBUG, "sim") << "Doing final sum on CPU (" << nGroups << " parts)";
     // Find out which numbers to read back
@@ -120,7 +120,7 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
 
     BandPassAbs.run(WorkSize);
 
-    ctx.WaitForQueueFinish();
+    ctx->WaitForQueueFinish();
 
     unsigned int totalSize = resolution * resolution;
     unsigned int nGroups = totalSize / 256;
@@ -132,16 +132,17 @@ double SimulationStem<T>::getStemPixel(double inner, double outer, double xc, do
 }
 
 template<class GPU_Type>
-void SimulationStem<GPU_Type>::initialiseSimulation() {
+bool SimulationStem<GPU_Type>::initialiseSimulation() {
     initialiseBuffers();
     initialiseKernels();
 
-    SimulationCbed<GPU_Type>::initialiseSimulation();
+    return SimulationCbed<GPU_Type>::initialiseSimulation();
 }
 
 template<class GPU_Type>
 void SimulationStem<GPU_Type>::simulate() {
-    initialiseSimulation();
+    if(!initialiseSimulation())
+        return;
 
     CLOG(DEBUG, "sim") << "Parallel pixels: " << job->pixels.size();
 

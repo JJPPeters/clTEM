@@ -31,6 +31,7 @@ public:
     }
 
     bool getAuto() {return isAuto;}
+    virtual size_t GetSizeInBytes()=0;
 
     virtual clEvent Read(std::vector<T>&data)=0;
     virtual clEvent Read(std::vector<T>&data,clEvent KernelFinished)=0;
@@ -75,6 +76,7 @@ public:
             Local.resize(Size);
         Read(Local,KernelFinished);
         isUpToDate = true;
+        SetFinishedEvent(KernelFinished);
     }
 
     void UpdateEventOnly(clEvent KernelFinished)

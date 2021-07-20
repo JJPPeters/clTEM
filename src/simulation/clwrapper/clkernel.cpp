@@ -35,7 +35,7 @@ clEvent clKernel::run(clWorkGroup Global) {
     }
 
     clEvent KernelFinished;
-    cl_int status = Context.GetQueue().enqueueNDRangeKernel(Kernel, cl::NullRange, Global.worksize, cl::NullRange, &eventwaitlist, &KernelFinished.event);
+    cl_int status = Context->GetQueue().enqueueNDRangeKernel(Kernel, cl::NullRange, Global.worksize, cl::NullRange, &eventwaitlist, &KernelFinished.event);
     clError::Throw(status, Name);
 
     RunCallbacks(KernelFinished);
@@ -62,7 +62,7 @@ clEvent clKernel::run(clWorkGroup Global, clWorkGroup Local) {
     }
 
     clEvent KernelFinished;
-    cl_int status = Context.GetQueue().enqueueNDRangeKernel(Kernel, cl::NullRange, Global.worksize, Local.worksize, &eventwaitlist, &KernelFinished.event);
+    cl_int status = Context->GetQueue().enqueueNDRangeKernel(Kernel, cl::NullRange, Global.worksize, Local.worksize, &eventwaitlist, &KernelFinished.event);
     clError::Throw(status, Name);
 
     RunCallbacks(KernelFinished);

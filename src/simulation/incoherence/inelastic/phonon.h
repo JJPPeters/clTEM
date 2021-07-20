@@ -28,6 +28,15 @@ class PhononScattering {
     std::mt19937_64 rng;
     std::normal_distribution<> dist;
 
+    // if this is set, then the default value is used for everything
+    bool force_default;
+
+    // if this is set, then the values defined here override values set by the file
+    bool force_defined;
+
+    //
+    bool force_xyz_thermal_disps;
+
 public:
 
     PhononScattering();
@@ -38,12 +47,6 @@ public:
     bool getFrozenPhononEnabled() {return frozen_phonon_enabled;}
 
     double generateTdsFactor(AtomSite& at, int direction);
-
-    // if this is set, then the default value is used for everything
-    bool force_default;
-
-    // if this is set, then the values defined here override values set by the file
-    bool force_defined;
 
     std::vector<double> getDefinedVibrations();
 
@@ -59,6 +62,24 @@ public:
 
     double getDefault(){
         return u_default;
+    }
+
+    bool forceDefined() {return force_defined;}
+
+    void setForceDefined(bool set) {
+        force_defined = set;
+    }
+
+    bool forceDefault() {return force_default;}
+
+    void setForceDefault(bool set) {
+        force_default = set;
+    }
+
+    bool forceXyzDisps() {return force_xyz_thermal_disps;}
+
+    void setForceXyzDisps(bool set) {
+        force_xyz_thermal_disps = set;
     }
 };
 

@@ -100,7 +100,7 @@ void SimulationCbed<T>::initialiseProbeWave(double posx, double posy, int n_para
 }
 
 template<class GPU_Type>
-void SimulationCbed<GPU_Type>::initialiseSimulation() {
+bool SimulationCbed<GPU_Type>::initialiseSimulation() {
     // initialise our source perturbations here, they are needed when initialising the transmission function
     // (as we will need to adjust the limits of our reference frame a bit)
     auto ss = job->simManager->incoherenceEffects()->source();
@@ -115,12 +115,13 @@ void SimulationCbed<GPU_Type>::initialiseSimulation() {
     initialiseBuffers();
     initialiseKernels();
 
-    SimulationGeneral<GPU_Type>::initialiseSimulation();
+    return SimulationGeneral<GPU_Type>::initialiseSimulation();
 }
 
 template<class GPU_Type>
 void SimulationCbed<GPU_Type>::simulate() {
-    initialiseSimulation();
+    if(!initialiseSimulation())
+        return;
 
     typedef std::map<std::string, Image<double>> return_map;
     return_map Images;

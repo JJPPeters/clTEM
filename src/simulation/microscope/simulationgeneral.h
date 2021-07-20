@@ -17,14 +17,21 @@ template <class GPU_Type>
 class SimulationGeneral : public ThreadWorker
 {
 public:
-    explicit SimulationGeneral(const clContext &_ctx, ThreadPool &s, unsigned int _id)
-        : ThreadWorker(s, _id), ctx(_ctx),
+    explicit SimulationGeneral(clDevice &_dev_list, ThreadPool &s, unsigned int _id)
+        : ThreadWorker(s, _id),
         last_mode(SimulationMode::None), last_do_3d(false), do_initialise_general(true),
-          reference_perturb_x(0.0), reference_perturb_y(0.0) {
+        reference_perturb_x(0.0), reference_perturb_y(0.0) {
+
+        ctx = OpenCL::MakeSharedContext(_dev_list);
 
     }
 
-    ~SimulationGeneral() {ctx.WaitForQueueFinish(); ctx.WaitForIOQueueFinish();}
+    ~SimulationGeneral() {
+        ctx->WaitForQueueFinish();
+        ctx->WaitForIOQueueFinish();
+
+        FourierTrans.releaseResources();
+    }
 
 protected:
     SimulationMode last_mode;
@@ -35,7 +42,7 @@ protected:
     // these are used to perturb the reference frame (i.e. when moving the source)
     double reference_perturb_x, reference_perturb_y;
 
-    clContext ctx;
+    std::shared_ptr<clContext> ctx;
 
     // this is only used to check if the manager has changed (only to avoid sorting atoms multiple times)
     // TODO: could be more specific, instead of testing the whole manager?
@@ -45,7 +52,7 @@ protected:
 
     void sortAtoms();
 
-    void initialiseSimulation();
+    bool initialiseSimulation();
 
     void doMultiSliceStep(int slice);
 
@@ -85,7 +92,10 @@ protected:
     clMemory<GPU_Type, Manual> clYFrequencies;
     clMemory<std::complex<GPU_Type>, Manual> clPropagator;
 //    clMemory<std::complex<GPU_Type>, Manual> clTransmissionFunction;
-    std::vector<clMemory<std::complex<GPU_Type>, Manual>> clTransmissionFunction;
+    std::vector<std::vector<clMemory<std::complex<GPU_Type>, Manual>>> clTransmissionFunction;
+
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<> dist;
 
     // General kernels
     clFourier<GPU_Type> FourierTrans;

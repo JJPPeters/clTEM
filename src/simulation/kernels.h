@@ -34,7 +34,7 @@ public:
     std::string getName() { std::lock_guard<std::mutex> lck(mtx); return name; }
     unsigned int getNumArgs() { std::lock_guard<std::mutex> lck(mtx); return num_args; }
 
-    clKernel BuildToKernel(clContext ctx) {
+    clKernel BuildToKernel(std::shared_ptr<clContext> ctx) {
         std::lock_guard<std::mutex> lck(mtx);
 
         std::string kernel_string = source;

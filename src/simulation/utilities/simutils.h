@@ -24,7 +24,7 @@ namespace Utils {
     // This is basically for debugging
     template<typename T>
     void saveComplexBuffer(std::string path, clMemory<std::complex<T>, Manual> buf, ComplexDisplay complex_type) {
-        auto data = buf.CreateLocalCopy();
+        auto data = buf.GetLocal();
         std::vector<T> output(data.size());
 
         if (complex_type == ComplexDisplay::Real)
@@ -50,7 +50,7 @@ namespace Utils {
 
     template<typename T>
     void saveBuffer(std::string path, clMemory<T, Manual> buf) {
-        auto output = buf.CreateLocalCopy();
+        auto output = buf.GetLocal();
 
         // default to square images (true for all buffers at the moment)
         unsigned int sz = std::sqrt(output.size());
