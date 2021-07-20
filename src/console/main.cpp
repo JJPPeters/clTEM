@@ -238,11 +238,11 @@ void imageReturned(SimulationManager sm)
                 Image<double> abs(im_d[0], im_d[1], im_d[2]);
                 Image<double> arg(im_d[0], im_d[1], im_d[2]);
 
-                for (int j = 0; j < im.getDepth(); j+=2)
-                    for (int k = 0; k < im.getSliceSize(); k+=2) {
-                        auto cval = std::complex<double>(im.getSliceRef(j)[k], im.getSliceRef(j)[k + 1]);
-                        abs.getSliceRef(j)[k / 2] = std::abs(cval);
-                        arg.getSliceRef(j)[k / 2] = std::arg(cval);
+                for (int j = 0; j < im.getDepth(); ++j)
+                    for (int k = 0; k < im.getSliceSize(); ++k) {
+                        auto cval = std::complex<double>(im.getSliceRef(j)[2 * k], im.getSliceRef(j)[2 * k + 1]);
+                        abs.getSliceRef(j)[k] = std::abs(cval);
+                        arg.getSliceRef(j)[k] = std::arg(cval);
                     }
 
 
