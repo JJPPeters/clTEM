@@ -16,6 +16,12 @@ clTEM is an OpenCL accelerate implementation of the multislice algorithm for sim
     </p>
 </div> 
 
+## Citing
+
+Please cite clTEM using the [Zenodo repository](https://doi.org/10.5281/zenodo.5116155), or the following paper:
+
+> [Jonathan J. P. Peters, _A Fast Frozen Phonon Algorithm Using Mixed Static Potentials_, Ultramicroscopy (2021)](https://doi.org/10.1016/j.ultramic.2021.113364)
+
 ## Features
 
 The main features of clTEM are

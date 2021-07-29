@@ -7,6 +7,12 @@
 ## About  
 clTEM is an OpenCL accelerated multislice program for simulating images from a transmission electron microscope, originally written by [Dr Adam Dyson](https://github.com/ADyson) as part of his [PhD](http://wrap.warwick.ac.uk/72953/).  
 
+## Citing
+
+Please cite clTEM using the [Zenodo repository](https://doi.org/10.5281/zenodo.5116155), or the following paper:
+
+> [Jonathan J. P. Peters, _A Fast Frozen Phonon Algorithm Using Mixed Static Potentials_, Ultramicroscopy (2021)](https://doi.org/10.1016/j.ultramic.2021.113364)
+
 ## Features
 - OpenCL acceleration with multi-device support
 - Open any structure defined by simple .xyz or .cif files
