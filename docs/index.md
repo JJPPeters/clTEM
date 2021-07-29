@@ -29,12 +29,13 @@ The main features of clTEM are
   - Support for TEM, STEM and CBED simulations
   - OpenCL acceleration for quick simulations on various devices
   - Multi-device support - STEM and CBED simulation times can be drastically decreased
+  - Intermediate slice output - avoid having to perform multiple simulations for different thickness structures
   - Thermal diffuse scattering simulation using the frozen phonon model
   - Plasmon simulations
   - Simple input files with full occupancy and thermal vibrations defined per atom. See [here]({{ site.baseurl }}/guide/input) for more
   - Option to use the classic projected potential model or a full 3D approximation
   - Incorporate detective quantum efficiency (DQE) and noise transfer function (NTF) into TEM simulations
-  - Use via na intuitive GUI or via command line
+  - Use via an intuitive GUI or via command line
   - Compatible with Linux and Windows
 
 <div class="image-figure">
