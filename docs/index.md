@@ -41,7 +41,7 @@ The main features of clTEM are
 <div class="image-figure">
     <img style="height:500px;" src="{{'/assets/images/ui_example_1.png' | relative_url}}" alt="clTEM interface theme">
     <p>
-        <span class="figure-title">Figure</span> Example screen-shots of the clTEM interface using the the custom theme running on Windows 10.
+        <span class="figure-title">Figure</span> Example screen-shots of the clTEM interface using the custom theme running on Windows 10.
     </p>
 </div> 
 
