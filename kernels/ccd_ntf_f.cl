@@ -10,7 +10,7 @@
 /// height - height of the outputs
 /// binning - the binning of the CCD
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-__kernel void ccd_ntf_f(__global const float2* input,
+__kernel void ccd_ntf_f(__global float2* input,
 					__global float* ntf_data,
 					unsigned int width,
 					unsigned int height,
