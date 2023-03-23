@@ -139,7 +139,8 @@ void SimulationCbed<GPU_Type>::simulate() {
     if (slice_step > 0)
         output_count = std::ceil((double) numberOfSlices / slice_step);
 
-    auto diff = Image<double>(resolution, resolution, output_count);
+    auto diff = Image<double>(resolution, resolution, 1);
+    auto ew = Image<double>(resolution, resolution, 1);
 
     //
     // plasmon setup
@@ -163,6 +164,13 @@ void SimulationCbed<GPU_Type>::simulate() {
     double current_azimuth = mp->BeamAzimuth;
     Utils::rotateVectorSpherical(k_vec, y_axis, current_tilt/1000.0, current_azimuth);
 
+    std::string num_str;
+    std::string fname_ew;
+    std::vector<double> abs_im;
+    std::vector<double> arg_im;
+    unsigned int n_length = 0;
+    unsigned int temp_count = output_count;
+    while (temp_count != 0) { temp_count /= 10; n_length++; }
 
     CLOG(DEBUG, "sim") << "Starting multislice loop";
     // loop through slices
@@ -190,7 +198,29 @@ void SimulationCbed<GPU_Type>::simulate() {
             return;
 
         if (slice_step > 0 && (i+1) % slice_step == 0) {
-            diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+//            diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+
+            auto temp_ew = getExitWaveImage();
+//            ew.getSliceRef(output_counter) = temp_ew;
+
+            abs_im = std::vector<double>(resolution * resolution);
+            arg_im = std::vector<double>(resolution * resolution);
+
+            for (int k = 0; k < resolution * resolution; ++k) {
+                auto cval = std::complex<double>(temp_ew[2 * k], temp_ew[2 * k + 1]);
+                abs_im[k] = std::abs(cval);
+                arg_im[k] = std::arg(cval);
+            }
+
+            num_str = std::to_string(output_counter);
+            if(num_str.length() < n_length) {
+                std::string leading_zeros(n_length - num_str.length(), '0');
+                num_str = leading_zeros + num_str;
+            }
+
+            fname_ew = "D:\\clTEM_out\\ew_real_" + num_str + "_tds_" + std::to_string(job->id) + ".tif";
+            fileio::SaveTiff<float>(fname_ew, abs_im, resolution, resolution);
+
             output_counter++;
         }
 
@@ -200,10 +230,31 @@ void SimulationCbed<GPU_Type>::simulate() {
         job->simManager->reportSliceProgress(static_cast<double>(i+1) / numberOfSlices);
     }
 
+    diff.getSliceRef() = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+    auto temp_ew = getExitWaveImage();
+    ew.getSliceRef() = temp_ew;
+
     if (output_counter < output_count) {
-        diff.getSliceRef(output_counter) = getDiffractionImage(0, k_vec(0) - orig_k[0], k_vec(1) - orig_k[1]);
+        abs_im = std::vector<double>(resolution * resolution);
+        arg_im = std::vector<double>(resolution * resolution);
+
+        for (int k = 0; k < resolution * resolution; ++k) {
+            auto cval = std::complex<double>(temp_ew[2 * k], temp_ew[2 * k + 1]);
+            abs_im[k] = std::abs(cval);
+            arg_im[k] = std::arg(cval);
+        }
+
+        num_str = std::to_string(output_counter);
+        if(num_str.length() < n_length) {
+            std::string leading_zeros(n_length - num_str.length(), '0');
+            num_str = leading_zeros + num_str;
+        }
+
+        fname_ew = "D:\\clTEM_out\\ew_real_" + num_str + "_tds_" + std::to_string(job->id) + ".tif";
+        fileio::SaveTiff<float>(fname_ew, abs_im, resolution, resolution);
     }
 
+    Images.insert(return_map::value_type("EW", ew));
     Images.insert(return_map::value_type("Diff", diff));
 
     job->simManager->updateImages(Images, 1); // Update this if we ever do more than one TDS in a job

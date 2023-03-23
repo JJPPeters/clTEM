@@ -5,12 +5,16 @@ cmake_policy(SET CMP0074 NEW)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
-find_package(OpenCL REQUIRED)
+set(OpenCL_INCLUDE_DIRS D:/Programming/libraries/OCL_SDK_Light/include)
+set(OpenCL_LIBRARY D:/Programming/libraries/OCL_SDK_Light/lib/x86_64/opencl.lib)
+set(OpenCL_LIBRARIES D:/Programming/libraries/OCL_SDK_Light/lib/x86_64/opencl.lib)
 
-if(OpenCL_FOUND)
-    message(STATUS "OpenCL include directories: " ${OpenCL_INCLUDE_DIRS})
-    message(STATUS "OpenCL library: " ${OpenCL_LIBRARY})
-endif()
+#find_package(OpenCL REQUIRED)
+
+#if(OpenCL_FOUND)
+#    message(STATUS "OpenCL include directories: " ${OpenCL_INCLUDE_DIRS})
+#    message(STATUS "OpenCL library: " ${OpenCL_LIBRARY})
+#endif()
 
 find_package(clFFT REQUIRED)
 
