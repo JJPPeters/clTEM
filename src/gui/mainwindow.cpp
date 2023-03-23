@@ -1135,3 +1135,9 @@ bool MainWindow::event(QEvent *event) {
     // very important or no other events will get through
     return BorderlessWindow::event(event);
 }
+
+void MainWindow::on_actionAbout_triggered() {
+    QMessageBox msgBox;
+    msgBox.setText(QString::fromStdString(make_version_string()));
+    msgBox.exec();
+}

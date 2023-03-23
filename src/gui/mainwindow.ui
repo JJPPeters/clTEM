@@ -176,6 +176,12 @@
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
            </spacer>
           </item>
           <item>
@@ -296,6 +302,8 @@
     </property>
     <addaction name="actionOpenCL"/>
     <addaction name="actionTheme"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuInput"/>
    <addaction name="menuSimulation"/>
@@ -452,6 +460,11 @@
   <action name="actionPlasmons">
    <property name="text">
     <string>Plasmons</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

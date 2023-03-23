@@ -15,6 +15,7 @@
 
 #include "utilities/logging.h"
 #include "utilities/simutils.h"
+#include "utilities/getversion.h"
 
 class CbedFrame;
 class SimulationFrame;
@@ -68,6 +69,8 @@ public slots:
     void set_active_mode(int mode);
 
 private slots:
+    void on_actionAbout_triggered();
+
     void on_actionOpen_triggered();
 
     void on_actionOpenCL_triggered();
