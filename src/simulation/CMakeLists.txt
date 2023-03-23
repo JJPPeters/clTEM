@@ -6,6 +6,19 @@ cmake_policy(SET CMP0074 NEW)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
+# Add a custom command that produces version.cpp, plus
+# a dummy output that's not actually produced, in order
+# to force version.cmake to always be re-run before the build
+ADD_CUSTOM_COMMAND(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/_version.cpp
+        COMMAND ${CMAKE_COMMAND} -P
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
+
+# this is important as it will be used by the installer scripts
+configure_file(version.cpp version.cpp COPYONLY)
+#
+
 include_directories(clwrapper)
 add_subdirectory(clwrapper)
 
@@ -69,6 +82,10 @@ set(SIM_HDRS
         microscope/simulationctem.h
         microscope/simulationcbed.h
         microscope/simulationstem.h
+        structure/simulationcell.h
+        incoherence/probesourcesize.h
+        incoherence/chromaticaberration.h
+        utilities/getversion.h
         )
 
 set(SIM_SCRS
@@ -101,7 +118,12 @@ set(SIM_SCRS
         microscope/simulationworker.cpp
         microscope/simulationctem.cpp
         microscope/simulationcbed.cpp
-        microscope/simulationstem.cpp structure/simulationcell.cpp structure/simulationcell.h incoherence/probesourcesize.cpp incoherence/probesourcesize.h incoherence/chromaticaberration.cpp incoherence/chromaticaberration.h)
+        microscope/simulationstem.cpp
+        structure/simulationcell.cpp
+        incoherence/probesourcesize.cpp
+        incoherence/chromaticaberration.cpp
+        utilities/getversion.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/version.cpp)
 
 add_library(simulation STATIC ${SIM_SCRS} ${SIM_HDRS})
 

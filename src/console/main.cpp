@@ -7,6 +7,7 @@
 #include <utilities/fileio.h>
 #include <utilities/jsonutils.h>
 #include <utilities/simutils.h>
+#include <utilities/getversion.h>
 
 #include "getopt.h"
 #include "parseopencl.h"
@@ -73,7 +74,7 @@ void printHelp()
 
 void printVersion()
 {
-    std::cout << "clTEM command line interface v0.3a" << std::endl;
+    std::cout << "clTEM command line interface\n" << make_version_string() << std::endl;
 }
 
 void listDevices()
