@@ -88,7 +88,7 @@ public:
 
             // get cropped data
             auto temp = calculateComplexData(slice, crop_image);
-            for (int i = 0; i < temp.size(); ++i)
+            for (size_t i = 0; i < temp.size(); ++i)
                 out[i] = static_cast<T>(temp[i]);
         } else {
             sx = data_real.getWidth(crop_image);
@@ -98,13 +98,13 @@ public:
             // get cropped data
             auto temp = data_real.getWeightedSlice(slice, crop_image);
 
-            int s_out = out.size();
-            int s_in = temp.size();
+            size_t s_out = out.size();
+            size_t s_in = temp.size();
 
             if (s_out != s_in)
                 throw std::runtime_error("Getting data of incorrect size");
 
-            for (int i = 0; i < temp.size(); ++i)
+            for (size_t i = 0; i < temp.size(); ++i)
                 out[i] = static_cast<T>(temp[i]);
         }
 
@@ -254,7 +254,7 @@ public:
         SetImageGeneric(current_slice, zero_x, zero_y, scale_x, scale_y, int_scale, zero_pos, redraw, reset);
     }
 
-    void setSlice(int slice = 0) {
+    void setSlice(unsigned int slice = 0) {
         std::vector<double> im_d;
         if (is_complex && data_complex.getDepth() > 1 && slice < data_complex.getDepth()) {
             im_d = calculateComplexData(slice);

@@ -6,8 +6,7 @@
 #include "ui_stemdetectorframe.h"
 
 StemDetectorFrame::StemDetectorFrame(QWidget *parent, std::vector<StemDetector>& dets) :
-    QWidget(parent), chosenDetectors(dets),
-    ui(new Ui::StemDetectorFrame)
+    QWidget(parent), ui(new Ui::StemDetectorFrame), chosenDetectors(dets)
 {
     ui->setupUi(this);
 

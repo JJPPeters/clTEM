@@ -14,7 +14,7 @@ namespace PGL {
 
         glFuncs->glEnableVertexAttribArray(_buffer_location);
 
-        glFuncs->glVertexAttribPointer(_buffer_location, _size_per, _data_type, GL_FALSE, 4 * _stride, (GLvoid*)(4 * _offset));
+        glFuncs->glVertexAttribPointer(_buffer_location, _size_per, _data_type, GL_FALSE, 4 * _stride, reinterpret_cast<GLvoid*>(4 * _offset));
     }
 
     void AttributeBuffer::Unbind() {

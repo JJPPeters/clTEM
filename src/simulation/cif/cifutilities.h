@@ -35,8 +35,8 @@ namespace CIF::Utilities {
         bool string_ends_with(std::string fullString, std::string ending);
 
         template<typename T>
-        int vectorSearch(std::vector<T> vec, T value) {
-            int pos = std::find(vec.begin(), vec.end(), value) - vec.begin();
+        size_t vectorSearch(std::vector<T> vec, T value) {
+            size_t pos = std::find(vec.begin(), vec.end(), value) - vec.begin();
 
             return pos;
         }

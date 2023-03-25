@@ -6,8 +6,7 @@
 #include "ui_stemframe.h"
 
 StemFrame::StemFrame(QWidget *parent) :
-    QWidget(parent), Main(0),
-    ui(new Ui::StemFrame)
+    QWidget(parent), ui(new Ui::StemFrame), Main(0)
 {
     ui->setupUi(this);
 }

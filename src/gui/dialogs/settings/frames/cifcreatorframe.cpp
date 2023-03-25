@@ -260,7 +260,7 @@ void CifCreatorFrame::previewStructure(bool dummy) {
 
     pltPreview->clearItems();
 
-    bool changed = false;
+//    bool changed = false;
 
     // get all the values we need
     double u = ui->edtZoneU->text().toDouble();
@@ -299,7 +299,7 @@ void CifCreatorFrame::previewStructure(bool dummy) {
         std::vector<Eigen::Vector3f> pos(atms.size());
         std::vector<Eigen::Vector3f> col(atms.size());
 
-        for (int i = 0; i < atms.size(); ++i) {
+        for (size_t i = 0; i < atms.size(); ++i) {
             pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
             auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
@@ -348,6 +348,8 @@ View::Direction CifCreatorFrame::getViewDirection(){
         return View::Direction::Back;
     else if (view_text == "Left")
         return View::Direction::Left;
+
+    return View::Direction::Front; // jsut some default
 }
 
 void CifCreatorFrame::viewDirectionChanged() {

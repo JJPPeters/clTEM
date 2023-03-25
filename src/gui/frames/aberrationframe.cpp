@@ -9,13 +9,12 @@
 #include "dialogs/settings/settingsdialog.h"
 
 AberrationFrame::AberrationFrame(QWidget *parent) :
-    QWidget(parent), Main(nullptr),
-    ui(new Ui::AberrationFrame)
+    QWidget(parent), ui(new Ui::AberrationFrame), Main(nullptr)
 {
     ui->setupUi(this);
 
-    QRegExpValidator* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
-    QRegExpValidator* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+//    auto* pValidator = new QRegExpValidator(QRegExp(R"([+]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
+    auto* pmValidator = new QRegExpValidator(QRegExp(R"([+-]?(\d*(?:\.\d*)?(?:[eE]([+\-]?\d+)?)>)*)"));
 
     ui->edtDefocus->setValidator(pmValidator);
     ui->edtStigMag->setValidator(pmValidator);

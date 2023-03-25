@@ -106,20 +106,20 @@ void PlasmonSettingsFrame::dlgApply_clicked()
 }
 
 void PlasmonSettingsFrame::checkValidInputs() {
-    bool valid = true;
+//    bool valid = true;
 
     if (ui->edtMeanFreePath->text().toDouble() > 0.0)
         ui->edtMeanFreePath->setStyleSheet("");
     else {
         ui->edtMeanFreePath->setStyleSheet("color: #FF8C00");
-        valid = false;
+//        valid = false;
     }
 
     if (ui->edtCharacteristicAngle->text().toDouble() > 0.0)
         ui->edtCharacteristicAngle->setStyleSheet("");
     else {
         ui->edtCharacteristicAngle->setStyleSheet("color: #FF8C00");
-        valid = false;
+//        valid = false;
     }
 
     // don't do anything with valid right now, but I could disable the  apply button?

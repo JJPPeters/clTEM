@@ -9,8 +9,7 @@
 #include "dialogs/settings/settingsdialog.h"
 
 InelasticFrame::InelasticFrame(QWidget *parent) :
-    QWidget(parent), Main(nullptr),
-    ui(new Ui::InelasticFrame)
+    QWidget(parent), ui(new Ui::InelasticFrame), Main(nullptr)
 {
     ui->setupUi(this);
 

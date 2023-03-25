@@ -123,31 +123,13 @@ private slots:
 
     void saveBmp(bool full_stack);
 
-    void ctemImageToggled(bool state) {
-        Manager->setCtemImageEnabled(state);
-        updateModeTextBoxes();
-    }
+    void ctemImageToggled(bool state);
 
     void updateModeTextBoxes();
 
     void iterationsToggled();
 
-    void checkEditZero(QString dud)
-    {
-        (void)dud; // make it explicit that this is not used
-
-        auto * edt = dynamic_cast<EditUnitsBox*>(sender());
-
-        if(edt == nullptr)
-            return;
-
-        double val = edt->text().toDouble();
-
-        if (val <= 0)
-            edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
-        else
-            edt->setStyleSheet("");
-    }
+    void checkEditZero(QString dud);
 
     bool event(QEvent *event);
 

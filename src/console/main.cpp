@@ -83,11 +83,15 @@ void listDevices()
 
     std::cout << "OpenCL devices available" << std::endl;
 
-    int prev_plat = -1;
+    unsigned int prev_plat = 0;
+    bool got_plat = false;
+
     for (clDevice& d : devices)
     {
-        if (prev_plat != d.GetPlatformNumber())
+        if (!got_plat || prev_plat != d.GetPlatformNumber()) {
             std::cout << "Platform: " << d.GetPlatformNumber() << ", " << d.GetPlatformName() << std::endl;
+            got_plat = true;
+        }
         std::cout << "\tDevice: " << d.GetDeviceNumber() << ", " << d.GetDeviceName() << std::endl;
     }
 }
@@ -164,11 +168,11 @@ void saveTiffOutput(std::string filename, Image<double> im, nlohmann::json j_set
         if (si < 1)
             throw std::runtime_error("Saving stack with < 0 slice step.");
 
-        int out_string_len = Utils::numToString(sc-1).size();
+        size_t out_string_len = Utils::numToString(sc-1).size();
 
         std::vector<double> data;
 
-        for (int i = 0; i < im.getDepth(); ++i) {
+        for (size_t i = 0; i < im.getDepth(); ++i) {
             data = im.getWeightedSlice(i, false);
 
             // get the name to use for the output
@@ -239,8 +243,8 @@ void imageReturned(SimulationManager sm)
                 Image<double> abs(im_d[0], im_d[1], im_d[2]);
                 Image<double> arg(im_d[0], im_d[1], im_d[2]);
 
-                for (int j = 0; j < im.getDepth(); ++j)
-                    for (int k = 0; k < im.getSliceSize(); ++k) {
+                for (size_t j = 0; j < im.getDepth(); ++j)
+                    for (size_t k = 0; k < im.getSliceSize(); ++k) {
                         auto cval = std::complex<double>(im.getSliceRef(j)[2 * k], im.getSliceRef(j)[2 * k + 1]);
                         abs.getSliceRef(j)[k] = std::abs(cval);
                         arg.getSliceRef(j)[k] = std::arg(cval);

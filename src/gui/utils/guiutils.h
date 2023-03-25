@@ -19,9 +19,7 @@ namespace GuiUtils {
     extern const unsigned int edit_precision;
 
     // https://stackoverflow.com/questions/3490336/how-to-reveal-in-finder-or-show-in-explorer-with-qt
-    static void openInDefault(const QString &pathIn) {
-        QDesktopServices::openUrl(QUrl(pathIn));
-    }
+    void openInDefault(const QString &pathIn);
 
     ///
     /// This is where atom colours are defined for the structure plotting

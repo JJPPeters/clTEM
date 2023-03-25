@@ -15,8 +15,8 @@
 
 OpenClFrame::OpenClFrame(QWidget *parent, std::vector<clDevice>& current_devices) :
     QWidget(parent),
-    chosenDevs(current_devices),
-    ui(new Ui::OpenClFrame)
+    ui(new Ui::OpenClFrame),
+    chosenDevs(current_devices)
 {
     ui->setupUi(this);
 
@@ -72,8 +72,8 @@ void OpenClFrame::on_btnAdd_clicked()
         return;
 
     // get strings from combo box
-    int platNum = ui->cmbPlatform->currentData().toInt();
-    int devNum = ui->cmbDevice->currentData().toInt();
+    unsigned int platNum = ui->cmbPlatform->currentData().toUInt();
+    unsigned int devNum = ui->cmbDevice->currentData().toUInt();
 
     clDevice dev;
 
@@ -118,13 +118,13 @@ void OpenClFrame::on_btnDelete_clicked()
 
     std::vector<int> toRemove;
     for(int i = 0; i < selection.size(); ++i)
-        if(selection.at(i)->column() == 0)
+        if(selection.at(i)->column() == (int) 0)
             toRemove.push_back(selection.at(i)->row());
 
     std::sort(toRemove.begin(), toRemove.end());
 
     int n = 0;
-    for(int i = 0; i < toRemove.size(); ++i) {
+    for(size_t i = 0; i < toRemove.size(); ++i) {
         ui->tblDevices->removeRow(toRemove[i] - n);
         ++n;
     }
@@ -157,25 +157,25 @@ void OpenClFrame::populateDeviceCombo()
     ui->cmbDevice->clear();
     // get lists of all info from the table (platform ID and device ID)
     int nRows = ui->tblDevices->rowCount();
-    std::vector<int> usedPlats(nRows);
-    std::vector<int> usedDevs(nRows);
+    std::vector<unsigned int> usedPlats(nRows);
+    std::vector<unsigned int> usedDevs(nRows);
 
     // these are a bit lengthy, but we just get the QTableWidgetItem at the required row and col,
     // then we get its text, make it a std::string and then convert to an integer....
     // phew
     for (int i = 0; i < nRows; ++i)
     {
-        usedPlats[i] = std::stoi(ui->tblDevices->item(i, 0)->text().toStdString());
-        usedDevs[i] = std::stoi(ui->tblDevices->item(i, 2)->text().toStdString());
+        usedPlats[i] = (unsigned int) std::stoi(ui->tblDevices->item(i, 0)->text().toStdString());
+        usedDevs[i] = (unsigned int) std::stoi(ui->tblDevices->item(i, 2)->text().toStdString());
     }
 
     // Handle devices
-    int currentPlat = ui->cmbPlatform->currentData().toInt();
+    unsigned int currentPlat = ui->cmbPlatform->currentData().toUInt();
     for (clDevice d : Devices)
     {
         if (d.GetPlatformNumber() == currentPlat)
         {
-            int devNum = d.GetDeviceNumber();
+            unsigned int devNum = d.GetDeviceNumber();
 
             // here we test if this device has been used
             bool isUsed = false;
@@ -216,8 +216,8 @@ void OpenClFrame::dlgApply_clicked()
 
     for (int i = 0; i < nRows; ++i)
     {
-        int p = std::stoi(ui->tblDevices->item(i, 0)->text().toStdString());
-        int d = std::stoi(ui->tblDevices->item(i, 2)->text().toStdString());
+        unsigned int p = (unsigned int) std::stoi(ui->tblDevices->item(i, 0)->text().toStdString());
+        unsigned int d = (unsigned int) std::stoi(ui->tblDevices->item(i, 2)->text().toStdString());
 
         clDevice dev;
         for (auto dv : Devices)

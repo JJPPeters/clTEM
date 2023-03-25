@@ -49,5 +49,6 @@ set(SOURCES
 
 add_library(clwrapper SHARED ${SOURCES} ${HEADERS})
 
-target_include_directories (clwrapper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCL_INCLUDE_DIRS} ${CLFFT_INCLUDE_DIRS})
+target_include_directories (clwrapper SYSTEM PUBLIC ${OpenCL_INCLUDE_DIRS} ${CLFFT_INCLUDE_DIRS} )
+target_include_directories (clwrapper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries (clwrapper ${OpenCL_LIBRARIES} ${CLFFT_LIBRARIES} )

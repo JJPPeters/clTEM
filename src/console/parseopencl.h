@@ -38,7 +38,7 @@ std::vector<clDevice> getDevices(std::string d_str)
     else if (d_str == "gpu")
     {
         devices = OpenCL::GetDeviceList(Device::DeviceType::GPU);
-        if (devices.size() < 1)
+        if (devices.empty())
             throw std::runtime_error("Could not get GPU OpenCL device");
         devices.erase(devices.begin()+1, devices.end());
         std::cout << "Picking a GPU OpenCL devices" << std::endl;
@@ -46,7 +46,7 @@ std::vector<clDevice> getDevices(std::string d_str)
     else if (d_str == "cpu")
     {
         devices = OpenCL::GetDeviceList(Device::DeviceType::CPU);
-        if (devices.size() < 1)
+        if (devices.empty())
             throw std::runtime_error("Could not get CPU OpenCL device");
         devices.erase(devices.begin()+1, devices.end());
         std::cout << "Picking a CPU OpenCL devices" << std::endl;
@@ -69,14 +69,14 @@ std::vector<clDevice> getDevices(std::string d_str)
 
         std::vector<clDevice> dev_all = OpenCL::GetDeviceList(Device::DeviceType::All);
 
-        if (dev_all.size() < 1)
+        if (dev_all.empty())
             throw std::runtime_error("Could not get OpenCL devices to choose from");
 
         for (auto& p : parts)
         {
             std::stringstream pss(p);
-            int pid = -1;
-            int did = -1;
+            unsigned int pid;
+            unsigned int did;
 
             std::vector<std::string> sub_parts;
             while( pss.good() )
@@ -117,13 +117,12 @@ std::vector<clDevice> getDevices(std::string d_str)
         }
     }
 
-    for (int i = 0; i < devices.size(); ++i) {
-        std::cout << "Platform: " << devices[i].GetPlatformNumber() << ", device: " << devices[i].GetDeviceNumber()
-                  << std::endl;
+    for (size_t i = 0; i < devices.size(); ++i) {
+        std::cout << "Platform: " << devices[i].GetPlatformNumber() << ", device: " << devices[i].GetDeviceNumber() << std::endl;
         std::cout << "\t" << devices[i].GetPlatformName() << " - " << devices[i].GetDeviceName() << std::endl;
     }
 
-    if (devices.size() < 1)
+    if (devices.empty())
         throw std::runtime_error("Could not get OpenCL devices...");
 
     return devices;

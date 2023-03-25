@@ -49,7 +49,7 @@ namespace CIF {
 
     bool AtomSite::setIsoU(std::string lbl, double u_iso) {
 
-        long long int i = std::find(label.begin(), label.end(), lbl) - label.begin();
+        size_t i = std::find(label.begin(), label.end(), lbl) - label.begin();
 
         if (i >= label.size())
             return false;
@@ -62,7 +62,7 @@ namespace CIF {
     }
 
     bool AtomSite::setU(std::string lbl, double u, int i) {
-        long long int ind = std::find(label.begin(), label.end(), lbl) - label.begin();
+        size_t ind = std::find(label.begin(), label.end(), lbl) - label.begin();
 
         if (ind >= label.size())
             return false;

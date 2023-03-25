@@ -52,7 +52,7 @@ void ImagePlotWidget::matchPlotToPalette() {
     QPen axesPen = QPen(Qt::DashLine);
     axesPen.setColor(pal.color(QPalette::Mid));
 
-    setBackground(qApp->palette().brush(QPalette::Background));
+    setBackground(qApp->palette().brush(QPalette::Window));
     xAxis->grid()->setPen(axesPen);
     yAxis->grid()->setPen(axesPen);
 

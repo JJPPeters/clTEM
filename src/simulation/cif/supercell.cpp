@@ -78,7 +78,7 @@ namespace CIF {
         auto y_rotation = Utilities::generateRotationMatrix<double>({0.0, 1.0, 0.0}, beta);
         auto z_rotation = Utilities::generateRotationMatrix<double>({0.0, 0.0, 1.0}, gamma);
 
-        for (int i = 0; i < basis.size(); ++i) {
+        for (size_t i = 0; i < basis.size(); ++i) {
             basis[i] = za_rotation * basis[i];
             basis[i] = xy_rotation * basis[i];
             basis[i] = x_rotation * basis[i];
@@ -136,7 +136,7 @@ namespace CIF {
 
                             auto new_pos = p + i_factor + j_factor + k_factor;
 
-                            for (int ind = 0; ind < at.getElements().size(); ++ind) {
+                            for (size_t ind = 0; ind < at.getElements().size(); ++ind) {
 
                                 if (testInRange(new_pos, 0.0, widths(0), 0.0, widths(1), 0.0, widths(2))) {
                                     A[it] = at.getElements()[ind];

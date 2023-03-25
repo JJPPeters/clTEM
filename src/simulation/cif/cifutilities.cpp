@@ -30,6 +30,8 @@ namespace CIF::Utilities {
                 pos = s.find_first_of(delims, beg + 1);
                 elems.push_back(s.substr(beg, pos - beg));
             }
+
+            return elems;
         }
 
         double stod(std::string& s) {

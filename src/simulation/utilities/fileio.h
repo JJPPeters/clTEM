@@ -66,7 +66,7 @@ namespace fileio //D:
         // virtually nothing supports 64-bit tiff so we will convert it here.
         std::vector<T_out> buffer(data.size());
 
-        for (int i = 0; i < data.size(); ++i)
+        for (size_t i = 0; i < data.size(); ++i)
             buffer[i] = static_cast<T_out>(data[i]);
 
         if( (TIFFWriteEncodedStrip(out, 0, &buffer[0], sizeof(float)*buffer.size())) == -1)

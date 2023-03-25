@@ -52,7 +52,7 @@ ThermalScatteringFrame::ThermalScatteringFrame(QWidget *parent, std::shared_ptr<
     if (el.size() != vib.size())
         throw(std::runtime_error("Cannot get thermal vibrations with different elements and vibration vector sizes"));
 
-    for (int i = 0; i < el.size(); ++i) {
+    for (size_t i = 0; i < el.size(); ++i) {
         std::string temp_element = Utils::NumberToElementSymbol(el[i]);
         addItemToList( temp_element , vib[i]);
     }

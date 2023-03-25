@@ -5,8 +5,7 @@
 #include <utils/stringutils.h>
 
 SimulationFrame::SimulationFrame(QWidget *parent) :
-    QWidget(parent), Main(nullptr),
-    ui(new Ui::SimulationFrame)
+    QWidget(parent), ui(new Ui::SimulationFrame), Main(nullptr)
 {
     ui->setupUi(this);
 }

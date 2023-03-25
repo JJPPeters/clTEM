@@ -56,7 +56,7 @@ public:
     /// Constructor for a single image
     Image(std::vector<T> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0, std::vector<double> wt = {1.0}) {
         data.push_back(image);
-        weighting = wt;
+        weighting = std::move(wt);
         width = w;
         height = h;
         depth = 1;
@@ -71,13 +71,13 @@ public:
     Image(std::vector<std::vector<T>> image, unsigned int w, unsigned int h, unsigned int pt = 0, unsigned int pl = 0, unsigned int pb = 0, unsigned int pr = 0, std::vector<double> wt = {1.0}) : data(image),
                                                                                                                                                                   width(w), height(h), depth(image.size()),
                                                                                                                                                                   pad_t(pt), pad_l(pl),
-                                                                                                                                                                  pad_b(pb), pad_r(pr), weighting(wt) {}
+                                                                                                                                                                  pad_b(pb), pad_r(pr), weighting(std::move(wt)) {}
 
-    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), depth(rhs.depth), data(rhs.data),
-                                                                                         pad_t(rhs.pad_t),
+    Image(const Image<T>& rhs) : width(rhs.width), height(rhs.height), depth(rhs.depth), pad_t(rhs.pad_t),
                                                                                          pad_l(rhs.pad_l),
                                                                                          pad_b(rhs.pad_b),
                                                                                          pad_r(rhs.pad_r),
+                                                                                         data(rhs.data),
                                                                                          weighting(rhs.weighting) {}
 
     Image<T>& operator=(const Image<T>& rhs) {
@@ -151,7 +151,7 @@ public:
             return getCroppedWeighteddSlice(slice);
         std::vector<T> out = data[slice];
         // we don't store the averaged data, so do it now
-        for (int p = 0; p < out.size(); ++p)
+        for (size_t p = 0; p < out.size(); ++p)
             out[p] /= getWeightingVal(p);
 
         return out;
@@ -177,9 +177,9 @@ public:
         std::vector<T> out(getCroppedSliceSize());
 
         unsigned int counter = 0;
-        for (int j = pad_b; j < getHeight()-pad_t; ++j)
-            for (int i = pad_l; i < getWidth() - pad_r; ++i) {
-                unsigned int index = j * getWidth() + i;
+        for (size_t j = pad_b; j < getHeight()-pad_t; ++j)
+            for (size_t i = pad_l; i < getWidth() - pad_r; ++i) {
+                size_t index = j * getWidth() + i;
                 out[counter] = data[slice][index] / getWeightingVal(index);
                 counter++;
             }
@@ -211,7 +211,7 @@ struct MicroscopeParameters {
     MicroscopeParameters() : C10(0.0f), C30(0.0f), C50(0.0f), Voltage(1.0f),
                              CondenserAperture(1.0f), CondenserApertureSmoothing(0.0f),
                              ObjectiveAperture(1.0f), ObjectiveApertureSmoothing(0.0f),
-                             Alpha(1.0f), Delta(1.0f), BeamTilt(0.0), BeamAzimuth(0.0)
+                             BeamTilt(0.0), BeamAzimuth(0.0), Alpha(1.0f), Delta(1.0f)
                              {}
 
     // Defocus

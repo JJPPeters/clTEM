@@ -154,4 +154,8 @@ namespace GuiUtils
     };
 
     int dummy_construct_map = ConstructElementColourMap();
+
+    void openInDefault(const QString &pathIn) {
+        QDesktopServices::openUrl(QUrl(pathIn));
+    }
 }

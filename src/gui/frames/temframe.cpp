@@ -44,7 +44,7 @@ void TemFrame::setCropCheck(bool state) { ui->chkCrop->setChecked(state); }
 void TemFrame::setSimImageCheck(bool state) { ui->chkSimImage->setChecked(state); }
 
 void TemFrame::populateCcdCombo(std::vector<std::string> names){
-    for (int i = 0; i < names.size(); ++i){
+    for (size_t i = 0; i < names.size(); ++i){
         ui->cmbCcd->addItem(QString::fromStdString(names[i]));
     }
 }

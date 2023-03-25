@@ -3,8 +3,7 @@
 #include "ui_imagetab.h"
 
 ImageTab::ImageTab(QWidget *parent, std::string name, TabType t, bool is_complex) :
-    QWidget(parent), TabName(name), MyType(t),
-    ui(new Ui::ImageTab)
+    QWidget(parent), ui(new Ui::ImageTab), TabName(name), MyType(t)
 {
     ui->setupUi(this);
     ui->hScrlSlice->setVisible(false);

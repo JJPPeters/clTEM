@@ -159,7 +159,7 @@ void MainWindow::on_actionOpen_triggered()
         else if (temp_file.suffix() == "cif") {
             // open dialog to open cif
             // read the cif now so we can pass it to the dialog
-            bool try_fix = false;
+//            bool try_fix = false;
 
             CIF::CIFReader cif;
 
@@ -459,10 +459,10 @@ void MainWindow::imagesChanged(SimulationManager sm)
                     auto pd = im.getPadding(); // t l b r
                     Image<std::complex<double>> comp_im(im.getWidth(), im.getHeight(), im.getDepth(), pd[0], pd[1], pd[2], pd[3]);
 
-                    for (int jj = 0; jj < im.getDepth(); ++jj) {
+                    for (size_t jj = 0; jj < im.getDepth(); ++jj) {
                         // convert our float data to complex
                         std::vector<std::complex<double>> comp_data(im.getSliceSize());
-                        for (int ii = 0; ii < comp_data.size(); ++ii)
+                        for (size_t ii = 0; ii < comp_data.size(); ++ii)
                             comp_data[ii] = std::complex<double>(im.getSliceRef(jj)[2 * ii], im.getSliceRef(jj)[2 * ii + 1]);
 
                         comp_im.getSliceRef(jj) = comp_data;
@@ -480,7 +480,7 @@ void MainWindow::imagesChanged(SimulationManager sm)
             int n = ui->twReal->count();
             for (int j = 0; j < n; ++j)
             {
-                ImageTab *tab = (ImageTab *) ui->twReal->widget(j);
+                ImageTab *tab = reinterpret_cast<ImageTab *>(ui->twReal->widget(j));
                 if (tab->getTabName() == "Image") {
                     auto settings = original_settings;
                     double lx = sm.paddedSimLimitsX(0)[0];
@@ -572,8 +572,8 @@ void MainWindow::loadSavedOpenClSettings()
     auto present_devs = OpenCL::GetDeviceList();
     for (int i = 0; i < devs.size(); ++i)
     {
-        int dev_num = settings.value(devs[i] + "/device").toInt();
-        int plat_num = settings.value(devs[i] + "/platform").toInt();
+        unsigned int dev_num = (unsigned int) settings.value(devs[i] + "/device").toInt();
+        unsigned int plat_num = (unsigned int) settings.value(devs[i] + "/platform").toInt();
         std::string dev_name = settings.value(devs[i] + "/device_name").toString().toStdString();
         std::string plat_name = settings.value(devs[i] + "/platform_name").toString().toStdString();
 
@@ -763,7 +763,7 @@ void MainWindow::saveTiff(bool full_stack) {
 
         int out_string_len = Utils::numToString(sc-1).size();
 
-        for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
+        for (size_t i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
             origin->getPlot()->getData(data, sx, sy, i); // get data
             // get the name to use for the output
             //  remember we don't start getting slices from the first slice
@@ -816,7 +816,7 @@ void MainWindow::saveBmp(bool full_stack) {
 
         int out_string_len = Utils::numToString(sc-1).size();
 
-        for (int i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
+        for (size_t i = 0; i < origin->getPlot()->getSliceCount(); ++i) {
             origin->getPlot()->getData(data, sx, sy, i); // get data
 
             // get the name to use for the output
@@ -1140,4 +1140,25 @@ void MainWindow::on_actionAbout_triggered() {
     QMessageBox msgBox;
     msgBox.setText(QString::fromStdString(make_version_string()));
     msgBox.exec();
+}
+
+void MainWindow::checkEditZero(QString dud) {
+    (void)dud; // make it explicit that this is not used
+
+    auto * edt = dynamic_cast<EditUnitsBox*>(sender());
+
+    if(edt == nullptr)
+        return;
+
+    double val = edt->text().toDouble();
+
+    if (val <= 0)
+        edt->setStyleSheet("color: #FF8C00"); // I just chose orange, mgiht want to be a better colour
+    else
+        edt->setStyleSheet("");
+}
+
+void MainWindow::ctemImageToggled(bool state) {
+    Manager->setCtemImageEnabled(state);
+    updateModeTextBoxes();
 }

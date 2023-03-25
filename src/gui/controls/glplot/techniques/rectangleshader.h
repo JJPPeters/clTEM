@@ -16,7 +16,7 @@ namespace PGL {
 
         void initialise() override;
 
-        GLint _posBufLocation, _colLocation, _minsLocation, _maxsLocation, _pixelSizeLocation;
+        GLuint _posBufLocation, _colLocation, _minsLocation, _maxsLocation, _pixelSizeLocation;
     };
 }
 

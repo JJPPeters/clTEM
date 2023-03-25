@@ -9,8 +9,7 @@
 #include "utilities/logging.h"
 
 StemAreaFrame::StemAreaFrame(QWidget *parent, StemArea sa, std::shared_ptr<CrystalStructure> struc) :
-    QWidget(parent), Area(sa), Structure(struc),
-    ui(new Ui::StemAreaFrame)
+    QWidget(parent), ui(new Ui::StemAreaFrame), Area(sa), Structure(struc)
 {
     ui->setupUi(this);
 

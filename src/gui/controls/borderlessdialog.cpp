@@ -105,8 +105,8 @@ bool BorderlessDialog::nativeEvent(const QByteArray& eventType, void *message, l
 
             *result = 0;
 
-            long x = GET_X_LPARAM(msg->lParam);
-            long y = GET_Y_LPARAM(msg->lParam);
+//            long x = GET_X_LPARAM(msg->lParam);
+//            long y = GET_Y_LPARAM(msg->lParam);
 
             // this handles if we are in the title bar, or the main content
             if(*result == 0) {

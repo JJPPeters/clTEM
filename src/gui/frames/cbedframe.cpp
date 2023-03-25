@@ -6,8 +6,7 @@
 #include <QScreen>
 
 CbedFrame::CbedFrame(QWidget *parent) :
-        QWidget(parent), Main(0),
-        ui(new Ui::CbedFrame)
+        QWidget(parent), ui(new Ui::CbedFrame), Main(0)
 {
     ui->setupUi(this);
 

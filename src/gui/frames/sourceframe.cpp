@@ -10,8 +10,7 @@
 #include "aberrationframe.h"
 
 SourceFrame::SourceFrame(QWidget *parent) :
-    QWidget(parent), Main(nullptr),
-    ui(new Ui::SourceFrame)
+    QWidget(parent), ui(new Ui::SourceFrame), Main(nullptr)
 {
     ui->setupUi(this);
 

@@ -38,4 +38,5 @@ set(SOURCES
         supercell.cpp)
 
 add_library(cif SHARED ${SOURCES} ${HEADERS})
-target_include_directories (cif PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR})
+target_include_directories (cif SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
+target_include_directories (cif PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

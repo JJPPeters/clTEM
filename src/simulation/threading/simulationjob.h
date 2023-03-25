@@ -15,7 +15,7 @@ public:
 
     SimulationJob(std::shared_ptr<SimulationManager> _sMan, unsigned int _id) : simManager(_sMan), id(_id) { }
 
-    SimulationJob(std::shared_ptr<SimulationManager> _sMan, std::vector<int> _px, unsigned int _id) : simManager(_sMan), pixels(_px), id(_id) { }
+    SimulationJob(std::shared_ptr<SimulationManager> _sMan, std::vector<int> _px, unsigned int _id) : simManager(_sMan), id(_id), pixels(_px) { }
 
     // need a pointer to this so we can access variables we need without making a copy
     // TODO: consider multiple threads trying to access this...

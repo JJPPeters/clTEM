@@ -82,9 +82,9 @@ private:
 
     std::shared_ptr<PGL::PlotWidget> pltStructure;
 
-    bool getErrorStringCtem();
-    bool getErrorStringStem();
-    bool getErrorStringCbed();
+//    bool getErrorStringCtem();
+//    bool getErrorStringStem();
+//    bool getErrorStringCbed();
 
     void setStructLimits();
 

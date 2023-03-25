@@ -248,7 +248,7 @@ bool AreaLayoutFrame::apply_pressed() {
         QMessageBox msgBox;
         msgBox.setText("Error:");
         std::string msg = "";
-        for (int i = 0; i < errors.size(); ++i)
+        for (size_t i = 0; i < errors.size(); ++i)
         {
             msg += errors[i];
             if (i < errors.size() - 1)
@@ -298,29 +298,31 @@ bool AreaLayoutFrame::apply_pressed() {
     return valid;
 }
 
-bool AreaLayoutFrame::getErrorStringCtem() {
-    // check the range is positive non zero
-
-    // check the scale is positive non zero and not inf
-
-    return false;
-}
-
-bool AreaLayoutFrame::getErrorStringCbed() {
-    // check the padding is positive
-
-    // check the scale is positive non zero and not inf
-}
-
-bool AreaLayoutFrame::getErrorStringStem() {
-    // check the padding is positive
-
-    // check the ranges are positive non zero
-
-    // get pixels are positive non zero
-
-    // check the scale is positive non zero and not inf
-}
+//bool AreaLayoutFrame::getErrorStringCtem() {
+//    // check the range is positive non zero
+//
+//    // check the scale is positive non zero and not inf
+//
+//    return false;
+//}
+//
+//bool AreaLayoutFrame::getErrorStringCbed() {
+//    // check the padding is positive
+//
+//    // check the scale is positive non zero and not inf
+//    return false;
+//}
+//
+//bool AreaLayoutFrame::getErrorStringStem() {
+//    // check the padding is positive
+//
+//    // check the ranges are positive non zero
+//
+//    // get pixels are positive non zero
+//
+//    // check the scale is positive non zero and not inf
+//    return false;
+//}
 
 void AreaLayoutFrame::checkEditZero(QString txt) {
     if (ui->edtSliceThickness->text().toDouble() > 0)
@@ -384,7 +386,7 @@ void AreaLayoutFrame::plotStructure() {
     std::vector<Eigen::Vector3f> pos(atms.size());
     std::vector<Eigen::Vector3f> col(atms.size());
 
-    for (int i = 0; i < atms.size(); ++i) {
+    for (size_t i = 0; i < atms.size(); ++i) {
         pos[i] = Eigen::Vector3f(atms[i].x, atms[i].y, atms[i].z);
 
         auto qc = GuiUtils::ElementNumberToQColour(atms[i].A);
@@ -504,7 +506,7 @@ void AreaLayoutFrame::updatePlotRects() {
     std::vector<Eigen::Vector4f> cols_slice = {Eigen::Vector4f(1.0f, 1.0f, 0.0f, 0.1f), Eigen::Vector4f(0.3f, 0.7f, 0.4f, 0.1f)};
 
     auto current_z = szr[0];
-    for (int i = 0; i < nz; ++i) {
+    for (size_t i = 0; i < nz; ++i) {
         auto current_col = cols_slice[i % 2];
         _plot_rects.emplace_back(pltStructure->rectangle(current_z, syr[0], current_z + dz, syr[1], sxr[0], current_col, PGL::Plane::x));
         _plot_rects.emplace_back(pltStructure->rectangle(current_z, syr[0], current_z + dz, syr[1], sxr[1], current_col, PGL::Plane::x));

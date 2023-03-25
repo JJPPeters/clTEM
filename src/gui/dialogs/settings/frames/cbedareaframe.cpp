@@ -6,8 +6,7 @@
 #include "ui_cbedareaframe.h"
 
 CbedAreaFrame::CbedAreaFrame(QWidget *parent, CbedPosition pos, std::shared_ptr<CrystalStructure> struc) :
-    QWidget(parent), Position(pos), Structure(std::move(struc)),
-    ui(new Ui::CbedAreaFrame)
+    QWidget(parent), ui(new Ui::CbedAreaFrame), Position(pos), Structure(std::move(struc))
 {
     ui->setupUi(this);
 

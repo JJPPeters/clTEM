@@ -17,24 +17,11 @@
 
 namespace Utils_Qt
 {
-    static std::string kernelToChar(std::string kernelName)
-    {
-        std::string full_path = QApplication::instance()->applicationDirPath().toStdString() + "/kernels";
-        return Utils::resourceToChar(full_path, kernelName);
-    }
+    std::string kernelToChar(std::string kernelName);
 
-    static void readParamsFile(const std::string &paramsName, std::string folder = "params")
-    {
-        std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
-        Utils::readParams(exe_path + "/" + folder, paramsName);
-    }
+    void readParamsFile(const std::string &paramsName, std::string folder = "params");
 
-    static void ccdToDqeNtf(std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io, std::string folder = "ccds")
-    {
-        std::string exe_path = QApplication::instance()->applicationDirPath().toStdString();
-        std::ifstream inStream(exe_path + "/" + folder + "/" + fileName);
-        Utils::ccdToDqeNtf(exe_path + "/" + folder, fileName, name, dqe_io, ntf_io);
-    }
+    void ccdToDqeNtf(std::string fileName, std::string& name, std::vector<double>& dqe_io, std::vector<double>& ntf_io, std::string folder = "ccds");
 
     template <typename T>
     static QString numToQString(T num, int prec = GuiUtils::edit_precision, bool isFixed = true) {

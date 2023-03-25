@@ -80,5 +80,6 @@ set ( glViewWidget_SRCS
         framebuffer.cpp techniques/rectangleshader.cpp techniques/rectangleshader.h techniques/shader.cpp techniques/shader.h techniques/shaderresource.h techniques/scattershader.cpp techniques/scattershader.h)
 
 add_library ( glViewWidget STATIC ${glViewWidget_HDRS} ${glViewWidget_SRCS} ${RSCS})
-target_include_directories(glViewWidget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR})
+target_include_directories(glViewWidget SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
+target_include_directories(glViewWidget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries ( glViewWidget  Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL ${OPENGL_LIBRARIES})

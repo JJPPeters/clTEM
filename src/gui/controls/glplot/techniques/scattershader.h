@@ -17,7 +17,7 @@ class ScatterShader : public PGL::Shader {
 
         void initialise() override;
 
-        GLint _posBufLocation, _colBufLocation;
+        GLuint _posBufLocation, _colBufLocation;
 
     };
 }

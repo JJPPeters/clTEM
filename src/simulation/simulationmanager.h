@@ -226,7 +226,7 @@ public:
             return (do_parallel && parallelStem()) ? parallel_potentials_count : 1;
         } else {
             // only bother if we have fewer parallel than the tds iterations
-            int fp_count = incoherenceEffects()->iterations(mode());
+            unsigned int fp_count = incoherenceEffects()->iterations(mode());
             return (do_parallel && parallel_potentials_count < fp_count) ? parallel_potentials_count : 1;
         }
     }

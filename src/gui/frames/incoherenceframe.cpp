@@ -9,8 +9,7 @@
 #include "dialogs/settings/settingsdialog.h"
 
 IncoherenceFrame::IncoherenceFrame(QWidget *parent) :
-    QWidget(parent), Main(nullptr),
-    ui(new Ui::IncoherenceFrame)
+    QWidget(parent), ui(new Ui::IncoherenceFrame), Main(nullptr)
 {
     ui->setupUi(this);
 

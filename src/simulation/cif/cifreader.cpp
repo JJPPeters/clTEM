@@ -74,7 +74,7 @@ namespace CIF {
 
         std::vector<std::string> headerlines = Utilities::split(match[1], '\n');
 
-        int xyzcol = Utilities::vectorSearch(headerlines, std::string("_symmetry_equiv_pos_as_xyz"));
+        size_t xyzcol = Utilities::vectorSearch(headerlines, std::string("_symmetry_equiv_pos_as_xyz"));
 
         if (xyzcol >= headerlines.size())
             throw std::runtime_error("Could not find _symmetry_equiv_pos_as_xyz\n");
@@ -82,7 +82,7 @@ namespace CIF {
         std::string symmetrypattern = "";
 
         // this is a bit more tricky as all the columns don't have the same regex
-        for (int i = 0; i < headerlines.size(); ++i) {
+        for (size_t i = 0; i < headerlines.size(); ++i) {
             if (i == xyzcol)
                 symmetrypattern += "(?:['\"]?.+?,.+?,.+?['\"]?)";
             else
@@ -142,7 +142,7 @@ namespace CIF {
 
                 while (std::regex_search(op, match, rgxoperation)) {
 
-                    for (int i = 1; i < match.size(); ++i)
+                    for (size_t i = 1; i < match.size(); ++i)
                         termstrings.push_back(match[i].str());
 
                     // trim the string to make sure we don't find the same match
@@ -189,7 +189,7 @@ namespace CIF {
             header_strings.push_back(headerlines);
 
             std::string positionpattern = "((?:\\s*";
-            for (int i = 0; i < headerlines.size() - 1; ++i)
+            for (size_t i = 0; i < headerlines.size() - 1; ++i)
                 positionpattern += "\\S+[ \\t]+";
             // the last column needs to be different to close off the regex
             positionpattern += "\\S+[ \\t]*)+)";
@@ -217,7 +217,7 @@ namespace CIF {
 
         // now process the atomc positions
         std::vector<std::string> errors;
-        for (int i = 0; i < header_strings.size(); ++i) {
+        for (size_t i = 0; i < header_strings.size(); ++i) {
             try {
                 readAtomPositions(header_strings[i], data_strings[i]);
                 errors.emplace_back("");
@@ -242,7 +242,7 @@ namespace CIF {
             throw std::runtime_error(error_out);
 
         // Now the displacement stuff
-        for (int i = 0; i < header_strings.size(); ++i)
+        for (size_t i = 0; i < header_strings.size(); ++i)
             readThermalParameters(header_strings[i], data_strings[i]);
 
         if (atomsites.empty())
@@ -263,19 +263,19 @@ namespace CIF {
 
     void CIFReader::readAtomPositions(const std::vector<std::string> &headers, const std::vector<std::string> &entries) {
         // these are required!
-        int labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_label"));
+        unsigned int labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_label"));
         bool foundlabel = labelcol != headers.size();
-        int xcol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_x"));
+        unsigned int xcol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_x"));
         bool foundx = xcol != headers.size();
-        int ycol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_y"));
+        unsigned int ycol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_y"));
         bool foundy = ycol != headers.size();
-        int zcol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_z"));
+        unsigned int zcol = Utilities::vectorSearch(headers, std::string("_atom_site_fract_z"));
         bool foundz = zcol != headers.size();
-        int symbolcol = Utilities::vectorSearch(headers, std::string("_atom_site_type_symbol"));
+        unsigned int symbolcol = Utilities::vectorSearch(headers, std::string("_atom_site_type_symbol"));
         bool foundsymbol = symbolcol != headers.size();
 
         // this is not absolutely needed (assume occupancy = 1 otherwise
-        int occupancycol = Utilities::vectorSearch(headers, std::string("_atom_site_occupancy"));
+        unsigned int occupancycol = Utilities::vectorSearch(headers, std::string("_atom_site_occupancy"));
         bool foundoccupancy = occupancycol != headers.size();
 
         // this fix will try to get a atom symbol from the atom label
@@ -311,7 +311,7 @@ namespace CIF {
             // split our line by columns
             while (std::regex_search(line, match, rgxcolumns)) {
                 // extract column into list of vectors
-                for (int j = 1; j < match.size(); ++j)
+                for (size_t j = 1; j < match.size(); ++j)
                     columns.push_back(match[j].str());
 
                 line = match.suffix().str();
@@ -389,7 +389,7 @@ namespace CIF {
 
             for (auto &site : atomsites) {
                 auto positions = site.getPositions();
-                int ind = Utilities::vectorSearch(positions, postemp);
+                size_t ind = Utilities::vectorSearch(positions, postemp);
                 if (ind >= positions.size())
                     continue;
                 else {
@@ -411,7 +411,7 @@ namespace CIF {
     void CIFReader::readThermalParameters(const std::vector<std::string> &headers, const std::vector<std::string> &entries){
 
         // find label, normal one takes precedence
-        int labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_label"));
+        size_t labelcol = Utilities::vectorSearch(headers, std::string("_atom_site_label"));
         bool foundlabel = labelcol < headers.size();
 
         // then look for our aniso label
@@ -424,15 +424,15 @@ namespace CIF {
             return;
 
         // could be u iso?
-        int isocol = Utilities::vectorSearch(headers, std::string("_atom_site_B_iso_or_equiv"));
+        size_t isocol = Utilities::vectorSearch(headers, std::string("_atom_site_B_iso_or_equiv"));
         bool foundiso = isocol < headers.size();
 
         // could be B?
-        int uxcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_11"));
+        size_t uxcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_11"));
         bool foundux = uxcol < headers.size();
-        int uycol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_22"));
+        size_t uycol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_22"));
         bool founduy = uycol < headers.size();
-        int uzcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_33"));
+        size_t uzcol = Utilities::vectorSearch(headers, std::string("_atom_site_aniso_U_33"));
         bool founduz = uzcol < headers.size();
 
         std::smatch match;
@@ -445,7 +445,7 @@ namespace CIF {
             // split our line by columns
             while (std::regex_search(line, match, rgxcolumns)) {
                 // extract column into list of vectors
-                for (int j = 1; j < match.size(); ++j)
+                for (size_t j = 1; j < match.size(); ++j)
                     columns.push_back(match[j].str());
 
                 line = match.suffix().str();

@@ -20,7 +20,7 @@ namespace PGL {
         _height = height();
 
         // use system colours
-        auto bk_col = qApp->palette().brush(QPalette::Background).color();
+        auto bk_col = qApp->palette().brush(QPalette::Window).color();
         _background = Eigen::Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
 
         connect(this, &PlotWidget::customContextMenuRequested, this, &PlotWidget::contextMenuRequest);
@@ -39,7 +39,7 @@ namespace PGL {
     bool PlotWidget::event(QEvent *event) {
         // this might get spammed a bit, not sure if it is supposed to
         if (event->type() == QEvent::PaletteChange) {
-            auto bk_col = qApp->palette().brush(QPalette::Background).color();
+            auto bk_col = qApp->palette().brush(QPalette::Window).color();
             _background = Eigen::Vector3f(bk_col.red(), bk_col.green(), bk_col.blue()) / 255.0f;
             repaint();
         }

@@ -21,7 +21,7 @@ add_definitions ( -Wall )
 
 add_subdirectory(controls/glplot)
 
-include_directories(simulation)
+#include_directories(simulation)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
@@ -30,10 +30,10 @@ if(Qt5Widgets_FOUND)
     message(STATUS "Found Qt version: " ${Qt5Widgets_VERSION})
 endif()
 
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
+#include_directories(${Qt5Widgets_INCLUDE_DIRS})
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
-include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
+#include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
 add_definitions(${Qt5PrintSupport_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5PrintSupport_EXECUTABLE_COMPILE_FLAGS}")
@@ -148,7 +148,8 @@ if(MINGW)
 endif(MINGW)
 
 add_executable ( clTEM_gui ${clTEM_SRCS} ${UIS} ${RSCS} cltem.rc)
-target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${QCustomPlot_INCLUDE_DIR} simulation glViewWidget)
+target_include_directories(clTEM_gui SYSTEM PUBLIC ${QCustomPlot_INCLUDE_DIR} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5PrintSupport_INCLUDE_DIRS})
+target_include_directories(clTEM_gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} simulation glViewWidget)
 target_link_libraries ( clTEM_gui  Qt5::Widgets Qt5::PrintSupport ${QCustomPlot_LIBRARY} simulation glViewWidget)
 
 # This is for the theming. I need to get a better way of doing it instead of hard coding it.
